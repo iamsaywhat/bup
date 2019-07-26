@@ -1232,7 +1232,6 @@ uint8_t ZPZ_Response_REQ_SWS (uint16_t NumPacket)
 	ZPZ_BasePacket_Union  ZPZ_BaseResponse;
 	SWS_Packet_Type_Union SWS_data;
 	uint32_t timeout = 0;
-	//uint8_t  temp[2];
 	uint8_t  i;
 
 	// Первым делом нужно получить данные с СВС
@@ -1240,8 +1239,10 @@ uint8_t ZPZ_Response_REQ_SWS (uint16_t NumPacket)
 	SWS_RetargetPins ();
 	SWS_init ();
 	// Принимаем данные. 
-	while(SWS_GetPacket (&SWS_data) && (timeout < 0xFFF))
-		
+	while(SWS_GetPacket (&SWS_data) && (timeout < 0xFFF)) timeout ++;
+	// Отключаемся от СВС и освобождаем UART
+	SWS_deinit ();
+	
 	// Проверим был ли это выход по таймауту
 	if(timeout == 0xFFF)
 	{
@@ -1320,6 +1321,8 @@ uint8_t ZPZ_Response_REQ_SNS_POS (uint16_t NumPacket)
 	while(!SNS_GetPositionData(&SNS_Position_Data_Response)&& (timeout != 0xFFFF)) timeout ++;
 	// Запрашиваем данные ориентации
 	while(!SNS_GetOrientationData(&SNS_Orientation_Data_Response)&& (timeout != 0xFFFF)) timeout ++;
+	// Отключаемся от СНС и освобождаем UART
+	SNS_deinit ();
 	// Проверим, вдруг выход был по таймауту, тогда нужно ответить ошибкой и завершиться
 	if (timeout == 0xFFFF)
 	{
@@ -1394,7 +1397,8 @@ uint8_t ZPZ_Response_REQ_SNS_STATE (uint16_t NumPacket)
   while(!SNS_GetDeviceInformation(&SNS_DevInfo)&& (timeout != 0xFFFF)) timeout ++;
 	// Получим информацию о доступных данных 
   while(!SNS_GetDataState(&SNS_AvailableData)&& (timeout != 0xFFFF)) timeout ++;
-	
+	// Отключаемся от СНС и освобождаем UART
+	SNS_deinit ();
 	// Проверим, вдруг выход был по таймауту, тогда нужно ответить ошибкой и завершиться
 	if (timeout == 0xFFFF)
 	{
@@ -1465,6 +1469,10 @@ uint8_t ZPZ_Response_REQ_SNS_SETTINGS (uint8_t* params, uint16_t NumPacket)
 	ZPZ_BasePacket_Union     ZPZ_BaseResponse;
 	uint8_t  i;
 	
+	// Подключаемся к СНС
+	SNS_RetargetPins();
+	SNS_init();
+	
 	// Анализируем пришедшую команду и выполняем действия
 	if(params[0]== 0x01)
 		SNS_Request(HCE);
@@ -1478,6 +1486,9 @@ uint8_t ZPZ_Response_REQ_SNS_SETTINGS (uint8_t* params, uint16_t NumPacket)
 		SNS_Request(MCE);
 	else if (params[2] == 0x02)
 		SNS_Request(MCR);
+	
+	// Отключаемся от СНС и освобождаем UART
+	SNS_deinit ();
 	
 	// Теперь нужно ответить 
 	// Заполняем структуру общей части всех пакетов

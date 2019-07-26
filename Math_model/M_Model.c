@@ -64,7 +64,7 @@ void M_Model_Init(void)
 	
 #ifdef flightRegulatorCFB	
 	flightRegulatorCFB_initialize();
-	rtU.isVeracityGns = 0;
+	// rtU.isVeracityGns = 0;
 #else
 	Easy_reg_initialize();
 #endif
@@ -204,7 +204,7 @@ void M_Model_Control (void)
 {	
 #ifdef flightRegulatorCFB	
 	// Если команда на посадку не пришла, мы еще в полете, будем управлять
-	if(rtY.cmdTouchDown == ((uint8_t)0))
+	if(rtY.cmdTouchDown == 0)
 	{
 		// Управление БИМами по выходу модели
 		// Обе стропы отпустить
@@ -223,7 +223,7 @@ void M_Model_Control (void)
 			M_Model_Cmd2BIM (rtY.tightenSling*rtY.directionOfRotation);
 		}
 	}
-	else if (rtY.cmdTouchDown ==((uint8_t)1))
+	else if (rtY.cmdTouchDown == 1)
 	{
 		// Замок створки открыть
 	   BLIND_CTRL_ON();
@@ -256,6 +256,7 @@ void M_Model_Control (void)
   // Выводим структуру
 	debug_can_full_struct();
 #else 
+	// Возможно пришла команда на посадку?
   if (Easy_reg_Y.TD_CMD == 1)
 	{
 		// Замок створки открыть
@@ -263,6 +264,7 @@ void M_Model_Control (void)
 		// Тут нельзя дольше 10 сек удерживать включение
 		// TODO
 	}	
+	// Команды на посадку не было, поэтому будем управлять стропами
 	else if (Easy_reg_Y.TD_CMD == 0)
 		M_Model_Cmd2BIM (Easy_reg_Y.BIM_CMD);
 #endif

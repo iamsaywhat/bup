@@ -3,9 +3,9 @@
  *
  * Code generated for Simulink model 'flightRegulatorCFB'.
  *
- * Model version                  : 1.1334
+ * Model version                  : 1.1367
  * Simulink Coder version         : 8.14 (R2018a) 06-Feb-2018
- * C/C++ source code generated on : Thu Jul 25 18:36:38 2019
+ * C/C++ source code generated on : Fri Jul 26 16:28:29 2019
  *
  * Target selection: ert.tlc
  * Embedded hardware selection: ARM Compatible->ARM Cortex
@@ -61,11 +61,11 @@ typedef enum {
   pointsModeType_goToPoint1,
   pointsModeType_pausePoint1,
   pointsModeType_goToPoint2,
-  pointsModeType_pausePoint4,
+  pointsModeType_pausePoint2,
   pointsModeType_goToPoint3,
   pointsModeType_pausePoint3,
   pointsModeType_goToPoint4,
-  pointsModeType_pausePoint5
+  pointsModeType_pausePoint4
 } pointsModeType;
 
 #endif
@@ -76,7 +76,8 @@ typedef enum {
 typedef enum {
   waitingEnginesModeType_None = 0,     /* Default value */
   waitingEnginesModeType_enableEngines,
-  waitingEnginesModeType_disableEngines
+  waitingEnginesModeType_disableEngines,
+  waitingEnginesModeType_disableEngines1
 } waitingEnginesModeType;
 
 #endif
@@ -143,11 +144,11 @@ typedef struct {
   real_T la1;                          /* '<S3>/parameter&#x421;alculation' */
   real_T la2;                          /* '<S3>/parameter&#x421;alculation' */
   real_T isFlightBox;                  /* '<S3>/parameter&#x421;alculation' */
-  real_T outDistance2;                 /* '<S3>/parameter&#x421;alculation' */
   real_T outPrecision;                 /* '<S3>/parameter&#x421;alculation' */
   real_T localOutAngle;                /* '<S4>/distanceRegulator' */
   real_T angleAdded;                   /* '<S4>/distanceRegulator' */
   real_T lastDirectionOfRotation;      /* '<S4>/angleRegulator' */
+  real_T lastTightenSling;             /* '<S4>/angleRegulator' */
   real_T timeWaitEngines;              /* '<S4>/angleRegulator' */
   real_T enableEngines;                /* '<S4>/angleRegulator' */
   real_T pTightenSling;                /* '<S4>/angleRegulator' */
@@ -174,7 +175,7 @@ typedef struct {
   real_T ticksPauseBox;                /* '<S3>/parameter&#x421;alculation' */
   int32_T sfEvent;                     /* '<S3>/parameter&#x421;alculation' */
   uint32_T temporalCounter_i1;         /* '<S4>/angleRegulator' */
-  uint32_T temporalCounter_i4;         /* '<S3>/parameter&#x421;alculation' */
+  uint32_T temporalCounter_i2;         /* '<S3>/parameter&#x421;alculation' */
   flightMode1ModeType flightMode1Mode; /* '<S3>/parameter&#x421;alculation' */
   pointsModeType pointsMode;           /* '<S3>/parameter&#x421;alculation' */
   waitingEnginesModeType waitingEnginesMode;/* '<S4>/angleRegulator' */
@@ -186,6 +187,7 @@ typedef struct {
     uint_T is_c6_flightRegulatorCFB:2; /* '<S4>/holdingAngle' */
     uint_T is_controlAngle:2;          /* '<S4>/distanceRegulator' */
     uint_T is_resetOrder:2;            /* '<S4>/angleRegulator' */
+    uint_T is_calculationTimeTurn:2;   /* '<S4>/angleRegulator' */
     uint_T is_updatePlan:2;            /* '<S3>/parameter&#x421;alculation' */
     uint_T is_updateAngle:2;           /* '<S3>/parameter&#x421;alculation' */
     uint_T is_azimutInCorridor:2;      /* '<S3>/parameter&#x421;alculation' */
@@ -203,20 +205,20 @@ typedef struct {
     uint_T is_active_updateAngle:1;    /* '<S3>/parameter&#x421;alculation' */
     uint_T is_active_azimutInCorridor:1;/* '<S3>/parameter&#x421;alculation' */
     uint_T is_active_flightMode1:1;    /* '<S3>/parameter&#x421;alculation' */
+    uint_T is_active_points:1;         /* '<S3>/parameter&#x421;alculation' */
+    uint_T is_active_outControl:1;     /* '<S3>/parameter&#x421;alculation' */
     uint_T is_active_flightMode:1;     /* '<S3>/parameter&#x421;alculation' */
     uint_T is_active_criteriaDefinition:1;/* '<S3>/parameter&#x421;alculation' */
     uint_T is_active_mathBox:1;        /* '<S3>/parameter&#x421;alculation' */
     uint_T is_criteriaDefinition1:1;   /* '<S3>/parameter&#x421;alculation' */
     uint_T is_active_criteriaDefinition1:1;/* '<S3>/parameter&#x421;alculation' */
-    uint_T is_active_points:1;         /* '<S3>/parameter&#x421;alculation' */
-    uint_T is_active_outControl:1;     /* '<S3>/parameter&#x421;alculation' */
   } bitsForTID0;
 
   uint8_T temporalCounter_i1_f;        /* '<S4>/distanceRegulator' */
-  uint8_T temporalCounter_i2;          /* '<S4>/distanceRegulator' */
+  uint8_T temporalCounter_i2_b;        /* '<S4>/distanceRegulator' */
   uint8_T temporalCounter_i1_fv;       /* '<S3>/parameter&#x421;alculation' */
-  uint8_T temporalCounter_i2_g;        /* '<S3>/parameter&#x421;alculation' */
   uint8_T temporalCounter_i3;          /* '<S3>/parameter&#x421;alculation' */
+  uint8_T temporalCounter_i4;          /* '<S3>/parameter&#x421;alculation' */
 } DW;
 
 /* External inputs (root inport signals with default storage) */
@@ -263,6 +265,7 @@ typedef struct {
   real_T lon1;                         /* '<Root>/lon1' */
   real_T lon2;                         /* '<Root>/lon2' */
   real_T orderAngle;                   /* '<Root>/orderAngle' */
+  real_T distance2;                    /* '<Root>/distance2' */
 } ExtY;
 
 /* Real-time Model Data Structure */
@@ -289,16 +292,16 @@ extern RT_MODEL *const rtM;
 /*-
  * These blocks were eliminated from the model due to optimizations:
  *
+ * Block '<S1>/Gain3' : Unused code path elimination
  * Block '<S1>/Scope' : Unused code path elimination
  * Block '<S1>/Scope3' : Unused code path elimination
  * Block '<S3>/Display4' : Unused code path elimination
  * Block '<S3>/Gain5' : Unused code path elimination
  * Block '<S3>/Gain6' : Unused code path elimination
+ * Block '<S3>/Gain7' : Unused code path elimination
+ * Block '<S3>/Gain8' : Unused code path elimination
  * Block '<S3>/Scope' : Unused code path elimination
  * Block '<S3>/Scope1' : Unused code path elimination
- * Block '<S3>/Scope2' : Unused code path elimination
- * Block '<S3>/Scope3' : Unused code path elimination
- * Block '<S3>/Scope4' : Unused code path elimination
  * Block '<S3>/Scope5' : Unused code path elimination
  * Block '<S3>/distancePoint2' : Unused code path elimination
  * Block '<S4>/Constant1' : Unused code path elimination

@@ -50,5 +50,6 @@ void debug_can(unsigned short id, void* data, unsigned char size);
       debug_can_full_struct - Вывод всей структуры отладочной информации
 **********************************************************************************************************/
 void debug_can_full_struct (void);
+
 #endif
 
