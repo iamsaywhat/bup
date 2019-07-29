@@ -7,9 +7,9 @@
  *
  * Code generated for Simulink model 'Easy_reg'.
  *
- * Model version                  : 1.19
+ * Model version                  : 1.3
  * Simulink Coder version         : 8.14 (R2018a) 06-Feb-2018
- * C/C++ source code generated on : Fri Jul 26 14:43:45 2019
+ * C/C++ source code generated on : Mon Jul 29 19:04:42 2019
  *
  * Target selection: ert.tlc
  * Embedded hardware selection: ARM Compatible->ARM Cortex
@@ -38,16 +38,16 @@ RT_MODEL_Easy_reg_T *const Easy_reg_M = &Easy_reg_M_;
  *    '<S1>/Heading_true'
  *    '<S1>/Heading_true1'
  */
-void Easy_reg_Heading_true(real_T rtu_u1, real_T rtu_u1_j, real_T rtu_u0, real_T
-  rtu_u0_f, real_T *rty_y)
+void Easy_reg_Heading_true(real_T rtu_u1, real_T rtu_u1_b, real_T rtu_u0, real_T
+  rtu_u0_m, real_T *rty_y)
 {
   real_T un_idx_0;
   real_T un_idx_1;
   real_T tmp;
 
-  /* SignalConversion: '<S2>/TmpSignal ConversionAt SFunction Inport1' */
+  /* SignalConversion: '<S4>/TmpSignal ConversionAt SFunction Inport1' */
   un_idx_0 = rtu_u1 - rtu_u0;
-  un_idx_1 = rtu_u1_j - rtu_u0_f;
+  un_idx_1 = rtu_u1_b - rtu_u0_m;
   tmp = sqrt(un_idx_1 * un_idx_1 + un_idx_0 * un_idx_0);
   *rty_y = un_idx_1 / tmp;
   *rty_y = acos(*rty_y);
@@ -59,10 +59,21 @@ void Easy_reg_Heading_true(real_T rtu_u1, real_T rtu_u1_j, real_T rtu_u0, real_T
 /* Model step function */
 void Easy_reg_step(void)
 {
-  real_T rtb_y_a;
-  real_T rtb_y_p;
+  real_T rtb_y_j;
+  real_T rtb_y_k;
+  real_T dif_idx_0;
+  real_T dif_idx_1;
 
   /* Outputs for Atomic SubSystem: '<Root>/Easy_reg' */
+  /* MATLAB Function: '<S1>/Distance_calc_deg' incorporates:
+   *  Inport: '<Root>/Pos_lat'
+   *  Inport: '<Root>/Pos_lon'
+   *  Inport: '<Root>/TDP_lat'
+   *  Inport: '<Root>/TDP_lon'
+   */
+  dif_idx_0 = Easy_reg_U.TDP_lon - Easy_reg_U.Pos_lon;
+  dif_idx_1 = Easy_reg_U.TDP_lat - Easy_reg_U.Pos_lat;
+
   /* MATLAB Function: '<S1>/Heading_true' incorporates:
    *  Inport: '<Root>/Pos_lat'
    *  Inport: '<Root>/Pos_lon'
@@ -70,7 +81,7 @@ void Easy_reg_step(void)
    *  Inport: '<Root>/TDP_lon'
    */
   Easy_reg_Heading_true(Easy_reg_U.TDP_lon, Easy_reg_U.TDP_lat,
-                        Easy_reg_U.Pos_lon, Easy_reg_U.Pos_lat, &rtb_y_a);
+                        Easy_reg_U.Pos_lon, Easy_reg_U.Pos_lat, &rtb_y_j);
 
   /* MATLAB Function: '<S1>/Heading_true1' incorporates:
    *  Inport: '<Root>/Pos_lat'
@@ -79,17 +90,30 @@ void Easy_reg_step(void)
    */
   Easy_reg_Heading_true(Easy_reg_U.Pos_lon, Easy_reg_U.Pos_lat,
                         Easy_reg_DW.Memory_1_PreviousInput,
-                        Easy_reg_DW.Memory_2_PreviousInput, &rtb_y_p);
+                        Easy_reg_DW.Memory_2_PreviousInput, &rtb_y_k);
 
-  /* Sum: '<S1>/Sum1' */
-  rtb_y_a -= rtb_y_p;
+  /* Sum: '<S1>/Sum1' incorporates:
+   *  Constant: '<S1>/Constant1'
+   *  Constant: '<S1>/Constant2'
+   *  Constant: '<S1>/Constant3'
+   *  Inport: '<Root>/Pos_alt'
+   *  Logic: '<S1>/Logical Operator'
+   *  MATLAB Function: '<S1>/Distance_calc_deg'
+   *  Product: '<S1>/Product'
+   *  RelationalOperator: '<S1>/Relational Operator1'
+   *  RelationalOperator: '<S1>/Relational Operator2'
+   *  Sum: '<S1>/Sum'
+   */
+  dif_idx_0 = (rtb_y_j - (real_T)((sqrt(dif_idx_0 * dif_idx_0 + dif_idx_1 *
+    dif_idx_1) <= 0.004) && (Easy_reg_U.Pos_alt > 600.0)) * 0.78539816339744828)
+    - rtb_y_k;
 
   /* MATLAB Function: '<S1>/MATLAB Function' */
-  if (rtb_y_a > 3.14) {
-    rtb_y_a -= 6.2819;
+  if (dif_idx_0 > 3.14) {
+    dif_idx_0 -= 6.2819;
   } else {
-    if (rtb_y_a < -3.14) {
-      rtb_y_a += 6.2819;
+    if (dif_idx_0 < -3.14) {
+      dif_idx_0 += 6.2819;
     }
   }
 
@@ -103,7 +127,7 @@ void Easy_reg_step(void)
   Easy_reg_DW.Memory_2_PreviousInput = Easy_reg_U.Pos_lat;
 
   /* Gain: '<S1>/Gain1' */
-  Easy_reg_Y.BIM_CMD = 57.295779513082323 * rtb_y_a;
+  Easy_reg_Y.BIM_CMD = 57.295779513082323 * dif_idx_0;
 
   /* Saturate: '<S1>/Saturation' */
   if (Easy_reg_Y.BIM_CMD > 50.0) {

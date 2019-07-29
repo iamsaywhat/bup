@@ -7,9 +7,9 @@
  *
  * Code generated for Simulink model 'Easy_reg'.
  *
- * Model version                  : 1.19
+ * Model version                  : 1.3
  * Simulink Coder version         : 8.14 (R2018a) 06-Feb-2018
- * C/C++ source code generated on : Fri Jul 26 14:43:45 2019
+ * C/C++ source code generated on : Mon Jul 29 19:04:42 2019
  *
  * Target selection: ert.tlc
  * Embedded hardware selection: ARM Compatible->ARM Cortex

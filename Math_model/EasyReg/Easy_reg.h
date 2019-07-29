@@ -7,9 +7,9 @@
  *
  * Code generated for Simulink model 'Easy_reg'.
  *
- * Model version                  : 1.19
+ * Model version                  : 1.3
  * Simulink Coder version         : 8.14 (R2018a) 06-Feb-2018
- * C/C++ source code generated on : Fri Jul 26 14:43:45 2019
+ * C/C++ source code generated on : Mon Jul 29 19:04:42 2019
  *
  * Target selection: ert.tlc
  * Embedded hardware selection: ARM Compatible->ARM Cortex
@@ -89,10 +89,18 @@ extern RT_MODEL_Easy_reg_T *const Easy_reg_M;
  * Block '<S1>/Gain2' : Unused code path elimination
  * Block '<S1>/Gain3' : Unused code path elimination
  * Block '<S1>/Scope1' : Unused code path elimination
+ * Block '<S1>/Scope10' : Unused code path elimination
+ * Block '<S1>/Scope11' : Unused code path elimination
+ * Block '<S1>/Scope12' : Unused code path elimination
+ * Block '<S1>/Scope13' : Unused code path elimination
  * Block '<S1>/Scope2' : Unused code path elimination
  * Block '<S1>/Scope3' : Unused code path elimination
  * Block '<S1>/Scope4' : Unused code path elimination
  * Block '<S1>/Scope5' : Unused code path elimination
+ * Block '<S1>/Scope6' : Unused code path elimination
+ * Block '<S1>/Scope7' : Unused code path elimination
+ * Block '<S1>/Scope8' : Unused code path elimination
+ * Block '<S1>/Scope9' : Unused code path elimination
  * Block '<S1>/Gain' : Eliminated nontunable gain of 1
  */
 
@@ -108,16 +116,18 @@ extern RT_MODEL_Easy_reg_T *const Easy_reg_M;
  * MATLAB hilite_system command to trace the generated code back
  * to the parent model.  For example,
  *
- * hilite_system('Bup_reg/Easy_reg')    - opens subsystem Bup_reg/Easy_reg
- * hilite_system('Bup_reg/Easy_reg/Kp') - opens and selects block Kp
+ * hilite_system('prob/Easy_reg')    - opens subsystem prob/Easy_reg
+ * hilite_system('prob/Easy_reg/Kp') - opens and selects block Kp
  *
  * Here is the system hierarchy for this model
  *
- * '<Root>' : 'Bup_reg'
- * '<S1>'   : 'Bup_reg/Easy_reg'
- * '<S2>'   : 'Bup_reg/Easy_reg/Heading_true'
- * '<S3>'   : 'Bup_reg/Easy_reg/Heading_true1'
- * '<S4>'   : 'Bup_reg/Easy_reg/MATLAB Function'
+ * '<Root>' : 'prob'
+ * '<S1>'   : 'prob/Easy_reg'
+ * '<S2>'   : 'prob/Easy_reg/Distance_calc_KM'
+ * '<S3>'   : 'prob/Easy_reg/Distance_calc_deg'
+ * '<S4>'   : 'prob/Easy_reg/Heading_true'
+ * '<S5>'   : 'prob/Easy_reg/Heading_true1'
+ * '<S6>'   : 'prob/Easy_reg/MATLAB Function'
  */
 #endif                                 /* RTW_HEADER_Easy_reg_h_ */
 
