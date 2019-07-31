@@ -7,9 +7,9 @@
  *
  * Code generated for Simulink model 'Easy_reg'.
  *
- * Model version                  : 1.3
+ * Model version                  : 1.7
  * Simulink Coder version         : 8.14 (R2018a) 06-Feb-2018
- * C/C++ source code generated on : Mon Jul 29 19:04:42 2019
+ * C/C++ source code generated on : Wed Jul 31 14:01:54 2019
  *
  * Target selection: ert.tlc
  * Embedded hardware selection: ARM Compatible->ARM Cortex
@@ -59,8 +59,7 @@ void Easy_reg_Heading_true(real_T rtu_u1, real_T rtu_u1_b, real_T rtu_u0, real_T
 /* Model step function */
 void Easy_reg_step(void)
 {
-  real_T rtb_y_j;
-  real_T rtb_y_k;
+  boolean_T rtb_LogicalOperator;
   real_T dif_idx_0;
   real_T dif_idx_1;
 
@@ -74,6 +73,17 @@ void Easy_reg_step(void)
   dif_idx_0 = Easy_reg_U.TDP_lon - Easy_reg_U.Pos_lon;
   dif_idx_1 = Easy_reg_U.TDP_lat - Easy_reg_U.Pos_lat;
 
+  /* Logic: '<S1>/Logical Operator' incorporates:
+   *  Constant: '<S1>/Constant1'
+   *  Constant: '<S1>/Constant2'
+   *  Inport: '<Root>/Pos_alt'
+   *  MATLAB Function: '<S1>/Distance_calc_deg'
+   *  RelationalOperator: '<S1>/Relational Operator1'
+   *  RelationalOperator: '<S1>/Relational Operator2'
+   */
+  rtb_LogicalOperator = ((sqrt(dif_idx_0 * dif_idx_0 + dif_idx_1 * dif_idx_1) <=
+    0.007) && (Easy_reg_U.Pos_alt > 700.0));
+
   /* MATLAB Function: '<S1>/Heading_true' incorporates:
    *  Inport: '<Root>/Pos_lat'
    *  Inport: '<Root>/Pos_lon'
@@ -81,7 +91,7 @@ void Easy_reg_step(void)
    *  Inport: '<Root>/TDP_lon'
    */
   Easy_reg_Heading_true(Easy_reg_U.TDP_lon, Easy_reg_U.TDP_lat,
-                        Easy_reg_U.Pos_lon, Easy_reg_U.Pos_lat, &rtb_y_j);
+                        Easy_reg_U.Pos_lon, Easy_reg_U.Pos_lat, &dif_idx_0);
 
   /* MATLAB Function: '<S1>/Heading_true1' incorporates:
    *  Inport: '<Root>/Pos_lat'
@@ -90,23 +100,15 @@ void Easy_reg_step(void)
    */
   Easy_reg_Heading_true(Easy_reg_U.Pos_lon, Easy_reg_U.Pos_lat,
                         Easy_reg_DW.Memory_1_PreviousInput,
-                        Easy_reg_DW.Memory_2_PreviousInput, &rtb_y_k);
+                        Easy_reg_DW.Memory_2_PreviousInput, &dif_idx_1);
 
   /* Sum: '<S1>/Sum1' incorporates:
-   *  Constant: '<S1>/Constant1'
-   *  Constant: '<S1>/Constant2'
    *  Constant: '<S1>/Constant3'
-   *  Inport: '<Root>/Pos_alt'
-   *  Logic: '<S1>/Logical Operator'
-   *  MATLAB Function: '<S1>/Distance_calc_deg'
    *  Product: '<S1>/Product'
-   *  RelationalOperator: '<S1>/Relational Operator1'
-   *  RelationalOperator: '<S1>/Relational Operator2'
    *  Sum: '<S1>/Sum'
    */
-  dif_idx_0 = (rtb_y_j - (real_T)((sqrt(dif_idx_0 * dif_idx_0 + dif_idx_1 *
-    dif_idx_1) <= 0.004) && (Easy_reg_U.Pos_alt > 600.0)) * 0.78539816339744828)
-    - rtb_y_k;
+  dif_idx_0 = (dif_idx_0 - (real_T)rtb_LogicalOperator * 1.5707963267948966) -
+    dif_idx_1;
 
   /* MATLAB Function: '<S1>/MATLAB Function' */
   if (dif_idx_0 > 3.14) {
@@ -119,32 +121,57 @@ void Easy_reg_step(void)
 
   /* End of MATLAB Function: '<S1>/MATLAB Function' */
 
+  /* Switch: '<S1>/Switch' */
+  if (rtb_LogicalOperator) {
+    /* Gain: '<S1>/Gain1' */
+    Easy_reg_Y.BIM_CMD = 57.295779513082323 * dif_idx_0;
+
+    /* Saturate: '<S1>/Saturation1' */
+    if (Easy_reg_Y.BIM_CMD > 20.0) {
+      /* Gain: '<S1>/Gain1' incorporates:
+       *  Outport: '<Root>/BIM_CMD'
+       */
+      Easy_reg_Y.BIM_CMD = 20.0;
+    } else {
+      if (Easy_reg_Y.BIM_CMD < -20.0) {
+        /* Gain: '<S1>/Gain1' incorporates:
+         *  Outport: '<Root>/BIM_CMD'
+         */
+        Easy_reg_Y.BIM_CMD = -20.0;
+      }
+    }
+
+    /* End of Saturate: '<S1>/Saturation1' */
+  } else {
+    /* Gain: '<S1>/Gain1' */
+    Easy_reg_Y.BIM_CMD = 57.295779513082323 * dif_idx_0;
+
+    /* Saturate: '<S1>/Saturation' */
+    if (Easy_reg_Y.BIM_CMD > 50.0) {
+      /* Gain: '<S1>/Gain1' incorporates:
+       *  Outport: '<Root>/BIM_CMD'
+       */
+      Easy_reg_Y.BIM_CMD = 50.0;
+    } else {
+      if (Easy_reg_Y.BIM_CMD < -50.0) {
+        /* Gain: '<S1>/Gain1' incorporates:
+         *  Outport: '<Root>/BIM_CMD'
+         */
+        Easy_reg_Y.BIM_CMD = -50.0;
+      }
+    }
+
+    /* End of Saturate: '<S1>/Saturation' */
+  }
+
+  /* End of Switch: '<S1>/Switch' */
+
   /* Update for Memory: '<S1>/Memory' incorporates:
    *  Inport: '<Root>/Pos_lat'
    *  Inport: '<Root>/Pos_lon'
    */
   Easy_reg_DW.Memory_1_PreviousInput = Easy_reg_U.Pos_lon;
   Easy_reg_DW.Memory_2_PreviousInput = Easy_reg_U.Pos_lat;
-
-  /* Gain: '<S1>/Gain1' */
-  Easy_reg_Y.BIM_CMD = 57.295779513082323 * dif_idx_0;
-
-  /* Saturate: '<S1>/Saturation' */
-  if (Easy_reg_Y.BIM_CMD > 50.0) {
-    /* Gain: '<S1>/Gain1' incorporates:
-     *  Outport: '<Root>/BIM_CMD'
-     */
-    Easy_reg_Y.BIM_CMD = 50.0;
-  } else {
-    if (Easy_reg_Y.BIM_CMD < -50.0) {
-      /* Gain: '<S1>/Gain1' incorporates:
-       *  Outport: '<Root>/BIM_CMD'
-       */
-      Easy_reg_Y.BIM_CMD = -50.0;
-    }
-  }
-
-  /* End of Saturate: '<S1>/Saturation' */
 
   /* Outport: '<Root>/TD_CMD' incorporates:
    *  Constant: '<S1>/Constant'

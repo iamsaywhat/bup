@@ -7,9 +7,9 @@
  *
  * Code generated for Simulink model 'Easy_reg'.
  *
- * Model version                  : 1.3
+ * Model version                  : 1.7
  * Simulink Coder version         : 8.14 (R2018a) 06-Feb-2018
- * C/C++ source code generated on : Mon Jul 29 19:04:42 2019
+ * C/C++ source code generated on : Wed Jul 31 14:01:54 2019
  *
  * Target selection: ert.tlc
  * Embedded hardware selection: ARM Compatible->ARM Cortex
@@ -93,6 +93,7 @@ extern RT_MODEL_Easy_reg_T *const Easy_reg_M;
  * Block '<S1>/Scope11' : Unused code path elimination
  * Block '<S1>/Scope12' : Unused code path elimination
  * Block '<S1>/Scope13' : Unused code path elimination
+ * Block '<S1>/Scope14' : Unused code path elimination
  * Block '<S1>/Scope2' : Unused code path elimination
  * Block '<S1>/Scope3' : Unused code path elimination
  * Block '<S1>/Scope4' : Unused code path elimination
@@ -100,8 +101,8 @@ extern RT_MODEL_Easy_reg_T *const Easy_reg_M;
  * Block '<S1>/Scope6' : Unused code path elimination
  * Block '<S1>/Scope7' : Unused code path elimination
  * Block '<S1>/Scope8' : Unused code path elimination
- * Block '<S1>/Scope9' : Unused code path elimination
  * Block '<S1>/Gain' : Eliminated nontunable gain of 1
+ * Block '<S1>/Gain4' : Eliminated nontunable gain of 1
  */
 
 /*-

@@ -68,4 +68,5 @@ void debug_can_full_struct (void)
 	debug_can(0x522, &debug_vars.rtU_XYZi_Lon, 8);
 	debug_can(0x523, &debug_vars.rtU_XYZi_Alt, 8);
 	debug_can(0x524, &debug_vars.distanceB, 8);
+	debug_can(0x525, &debug_vars.distance2, 2);
 }

@@ -253,9 +253,12 @@ void M_Model_Control (void)
 	debug_vars.Lon1 = (double)(rtY.lon1);
 	debug_vars.Lon2 = (double)(rtY.lon2);
 	debug_vars.distanceB = (double)(rtY.distanceB);
+	debug_vars.distance2 = (uint16_t)(rtY.distance2);
   // Выводим структуру
 	debug_can_full_struct();
-#else 
+	
+#else
+
 	// Возможно пришла команда на посадку?
   if (Easy_reg_Y.TD_CMD == 1)
 	{
