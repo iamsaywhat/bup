@@ -613,7 +613,7 @@ uint16_t ZPZ_Request_START_DOWNLOAD (uint16_t CRC)
 	uint16_t crc;
 	uint8_t  temp;
 	uint16_t i;
-	uint8_t  buffer[54];
+	uint8_t  buffer[PACKET0_DATASIZE];
 	
 	// Приём пустого байта перед информацией (фиктивное считывание)
 	temp = UARTReceiveByte_by_SLIP(ZPZ_UART, 0xFFFF);
@@ -621,17 +621,17 @@ uint16_t ZPZ_Request_START_DOWNLOAD (uint16_t CRC)
 	crc = Crc16(&temp, 1, CRC);
 	
 	// Далее принимаем полезную часть информации и сразу пишем во внешнюю SPI память
-	for(i = 0; i < 54; i++)
+	for(i = 0; i < PACKET0_DATASIZE; i++)
 	{
 		// Принимаем байт информации
 		buffer[i] = UARTReceiveByte_by_SLIP(ZPZ_UART, 0xFFFF);
 		// Пересчитываем контрольную сумму
 		crc = Crc16(&buffer[i], 1, crc);
 	}
-	// Очищаем память по полетное задание
+	// Очищаем память под полетное задание
 	ZPZ_ChipEraseCSnUnion();
 	// Записываем точку приземления и масштабы карты высот
-	ZPZ_WriteIntoCSnUnion(PACKET0_ADR, buffer, 54);
+	ZPZ_WriteIntoCSnUnion(PACKET0_ADR, buffer, PACKET0_DATASIZE);
 	
 	// Возвращаем контрольную сумму обратно в основную функцию для дорасчета
 	return crc;
@@ -662,7 +662,7 @@ uint16_t ZPZ_Request_MAP_DOWNLOAD (uint16_t CRC, uint16_t NumPacket)
 	// Используя макрос получаем адрес расположения текущего пакета
 	Address = nMAP_ADR(NumPacket);
 	// Далее принимаем полезную часть информации и сразу пишем во внешнюю SPI память
-	for(i = 0; i < 800; i++)
+	for(i = 0; i < PACKETnMAP_DATASIZE; i++)
 	{
 		// Принимаем байт информации
 		temp = UARTReceiveByte_by_SLIP(ZPZ_UART, 0xFFFF);
@@ -704,7 +704,7 @@ void ZPZ_Response_START_UPLOAD (uint16_t NumPacket)
 	
 	// Заполняем структуру ответа и сразу начнем считать контрольную сумму
 	ZPZ_Base_Request.Struct.Handler     = HANDLER_BU;
-	ZPZ_Base_Request.Struct.PacketSize  = 0x003A; 
+	ZPZ_Base_Request.Struct.PacketSize  = 0x003C; 
 	ZPZ_Base_Request.Struct.Command     = START_UPLOAD;
 	ZPZ_Base_Request.Struct.Count       = NumPacket;
 	ZPZ_Base_Request.Struct.CRC         = Crc16(&ZPZ_Base_Request.Buffer[0], 7, CRC16_INITIAL_FFFF);
@@ -727,7 +727,7 @@ void ZPZ_Response_START_UPLOAD (uint16_t NumPacket)
 	UARTSendByte_by_SLIP (ZPZ_UART, 0xFFFF, temp);
 	
 	// Далее будем читать внешнюю SPI память побайтно и сразу отправлять
-	for(i = 0; i < 54; i++)
+	for(i = 0; i < PACKET0_DATASIZE; i++)
 	{
 		// Читаем байт
 		ZPZ_ReadIntoCSnUnion(PACKET0_ADR+i, &temp, 1);
@@ -788,7 +788,7 @@ void ZPZ_Response_MAP_UPLOAD (uint16_t NumPacket)
 	UARTSendByte_by_SLIP (ZPZ_UART, 0xFFFF, temp);
 
 	// Далее будем читать внешнюю SPI память побайтно и сразу отправлять
-	for(i = 0; i < 800; i++)
+	for(i = 0; i < PACKETnMAP_DATASIZE; i++)
 	{
 		// Определяем адрес с помощью макроса
 		Address = nMAP_ADR(NumPacket);

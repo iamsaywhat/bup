@@ -22,7 +22,9 @@
   long long cnt = 0;
 	
 
-
+	char CHM = 0;
+	double iii = 0;
+	short pp = 0;
 
 
 int main(void)
@@ -50,6 +52,7 @@ int main(void)
 	LogFs_Info();
 	// Запускаем диагностику системы
 	SelfTestingFull();
+	
 	
 //// Тестирование файловой системы с логов
 //	for(i=0; i < 200; i++)
