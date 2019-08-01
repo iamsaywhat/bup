@@ -7,9 +7,9 @@
  *
  * Code generated for Simulink model 'Easy_reg'.
  *
- * Model version                  : 1.7
+ * Model version                  : 1.9
  * Simulink Coder version         : 8.14 (R2018a) 06-Feb-2018
- * C/C++ source code generated on : Wed Jul 31 14:01:54 2019
+ * C/C++ source code generated on : Thu Aug  1 11:47:02 2019
  *
  * Target selection: ert.tlc
  * Embedded hardware selection: ARM Compatible->ARM Cortex
@@ -123,8 +123,10 @@ void Easy_reg_step(void)
 
   /* Switch: '<S1>/Switch' */
   if (rtb_LogicalOperator) {
-    /* Gain: '<S1>/Gain1' */
-    Easy_reg_Y.BIM_CMD = 57.295779513082323 * dif_idx_0;
+    /* Gain: '<S1>/Gain1' incorporates:
+     *  Gain: '<S1>/Gain4'
+     */
+    Easy_reg_Y.BIM_CMD = 57.295779513082323 * dif_idx_0 * 2.0;
 
     /* Saturate: '<S1>/Saturation1' */
     if (Easy_reg_Y.BIM_CMD > 20.0) {

@@ -18,7 +18,7 @@
 #include "stdint.h"
 
 // Тип регулятора
-#define flightRegulatorCFB
+//#define flightRegulatorCFB
 
 /***************************************************************************
 			M_Model_Need2UpdateSet - Потребовать обновить данные для Мат.Модели  
