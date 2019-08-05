@@ -32,6 +32,7 @@ typedef struct
 	double rtU_XYZi_Alt;
 	double distanceB;
 	uint16_t distance2;
+	int16_t Relief_height;
 } debug_output;
 
 // Глобальный экземпляр отладочной структуры

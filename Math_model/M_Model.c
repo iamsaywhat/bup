@@ -4,11 +4,11 @@
 #include "../discrete_io.h"
 #include "../debug.h"
 #include "../HeightMap/Heightmap_conf_and_pd.h"
+#include "../HeightMap/Heightmap.h"
 
 #ifdef flightRegulatorCFB
 	#include "flightRegulatorCFB/flightRegulatorCFB.h"
 #else
-  //#include "EasyReg/EasyReg.h"
 	#include "EasyReg/Easy_reg.h"
 #endif
 
@@ -64,7 +64,6 @@ void M_Model_Init(void)
 	
 #ifdef flightRegulatorCFB	
 	flightRegulatorCFB_initialize();
-	// rtU.isVeracityGns = 0;
 #else
 	Easy_reg_initialize();
 #endif
@@ -182,6 +181,7 @@ void M_Model_PrepareData (SNS_Position_Data_Response_Type SNS_PosData, SNS_Orien
 	debug_vars.rtU_XYZi_Lat = (double)(rtU.XYZi[lat]);
 	debug_vars.rtU_XYZi_Lon = (double)(rtU.XYZi[lon]);
 	debug_vars.rtU_XYZi_Alt = (double)(rtU.XYZi[alt]);
+	debug_vars.Relief_height = GetHeight_OnThisPoint(rtU.XYZi[lon], rtU.XYZi[lat], TRIANGULARTION);
 #else
 	Easy_reg_U.TDP_lon = GetTouchDownPointLon();
 	Easy_reg_U.TDP_lat = GetTouchDownPointLat();
