@@ -5,6 +5,8 @@
 #include "../debug.h"
 #include "../HeightMap/Heightmap_conf_and_pd.h"
 #include "../HeightMap/Heightmap.h"
+#include "../SelfTesting.h"
+#include "../otherlib.h"
 
 #ifdef flightRegulatorCFB
 	#include "flightRegulatorCFB/flightRegulatorCFB.h"
@@ -87,7 +89,7 @@ void M_Model_Step(void)
 double Rad_12_to_Deg(int64_t rad)
 {
 	double result = 0;
-	result = ((rad/1000000000000.0)*180.0)/pi_const; 
+	result = ((rad/1e12)*180.0)/pi_const; 
 	return result;
 }
 
@@ -97,7 +99,7 @@ double Rad_12_to_Deg(int64_t rad)
 double Rad_6_to_Deg(int32_t rad)
 {
 	double result = 0;
-	result = ((rad/1000000.0)*180.0)/pi_const;
+	result = ((rad/1e6)*180.0)/pi_const;
 	return result;
 }
 
@@ -117,7 +119,7 @@ double Rad_to_Deg(double rad)
 double Rad_6_to_Rad(int32_t rad)
 {
 	double result = 0;
-	result = (rad/1000000.0);
+	result = (rad/1e6);
 	return result;
 }
 
@@ -127,7 +129,7 @@ double Rad_6_to_Rad(int32_t rad)
 double Meter_12_to_Meter (int64_t meter)
 {
 	double result = 0;
-	result = ((double)(meter/1000000000000.0));
+	result = ((double)(meter/1e12));
 	return result;
 }
 
@@ -137,6 +139,21 @@ double Meter_12_to_Meter (int64_t meter)
 ***************************************************************************/
 void M_Model_PrepareData (SNS_Position_Data_Response_Type SNS_PosData, SNS_Orientation_Data_Response_Type SNS_Orientation, SWS_Packet_Type SWS_Data)
 {
+	double SNS_Lat =      Rad_12_to_Deg (SNS_PosData.Pos_lat);
+	double SNS_Lon =      Rad_12_to_Deg (SNS_PosData.Pos_lon);
+	double SNS_Alt =      Meter_12_to_Meter (SNS_PosData.Pos_alt);
+	short Map_Alt =       GetHeight_OnThisPoint(SNS_Lon, SNS_Lat, TRIANGULARTION);
+	double HeadingTrue =  Rad_6_to_Rad(SNS_Orientation.Heading_true);
+	
+	
+	// Проверим доступна ли карта в текущей геолокации (если в данной точке карта недоступна, в Map_Alt будет лежать 0x7FFF)
+	// Сразу же обновляем соответствующий флаг в модуля самодиагностики
+	if(Map_Alt == 0x7FFF)
+		SelfTesting_SET_FAULT(ST_MapAvailability);
+	else
+		SelfTesting_SET_OK(ST_MapAvailability);
+	
+	
 #ifdef flightRegulatorCFB
 	// Координаты точки приземления (подгружаем из памяти)
   rtU.xyzPoints[lat] = GetTouchDownPointLat();
@@ -144,12 +161,12 @@ void M_Model_PrepareData (SNS_Position_Data_Response_Type SNS_PosData, SNS_Orien
   rtU.xyzPoints[alt] = 0;
 		
 	// Текущие координаты:
-	rtU.XYZi[lat] = Rad_12_to_Deg (SNS_PosData.Pos_lat);
-	rtU.XYZi[lon] = Rad_12_to_Deg (SNS_PosData.Pos_lon);
-	rtU.XYZi[alt] = Meter_12_to_Meter (SNS_PosData.Pos_alt);
-	debug_vars.Alt2model = (double)(rtU.XYZi[alt]);
+	rtU.XYZi[lat] = SNS_Lat;
+	rtU.XYZi[lon] = SNS_Lon;
+	rtU.XYZi[alt] = SNS_Alt;
+	debug_vars.Alt2model = SNS_Alt;
 	// Истинный курс
- 	rtU.angle = Rad_6_to_Rad(SNS_Orientation.Heading_true);
+ 	rtU.angle = HeadingTrue;
 	
   // Статус навигационного решения от СНС
   rtU.isVeracityGns = 1; //SNS_PosData.Quality;
@@ -181,15 +198,15 @@ void M_Model_PrepareData (SNS_Position_Data_Response_Type SNS_PosData, SNS_Orien
 	debug_vars.rtU_XYZi_Lat = (double)(rtU.XYZi[lat]);
 	debug_vars.rtU_XYZi_Lon = (double)(rtU.XYZi[lon]);
 	debug_vars.rtU_XYZi_Alt = (double)(rtU.XYZi[alt]);
-	debug_vars.Relief_height = GetHeight_OnThisPoint(rtU.XYZi[lon], rtU.XYZi[lat], TRIANGULARTION);
+	debug_vars.Relief_height = Map_Alt;
 #else
 	Easy_reg_U.TDP_lon = GetTouchDownPointLon();
 	Easy_reg_U.TDP_lat = GetTouchDownPointLat();
 	Easy_reg_U.TDP_alt = 0;
-	Easy_reg_U.Pos_lon = Rad_12_to_Deg (SNS_PosData.Pos_lon);
-	Easy_reg_U.Pos_lat = Rad_12_to_Deg (SNS_PosData.Pos_lat);
-	Easy_reg_U.Pos_alt = Meter_12_to_Meter (SNS_PosData.Pos_alt);
-	Easy_reg_U.ActualCourse = Rad_6_to_Rad(SNS_Orientation.Heading_true);
+	Easy_reg_U.Pos_lon = SNS_Lon;
+	Easy_reg_U.Pos_lat = SNS_Lat;
+	Easy_reg_U.Pos_alt = SNS_Alt;
+	Easy_reg_U.ActualCourse = HeadingTrue;
 #endif
 
 	// Данные были обновлены, сообщаем об этом Мат. модели
@@ -203,6 +220,7 @@ void M_Model_PrepareData (SNS_Position_Data_Response_Type SNS_PosData, SNS_Orien
 void M_Model_Control (void)
 {	
 #ifdef flightRegulatorCFB	
+	
 	// Если команда на посадку не пришла, мы еще в полете, будем управлять
 	if(rtY.cmdTouchDown == 0)
 	{
@@ -223,12 +241,19 @@ void M_Model_Control (void)
 			M_Model_Cmd2BIM (rtY.tightenSling*rtY.directionOfRotation);
 		}
 	}
+	// Это команда на посадку 
 	else if (rtY.cmdTouchDown == 1)
 	{
 		// Замок створки открыть
-	   BLIND_CTRL_ON();
-		// Тут нельзя дольше 10 сек удерживать включение
-		// TODO
+		BLIND_CTRL_ON();
+		// Отключаем БИМы
+		BIM_Supply_OFF();
+		// Ждем 5 секунд
+		delay_us(5000000);
+		// Отключаем реле створки замка (нельзя удерживать дольше 10 секунд)
+		BLIND_CTRL_OFF();
+		// Повисаем в ожидании перезапуска
+		while(1);
 	}
 	
   // Вывод отладочной информации в CAN	
@@ -264,8 +289,14 @@ void M_Model_Control (void)
 	{
 		// Замок створки открыть
 		BLIND_CTRL_ON();
-		// Тут нельзя дольше 10 сек удерживать включение
-		// TODO
+		// Отключаем БИМы
+		BIM_Supply_OFF();
+		// Ждем 5 секунд
+		delay_us(5000000);
+		// Отключаем реле створки замка (нельзя удерживать дольше 10 секунд)
+		BLIND_CTRL_OFF();
+		// Повисаем в ожидании перезапуска
+		while(1);
 	}	
 	// Команды на посадку не было, поэтому будем управлять стропами
 	else if (Easy_reg_Y.TD_CMD == 0)

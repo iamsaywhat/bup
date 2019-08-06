@@ -8,6 +8,7 @@
 #include "BIM.h"
 #include "Log_FS/Log_FS.h"
 #include "HeightMap/Heightmap_conf_and_pd.h"
+#include "HeightMap/Heightmap.h"
 
 
 /***************************************
@@ -75,6 +76,10 @@ void SelfTestingOnline (void)
 	SelfTesting_PYRO();
 	// Проверка состояния шторки
 	SelfTesting_BLIND();
+	// Проверка связи с СВС
+	SelfTesting_SWS();
+	// Проверка связи с СНС
+	SelfTesting_SNS();
 }
 
 /************************************************************************************
@@ -265,11 +270,15 @@ SelfTesing_STATUS SelfTesting_SNS(void)
 {
 	SNS_Device_Information_Response_Union SNS_DeviceInformation;
 	
+	// Подлючаемся к СНС
+	SNS_RetargetPins();
+	SNS_init();
 	if(SNS_GetDeviceInformation(&SNS_DeviceInformation))
 		SelfTesting_SET_OK(ST_sns);
 	else
 		SelfTesting_SET_FAULT(ST_sns);
-	
+	// Отключаемся от СНС
+	SNS_deinit();
 	return (SelfTesing_STATUS)SelfTesting_STATUS(ST_sns);
 }
 
@@ -284,13 +293,20 @@ SelfTesing_STATUS SelfTesting_SWS(void)
 {
 	SWS_Packet_Type_Union SWS_Pack;
 	
+	// Подлючаемся к СВС
+	SWS_RetargetPins();
+	SWS_init();
 	if(SWS_GetPacket (&SWS_Pack))
 		SelfTesting_SET_FAULT(ST_sws);
 	else
 		SelfTesting_SET_OK(ST_sws);
+	// Отключаемся от СВС
+	SWS_deinit();
 	
 	return (SelfTesing_STATUS)SelfTesting_STATUS(ST_sws);
 }
+
+
 
 
 

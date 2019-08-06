@@ -29,6 +29,7 @@
           9 бит - BLIND (Состояние створки)
           10 бит - SNS (Состояние СНС)
           11 бит - SWS (Состояние СВС)
+					12 бит - Доступность карты рельефа
 					
 			 Использование:
 			     Состояние того или иного устройства модуля можно узнать с помощью
@@ -89,6 +90,7 @@ typedef enum {
 #define ST_blind                   (9)
 #define ST_sns                     (10)
 #define ST_sws                     (11)
+#define ST_MapAvailability         (12)
 #define SelfTesting_SET_OK(x)      (SystemState|=(1<<x))          // Результат проверки - ОК
 #define SelfTesting_SET_FAULT(x)   (SystemState&=~(1<<x))         // Результат проверки - FAULT
 #define SelfTesting_STATUS(x)      ((SystemState&(1<<x))>>(x))    // Узнать состояние
