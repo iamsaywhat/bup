@@ -1,20 +1,23 @@
-#include "SWS.h"
-#include "SNS.h"
-#include "BIM.h"
-#include "1636PP52Y.h"
-#include "stdint.h"
-#include "otherlib.h"
-#include "ZPZ.h"
-#include "crc16.h"
-#include "25Q64FV.h"
-#include "Log_FS/Log_FS.h"
-#include "RetargetPrintf/RetargetPrintf.h"
-#include "discrete_io.h"
-#include "Math_model/M_Model.h"
-#include "HeightMap/Heightmap_conf_and_pd.h"
-#include "debug.h"
-#include "SelfTesting.h"
+#include "../config.h"                           // Файл конфигурации проекта
+#include "SWS.h"                                 // Драйвер работы с СВС
+#include "SNS.h"                                 // Драйвер работы с СНС
+#include "BIM.h"                                 // Драйвер работы с БИМ
+#include "1636PP52Y.h"                           // Драйвер работы с внешней SPI flash 1636рр52у от Миландр
+#include "25Q64FV.h"                             // Драйвер работы с внешней SPI flash 25Q64FV от Winbond
+#include "discrete_io.h"                         // Драйвер работы дискретами (реле, LED..)
+#include "ZPZ.h"                                 // Драйвер работы c загрузчиком полетного задания
+#include "otherlib.h"                            // Модуль аппаратнозависимых функций общего назначения
 
+                           
+#include "Log_FS/Log_FS.h"                       // Файловая система для записи логов в "черный ящик"
+#include "RetargetPrintf/RetargetPrintf.h"       // Переопределение функции printf для вывода в CAN и записи в черный ящик
+#include "Math_model/M_Model.h"                  // Математическая модель системы управления полетом
+#include "HeightMap/Heightmap_conf_and_pd.h"     // Аппаратнозависимый подмодуль карты высоты рельефа
+#include "SelfTesting.h"                         // Модуль самодиагностики
+
+#include "stdint.h"                              // Стандартные типы Keil
+
+//#include "debug.h"                               // Отладочный модуль трассировки внутрисистемных переменных в CAN1
 
 	double temp = 0;
 	int16_t temp2 = 0;
@@ -52,7 +55,7 @@ int main(void)
 	LogFs_Info();
 	// Запускаем диагностику системы
 	SelfTestingFull();
-	
+
 	
 //// Тестирование файловой системы с логов
 //	for(i=0; i < 200; i++)
@@ -218,10 +221,7 @@ int main(void)
 		// Просит ли матмодель обновить данные?
 		if(M_Model_Need2UpdateCheck() == 1)
 		{
-			// Да, просит. Начинаем готовить данные для матмодели
-			printf_switcher(TO_CAN, 0x400);
-      printf("Hello world!\n");
-			
+			// Да, просит. Начинаем готовить данные для матмодели		
 			// Подлючаемся к СНС
 			SNS_RetargetPins();
 			SNS_init();
@@ -252,6 +252,11 @@ int main(void)
 			
 			// Запустим быструю диагностику системы
 			SelfTestingOnline();
+			
+#ifdef TRACE_SYS_STATE	//******************************************************* Если включена трассировка состояния системы в CAN		
+			// Трассировка состояния системы в CAN
+			SelfTesting_SysState2CAN();	
+#endif
 		}		
 	}
 }

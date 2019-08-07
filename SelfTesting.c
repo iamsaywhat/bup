@@ -9,6 +9,7 @@
 #include "Log_FS/Log_FS.h"
 #include "HeightMap/Heightmap_conf_and_pd.h"
 #include "HeightMap/Heightmap.h"
+#include "RetargetPrintf/RetargetPrintf.h"  
 
 
 /***************************************
@@ -304,6 +305,108 @@ SelfTesing_STATUS SelfTesting_SWS(void)
 	SWS_deinit();
 	
 	return (SelfTesing_STATUS)SelfTesting_STATUS(ST_sws);
+}
+
+
+/************************************************************************************
+       SelfTesting_SysState2CAN - Вывод состояния системы в CAN 
+************************************************************************************/
+void SelfTesting_SysState2CAN()
+{
+	// Переключаем функцию вывода в CAN
+	printf_switcher(TO_CAN, 0x400);
+	
+	// Карта и задание
+	printf("MAP ");
+	if(SelfTesting_STATUS(ST_MAP))
+		printf("loaded;\n");
+	else
+		printf("not loaded;\n");
+	
+  // Состояние внешней SPI памяти 1636PP52Y от Миландр
+	printf("1636PP52Y is ");
+	if(SelfTesting_STATUS(ST_1636PP52Y))
+		printf("OK;\n");
+	else 
+		printf("FAULT;\n");
+	
+	// Состояние внешней SPI памяти 25Q64FV от Windbond
+	printf("25Q64FV is ");
+	if(SelfTesting_STATUS(ST_25Q64FV))
+		printf("OK;\n");
+	else 
+		printf("FAULT;\n");
+	
+	// Состояние файловой системы
+	printf("LogFS is ");
+	if(SelfTesting_STATUS(ST_LogFS))
+		printf("OK;\n");
+	else 
+		printf("FAULT;\n");
+	
+	// Состояние Левого БИМ
+	printf("Left BIM is ");
+	if(SelfTesting_STATUS(ST_Left_BIM))
+		printf("OK;\n");
+	else 
+		printf("FAULT;\n");
+	
+	// Состояние Правого БИМ
+	printf("Right BIM is ");
+	if(SelfTesting_STATUS(ST_Right_BIM))
+		printf("OK;\n");
+	else 
+		printf("FAULT;\n");
+		
+	// Состояние шпильки 1
+	printf("Pin1 is ");
+	if(SelfTesting_STATUS(ST_pin1))
+		printf("inserted;\n");
+	else 
+		printf("removed;\n");	
+	
+	// Состояние шпильки 2
+	printf("Pin2 is ");
+	if(SelfTesting_STATUS(ST_pin2))
+		printf("inserted;\n");
+	else 
+		printf("removed;\n");	
+	
+	// Состояние реле пиропатрона
+	printf("Pyro is ");
+	if(SelfTesting_STATUS(ST_pyro))
+		printf("ON;\n");
+	else 
+		printf("OFF;\n");	
+	
+	// Состояние реле створки
+	printf("Pyro is ");
+	if(SelfTesting_STATUS(ST_blind))
+		printf("ON;\n");
+	else 
+		printf("OFF;\n");	
+	
+	// Состояние СНС
+	printf("SNS is ");
+	if(SelfTesting_STATUS(ST_sns))
+		printf("OK;\n");
+	else 
+		printf("FAULT;\n");	
+	
+	// Состояние СВС
+	printf("SWS is ");
+	if(SelfTesting_STATUS(ST_sws))
+		printf("OK;\n");
+	else 
+		printf("FAULT;\n");	
+	
+	// Доступность карты рельефа под нами
+	printf("MAP is ");
+	if(SelfTesting_STATUS(ST_MapAvailability))
+		printf("available;\n");
+	else 
+		printf("unavailable;\n");	
+  printf("\n\n");
 }
 
 

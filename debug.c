@@ -43,6 +43,7 @@ void debug_can(unsigned short id, void* data, unsigned char size)
 **********************************************************************************************************/
 void debug_can_full_struct (void)
 {
+#ifdef flightRegulatorCFB
 	debug_can(0x500, &debug_vars.distanceAB, 2);	
 	debug_can(0x501, &debug_vars.orderAngle, 1);	
 	debug_can(0x502, &debug_vars.diffAngle, 2);
@@ -51,23 +52,28 @@ void debug_can_full_struct (void)
 	debug_can(0x505, &debug_vars.stateAngleDoing, 1);
 	debug_can(0x506, &debug_vars.stateAngleCorrection, 1);	
 	debug_can(0x507, &debug_vars.changeControl, 1);	
-	debug_can(0x508, &debug_vars.doingManeuverMode, 1);	
-	debug_can(0x509, &debug_vars.BIM_CMD, 2);
+	debug_can(0x508, &debug_vars.doingManeuverMode, 1);
 	debug_can(0x510, &debug_vars.angle, 2);
-	debug_can(0x511, &debug_vars.TDP_Lat, 8);
-	debug_can(0x512, &debug_vars.TDP_Lon, 8);
 	debug_can(0x513, &debug_vars.directionOfRotation, 8);
 	debug_can(0x514, &debug_vars.cmdTightenSlings, 8);
-	debug_can(0x515, &debug_vars.Alt2model, 8);
-	debug_can(0x516, &debug_vars.SNSalt, 8);
 	debug_can(0x517, &debug_vars.Lat1, 8);
 	debug_can(0x518, &debug_vars.Lat2, 8);
 	debug_can(0x519, &debug_vars.Lon1, 8);
 	debug_can(0x520, &debug_vars.Lon2, 8);
+	debug_can(0x524, &debug_vars.distanceB, 8);
+	debug_can(0x525, &debug_vars.distance2, 2);
+#else
+  /* Здесь можно добавить 
+	   вывод необходимых переменных относящихся к Easy_reg
+	*/
+#endif 
+	debug_can(0x509, &debug_vars.BIM_CMD, 2);
+	debug_can(0x511, &debug_vars.TDP_Lat, 8);
+	debug_can(0x512, &debug_vars.TDP_Lon, 8);
+	debug_can(0x515, &debug_vars.Alt2model, 8);
+	debug_can(0x516, &debug_vars.SNSalt, 8);
 	debug_can(0x521, &debug_vars.rtU_XYZi_Lat, 8);
 	debug_can(0x522, &debug_vars.rtU_XYZi_Lon, 8);
 	debug_can(0x523, &debug_vars.rtU_XYZi_Alt, 8);
-	debug_can(0x524, &debug_vars.distanceB, 8);
-	debug_can(0x525, &debug_vars.distance2, 2);
 	debug_can(0x526, &debug_vars.Relief_height, 2);
 }

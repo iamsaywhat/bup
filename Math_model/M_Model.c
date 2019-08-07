@@ -2,17 +2,22 @@
 
 #include "../BIM.h"
 #include "../discrete_io.h"
-#include "../debug.h"
 #include "../HeightMap/Heightmap_conf_and_pd.h"
 #include "../HeightMap/Heightmap.h"
 #include "../SelfTesting.h"
 #include "../otherlib.h"
+#include "../config.h"
 
-#ifdef flightRegulatorCFB
+#ifdef flightRegulatorCFB //******************************************************* Если выбран flightRegulatorCFB
 	#include "flightRegulatorCFB/flightRegulatorCFB.h"
-#else
+#else //*************************************************************************** Если выбран Easy_reg
 	#include "EasyReg/Easy_reg.h"
-#endif
+#endif //************************************************************************** !flightRegulatorCFB 
+
+#ifdef DEBUG_VARS	//*************************************************************** Если активна отладка переменных 
+	#include "../debug.h"
+#endif //************************************************************************** !DEBUG_VARS
+
 
 #define lat 0
 #define lon 1
@@ -64,9 +69,9 @@ void M_Model_Init(void)
 	BIM_ReceiveResponse (&BIM_Response, RIGHT_BIM);
 	BIM_ReceiveResponse (&BIM_Response, LEFT_BIM);
 	
-#ifdef flightRegulatorCFB	
+#ifdef flightRegulatorCFB //******************************************************* Если выбран flightRegulatorCFB
 	flightRegulatorCFB_initialize();
-#else
+#else //*************************************************************************** Если выбран Easy_reg
 	Easy_reg_initialize();
 #endif
 }
@@ -76,9 +81,9 @@ void M_Model_Init(void)
 ***************************************************************************/
 void M_Model_Step(void)
 {
-#ifdef flightRegulatorCFB
+#ifdef flightRegulatorCFB //******************************************************* Если выбран flightRegulatorCFB
 	flightRegulatorCFB_step();
-#else
+#else //*************************************************************************** Если выбран Easy_reg
 	Easy_reg_step();
 #endif
 }
@@ -153,8 +158,18 @@ void M_Model_PrepareData (SNS_Position_Data_Response_Type SNS_PosData, SNS_Orien
 	else
 		SelfTesting_SET_OK(ST_MapAvailability);
 	
+#ifdef DEBUG_VARS	//*************************************************************** Если активна отладка переменн
+	// Вывод общесистемной отладочной информации 
+	debug_vars.SNSalt = (int64_t)(SNS_PosData.Pos_alt);
+	debug_vars.rtU_XYZi_Lat = SNS_Lat;
+	debug_vars.rtU_XYZi_Lon = SNS_Lon;
+	debug_vars.rtU_XYZi_Alt = SNS_Alt;
+	debug_vars.Relief_height = Map_Alt;
+	debug_vars.Alt2model = SNS_Alt;
+#endif //************************************************************************** !DEBUG_VARS
 	
-#ifdef flightRegulatorCFB
+	
+#ifdef flightRegulatorCFB //******************************************************* Если выбран flightRegulatorCFB
 	// Координаты точки приземления (подгружаем из памяти)
   rtU.xyzPoints[lat] = GetTouchDownPointLat();
 	rtU.xyzPoints[lon] = GetTouchDownPointLon();
@@ -164,12 +179,14 @@ void M_Model_PrepareData (SNS_Position_Data_Response_Type SNS_PosData, SNS_Orien
 	rtU.XYZi[lat] = SNS_Lat;
 	rtU.XYZi[lon] = SNS_Lon;
 	rtU.XYZi[alt] = SNS_Alt;
-	debug_vars.Alt2model = SNS_Alt;
+	
 	// Истинный курс
  	rtU.angle = HeadingTrue;
 	
   // Статус навигационного решения от СНС
   rtU.isVeracityGns = 1; //SNS_PosData.Quality;
+	
+	
 //  // Высота над рельефом
 //  rtU.HighAboveTheGround = 0; 
 //	// Истинная скорость от СВС
@@ -193,13 +210,7 @@ void M_Model_PrepareData (SNS_Position_Data_Response_Type SNS_PosData, SNS_Orien
 //  // Работает ли правый БИМ: "1" - да, "-1" - нет.		
 //  rtU.RightEnginehadWork = 1.0;  
 
-	// Вывод отладочной информации 
-	debug_vars.SNSalt = (int64_t)(SNS_PosData.Pos_alt);
-	debug_vars.rtU_XYZi_Lat = (double)(rtU.XYZi[lat]);
-	debug_vars.rtU_XYZi_Lon = (double)(rtU.XYZi[lon]);
-	debug_vars.rtU_XYZi_Alt = (double)(rtU.XYZi[alt]);
-	debug_vars.Relief_height = Map_Alt;
-#else
+#else //*************************************************************************** Если выбран Easy_reg
 	Easy_reg_U.TDP_lon = GetTouchDownPointLon();
 	Easy_reg_U.TDP_lat = GetTouchDownPointLat();
 	Easy_reg_U.TDP_alt = 0;
@@ -207,7 +218,7 @@ void M_Model_PrepareData (SNS_Position_Data_Response_Type SNS_PosData, SNS_Orien
 	Easy_reg_U.Pos_lat = SNS_Lat;
 	Easy_reg_U.Pos_alt = SNS_Alt;
 	Easy_reg_U.ActualCourse = HeadingTrue;
-#endif
+#endif //************************************************************************** !flightRegulatorCFB 
 
 	// Данные были обновлены, сообщаем об этом Мат. модели
 	M_Model_Need2UpdateReset();
@@ -219,7 +230,7 @@ void M_Model_PrepareData (SNS_Position_Data_Response_Type SNS_PosData, SNS_Orien
 ***************************************************************************/
 void M_Model_Control (void)
 {	
-#ifdef flightRegulatorCFB	
+#ifdef flightRegulatorCFB	//******************************************************* Если выбран flightRegulatorCFB
 	
 	// Если команда на посадку не пришла, мы еще в полете, будем управлять
 	if(rtY.cmdTouchDown == 0)
@@ -256,8 +267,8 @@ void M_Model_Control (void)
 		while(1);
 	}
 	
-  // Вывод отладочной информации в CAN	
-	// Заполняем структуру отладочной информации
+#ifdef DEBUG_VARS	//*************************************************************** Если активна отладка переменных 
+	// Заполняем структуру отладочной информации (для flightRegulatorCFB)
   debug_vars.distanceAB = (int16_t)(rtY.distanceAB);
 	debug_vars.orderAngle = (uint8_t)(rtY.orderAngle);
 	debug_vars.diffAngle = (int16_t)(rtY.diffAngle);
@@ -267,10 +278,7 @@ void M_Model_Control (void)
 	debug_vars.stateAngleCorrection = (uint8_t)(rtY.stateAngleCorrection);
 	debug_vars.changeControl = (uint8_t)(rtY.changeControl);
 	debug_vars.doingManeuverMode = (uint8_t)(rtY.doingManeuverMode);
-	debug_vars.BIM_CMD = (int16_t)(rtY.cmdTightenSlings*rtY.directionOfRotation);
 	debug_vars.angle = (int16_t)(rtU.angle);
-	debug_vars.TDP_Lat = GetTouchDownPointLat();
-	debug_vars.TDP_Lon = GetTouchDownPointLon();
 	debug_vars.directionOfRotation = (double)(rtY.directionOfRotation);
 	debug_vars.cmdTightenSlings = (double)(rtY.cmdTightenSlings);
   debug_vars.Lat1 = (double)(rtY.lat1);
@@ -279,10 +287,10 @@ void M_Model_Control (void)
 	debug_vars.Lon2 = (double)(rtY.lon2);
 	debug_vars.distanceB = (double)(rtY.distanceB);
 	debug_vars.distance2 = (uint16_t)(rtY.distance2);
-  // Выводим структуру
-	debug_can_full_struct();
+	debug_vars.BIM_CMD = (int16_t)(rtY.cmdTightenSlings*rtY.directionOfRotation);
+#endif //************************************************************************** !DEBUG_VARS
 	
-#else
+#else //*************************************************************************** Если выбран Easy_reg
 
 	// Возможно пришла команда на посадку?
   if (Easy_reg_Y.TD_CMD == 1)
@@ -301,7 +309,21 @@ void M_Model_Control (void)
 	// Команды на посадку не было, поэтому будем управлять стропами
 	else if (Easy_reg_Y.TD_CMD == 0)
 		M_Model_Cmd2BIM (Easy_reg_Y.BIM_CMD);
-#endif
+
+#ifdef DEBUG_VARS	//*************************************************************** Если активна отладка переменных 
+	debug_vars.BIM_CMD = (int16_t)(Easy_reg_Y.BIM_CMD);
+#endif //************************************************************************** !DEBUG_VARS 
+	
+#endif //************************************************************************** !flightRegulatorCFB 
+
+#ifdef DEBUG_VARS	//*************************************************************** Если активна отладка переменных 
+	// Заполняем структуру отладочной информации (общесистемной)
+	debug_vars.TDP_Lat = GetTouchDownPointLat();
+	debug_vars.TDP_Lon = GetTouchDownPointLon();
+  // Отправляем отладочные данные в CAN
+	debug_can_full_struct();
+#endif //************************************************************************** !DEBUG_VARS 
+	
 }
 
 
