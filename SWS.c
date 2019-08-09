@@ -76,20 +76,22 @@ void SWS_deinit (void)
 ***************************************************************************************************************/
 uint8_t SWS_GetPacket (SWS_Packet_Type_Union* SWS_Pack)
 {
-	SWS_Packet_Type_Union  LastSWS_Pack;
-	uint32_t timeout = 0;   // Контроль превышения времени обработки
-	uint32_t crc = 0;   // Контрольная сумма
-	uint8_t  i;         // Счетчик циклов
-	
-	// Сохраняем текущие данные
-	LastSWS_Pack = *SWS_Pack;
-	
-	//Вычищаем FIFO от мусора и ждем пока не появится заголовок
+	SWS_Packet_Type_Union  Actual_SWS_Pack;      // Актуальные данные от СВС
+	uint32_t timeout = 0;                        // Таймаут счетчик
+	uint32_t crc = 0;                            // Контрольная сумма
+	uint8_t  i;                                  // Счетчик циклов
+		
+	// Вычищаем FIFO от мусора
 	while ((UART_GetFlagStatus (SWS_UART, UART_FLAG_RXFE) != SET) && (timeout != SWS_MAX_TIMEOUT)) 
 	{
 		timeout++; 
 		UART_ReceiveData(SWS_UART);	
 	}
+	
+	// Подключаемся к СВС
+	SWS_RetargetPins();
+	SWS_init();
+	
 	// Ожидаем заголовок
 	while(timeout != SWS_MAX_TIMEOUT)
 	{
@@ -108,28 +110,33 @@ uint8_t SWS_GetPacket (SWS_Packet_Type_Union* SWS_Pack)
 	// Если был таймаут, связи нет, выходим
 	if(timeout == SWS_MAX_TIMEOUT) 
 	{
-		// Восстанавливаем старую информацию
-		*SWS_Pack = LastSWS_Pack;
+		// Возврашаем ошибку
 		return 1;
 	}
 		
 	// Если попали сюда, значит связь есть, заголовок совпал, поэтому продублируем принятый заголовок в структуру
-	SWS_Pack->Struct.Handler = SWS_Handler;
+	Actual_SWS_Pack.Struct.Handler = SWS_Handler;
 	// Принимаем остальную часть пакета
 	for(i = 4; i < 56; i++)
 	{
-		SWS_Pack->Buffer[i] = UARTReceiveByte(SWS_UART, SWS_MAX_TIMEOUT);
+		Actual_SWS_Pack.Buffer[i] = UARTReceiveByte(SWS_UART, SWS_MAX_TIMEOUT);
 	}
+	
+	// Отключаемся от СВС
+	SWS_deinit();
+	
 	// Вычисляем контрольную сумму 
-	crc = Calc_Crc32_Array(SWS_Pack->Buffer,56);
+	crc = Calc_Crc32_Array(Actual_SWS_Pack.Buffer,56);
+	
 	// Сверяем контрольную сумму
-	if(crc != SWS_Pack->Struct.CRC)
+	if(crc != Actual_SWS_Pack.Struct.CRC)
 	{
-		// Восстанавливаем старую информацию
-		*SWS_Pack = LastSWS_Pack;
-		//Если не сошлись возвращаем ошибку
+		// Если не сошлись возвращаем ошибку
 		return 1;
 	}
+	
+	// Проверки сошлись можно вернуть полученные данные
+	*SWS_Pack = Actual_SWS_Pack;
 	
 	// Иначе возвращаем успех
 	return 0;

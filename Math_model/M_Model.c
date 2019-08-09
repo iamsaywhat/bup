@@ -62,12 +62,10 @@ uint8_t M_Model_Need2UpdateCheck(void)
 ***************************************************************************/
 void M_Model_Init(void)
 {
-	BIM_Response_UnionType	BIM_Response;
-	
 	BIM_SendRequest (RIGHT_BIM, BIM_CMD_ON, 0, 9, 255, 255);
 	BIM_SendRequest (LEFT_BIM, BIM_CMD_ON, 0, 7, 255, 255);
-	BIM_ReceiveResponse (&BIM_Response, RIGHT_BIM);
-	BIM_ReceiveResponse (&BIM_Response, LEFT_BIM);
+	BIM_ReceiveResponse (RIGHT_BIM);
+	BIM_ReceiveResponse (LEFT_BIM);
 	
 #ifdef flightRegulatorCFB //******************************************************* Если выбран flightRegulatorCFB
 	flightRegulatorCFB_initialize();
@@ -280,14 +278,14 @@ void M_Model_Control (void)
 	debug_vars.doingManeuverMode = (uint8_t)(rtY.doingManeuverMode);
 	debug_vars.angle = (int16_t)(rtU.angle);
 	debug_vars.directionOfRotation = (double)(rtY.directionOfRotation);
-	debug_vars.cmdTightenSlings = (double)(rtY.cmdTightenSlings);
+	debug_vars.TightenSlings = (double)(rtY.tightenSling);
   debug_vars.Lat1 = (double)(rtY.lat1);
 	debug_vars.Lat2 = (double)(rtY.lat2);
 	debug_vars.Lon1 = (double)(rtY.lon1);
 	debug_vars.Lon2 = (double)(rtY.lon2);
 	debug_vars.distanceB = (double)(rtY.distanceB);
 	debug_vars.distance2 = (uint16_t)(rtY.distance2);
-	debug_vars.BIM_CMD = (int16_t)(rtY.cmdTightenSlings*rtY.directionOfRotation);
+	debug_vars.BIM_CMD = (int16_t)(rtY.tightenSling*rtY.directionOfRotation);
 #endif //************************************************************************** !DEBUG_VARS
 	
 #else //*************************************************************************** Если выбран Easy_reg
@@ -334,74 +332,70 @@ void M_Model_Control (void)
 void M_Model_Cmd2BIM (double Side)
 {
 	int16_t i;                                // Счетчик циклов
-	int16_t SIDE = (int16_t)(Side);           // Отбрасываем дробную часть
-	static int16_t LastPosLeft = 0;           // Предыдущее положение левой стропы
-	static int16_t LastPosRight = 0;          // Предыдущее положение правой стропы
-	BIM_Response_UnionType	BIM_Response;     // Ответы БИМов
+	int16_t SIDE = 0;                         // Положение стропы (отриц - левая, полож - правая)
 	
 	// Целое число со знаком SIDE в процентах, знак указывает каким БИМом будем управлять
-
-	// Отрицательное значение означает, что нужно затянуть левый БИМ на SIDE% и отпустить правый
+	// Конвертируем проценты в диапазон [0...255] и отбрасываем дробную часть
+	SIDE = (int16_t)(2.55*Side);
+	
+	// Отрицательное значение означает, что нужно затянуть левый БИМ в положение SIDE и отпустить правый
 	if(SIDE < 0)
 	{
+		// Делаем SIDE положительным и приводим к uint8_t
+		SIDE = (uint8_t)((-1)*SIDE);
+		
 		// Устанавливать новое положение, будем только если оно отличается от старого (защита от щелчков)
-		if(LastPosLeft != SIDE)
+		if(BIM_GetStrapPosition (LEFT_BIM) != SIDE)
 		{ 
-			// SIDE в процентах, переводим в диапазон от 0..255, и избавляемся от минуса
-			BIM_SendRequest (LEFT_BIM, BIM_CMD_ON, (uint8_t)(2.55*SIDE*(-1)), 7, 255, 255);
-			BIM_ReceiveResponse (&BIM_Response, LEFT_BIM);
-			LastPosLeft = SIDE;
+			BIM_SendRequest (LEFT_BIM, BIM_CMD_ON, SIDE, 7, 255, 255);
+			BIM_ReceiveResponse (LEFT_BIM);
 		}
 		// Устанавливать новое положение, будем только если оно отличается от старого (защита от щелчков)
-		if (LastPosRight != 0)
+		if (BIM_GetStrapPosition (RIGHT_BIM) != 0)
 		{
 			BIM_SendRequest (RIGHT_BIM, BIM_CMD_ON, 0, 9, 255, 255);
-			BIM_ReceiveResponse (&BIM_Response, RIGHT_BIM);
-			LastPosRight = 0;
+			BIM_ReceiveResponse (RIGHT_BIM);
 		}
 	}
 	// Это значит, что нужно ослабить оба БИМА
 	else if(SIDE == 0)
 	{	
-		if(LastPosLeft != 0)
+		if(BIM_GetStrapPosition (LEFT_BIM) != 0)
 		{
 			BIM_SendRequest (LEFT_BIM, BIM_CMD_ON, 0, 7, 255, 255);
-			BIM_ReceiveResponse (&BIM_Response, LEFT_BIM);
-			LastPosLeft = 0;
+			BIM_ReceiveResponse (LEFT_BIM);
 		}
-		if(LastPosRight != 0)
+		if(BIM_GetStrapPosition (RIGHT_BIM) != 0)
 		{
 			BIM_SendRequest (RIGHT_BIM, BIM_CMD_ON, 0, 9, 255, 255);
-			BIM_ReceiveResponse (&BIM_Response, RIGHT_BIM);
-			LastPosRight = 0;
+			BIM_ReceiveResponse (RIGHT_BIM);
 		}
 	}
-	// Положительное значание означает, что нужно затянуть правый БИМ на SIDE%, и отпустить левый
+	// Положительное значание означает, что нужно затянуть правый БИМ в положение SIDE, и отпустить левый
 	else if(SIDE > 0)
 	{
+		// SIDE приводим к uint8_t
+		SIDE = (uint8_t)(SIDE);
+		
 		// Устанавливать новое положение, будем только если оно отличается от старого (защита от щелчков)
-		if(LastPosRight != SIDE)
+		if(BIM_GetStrapPosition (RIGHT_BIM) != SIDE)
 		{ 
-			// SIDE в процентах, переводим в диапазон от 0..255
-			BIM_SendRequest (RIGHT_BIM, BIM_CMD_ON, (uint8_t)(2.55*SIDE), 9, 255, 255);
-			BIM_ReceiveResponse (&BIM_Response, RIGHT_BIM);
-			LastPosRight = SIDE;
+			BIM_SendRequest (RIGHT_BIM, BIM_CMD_ON, SIDE, 9, 255, 255);
+			BIM_ReceiveResponse (RIGHT_BIM);
 		}
 		// Устанавливать новое положение, будем только если оно отличается от старого (защита от щелчков)
-		if(LastPosLeft != 0)
+		if(BIM_GetStrapPosition (LEFT_BIM) != 0)
 		{
 			BIM_SendRequest (LEFT_BIM, BIM_CMD_ON, 0, 7, 255, 255);
-			BIM_ReceiveResponse (&BIM_Response, LEFT_BIM);
-			LastPosLeft = 0;
+			BIM_ReceiveResponse (LEFT_BIM);
 		}
 	}
 	// БИМы не сразу обновляют своё состояние по CAN, поэтому заставляем их 5 раз сообщить своё состояние
-	// Чтобы снифер CANа получил актуальную информацию (нам она не очень нужна)
 	for(i = 0; i < 5; i++)
 	{
 		BIM_SendRequest (RIGHT_BIM, BIM_CMD_REQ, 0, 0, 0, 0);
-		BIM_ReceiveResponse (&BIM_Response, RIGHT_BIM);
+		BIM_ReceiveResponse (RIGHT_BIM);
 		BIM_SendRequest (LEFT_BIM, BIM_CMD_REQ, 0, 0, 0, 0);
-		BIM_ReceiveResponse (&BIM_Response, LEFT_BIM);
+		BIM_ReceiveResponse (LEFT_BIM);
 	}
 }

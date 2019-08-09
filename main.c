@@ -56,6 +56,63 @@ int main(void)
 	// Запускаем диагностику системы
 	SelfTestingFull();
 
+//	BIM_Supply_ON();
+//	while(1)
+//	{
+//		BIM_SendRequest (RIGHT_BIM, BIM_CMD_ON, 50, 9, 255, 255);
+//		BIM_ReceiveResponse (RIGHT_BIM);
+//		BIM_SendRequest (LEFT_BIM, BIM_CMD_ON, 50, 7, 255, 255);
+//		BIM_ReceiveResponse (LEFT_BIM);
+//		
+//		BIM_SendRequest (RIGHT_BIM, BIM_CMD_REQ, 50, 9, 255, 255);
+//		BIM_ReceiveResponse (RIGHT_BIM);
+//		BIM_SendRequest (RIGHT_BIM, BIM_CMD_REQ, 50, 9, 255, 255);
+//		BIM_ReceiveResponse (RIGHT_BIM);
+//		BIM_SendRequest (RIGHT_BIM, BIM_CMD_REQ, 50, 9, 255, 255);
+//		BIM_ReceiveResponse (RIGHT_BIM);
+//		
+//		BIM_SendRequest (LEFT_BIM, BIM_CMD_REQ, 50, 7, 255, 255);
+//		BIM_ReceiveResponse (LEFT_BIM);
+//		BIM_SendRequest (LEFT_BIM, BIM_CMD_REQ, 50, 7, 255, 255);
+//		BIM_ReceiveResponse (LEFT_BIM);
+//		BIM_SendRequest (LEFT_BIM, BIM_CMD_REQ, 50, 7, 255, 255);
+//		BIM_ReceiveResponse (LEFT_BIM);
+//		
+//		
+//		BIM_SendRequest (RIGHT_BIM, BIM_CMD_ON, 0, 9, 255, 255);
+//		BIM_ReceiveResponse (RIGHT_BIM);
+//		BIM_SendRequest (LEFT_BIM, BIM_CMD_ON, 0, 7, 255, 255);
+//		BIM_ReceiveResponse (LEFT_BIM);
+//		
+//		BIM_SendRequest (RIGHT_BIM, BIM_CMD_REQ, 50, 9, 255, 255);
+//		BIM_ReceiveResponse (RIGHT_BIM);
+//		BIM_SendRequest (RIGHT_BIM, BIM_CMD_REQ, 50, 9, 255, 255);
+//		BIM_ReceiveResponse (RIGHT_BIM);
+//		BIM_SendRequest (RIGHT_BIM, BIM_CMD_REQ, 50, 9, 255, 255);
+//		BIM_ReceiveResponse (RIGHT_BIM);
+//		
+//		BIM_SendRequest (LEFT_BIM, BIM_CMD_REQ, 50, 7, 255, 255);
+//		BIM_ReceiveResponse (LEFT_BIM);
+//		BIM_SendRequest (LEFT_BIM, BIM_CMD_REQ, 50, 7, 255, 255);
+//		BIM_ReceiveResponse (LEFT_BIM);
+//		BIM_SendRequest (LEFT_BIM, BIM_CMD_REQ, 50, 7, 255, 255);
+//		BIM_ReceiveResponse (LEFT_BIM);
+//	}	
+//			SNS_Available_Data_Response_Union  SNS_DataState;
+//			SNS_Device_Information_Response_Union  SNS_DeviceInformation;
+			
+//while(1){
+//     	while(!SNS_GetPositionData(&SNS_Position) && (timeout != 20)) timeout ++;
+//			timeout = 0;
+//      while(!SNS_GetOrientationData(&SNS_Orientation) && (timeout != 20)) timeout ++;
+//			timeout = 0;
+//			while(!SNS_GetDataState(&SNS_DataState) && (timeout != 20)) timeout ++;
+//			timeout = 0;
+//			while(!SNS_GetDeviceInformation(&SNS_DeviceInformation) && (timeout != 20)) timeout ++;
+//			timeout = 0;
+//			while(SWS_GetPacket (&SWS_Data) && (timeout != 10)) timeout ++;
+//			timeout = 0;
+//}
 	
 //// Тестирование файловой системы с логов
 //	for(i=0; i < 200; i++)
@@ -222,9 +279,6 @@ int main(void)
 		if(M_Model_Need2UpdateCheck() == 1)
 		{
 			// Да, просит. Начинаем готовить данные для матмодели		
-			// Подлючаемся к СНС
-			SNS_RetargetPins();
-			SNS_init();
 
 			// Сбросим таймаут
 			timeout = 0;
@@ -234,18 +288,12 @@ int main(void)
 			timeout = 0;
 			// Запрашиваем данные ориентации с контролем таймаута (спрашиваем не более 20 раз подряд)
 			while(!SNS_GetOrientationData(&SNS_Orientation) && (timeout != 20)) timeout ++;
-			// Отключаемся от СНС и освобождаем UART порт
-			SNS_deinit();
-			
-			// Подключаемся к СВС
-			SWS_RetargetPins();
-			SWS_init();
+
 			// Сбросим таймаут
 			timeout = 0;
 			// Пытаемся получить данные от СВС, не более 20 попыток
 			while(SWS_GetPacket (&SWS_Data) && (timeout != 10)) timeout ++;
-			// Отключаемся от СВС и освобождаем UART порт
-			SWS_deinit ();
+
 						
 			// Отправляем данные математической модели
 			M_Model_PrepareData (SNS_Position.Struct, SNS_Orientation.Struct, SWS_Data.Struct);

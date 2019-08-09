@@ -7,9 +7,9 @@
  *
  * Code generated for Simulink model 'Easy_reg'.
  *
- * Model version                  : 1.9
+ * Model version                  : 1.22
  * Simulink Coder version         : 8.14 (R2018a) 06-Feb-2018
- * C/C++ source code generated on : Thu Aug  1 11:47:02 2019
+ * C/C++ source code generated on : Fri Aug  9 16:05:15 2019
  *
  * Target selection: ert.tlc
  * Embedded hardware selection: ARM Compatible->ARM Cortex
@@ -44,6 +44,11 @@ typedef struct {
   real_T Memory_2_PreviousInput;       /* '<S1>/Memory' */
 } DW_Easy_reg_T;
 
+/* Invariant block signals (default storage) */
+typedef struct {
+  const real_T Gain5;                  /* '<S1>/Gain5' */
+} ConstB_Easy_reg_T;
+
 /* External inputs (root inport signals with default storage) */
 typedef struct {
   real_T TDP_lon;                      /* '<Root>/TDP_lon' */
@@ -74,6 +79,7 @@ extern ExtU_Easy_reg_T Easy_reg_U;
 
 /* External outputs (root outports fed by signals with default storage) */
 extern ExtY_Easy_reg_T Easy_reg_Y;
+extern const ConstB_Easy_reg_T Easy_reg_ConstB;/* constant block i/o */
 
 /* Model entry point functions */
 extern void Easy_reg_initialize(void);
@@ -92,7 +98,6 @@ extern RT_MODEL_Easy_reg_T *const Easy_reg_M;
  * Block '<S1>/Scope10' : Unused code path elimination
  * Block '<S1>/Scope11' : Unused code path elimination
  * Block '<S1>/Scope12' : Unused code path elimination
- * Block '<S1>/Scope13' : Unused code path elimination
  * Block '<S1>/Scope14' : Unused code path elimination
  * Block '<S1>/Scope2' : Unused code path elimination
  * Block '<S1>/Scope3' : Unused code path elimination
@@ -116,18 +121,18 @@ extern RT_MODEL_Easy_reg_T *const Easy_reg_M;
  * MATLAB hilite_system command to trace the generated code back
  * to the parent model.  For example,
  *
- * hilite_system('prob/Easy_reg')    - opens subsystem prob/Easy_reg
- * hilite_system('prob/Easy_reg/Kp') - opens and selects block Kp
+ * hilite_system('BUP_FOR_GUI/Easy_reg')    - opens subsystem BUP_FOR_GUI/Easy_reg
+ * hilite_system('BUP_FOR_GUI/Easy_reg/Kp') - opens and selects block Kp
  *
  * Here is the system hierarchy for this model
  *
- * '<Root>' : 'prob'
- * '<S1>'   : 'prob/Easy_reg'
- * '<S2>'   : 'prob/Easy_reg/Distance_calc_KM'
- * '<S3>'   : 'prob/Easy_reg/Distance_calc_deg'
- * '<S4>'   : 'prob/Easy_reg/Heading_true'
- * '<S5>'   : 'prob/Easy_reg/Heading_true1'
- * '<S6>'   : 'prob/Easy_reg/MATLAB Function'
+ * '<Root>' : 'BUP_FOR_GUI'
+ * '<S1>'   : 'BUP_FOR_GUI/Easy_reg'
+ * '<S2>'   : 'BUP_FOR_GUI/Easy_reg/Distance_calc_KM'
+ * '<S3>'   : 'BUP_FOR_GUI/Easy_reg/Distance_calc_deg'
+ * '<S4>'   : 'BUP_FOR_GUI/Easy_reg/Heading_true'
+ * '<S5>'   : 'BUP_FOR_GUI/Easy_reg/Heading_true1'
+ * '<S6>'   : 'BUP_FOR_GUI/Easy_reg/MATLAB Function'
  */
 #endif                                 /* RTW_HEADER_Easy_reg_h_ */
 

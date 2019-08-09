@@ -7,9 +7,9 @@
  *
  * Code generated for Simulink model 'Easy_reg'.
  *
- * Model version                  : 1.9
+ * Model version                  : 1.22
  * Simulink Coder version         : 8.14 (R2018a) 06-Feb-2018
- * C/C++ source code generated on : Thu Aug  1 11:47:02 2019
+ * C/C++ source code generated on : Fri Aug  9 16:05:15 2019
  *
  * Target selection: ert.tlc
  * Embedded hardware selection: ARM Compatible->ARM Cortex
@@ -59,7 +59,7 @@ void Easy_reg_Heading_true(real_T rtu_u1, real_T rtu_u1_b, real_T rtu_u0, real_T
 /* Model step function */
 void Easy_reg_step(void)
 {
-  boolean_T rtb_LogicalOperator;
+  boolean_T rtb_RelationalOperator;
   real_T dif_idx_0;
   real_T dif_idx_1;
 
@@ -74,15 +74,15 @@ void Easy_reg_step(void)
   dif_idx_1 = Easy_reg_U.TDP_lat - Easy_reg_U.Pos_lat;
 
   /* Logic: '<S1>/Logical Operator' incorporates:
-   *  Constant: '<S1>/Constant1'
-   *  Constant: '<S1>/Constant2'
+   *  Constant: '<S1>/Fin_Man_Alt'
+   *  Constant: '<S1>/Wait_RAD'
    *  Inport: '<Root>/Pos_alt'
    *  MATLAB Function: '<S1>/Distance_calc_deg'
    *  RelationalOperator: '<S1>/Relational Operator1'
    *  RelationalOperator: '<S1>/Relational Operator2'
    */
-  rtb_LogicalOperator = ((sqrt(dif_idx_0 * dif_idx_0 + dif_idx_1 * dif_idx_1) <=
-    0.007) && (Easy_reg_U.Pos_alt > 700.0));
+  rtb_RelationalOperator = ((sqrt(dif_idx_0 * dif_idx_0 + dif_idx_1 * dif_idx_1)
+    <= 0.007) && (Easy_reg_U.Pos_alt > 700.0));
 
   /* MATLAB Function: '<S1>/Heading_true' incorporates:
    *  Inport: '<Root>/Pos_lat'
@@ -103,12 +103,11 @@ void Easy_reg_step(void)
                         Easy_reg_DW.Memory_2_PreviousInput, &dif_idx_1);
 
   /* Sum: '<S1>/Sum1' incorporates:
-   *  Constant: '<S1>/Constant3'
    *  Product: '<S1>/Product'
    *  Sum: '<S1>/Sum'
    */
-  dif_idx_0 = (dif_idx_0 - (real_T)rtb_LogicalOperator * 1.5707963267948966) -
-    dif_idx_1;
+  dif_idx_0 = (dif_idx_0 - (real_T)rtb_RelationalOperator *
+               Easy_reg_ConstB.Gain5) - dif_idx_1;
 
   /* MATLAB Function: '<S1>/MATLAB Function' */
   if (dif_idx_0 > 3.14) {
@@ -122,13 +121,13 @@ void Easy_reg_step(void)
   /* End of MATLAB Function: '<S1>/MATLAB Function' */
 
   /* Switch: '<S1>/Switch' */
-  if (rtb_LogicalOperator) {
+  if (rtb_RelationalOperator) {
     /* Gain: '<S1>/Gain1' incorporates:
      *  Gain: '<S1>/Gain4'
      */
     Easy_reg_Y.BIM_CMD = 57.295779513082323 * dif_idx_0 * 2.0;
 
-    /* Saturate: '<S1>/Saturation1' */
+    /* Saturate: '<S1>/Wait_Sat' */
     if (Easy_reg_Y.BIM_CMD > 20.0) {
       /* Gain: '<S1>/Gain1' incorporates:
        *  Outport: '<Root>/BIM_CMD'
@@ -143,12 +142,12 @@ void Easy_reg_step(void)
       }
     }
 
-    /* End of Saturate: '<S1>/Saturation1' */
+    /* End of Saturate: '<S1>/Wait_Sat' */
   } else {
     /* Gain: '<S1>/Gain1' */
     Easy_reg_Y.BIM_CMD = 57.295779513082323 * dif_idx_0;
 
-    /* Saturate: '<S1>/Saturation' */
+    /* Saturate: '<S1>/Base_Sat' */
     if (Easy_reg_Y.BIM_CMD > 50.0) {
       /* Gain: '<S1>/Gain1' incorporates:
        *  Outport: '<Root>/BIM_CMD'
@@ -163,7 +162,7 @@ void Easy_reg_step(void)
       }
     }
 
-    /* End of Saturate: '<S1>/Saturation' */
+    /* End of Saturate: '<S1>/Base_Sat' */
   }
 
   /* End of Switch: '<S1>/Switch' */

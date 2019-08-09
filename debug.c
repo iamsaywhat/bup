@@ -55,7 +55,7 @@ void debug_can_full_struct (void)
 	debug_can(0x508, &debug_vars.doingManeuverMode, 1);
 	debug_can(0x510, &debug_vars.angle, 2);
 	debug_can(0x513, &debug_vars.directionOfRotation, 8);
-	debug_can(0x514, &debug_vars.cmdTightenSlings, 8);
+	debug_can(0x514, &debug_vars.TightenSlings, 8);
 	debug_can(0x517, &debug_vars.Lat1, 8);
 	debug_can(0x518, &debug_vars.Lat2, 8);
 	debug_can(0x519, &debug_vars.Lon1, 8);

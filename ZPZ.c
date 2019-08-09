@@ -141,6 +141,7 @@ void ZPZ_init (void)
 }
 
 
+
 /**************************************************************************************************************
 						ZPZ_ShortResponse - Отправка простого пакета подтвержений/ошибки к ЗПЗ                            *
 **************************************************************************************************************/
@@ -176,6 +177,8 @@ void ZPZ_ShortResponse(uint8_t Command, uint16_t Count, uint8_t Error)
 	SendFEND(ZPZ_UART, 0xFFF);
 }
 
+
+
 /**************************************************************************************************************
           ZPZ_WriteIntoCSnUnion - Функция записи производит объединение 4х микросхем SPI-памяти в единое      *
                                   адресное пространство 0x00000 - 0x7FFFF, используя драйвер "1636PP52Y.h".   *
@@ -204,6 +207,7 @@ void ZPZ_WriteIntoCSnUnion(uint32_t Address, uint8_t* Source, uint32_t Size)
 }
 
 
+
 /**************************************************************************************************************
           ZPZ_ReadIntoCSnUnion - Функция чтения производит объединение 4х микросхем SPI-памяти в единое       *
                                   адресное пространство 0x00000 - 0x7FFFF, используя драйвер "1636PP52Y.h".   *
@@ -230,6 +234,7 @@ void ZPZ_ReadIntoCSnUnion(uint32_t Address, uint8_t* Destination, uint32_t Size)
 			Bytecount ++;
 	}
 }
+
 
 
 /**************************************************************************************************************
@@ -368,7 +373,7 @@ uint8_t ZPZ_Service (void)
 			break;
 	}
 	
-	
+
 	
 	// Обработка данных пакета завершена, все функции возращаются сюда
 	// Принимаем контрольную сумму сообщения
@@ -468,7 +473,6 @@ uint8_t ZPZ_Service (void)
 
 
 
-
 /*--------------------------------------------------------------------------------------------Обёртка UART функций со SLIP-------------*/
 // Отправка FEND разделителя, с таймаутом на время отправки 
 int16_t SendFEND(MDR_UART_TypeDef* UARTx, uint32_t TimeoutRange)
@@ -542,6 +546,7 @@ int16_t UARTSendByte_by_SLIP (MDR_UART_TypeDef* UARTx, uint32_t TimeoutRange, ui
 		
 		return 0;
 }
+
 // Приём и декодирование пакета по SLIP Протоколу 
 uint16_t UARTReceiveByte_by_SLIP(MDR_UART_TypeDef* UARTx, uint32_t TimeoutRange)
 {
@@ -582,6 +587,8 @@ uint16_t UARTReceiveByte_by_SLIP(MDR_UART_TypeDef* UARTx, uint32_t TimeoutRange)
 	return Byte;
 }
 
+
+
 /*-----------------------------------------Обслуживание простых запросов-------------------------------------------------------------*/
 uint16_t ZPZ_RequestWithEmptyData(uint16_t CRC) 
 {
@@ -595,6 +602,9 @@ uint16_t ZPZ_RequestWithEmptyData(uint16_t CRC)
 	
 	return crc;
 }
+
+
+
 //-----------------------------------------Обслуживание команды CHECK_CONNECT---------------------------------------------------------*/
 uint16_t ZPZ_Request_CHECK_CONNECT (uint16_t CRC)
 {
@@ -605,6 +615,7 @@ void ZPZ_Response_CHECK_CONNECT (uint16_t NumPacket)
 {
 	ZPZ_ShortResponse(CHECK_CONNECT, NumPacket, SUCCES);
 }
+
 
 
 //-----------------------------------------Обслуживание команды START_DOWNLOAD---------------------------------------------------------*/
@@ -641,7 +652,6 @@ void ZPZ_Response_START_DOWNLOAD (uint16_t NumPacket)
 {
 	ZPZ_ShortResponse(START_DOWNLOAD, NumPacket, SUCCES);
 }
-
 
 
 
@@ -688,6 +698,8 @@ void ZPZ_Response_MAP_DOWNLOAD (uint16_t NumPacket)
 {
 	ZPZ_ShortResponse(MAP_DOWNLOAD, NumPacket, SUCCES);
 }
+
+
 
 //-----------------------------------------Обслуживание команды START_UPLOAD---------------------------------------------------------*/
 uint16_t ZPZ_Request_START_UPLOAD (uint16_t CRC)
@@ -748,6 +760,8 @@ void ZPZ_Response_START_UPLOAD (uint16_t NumPacket)
 	//В конце посылаем признак конца пакета
 	SendFEND(ZPZ_UART, 0xFFF);
 }
+
+
 
 //-----------------------------------------Обслуживание команды MAP_UPLOAD---------------------------------------------------------*/
 uint16_t ZPZ_Request_MAP_UPLOAD (uint16_t CRC)
@@ -813,6 +827,8 @@ void ZPZ_Response_MAP_UPLOAD (uint16_t NumPacket)
 	SendFEND(ZPZ_UART, 0xFFF);
 }
 
+
+
 //-----------------------------------------Обслуживание команды BIM_CONTROL---------------------------------------------------------*/
 uint16_t ZPZ_Request_BIM_CONTROL (uint16_t CRC, ZPZ_RequestControlBIM_Union* BIM_Data)
 {
@@ -839,19 +855,23 @@ uint16_t ZPZ_Request_BIM_CONTROL (uint16_t CRC, ZPZ_RequestControlBIM_Union* BIM
 void ZPZ_Response_BIM_CONTROL (ZPZ_RequestControlBIM_Union* BIM_Data, uint16_t NumPacket)
 {
 	uint16_t BIM_Side;
-	BIM_Response_UnionType  BIM_Response;
 	
 	// Определяем правым или левым БИМом будем управлять
-	if (BIM_Data->Struct.Side == L_BIM) BIM_Side =  DEVICE_101;
-	else if (BIM_Data->Struct.Side == R_BIM) BIM_Side = DEVICE_100;
-	else BIM_Side = 0xFFFF;
+	if (BIM_Data->Struct.Side == L_BIM) 
+		BIM_Side =  DEVICE_101;
+	else if (BIM_Data->Struct.Side == R_BIM) 
+		BIM_Side = DEVICE_100;
+	else 
+		BIM_Side = 0xFFFF;
 	// Отправляем запрос на управление с параметрами
 	BIM_SendRequest (BIM_Side, BIM_Data->Struct.State, BIM_Data->Struct.Position, 7, 255, 255);
 	// Получим ответ, чтобы убедиться, что все в порядке
-	BIM_ReceiveResponse (&BIM_Response, BIM_Side);
+	BIM_ReceiveResponse (BIM_Side);
 	// Теперь нужно ответить по ЗПЗ
 	ZPZ_ShortResponse(BIM_CONTROL, NumPacket, SUCCES);
 }
+
+
 
 //-----------------------------------------Обслуживание команды BIM_STATUS---------------------------------------------------------*/
 uint16_t ZPZ_Request_BIM_STATUS (uint16_t CRC, ZPZ_RequestControlBIM_Union* BIMControl)	
@@ -869,25 +889,27 @@ uint16_t ZPZ_Request_BIM_STATUS (uint16_t CRC, ZPZ_RequestControlBIM_Union* BIMC
 void ZPZ_Response_BIM_STATUS(uint8_t Side, uint16_t NumPacket)
 {
 	ZPZ_ResponseStatusBIM_Union   ZPZ_BIM_Status;
-	BIM_Response_UnionType        BIM_Response;
 	ZPZ_BasePacket_Union          ZPZ_BaseResponse;
 	uint16_t BIM_Side, i;
 	
 	// Определяем правым или левым БИМом будем управлять
-	if (Side == L_BIM) BIM_Side =  DEVICE_101;
-	else if (Side == R_BIM) BIM_Side = DEVICE_100;
-	// Это случай ошибки, адресс выбран произвольно 
-	else BIM_Side = 0xFFFF;
+	if (Side == L_BIM) 
+		BIM_Side =  DEVICE_101;
+	else if (Side == R_BIM) 
+		BIM_Side = DEVICE_100;
+	// Это случай ошибки, адрес выбран произвольно 
+	else 
+		BIM_Side = 0xFFFF;
 	
 	// Спросим состояние БИМов
-	BIM_ReceiveResponse (&BIM_Response, BIM_Side);
+	BIM_ReceiveResponse (BIM_Side);
 	
 	// Заполняем информационные поля 
-	ZPZ_BIM_Status.Struct.Current  = BIM_Response.Struct.Current;
-	ZPZ_BIM_Status.Struct.Voltage  = BIM_Response.Struct.Voltage;
-	ZPZ_BIM_Status.Struct.Speed    = BIM_Response.Struct.Speed;
-	ZPZ_BIM_Status.Struct.Position = BIM_Response.Struct.StrapPosition;
-	ZPZ_BIM_Status.Struct.Err      = BIM_Response.Struct.StatusFlags;
+	ZPZ_BIM_Status.Struct.Current  = BIM_GetCurrent (BIM_Side);
+	ZPZ_BIM_Status.Struct.Voltage  = BIM_GetVoltage (BIM_Side);
+	ZPZ_BIM_Status.Struct.Speed    = BIM_GetSpeed (BIM_Side);
+	ZPZ_BIM_Status.Struct.Position = BIM_GetStrapPosition (BIM_Side);
+	ZPZ_BIM_Status.Struct.Err      = BIM_GetStatusFlags(BIM_Side);
 	ZPZ_BIM_Status.Struct.Line     = LINE_MAIN;
 	ZPZ_BIM_Status.Struct.Side     = BIM_Side;
 	ZPZ_BIM_Status.Struct.Error    = SUCCES;
@@ -914,9 +936,12 @@ void ZPZ_Response_BIM_STATUS(uint8_t Side, uint16_t NumPacket)
 	// И в конце сверху посылаем контрольную сумму
 	for(i = 0; i < 2; i++)
 		UARTSendByte_by_SLIP (ZPZ_UART, 0xFFFF, ZPZ_BaseResponse.Buffer[i]);
+	
 	// И в конце опять разделитель
 	SendFEND(ZPZ_UART, 0xFFF);
 }
+
+
 
 //-----------------------------------------Обслуживание команды LOG_FORMAT---------------------------------------------------------*/
 uint16_t ZPZ_Request_LOG_FORMAT (uint16_t CRC)
@@ -936,6 +961,7 @@ void ZPZ_Response_LOG_FORMAT (uint16_t NumPacket)
 	// После форматирование необходимо обновить информацию о файловой системе
 	LogFs_Info();
 }
+
 
 
 //-----------------------------------------Обслуживание команды LOG_FILES---------------------------------------------------------*/
@@ -1018,6 +1044,8 @@ void ZPZ_Response_LOG_FILES (uint16_t NumPacket)
 	// И в конце опять разделитель
 	SendFEND(ZPZ_UART, 0xFFF);
 }
+
+
 
 //-----------------------------------------Обслуживание команды LOG_UPLOAD---------------------------------------------------------*/
 uint16_t ZPZ_Request_LOG_UPLOAD(uint16_t* NUM, uint16_t CRC)
@@ -1221,6 +1249,8 @@ uint8_t ZPZ_Response_LOG_UPLOAD(uint16_t File_num, uint16_t NumPacket)
 	return 0;
 }
 
+
+
 //-----------------------------------------Обслуживание команды REQ_SWS---------------------------------------------------------*/
 uint16_t ZPZ_Request_REQ_SWS (uint16_t CRC)
 {
@@ -1300,6 +1330,7 @@ uint8_t ZPZ_Response_REQ_SWS (uint16_t NumPacket)
 }
 
 
+
 //-----------------------------------------Обслуживание команды REQ_SNS_POS---------------------------------------------------------*/
 uint16_t ZPZ_Request_REQ_SNS_POS (uint16_t CRC)
 {
@@ -1314,15 +1345,12 @@ uint8_t ZPZ_Response_REQ_SNS_POS (uint16_t NumPacket)
 	uint32_t timeout = 0;
 	uint8_t  i;
 	
-	// Сначала получим информацию от СНС
-	SNS_RetargetPins();
-	SNS_init();
+
 	// Запрашиваем данные местоположения
 	while(!SNS_GetPositionData(&SNS_Position_Data_Response)&& (timeout != 0xFFFF)) timeout ++;
 	// Запрашиваем данные ориентации
 	while(!SNS_GetOrientationData(&SNS_Orientation_Data_Response)&& (timeout != 0xFFFF)) timeout ++;
-	// Отключаемся от СНС и освобождаем UART
-	SNS_deinit ();
+
 	// Проверим, вдруг выход был по таймауту, тогда нужно ответить ошибкой и завершиться
 	if (timeout == 0xFFFF)
 	{
@@ -1376,6 +1404,7 @@ uint8_t ZPZ_Response_REQ_SNS_POS (uint16_t NumPacket)
 }
 
 
+
 //-----------------------------------------Обслуживание команды REQ_SNS_STATE---------------------------------------------------------*/
 uint16_t ZPZ_Request_REQ_SNS_STATE (uint16_t CRC)
 {
@@ -1390,15 +1419,11 @@ uint8_t ZPZ_Response_REQ_SNS_STATE (uint16_t NumPacket)
 	uint32_t timeout = 0;
 	uint8_t  i;
 	
-	//Сначала получим информацию от СНС
-	SNS_RetargetPins();
-	SNS_init();
 	// Получим данные об устройстве
   while(!SNS_GetDeviceInformation(&SNS_DevInfo)&& (timeout != 0xFFFF)) timeout ++;
 	// Получим информацию о доступных данных 
   while(!SNS_GetDataState(&SNS_AvailableData)&& (timeout != 0xFFFF)) timeout ++;
-	// Отключаемся от СНС и освобождаем UART
-	SNS_deinit ();
+
 	// Проверим, вдруг выход был по таймауту, тогда нужно ответить ошибкой и завершиться
 	if (timeout == 0xFFFF)
 	{
@@ -1450,6 +1475,8 @@ uint8_t ZPZ_Response_REQ_SNS_STATE (uint16_t NumPacket)
 	return 0;	
 }
 
+
+
 //-----------------------------------------Обслуживание команды REQ_SNS_SETTINGS---------------------------------------------------------*/
 uint16_t ZPZ_Request_REQ_SNS_SETTINGS(uint16_t CRC, uint8_t* buffer)
 {
@@ -1468,27 +1495,33 @@ uint8_t ZPZ_Response_REQ_SNS_SETTINGS (uint8_t* params, uint16_t NumPacket)
 {
 	ZPZ_BasePacket_Union     ZPZ_BaseResponse;
 	uint8_t  i;
-	
-	// Подключаемся к СНС
-	SNS_RetargetPins();
-	SNS_init();
-	
+		
 	// Анализируем пришедшую команду и выполняем действия
-	if(params[0]== 0x01)
-		SNS_Request(HCE);
-	else if (params[0] == 0x02)
-		SNS_Request(HCD);
-	if(params[1]== 0x01)
-		SNS_Request(GCE);
-	else if (params[1] == 0x02)
-		SNS_Request(GCR);
-	if(params[2]== 0x01)
-		SNS_Request(MCE);
-	else if (params[2] == 0x02)
-		SNS_Request(MCR);
 	
-	// Отключаемся от СНС и освобождаем UART
-	SNS_deinit ();
+	// Команда включения горизонтальной коррекции
+	if(params[0]== 0x01)
+		SNS_EnableHorizontalCorrection();
+	
+	// Команда отключения горизонтальной коррекции
+	else if (params[0] == 0x02) 
+		SNS_DisableHorizontalCorrection();
+	
+	// Команда начала калибровки гироскопа
+	if(params[1]== 0x01) 
+		SNS_StartGyroCalibration();
+	
+	// Команда сброса калибровки гироскопа
+	else if (params[1] == 0x02)
+		SNS_ResetGyroCalibration();
+	
+	// Команда начала калибровки магнитометра
+	if(params[2]== 0x01)
+		SNS_StartMagnetometerCalibration();
+	
+	// Команда сброса калибровки магнитометра
+	else if (params[2] == 0x02)
+		SNS_ResetMagnetometerCalibration();
+
 	
 	// Теперь нужно ответить 
 	// Заполняем структуру общей части всех пакетов
@@ -1522,6 +1555,7 @@ uint8_t ZPZ_Response_REQ_SNS_SETTINGS (uint8_t* params, uint16_t NumPacket)
 	
 	return 0;	
 }
+
 
 
 //-----------------------------------------Обслуживание команды PIN_STATE---------------------------------------------------------*/
@@ -1579,7 +1613,6 @@ uint16_t ZPZ_Request_SYSTEM_STATE (uint16_t CRC)
 	return ZPZ_RequestWithEmptyData(CRC);
 }
 
-
 void ZPZ_Response_SYSTEM_STATE (uint16_t NumPacket)
 {
 //	ZPZ_BasePacket_Union     ZPZ_BaseResponse;
@@ -1588,6 +1621,8 @@ void ZPZ_Response_SYSTEM_STATE (uint16_t NumPacket)
 //	uint8_t  buff[3];
 	
 }
+
+
 
 //-----------------------------------------Обслуживание команды CAN_TRANSMIT---------------------------------------------------------*/
 uint16_t ZPZ_Request_CAN_TRANSMIT (uint16_t CRC, uint8_t* buffer)

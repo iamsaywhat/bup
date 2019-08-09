@@ -19,7 +19,7 @@ typedef struct
 	uint8_t doingManeuverMode;       // Зарезервирован адрес CAN 0x508
 	int16_t angle;                   // Зарезервирован адрес CAN 0x510
 	double directionOfRotation;      // Зарезервирован адрес CAN 0x513
-	double cmdTightenSlings;         // Зарезервирован адрес CAN 0x514
+	double TightenSlings;            // Зарезервирован адрес CAN 0x514
 	double Lat1;                     // Зарезервирован адрес CAN 0x517
 	double Lat2;                     // Зарезервирован адрес CAN 0x518
 	double Lon1;                     // Зарезервирован адрес CAN 0x519

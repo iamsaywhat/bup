@@ -7,6 +7,8 @@
 #include "MDR32F9Qx_uart.h"
 
 
+/********************************  ПРИВАТНАЯ ЧАСТЬ МОДУЛЯ  ************************************************************************************/
+
 
 // Разделители фреймов по SLIP
 #define FEND			0xC0		// Начало и конец кадра
@@ -17,6 +19,7 @@
 
 /**************************************************************************************************************
 						SNS_RetargetPins - Функция переопределения UART1 на другие пины, для работы SNS                   *
+						Параметры:  NONE                                                                                  *
 ***************************************************************************************************************/
 void SNS_RetargetPins (void)
 {
@@ -26,11 +29,9 @@ void SNS_RetargetPins (void)
 	Pin_Init (SNS_PORT, SNS_TX, PORT_FUNC_ALTER, PORT_OE_OUT);
 }
 
-
-
-
 /**************************************************************************************************************
-						SNS_init - Запуск процедуры обмена с SNS                                                          *
+						SNS_init - Инициализация UART под SNS                                                             *
+						Параметры:  NONE                                                                                  *
 ***************************************************************************************************************/
 void SNS_init (void)
 {
@@ -57,7 +58,8 @@ void SNS_init (void)
 }
 
 /**************************************************************************************************************
-						SNS_deinit - Деинициализация СНС                                                                  *
+						SNS_deinit - Деинициализация SNS и освобождение UART                                              *
+						Параметры:  NONE                                                                                  *
 ***************************************************************************************************************/
 void SNS_deinit (void)
 {
@@ -70,7 +72,10 @@ void SNS_deinit (void)
 }
 
 /**************************************************************************************************************
-								 SNS_Request - Запрос к СНС с командой                                                        *
+						SNS_Request - SNS_Request - Запрос к СНС с командой                                               *
+						Параметры:  																																											*
+											Command - Код команды, отправляемый СНС 																								*
+										(СНС реагирует только на команды перечисленные а протоколе) 														*
 ***************************************************************************************************************/
 uint8_t SNS_Request(uint8_t Command)
 {
@@ -133,8 +138,14 @@ uint8_t SNS_Request(uint8_t Command)
 }
 
 /**************************************************************************************************************
-					SNS_GetData_by_SLIP - Приём данных от СНС, распаковка кадров по SLIP                                *
-**************************************************************************************************************/
+						SNS_GetData_by_SLIP - Приём данных от СНС, распаковка кадров по SLIP                              *
+						Параметры:                                                                                        *
+											  PacketSize - Размер принимаего пакета данных                                          *
+											  Buffer     - Буфер, в который будет помещены принимаемые данные 										  *
+						Возвращает:                                                                                       *
+                        0 - Если ошибка проверки кода ответа и контрольной суммы								  						*
+												1 - Если проверка верна		 																														*
+***************************************************************************************************************/
 void SNS_GetData_by_SLIP (uint8_t PacketSize, uint8_t* Buffer)
 {
 	uint32_t  timeout = 0;
@@ -214,18 +225,17 @@ void SNS_GetData_by_SLIP (uint8_t PacketSize, uint8_t* Buffer)
 }
 
 
+/********************************  ПУБЛИЧНАЯ ЧАСТЬ МОДУЛЯ  ************************************************************************************/
+
 /**************************************************************************************************************
 								 SNS_GetDeviceInformation - Запрос информации о девайсе от СНС                                *
 **************************************************************************************************************/
 uint8_t SNS_GetDeviceInformation(SNS_Device_Information_Response_Union*  SNS_DeviceInformation)
 {
-	SNS_Device_Information_Response_Union  LastSNS_DeviceInformation;
-	uint32_t timeout = 0;
-	uint16_t  crc;
-	
-	// Сохраняем предыдущие данные
-	LastSNS_DeviceInformation = *SNS_DeviceInformation;
-	
+	SNS_Device_Information_Response_Union  Actual_SNS_DeviceInformation;   // Актуальный ответ от СНС
+	uint32_t timeout = 0;                                                  // Таймаут счетчик
+	uint16_t  crc;                                                         // Расчетная контрольная сумма
+		
 	//Вычищаем FIFO от мусора перед запросом
 	while ((UART_GetFlagStatus (SNS_UART, UART_FLAG_RXFE) != SET)&& (timeout != SNS_MAX_TIMEOUT)) 
 	{
@@ -236,30 +246,39 @@ uint8_t SNS_GetDeviceInformation(SNS_Device_Information_Response_Union*  SNS_Dev
 	// Проверяем будет ли это выход по таймауту
 	if(timeout == SNS_MAX_TIMEOUT)
 	{	
-		// Восстанавливаем старую информацию
-		*SNS_DeviceInformation = LastSNS_DeviceInformation;
+		//Возвращаем признак неудачи
 		return 0;
 	}
+	
 	// Сбросим счетчик таймаут
 	timeout = 0;
 	
+	// Подключаемся к СНС
+	SNS_RetargetPins();
+	SNS_init();
 	// Запрашиваем информацию у СНС
 	SNS_Request(DIR);
-	// Получаем ответ
-	SNS_GetData_by_SLIP(SizeAnsDIR, &SNS_DeviceInformation->Buffer[0]);
+	// Получаем ответ в локальную структуру Actual_SNS_DeviceInformation
+	SNS_GetData_by_SLIP(SizeAnsDIR, &Actual_SNS_DeviceInformation.Buffer[0]);
+	// Отключаемся от СНС
+	SNS_deinit();
+	
 	// Вычисляем контрольную сумму пакета (без поля CRC)
-	crc = Crc16(&SNS_DeviceInformation->Buffer[2],SizeAnsDIR-2, CRC16_INITIAL_FFFF);
+	crc = Crc16(&Actual_SNS_DeviceInformation.Buffer[2],SizeAnsDIR-2, CRC16_INITIAL_FFFF);
+	
 	// Проверяем контрольную сумму и код ответа, если не совпадают, то возвращаем 0
-	if((SNS_DeviceInformation->Struct.Response != DIR)||(SNS_DeviceInformation->Struct.CRC != crc))
+	if((Actual_SNS_DeviceInformation.Struct.Response != DIR)||(Actual_SNS_DeviceInformation.Struct.CRC != crc))
 	{
-		// Восстанавливаем старую информацию
-		*SNS_DeviceInformation = LastSNS_DeviceInformation;
-		return 0; //Возвращаем признак неудачи 
+		//Возвращаем признак неудачи
+		return 0; 
 	}
-		
+	// Проверки верны, поэтому возвращаем полученные данные
+	*SNS_DeviceInformation = Actual_SNS_DeviceInformation;
+	
 	//Возвращаем признак успеха
 	return  1;
 }
+
 
 
 /**************************************************************************************************************
@@ -267,14 +286,11 @@ uint8_t SNS_GetDeviceInformation(SNS_Device_Information_Response_Union*  SNS_Dev
 **************************************************************************************************************/
 uint8_t SNS_GetDataState(SNS_Available_Data_Response_Union*  SNS_DataState)
 {
-	SNS_Available_Data_Response_Union  LastSNS_DataState;
-	uint32_t timeout = 0;
-	uint16_t  crc;
-	
-	// Сохраняем предыдущие данные
-	LastSNS_DataState = *SNS_DataState;
-	
-	//Вычищаем FIFO от мусора перед запросом
+	SNS_Available_Data_Response_Union  Actual_SNS_DataState;               // Актуальный ответ от СНС
+	uint32_t timeout = 0;                                                  // Таймаут счетчик
+	uint16_t  crc;                                                         // Расчетная контрольная сумма
+		
+	// Вычищаем FIFO от мусора перед запросом
 	while ((UART_GetFlagStatus (SNS_UART, UART_FLAG_RXFE) != SET) && (timeout != SNS_MAX_TIMEOUT))
 	{		
 		timeout++; 
@@ -284,26 +300,33 @@ uint8_t SNS_GetDataState(SNS_Available_Data_Response_Union*  SNS_DataState)
 	// Проверяем будет ли это выход по таймауту
 	if(timeout == SNS_MAX_TIMEOUT)
 	{		
-		// Восстанавливаем старую информацию
-		*SNS_DataState = LastSNS_DataState;
+		//Возвращаем признак неудачи
 		return 0;
 	}
 	// Сбросим счетчик таймаута, и продолжаем
 	timeout = 0;
-
+	
+	// Подключаемся к СНС
+	SNS_RetargetPins();
+	SNS_init();
 	// Запрашиваем информацию у СНС
 	SNS_Request(DSR);
 	// Получаем ответ
-	SNS_GetData_by_SLIP(SizeAnsDSR, &SNS_DataState->Buffer[0]);
+	SNS_GetData_by_SLIP(SizeAnsDSR, &Actual_SNS_DataState.Buffer[0]);
+	// Отключаемся от СНС
+	SNS_deinit();
+	
 	// Вычисляем контрольную сумму пакета (без поля CRC)
-	crc = Crc16(&SNS_DataState->Buffer[2],SizeAnsDSR-2, CRC16_INITIAL_FFFF);
+	crc = Crc16(&Actual_SNS_DataState.Buffer[2],SizeAnsDSR-2, CRC16_INITIAL_FFFF);
 	// Проверяем контрольную сумму и код ответа, если не совпадают, то возвращаем 0
-	if((SNS_DataState->Struct.Response != DSR)||(SNS_DataState->Struct.CRC != crc))
+	if((Actual_SNS_DataState.Struct.Response != DSR)||(Actual_SNS_DataState.Struct.CRC != crc))
 	{		
-		// Восстанавливаем старую информацию
-		*SNS_DataState = LastSNS_DataState;
-		return 0;//Возвращаем признак неудачи 
+		// Возвращаем признак неудачи
+		return 0; 
 	}
+	
+	// Проверки верны, поэтому возвращаем полученные данные
+	*SNS_DataState = Actual_SNS_DataState;
 	
 	//Возвращаем признак успеха
 	return  1;
@@ -316,14 +339,11 @@ uint8_t SNS_GetDataState(SNS_Available_Data_Response_Union*  SNS_DataState)
 **************************************************************************************************************/
 uint8_t SNS_GetPositionData(SNS_Position_Data_Response_Union*  SNS_PositionData)
 {
-	SNS_Position_Data_Response_Union  LastSNS_PositionData;
-	uint32_t timeout = 0;
-	uint16_t  crc;
+	SNS_Position_Data_Response_Union  Actual_SNS_PositionData;             // Актуальный ответ от СНС
+	uint32_t timeout = 0;                                                  // Таймаут счетчик
+	uint16_t  crc;                                                         // Расчетная контрольная сумма
 	
-	// Сохраняем предыдущие данные
-	LastSNS_PositionData = *SNS_PositionData;
-	
-	//Вычищаем FIFO от мусора перед запросом
+	// Вычищаем FIFO от мусора перед запросом
 	while ((UART_GetFlagStatus (SNS_UART, UART_FLAG_RXFE) != SET)&& (timeout != SNS_MAX_TIMEOUT))
 	{ 
 		timeout++; 
@@ -333,26 +353,33 @@ uint8_t SNS_GetPositionData(SNS_Position_Data_Response_Union*  SNS_PositionData)
 	// Проверяем будет ли это выход по таймауту
 	if(timeout == SNS_MAX_TIMEOUT) 
 	{
-		// Восстанавливаем старую информацию
-		*SNS_PositionData = LastSNS_PositionData;
+		// Возвращаем признак неудачи 
 		return 0;
 	}
 	// Сбросим счетчик таймаута, и продолжаем
 	timeout = 0;
 	
+	// Подключаемся к СНС
+	SNS_RetargetPins();
+	SNS_init();
 	// Запрашиваем информацию у СНС
 	SNS_Request(PDR);
 	// Получаем ответ
-	SNS_GetData_by_SLIP(SizeAnsPDR, &SNS_PositionData->Buffer[0]);
+	SNS_GetData_by_SLIP(SizeAnsPDR, &Actual_SNS_PositionData.Buffer[0]);
+	// Отключаемся от СНС
+	SNS_deinit();
+	
 	// Вычисляем контрольную сумму пакета (без поля CRC)
-	crc = Crc16(&SNS_PositionData->Buffer[2],SizeAnsPDR-2, CRC16_INITIAL_FFFF);
+	crc = Crc16(&Actual_SNS_PositionData.Buffer[2],SizeAnsPDR-2, CRC16_INITIAL_FFFF);
 	// Проверяем контрольную сумму и код ответа, если не совпадают, то возвращаем 0
-	if((SNS_PositionData->Struct.Response != PDR)||(SNS_PositionData->Struct.CRC != crc))
+	if((Actual_SNS_PositionData.Struct.Response != PDR)||(Actual_SNS_PositionData.Struct.CRC != crc))
 	{
-		// Восстанавливаем старую информацию
-		*SNS_PositionData = LastSNS_PositionData;
-		return 0; //Возвращаем признак неудачи 
+		// Возвращаем признак неудачи
+		return 0;  
 	}
+	
+	// Проверки верны, поэтому возвращаем полученные данные
+	*SNS_PositionData = Actual_SNS_PositionData;
 	
 	//Возвращаем признак успеха
 	return  1;
@@ -365,13 +392,10 @@ uint8_t SNS_GetPositionData(SNS_Position_Data_Response_Union*  SNS_PositionData)
 **************************************************************************************************************/
 uint8_t SNS_GetOrientationData(SNS_Orientation_Data_Response_Union*  SNS_OrientationData)
 {
-	SNS_Orientation_Data_Response_Union  LastSNS_OrientationData;
-	uint32_t timeout = 0;
-	uint16_t  crc;
-	
-	// Сохраняем предыдущие данные
-	LastSNS_OrientationData = *SNS_OrientationData;
-	
+	SNS_Orientation_Data_Response_Union  Actual_SNS_OrientationData;          // Актуальный ответ от СНС
+	uint32_t timeout = 0;                                                     // Таймаут счетчик
+	uint16_t  crc;                                                            // Расчетная контрольная сумма
+		
 	//Вычищаем FIFO от мусора перед запросом
 	while ((UART_GetFlagStatus (SNS_UART, UART_FLAG_RXFE) != SET) && (timeout != SNS_MAX_TIMEOUT))
 	{
@@ -382,28 +406,149 @@ uint8_t SNS_GetOrientationData(SNS_Orientation_Data_Response_Union*  SNS_Orienta
 	// Проверяем будет ли это выход по таймауту
 	if(timeout == SNS_MAX_TIMEOUT) 
 	{
-		// Восстанавливаем старую информацию
-		*SNS_OrientationData = LastSNS_OrientationData;
+		// Возвращаем признак неудачи 
 		return 0;
 	}
+	
 	// Сбросим счетчик таймаута, и продолжаем
 	timeout = 0;
 	
+	// Подключаемся к СНС
+	SNS_RetargetPins();
+	SNS_init();
 	// Запрашиваем информацию у СНС
 	SNS_Request(ODR);
 	// Получаем ответ
-	SNS_GetData_by_SLIP(SizeAnsODR, &SNS_OrientationData->Buffer[0]);
+	SNS_GetData_by_SLIP(SizeAnsODR, &Actual_SNS_OrientationData.Buffer[0]);
+	// Отключаемся от СНС
+	SNS_deinit();
+	
 	// Вычисляем контрольную сумму пакета (без поля CRC)
-	crc = Crc16(&SNS_OrientationData->Buffer[2],SizeAnsODR-2, CRC16_INITIAL_FFFF);
+	crc = Crc16(&Actual_SNS_OrientationData.Buffer[2],SizeAnsODR-2, CRC16_INITIAL_FFFF);
 	// Проверяем контрольную сумму и код ответа, если не совпадают, то возвращаем 0
-	if((SNS_OrientationData->Struct.Response != ODR)||(SNS_OrientationData->Struct.CRC != crc))
+	if((Actual_SNS_OrientationData.Struct.Response != ODR)||(Actual_SNS_OrientationData.Struct.CRC != crc))
 	{
-		// Восстанавливаем старую информацию
-		*SNS_OrientationData = LastSNS_OrientationData;
-		return 0; //Возвращаем признак неудачи 
+		// Возвращаем признак неудачи 
+		return 0; 
 	}	
-		
+	
+	// Проверки верны, поэтому возвращаем полученные данные
+	*SNS_OrientationData = Actual_SNS_OrientationData;
+	
 	//Возвращаем признак успеха
 	return  1;
 }
 
+
+
+/**************************************************************************************************************
+						SNS_StartGyroCalibration - Команда начала калибровки гироскопа                                    *
+***************************************************************************************************************/
+uint8_t SNS_StartGyroCalibration (void)
+{
+	uint8_t result;
+	// Подключаемся к СНС
+	SNS_RetargetPins();
+	SNS_init();
+	// Отправляем запрос
+	result = SNS_Request(GCE);
+	// Отключаемся от СНС
+	SNS_deinit();
+	
+	return result;
+}
+
+
+
+/**************************************************************************************************************
+						SNS_ResetGyroCalibration - Команда сброса калибровки гироскопа                                    *
+***************************************************************************************************************/
+uint8_t SNS_ResetGyroCalibration (void)
+{
+	uint8_t result;
+	// Подключаемся к СНС
+	SNS_RetargetPins();
+	SNS_init();
+	// Отправляем запрос
+	result = SNS_Request(GCR);
+	// Отключаемся от СНС
+	SNS_deinit();
+	
+	return result;
+}
+
+
+
+/**************************************************************************************************************
+						SNS_StartMagnetometerCalibration - Команда начала калибровки магнитометра                         *
+***************************************************************************************************************/
+uint8_t SNS_StartMagnetometerCalibration (void)
+{
+	uint8_t result;
+	// Подключаемся к СНС
+	SNS_RetargetPins();
+	SNS_init();
+	// Отправляем запрос
+	result = SNS_Request(MCE);
+	// Отключаемся от СНС
+	SNS_deinit();
+	
+	return result;
+}
+
+
+
+/**************************************************************************************************************
+						SNS_ResetMagnetometerCalibration - Команда сброса калибровки магнитометра                         * 
+***************************************************************************************************************/
+uint8_t SNS_ResetMagnetometerCalibration (void)
+{
+	uint8_t result;
+	// Подключаемся к СНС
+	SNS_RetargetPins();
+	SNS_init();
+	// Отправляем запрос
+	result = SNS_Request(MCR);
+	// Отключаемся от СНС
+	SNS_deinit();
+	
+	return result;
+}
+
+
+
+/**************************************************************************************************************
+						SNS_EnableHorizontalCorrection - Команда включения горизонтальной коррекции                       *
+***************************************************************************************************************/
+uint8_t SNS_EnableHorizontalCorrection (void)
+{
+	uint8_t result;
+	// Подключаемся к СНС
+	SNS_RetargetPins();
+	SNS_init();
+	// Отправляем запрос
+	result = SNS_Request(HCE);
+	// Отключаемся от СНС
+	SNS_deinit();
+	
+	return result;
+}
+
+
+
+/**************************************************************************************************************
+						SNS_DisableHorizontalCorrection - Команда отключения горизонтальной коррекции                     *
+***************************************************************************************************************/
+uint8_t SNS_DisableHorizontalCorrection (void)
+{
+	uint8_t result;
+	// Подключаемся к СНС
+	SNS_RetargetPins();
+	SNS_init();
+	// Отправляем запрос
+	result = SNS_Request(HCD);
+	// Отключаемся от СНС
+	SNS_deinit();
+	
+	return result;
+}

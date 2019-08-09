@@ -3,9 +3,9 @@
  *
  * Code generated for Simulink model 'flightRegulatorCFB'.
  *
- * Model version                  : 1.1426
+ * Model version                  : 1.1517
  * Simulink Coder version         : 8.14 (R2018a) 06-Feb-2018
- * C/C++ source code generated on : Wed Jul 31 16:52:15 2019
+ * C/C++ source code generated on : Fri Aug  9 16:13:38 2019
  *
  * Target selection: ert.tlc
  * Embedded hardware selection: ARM Compatible->ARM Cortex
@@ -70,6 +70,16 @@ typedef enum {
 
 #endif
 
+#ifndef DEFINED_TYPEDEF_FOR_criteriaDefinition1ModeType_
+#define DEFINED_TYPEDEF_FOR_criteriaDefinition1ModeType_
+
+typedef enum {
+  criteriaDefinition1ModeType_None = 0,/* Default value */
+  criteriaDefinition1ModeType_desicion
+} criteriaDefinition1ModeType;
+
+#endif
+
 #ifndef DEFINED_TYPEDEF_FOR_waitingEnginesModeType_
 #define DEFINED_TYPEDEF_FOR_waitingEnginesModeType_
 
@@ -123,6 +133,7 @@ typedef struct {
   real_T TmpSignalConversionAtSFunctionI[3];/* '<S3>/parameter&#x421;alculation' */
   real_T TmpSignalConversionAtSFunctio_j[3];/* '<S3>/parameter&#x421;alculation' */
   real_T boxPoints[8];                 /* '<S3>/parameter&#x421;alculation' */
+  real_T timeWaitOfEngines[10];        /* '<S4>/angleRegulator' */
   real_T outAngle;                     /* '<S4>/holdingAngle' */
   real_T outAngle_f;                   /* '<S4>/distanceRegulator' */
   real_T orderAngle;                   /* '<S4>/distanceRegulator' */
@@ -131,6 +142,7 @@ typedef struct {
   real_T orderAngle_a;                 /* '<S4>/angleRegulator' */
   real_T outSetAngle;                  /* '<S4>/angleRegulator' */
   real_T enableEngines;                /* '<S4>/angleRegulator' */
+  real_T decisionSide;                 /* '<S4>/angleRegulator' */
   real_T outDistanceB;                 /* '<S3>/parameter&#x421;alculation' */
   real_T azimut;                       /* '<S3>/parameter&#x421;alculation' */
   real_T outDistanceAB;                /* '<S3>/parameter&#x421;alculation' */
@@ -146,13 +158,13 @@ typedef struct {
   real_T isFlightBox;                  /* '<S3>/parameter&#x421;alculation' */
   real_T outDistance2;                 /* '<S3>/parameter&#x421;alculation' */
   real_T outPrecision;                 /* '<S3>/parameter&#x421;alculation' */
+  real_T angleVelocity;                /* '<S3>/parameter&#x421;alculation' */
   real_T localOutAngle;                /* '<S4>/distanceRegulator' */
   real_T angleAdded;                   /* '<S4>/distanceRegulator' */
   real_T lastDirectionOfRotation;      /* '<S4>/angleRegulator' */
   real_T lastTightenSling;             /* '<S4>/angleRegulator' */
   real_T timeWaitEngines;              /* '<S4>/angleRegulator' */
   real_T pTightenSling;                /* '<S4>/angleRegulator' */
-  real_T decisionSide;                 /* '<S4>/angleRegulator' */
   real_T radEarth;                     /* '<S3>/parameter&#x421;alculation' */
   real_T laC;                          /* '<S3>/parameter&#x421;alculation' */
   real_T phiC;                         /* '<S3>/parameter&#x421;alculation' */
@@ -173,11 +185,15 @@ typedef struct {
   real_T tdMinBox;                     /* '<S3>/parameter&#x421;alculation' */
   real_T tdMinFinish;                  /* '<S3>/parameter&#x421;alculation' */
   real_T ticksPauseBox;                /* '<S3>/parameter&#x421;alculation' */
+  real_T boxAllow;                     /* '<S3>/parameter&#x421;alculation' */
+  real_T angleLast;                    /* '<S3>/parameter&#x421;alculation' */
+  real_T TdReg1;                       /* '<S3>/parameter&#x421;alculation' */
   int32_T sfEvent;                     /* '<S3>/parameter&#x421;alculation' */
   uint32_T temporalCounter_i1;         /* '<S4>/angleRegulator' */
   uint32_T temporalCounter_i2;         /* '<S3>/parameter&#x421;alculation' */
   flightMode1ModeType flightMode1Mode; /* '<S3>/parameter&#x421;alculation' */
   pointsModeType pointsMode;           /* '<S3>/parameter&#x421;alculation' */
+  criteriaDefinition1ModeType criteriaDefinition1Mode;/* '<S3>/parameter&#x421;alculation' */
   waitingEnginesModeType waitingEnginesMode;/* '<S4>/angleRegulator' */
   TurnModeType TurnMode;               /* '<S4>/angleRegulator' */
   angleCorrectionModeType angleCorrectionMode;/* '<S4>/distanceRegulator' */
@@ -191,9 +207,9 @@ typedef struct {
     uint_T is_updatePlan:2;            /* '<S3>/parameter&#x421;alculation' */
     uint_T is_updateAngle:2;           /* '<S3>/parameter&#x421;alculation' */
     uint_T is_azimutInCorridor:2;      /* '<S3>/parameter&#x421;alculation' */
-    uint_T is_criteriaDefinition:2;    /* '<S3>/parameter&#x421;alculation' */
     uint_T is_mathBox:2;               /* '<S3>/parameter&#x421;alculation' */
-    uint_T is_criteriaDefinition1:2;   /* '<S3>/parameter&#x421;alculation' */
+    uint_T is_criteriaDefinition:2;    /* '<S3>/parameter&#x421;alculation' */
+    uint_T is_mathChangePoint:2;       /* '<S3>/parameter&#x421;alculation' */
     uint_T is_active_c6_flightRegulatorCFB:1;/* '<S4>/holdingAngle' */
     uint_T is_active_c4_flightRegulatorCFB:1;/* '<S4>/distanceRegulator' */
     uint_T is_active_c5_flightRegulatorCFB:1;/* '<S4>/angleRegulator' */
@@ -209,14 +225,17 @@ typedef struct {
     uint_T is_active_points:1;         /* '<S3>/parameter&#x421;alculation' */
     uint_T is_active_outControl:1;     /* '<S3>/parameter&#x421;alculation' */
     uint_T is_active_flightMode:1;     /* '<S3>/parameter&#x421;alculation' */
-    uint_T is_active_criteriaDefinition:1;/* '<S3>/parameter&#x421;alculation' */
     uint_T is_active_mathBox:1;        /* '<S3>/parameter&#x421;alculation' */
+    uint_T is_active_criteriaDefinition:1;/* '<S3>/parameter&#x421;alculation' */
+    uint_T is_active_mathChangePoint:1;/* '<S3>/parameter&#x421;alculation' */
     uint_T is_active_criteriaDefinition1:1;/* '<S3>/parameter&#x421;alculation' */
+    uint_T is_DinamicsDefinition:1;    /* '<S3>/parameter&#x421;alculation' */
+    uint_T is_active_DinamicsDefinition:1;/* '<S3>/parameter&#x421;alculation' */
   } bitsForTID0;
 
   uint8_T temporalCounter_i1_f;        /* '<S4>/distanceRegulator' */
   uint8_T temporalCounter_i2_b;        /* '<S4>/distanceRegulator' */
-  uint8_T temporalCounter_i1_fp;       /* '<S3>/parameter&#x421;alculation' */
+  uint8_T temporalCounter_i1_e;        /* '<S3>/parameter&#x421;alculation' */
   uint8_T temporalCounter_i3;          /* '<S3>/parameter&#x421;alculation' */
   uint8_T temporalCounter_i4;          /* '<S3>/parameter&#x421;alculation' */
   uint8_T temporalCounter_i5;          /* '<S3>/parameter&#x421;alculation' */
@@ -267,6 +286,7 @@ typedef struct {
   real_T lon2;                         /* '<Root>/lon2' */
   uint8_T orderAngle;                  /* '<Root>/orderAngle' */
   uint16_T distance2;                  /* '<Root>/distance2' */
+  real_T angleVelocity;                /* '<Root>/angleVelocity' */
 } ExtY;
 
 /* Real-time Model Data Structure */
@@ -301,8 +321,10 @@ extern RT_MODEL *const rtM;
  * Block '<S3>/Gain6' : Unused code path elimination
  * Block '<S3>/Gain7' : Unused code path elimination
  * Block '<S3>/Gain8' : Unused code path elimination
+ * Block '<S3>/Gain9' : Unused code path elimination
  * Block '<S3>/Scope' : Unused code path elimination
  * Block '<S3>/Scope1' : Unused code path elimination
+ * Block '<S3>/Scope2' : Unused code path elimination
  * Block '<S3>/Scope5' : Unused code path elimination
  * Block '<S3>/distancePoint2' : Unused code path elimination
  * Block '<S4>/Constant1' : Unused code path elimination
@@ -310,7 +332,6 @@ extern RT_MODEL *const rtM;
  * Block '<S4>/Scope' : Unused code path elimination
  * Block '<S4>/Scope1' : Unused code path elimination
  * Block '<S4>/Scope2' : Unused code path elimination
- * Block '<S4>/Scope3' : Unused code path elimination
  * Block '<S4>/Scope4' : Unused code path elimination
  * Block '<S4>/Scope5' : Unused code path elimination
  * Block '<S4>/Scope6' : Unused code path elimination
@@ -326,7 +347,6 @@ extern RT_MODEL *const rtM;
  * Block '<S4>/piToDeg7' : Unused code path elimination
  * Block '<S4>/piToDeg8' : Unused code path elimination
  * Block '<S4>/piToDeg9' : Unused code path elimination
- * Block '<S5>/Constant1' : Unused code path elimination
  */
 
 /*-
@@ -341,22 +361,22 @@ extern RT_MODEL *const rtM;
  * MATLAB hilite_system command to trace the generated code back
  * to the parent model.  For example,
  *
- * hilite_system('kinematic25/flightRegulatorCFB')    - opens subsystem kinematic25/flightRegulatorCFB
- * hilite_system('kinematic25/flightRegulatorCFB/Kp') - opens and selects block Kp
+ * hilite_system('maketKinematic25/flightRegulatorCFB')    - opens subsystem maketKinematic25/flightRegulatorCFB
+ * hilite_system('maketKinematic25/flightRegulatorCFB/Kp') - opens and selects block Kp
  *
  * Here is the system hierarchy for this model
  *
- * '<Root>' : 'kinematic25'
- * '<S1>'   : 'kinematic25/flightRegulatorCFB'
- * '<S2>'   : 'kinematic25/flightRegulatorCFB/Model Info'
- * '<S3>'   : 'kinematic25/flightRegulatorCFB/Subsystem'
- * '<S4>'   : 'kinematic25/flightRegulatorCFB/regulator'
- * '<S5>'   : 'kinematic25/flightRegulatorCFB/touchDown'
- * '<S6>'   : 'kinematic25/flightRegulatorCFB/Subsystem/parameter&#x421;alculation'
- * '<S7>'   : 'kinematic25/flightRegulatorCFB/regulator/angleRegulator'
- * '<S8>'   : 'kinematic25/flightRegulatorCFB/regulator/distanceRegulator'
- * '<S9>'   : 'kinematic25/flightRegulatorCFB/regulator/holdingAngle'
- * '<S10>'  : 'kinematic25/flightRegulatorCFB/touchDown/Compare To Constant1'
+ * '<Root>' : 'maketKinematic25'
+ * '<S1>'   : 'maketKinematic25/flightRegulatorCFB'
+ * '<S2>'   : 'maketKinematic25/flightRegulatorCFB/Model Info'
+ * '<S3>'   : 'maketKinematic25/flightRegulatorCFB/Subsystem'
+ * '<S4>'   : 'maketKinematic25/flightRegulatorCFB/regulator'
+ * '<S5>'   : 'maketKinematic25/flightRegulatorCFB/touchDown'
+ * '<S6>'   : 'maketKinematic25/flightRegulatorCFB/Subsystem/parameter&#x421;alculation'
+ * '<S7>'   : 'maketKinematic25/flightRegulatorCFB/regulator/angleRegulator'
+ * '<S8>'   : 'maketKinematic25/flightRegulatorCFB/regulator/distanceRegulator'
+ * '<S9>'   : 'maketKinematic25/flightRegulatorCFB/regulator/holdingAngle'
+ * '<S10>'  : 'maketKinematic25/flightRegulatorCFB/touchDown/Compare To Constant1'
  */
 #endif                                 /* RTW_HEADER_flightRegulatorCFB_h_ */
 
