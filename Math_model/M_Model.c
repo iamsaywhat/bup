@@ -142,11 +142,11 @@ double Meter_12_to_Meter (int64_t meter)
 ***************************************************************************/
 void M_Model_PrepareData (SNS_Position_Data_Response_Type SNS_PosData, SNS_Orientation_Data_Response_Type SNS_Orientation, SWS_Packet_Type SWS_Data)
 {
-	double SNS_Lat =      Rad_12_to_Deg (SNS_PosData.Pos_lat);
-	double SNS_Lon =      Rad_12_to_Deg (SNS_PosData.Pos_lon);
-	double SNS_Alt =      Meter_12_to_Meter (SNS_PosData.Pos_alt);
-	short Map_Alt =       GetHeight_OnThisPoint(SNS_Lon, SNS_Lat, TRIANGULARTION);
-	double HeadingTrue =  Rad_6_to_Rad(SNS_Orientation.Heading_true);
+	double SNS_Lat        = Rad_12_to_Deg (SNS_PosData.Pos_lat);
+	double SNS_Lon        = Rad_12_to_Deg (SNS_PosData.Pos_lon);
+	double SNS_Alt        = Meter_12_to_Meter (SNS_PosData.Pos_alt);
+	short Map_Alt         = GetHeight_OnThisPoint(SNS_Lon, SNS_Lat, TRIANGULARTION);
+	double HeadingTrue    = Rad_6_to_Rad(SNS_Orientation.Heading_true);
 	
 	
 	// Проверим доступна ли карта в текущей геолокации (если в данной точке карта недоступна, в Map_Alt будет лежать 0x7FFF)
@@ -158,12 +158,13 @@ void M_Model_PrepareData (SNS_Position_Data_Response_Type SNS_PosData, SNS_Orien
 	
 #ifdef DEBUG_VARS	//*************************************************************** Если активна отладка переменн
 	// Вывод общесистемной отладочной информации 
-	debug_vars.SNSalt = (int64_t)(SNS_PosData.Pos_alt);
-	debug_vars.rtU_XYZi_Lat = SNS_Lat;
-	debug_vars.rtU_XYZi_Lon = SNS_Lon;
-	debug_vars.rtU_XYZi_Alt = SNS_Alt;
-	debug_vars.Relief_height = Map_Alt;
-	debug_vars.Alt2model = SNS_Alt;
+	debug_vars.SNSalt            = SNS_PosData.Pos_alt;      // Высота в том виде в котором принимаем от СНС
+	debug_vars.rtU_XYZi_Lat      = SNS_Lat;                  // Широта преобразованная в градусы
+	debug_vars.rtU_XYZi_Lon      = SNS_Lon;                  // Долгота преобразованная в градусы
+	debug_vars.rtU_XYZi_Alt      = SNS_Alt;                  // Высота преобразованная в метры
+	debug_vars.Relief_height     = Map_Alt;                  // Высота рельефа под нами в метрах
+	debug_vars.Alt2model         = SNS_Alt;                  // Высота преобразованная в метры
+	debug_vars.SysState          = SystemState;              // Состояние системы (из SelfTesing)
 #endif //************************************************************************** !DEBUG_VARS
 	
 	
@@ -209,13 +210,13 @@ void M_Model_PrepareData (SNS_Position_Data_Response_Type SNS_PosData, SNS_Orien
 //  rtU.RightEnginehadWork = 1.0;  
 
 #else //*************************************************************************** Если выбран Easy_reg
-	Easy_reg_U.TDP_lon = GetTouchDownPointLon();
-	Easy_reg_U.TDP_lat = GetTouchDownPointLat();
-	Easy_reg_U.TDP_alt = 0;
-	Easy_reg_U.Pos_lon = SNS_Lon;
-	Easy_reg_U.Pos_lat = SNS_Lat;
-	Easy_reg_U.Pos_alt = SNS_Alt;
-	Easy_reg_U.ActualCourse = HeadingTrue;
+	Easy_reg_U.TDP_lon        = GetTouchDownPointLon();
+	Easy_reg_U.TDP_lat        = GetTouchDownPointLat();
+	Easy_reg_U.TDP_alt        = 0;
+	Easy_reg_U.Pos_lon        = SNS_Lon;
+	Easy_reg_U.Pos_lat        = SNS_Lat;
+	Easy_reg_U.Pos_alt        = SNS_Alt;
+	Easy_reg_U.ActualCourse   = HeadingTrue;
 #endif //************************************************************************** !flightRegulatorCFB 
 
 	// Данные были обновлены, сообщаем об этом Мат. модели
@@ -267,25 +268,25 @@ void M_Model_Control (void)
 	
 #ifdef DEBUG_VARS	//*************************************************************** Если активна отладка переменных 
 	// Заполняем структуру отладочной информации (для flightRegulatorCFB)
-  debug_vars.distanceAB = (int16_t)(rtY.distanceAB);
-	debug_vars.orderAngle = (uint8_t)(rtY.orderAngle);
-	debug_vars.diffAngle = (int16_t)(rtY.diffAngle);
-	debug_vars.setAngle =(int16_t)(rtY.setAngle);
-	debug_vars.stateTurn =(uint8_t)(rtY.stateTurn);
-	debug_vars.stateAngleDoing = (uint8_t)(rtY.stateAngleDoing);
-	debug_vars.stateAngleCorrection = (uint8_t)(rtY.stateAngleCorrection);
-	debug_vars.changeControl = (uint8_t)(rtY.changeControl);
-	debug_vars.doingManeuverMode = (uint8_t)(rtY.doingManeuverMode);
-	debug_vars.angle = (int16_t)(rtU.angle);
-	debug_vars.directionOfRotation = (double)(rtY.directionOfRotation);
-	debug_vars.TightenSlings = (double)(rtY.tightenSling);
-  debug_vars.Lat1 = (double)(rtY.lat1);
-	debug_vars.Lat2 = (double)(rtY.lat2);
-	debug_vars.Lon1 = (double)(rtY.lon1);
-	debug_vars.Lon2 = (double)(rtY.lon2);
-	debug_vars.distanceB = (double)(rtY.distanceB);
-	debug_vars.distance2 = (uint16_t)(rtY.distance2);
-	debug_vars.BIM_CMD = (int16_t)(rtY.tightenSling*rtY.directionOfRotation);
+  debug_vars.distanceAB              = (int16_t)(rtY.distanceAB);
+	debug_vars.orderAngle              = (uint8_t)(rtY.orderAngle);
+	debug_vars.diffAngle               = (int16_t)(rtY.diffAngle);
+	debug_vars.setAngle                = (int16_t)(rtY.setAngle);
+	debug_vars.stateTurn               = (uint8_t)(rtY.stateTurn);
+	debug_vars.stateAngleDoing         = (uint8_t)(rtY.stateAngleDoing);
+	debug_vars.stateAngleCorrection    = (uint8_t)(rtY.stateAngleCorrection);
+	debug_vars.changeControl           = (uint8_t)(rtY.changeControl);
+	debug_vars.doingManeuverMode       = (uint8_t)(rtY.doingManeuverMode);
+	debug_vars.angle                   = (int16_t)(rtU.angle);
+	debug_vars.directionOfRotation     = (double)(rtY.directionOfRotation);
+	debug_vars.TightenSlings           = (double)(rtY.tightenSling);
+  debug_vars.Lat1                    = (double)(rtY.lat1);
+	debug_vars.Lat2                    = (double)(rtY.lat2);
+	debug_vars.Lon1                    = (double)(rtY.lon1);
+	debug_vars.Lon2                    = (double)(rtY.lon2);
+	debug_vars.distanceB               = (double)(rtY.distanceB);
+	debug_vars.distance2               = (uint16_t)(rtY.distance2);
+	debug_vars.BIM_CMD                 = (int16_t)(rtY.tightenSling*rtY.directionOfRotation);
 #endif //************************************************************************** !DEBUG_VARS
 	
 #else //*************************************************************************** Если выбран Easy_reg

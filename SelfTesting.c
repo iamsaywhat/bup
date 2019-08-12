@@ -33,10 +33,6 @@ void SelfTestingFull (void)
 	SelfTesting_MapNtask();
 	// Проверка файловой системы
 	SelfTesting_LogFs();
-	// Проверка левого БИМа
-	SelfTesting_LEFT_BIM();
-	// Проверка правого БИМа
-	SelfTesting_RIGHT_BIM();
 	// Проверка состояния шпильки 1
 	SelfTesting_PIN1();
 	// Проверка состояния шпильки 2
@@ -271,7 +267,6 @@ SelfTesing_STATUS SelfTesting_SNS(void)
 {
 	SNS_Device_Information_Response_Union SNS_DeviceInformation;
 	
-
 	if(SNS_GetDeviceInformation(&SNS_DeviceInformation))
 		SelfTesting_SET_OK(ST_sns);
 	else

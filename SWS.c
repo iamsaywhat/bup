@@ -108,12 +108,11 @@ uint8_t SWS_GetPacket (SWS_Packet_Type_Union* SWS_Pack)
 		if (UARTReceiveByte(SWS_UART, SWS_MAX_TIMEOUT) == (uint8_t)(SWS_Handler >> 24)) break;
 	}	
 	
-	// Отключаемся от СВС
-	SWS_deinit();
-	
 	// Если был таймаут, связи нет, выходим
 	if(timeout == SWS_MAX_TIMEOUT) 
 	{
+		// Отключаемся от СВС
+	  SWS_deinit();
 		// Возврашаем ошибку
 		return 1;
 	}
@@ -125,6 +124,9 @@ uint8_t SWS_GetPacket (SWS_Packet_Type_Union* SWS_Pack)
 	{
 		Actual_SWS_Pack.Buffer[i] = UARTReceiveByte(SWS_UART, SWS_MAX_TIMEOUT);
 	}
+	
+	// Отключаемся от СВС
+	 SWS_deinit();
 		
 	// Вычисляем контрольную сумму 
 	crc = Calc_Crc32_Array(Actual_SWS_Pack.Buffer,56);
