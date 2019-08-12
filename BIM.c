@@ -143,11 +143,8 @@ uint8_t BIM_SendRequest (uint16_t DeviceID, uint8_t CMD, uint8_t StrapPosition, 
 	if(timeout == 0xFFF) 
 		return 0;
 	
-	// Если отправка команды удалась, сразу получим ответ
-	BIM_ReceiveResponse (DeviceID);
-	
-	// Если же таймаута не было, возвращаем признак успеха
-	return 1;
+	// Если попали сюда, значит передача удалась, вернём результат приёма ответа
+	return BIM_ReceiveResponse (DeviceID);
 }
 
 
@@ -201,10 +198,7 @@ uint8_t BIM_CheckConnection (uint16_t DeviceID)
 	{
 		// Посылаем запрос на получение состояния БИМа
 		status = BIM_SendRequest(DeviceID, BIM_CMD_REQ, 0xAA, 0, 0, 0);
-		// Принимаем ответ БИМа
-		status &= BIM_ReceiveResponse(DeviceID);
-		// Объединяем по "И" статус запроса и ответа
-		// Если хоть в одном из них будет ошибка, функция вернёт ошибку
+		
 		if(status)
 			return status;
 	}

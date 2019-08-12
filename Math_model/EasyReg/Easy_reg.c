@@ -7,9 +7,9 @@
  *
  * Code generated for Simulink model 'Easy_reg'.
  *
- * Model version                  : 1.22
+ * Model version                  : 1.23
  * Simulink Coder version         : 8.14 (R2018a) 06-Feb-2018
- * C/C++ source code generated on : Fri Aug  9 16:05:15 2019
+ * C/C++ source code generated on : Fri Aug  9 18:34:51 2019
  *
  * Target selection: ert.tlc
  * Embedded hardware selection: ARM Compatible->ARM Cortex
@@ -59,31 +59,10 @@ void Easy_reg_Heading_true(real_T rtu_u1, real_T rtu_u1_b, real_T rtu_u0, real_T
 /* Model step function */
 void Easy_reg_step(void)
 {
-  boolean_T rtb_RelationalOperator;
-  real_T dif_idx_0;
-  real_T dif_idx_1;
+  real_T rtb_y_j;
+  real_T rtb_y_k;
 
   /* Outputs for Atomic SubSystem: '<Root>/Easy_reg' */
-  /* MATLAB Function: '<S1>/Distance_calc_deg' incorporates:
-   *  Inport: '<Root>/Pos_lat'
-   *  Inport: '<Root>/Pos_lon'
-   *  Inport: '<Root>/TDP_lat'
-   *  Inport: '<Root>/TDP_lon'
-   */
-  dif_idx_0 = Easy_reg_U.TDP_lon - Easy_reg_U.Pos_lon;
-  dif_idx_1 = Easy_reg_U.TDP_lat - Easy_reg_U.Pos_lat;
-
-  /* Logic: '<S1>/Logical Operator' incorporates:
-   *  Constant: '<S1>/Fin_Man_Alt'
-   *  Constant: '<S1>/Wait_RAD'
-   *  Inport: '<Root>/Pos_alt'
-   *  MATLAB Function: '<S1>/Distance_calc_deg'
-   *  RelationalOperator: '<S1>/Relational Operator1'
-   *  RelationalOperator: '<S1>/Relational Operator2'
-   */
-  rtb_RelationalOperator = ((sqrt(dif_idx_0 * dif_idx_0 + dif_idx_1 * dif_idx_1)
-    <= 0.007) && (Easy_reg_U.Pos_alt > 700.0));
-
   /* MATLAB Function: '<S1>/Heading_true' incorporates:
    *  Inport: '<Root>/Pos_lat'
    *  Inport: '<Root>/Pos_lon'
@@ -91,7 +70,7 @@ void Easy_reg_step(void)
    *  Inport: '<Root>/TDP_lon'
    */
   Easy_reg_Heading_true(Easy_reg_U.TDP_lon, Easy_reg_U.TDP_lat,
-                        Easy_reg_U.Pos_lon, Easy_reg_U.Pos_lat, &dif_idx_0);
+                        Easy_reg_U.Pos_lon, Easy_reg_U.Pos_lat, &rtb_y_j);
 
   /* MATLAB Function: '<S1>/Heading_true1' incorporates:
    *  Inport: '<Root>/Pos_lat'
@@ -100,32 +79,30 @@ void Easy_reg_step(void)
    */
   Easy_reg_Heading_true(Easy_reg_U.Pos_lon, Easy_reg_U.Pos_lat,
                         Easy_reg_DW.Memory_1_PreviousInput,
-                        Easy_reg_DW.Memory_2_PreviousInput, &dif_idx_1);
+                        Easy_reg_DW.Memory_2_PreviousInput, &rtb_y_k);
 
   /* Sum: '<S1>/Sum1' incorporates:
-   *  Product: '<S1>/Product'
    *  Sum: '<S1>/Sum'
    */
-  dif_idx_0 = (dif_idx_0 - (real_T)rtb_RelationalOperator *
-               Easy_reg_ConstB.Gain5) - dif_idx_1;
+  rtb_y_j = (rtb_y_j - Easy_reg_ConstB.Product) - rtb_y_k;
 
   /* MATLAB Function: '<S1>/MATLAB Function' */
-  if (dif_idx_0 > 3.14) {
-    dif_idx_0 -= 6.2819;
+  if (rtb_y_j > 3.14) {
+    rtb_y_j -= 6.2819;
   } else {
-    if (dif_idx_0 < -3.14) {
-      dif_idx_0 += 6.2819;
+    if (rtb_y_j < -3.14) {
+      rtb_y_j += 6.2819;
     }
   }
 
   /* End of MATLAB Function: '<S1>/MATLAB Function' */
 
   /* Switch: '<S1>/Switch' */
-  if (rtb_RelationalOperator) {
+  if (Easy_reg_ConstB.LogicalOperator) {
     /* Gain: '<S1>/Gain1' incorporates:
      *  Gain: '<S1>/Gain4'
      */
-    Easy_reg_Y.BIM_CMD = 57.295779513082323 * dif_idx_0 * 2.0;
+    Easy_reg_Y.BIM_CMD = 57.295779513082323 * rtb_y_j * 2.0;
 
     /* Saturate: '<S1>/Wait_Sat' */
     if (Easy_reg_Y.BIM_CMD > 20.0) {
@@ -145,7 +122,7 @@ void Easy_reg_step(void)
     /* End of Saturate: '<S1>/Wait_Sat' */
   } else {
     /* Gain: '<S1>/Gain1' */
-    Easy_reg_Y.BIM_CMD = 57.295779513082323 * dif_idx_0;
+    Easy_reg_Y.BIM_CMD = 57.295779513082323 * rtb_y_j;
 
     /* Saturate: '<S1>/Base_Sat' */
     if (Easy_reg_Y.BIM_CMD > 50.0) {
@@ -174,15 +151,12 @@ void Easy_reg_step(void)
   Easy_reg_DW.Memory_1_PreviousInput = Easy_reg_U.Pos_lon;
   Easy_reg_DW.Memory_2_PreviousInput = Easy_reg_U.Pos_lat;
 
-  /* Outport: '<Root>/TD_CMD' incorporates:
-   *  Constant: '<S1>/Constant'
-   *  DataTypeConversion: '<S1>/Cast'
-   *  Inport: '<Root>/Pos_alt'
-   *  RelationalOperator: '<S1>/Relational Operator'
-   */
-  Easy_reg_Y.TD_CMD = (uint8_T)(Easy_reg_U.Pos_alt <= 300.0);
-
   /* End of Outputs for SubSystem: '<Root>/Easy_reg' */
+
+  /* Outport: '<Root>/TD_CMD' incorporates:
+   *  Constant: '<S1>/Constant1'
+   */
+  Easy_reg_Y.TD_CMD = 0.0;
 }
 
 /* Model initialize function */
