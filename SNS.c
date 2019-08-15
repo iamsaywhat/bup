@@ -77,7 +77,7 @@ void SNS_deinit (void)
 											Command - Код команды, отправляемый СНС 																								*
 										(СНС реагирует только на команды перечисленные а протоколе) 														*
 ***************************************************************************************************************/
-uint8_t SNS_Request(uint8_t Command)
+SNS_Status SNS_Request(uint8_t Command)
 {
 	SNS_Request_Union     SNS_Req;
 	uint8_t               i;
@@ -95,7 +95,7 @@ uint8_t SNS_Request(uint8_t Command)
 	
 	// Проверяем будет ли это выход по таймауту
 	if(timeout == SNS_MAX_TIMEOUT) 
-		return 0;
+		return SNS_TIMEOUT;
 	// Сбросим счетчик таймаута, и продолжаем
 	timeout = 0;
 	
@@ -121,7 +121,7 @@ uint8_t SNS_Request(uint8_t Command)
 
 		// Проверяем будет ли это выход по таймауту
 		if(timeout == SNS_MAX_TIMEOUT) 
-			return 0;
+			return SNS_TIMEOUT;
 	  // Сбросим счетчик таймаут
 	  timeout = 0;
 		
@@ -132,9 +132,9 @@ uint8_t SNS_Request(uint8_t Command)
 	
 	// Проверяем будет ли это выход по таймауту
 	if(timeout == SNS_MAX_TIMEOUT) 
-		return 0;
+		return SNS_TIMEOUT;
 	
-	return 1;
+	return SNS_OK;
 }
 
 /**************************************************************************************************************
@@ -247,7 +247,7 @@ uint8_t SNS_GetDeviceInformation(SNS_Device_Information_Response_Union*  SNS_Dev
 	if(timeout == SNS_MAX_TIMEOUT)
 	{	
 		//Возвращаем признак неудачи
-		return 0;
+		return SNS_TIMEOUT;
 	}
 	
 	// Сбросим счетчик таймаут
@@ -270,13 +270,13 @@ uint8_t SNS_GetDeviceInformation(SNS_Device_Information_Response_Union*  SNS_Dev
 	if((Actual_SNS_DeviceInformation.Struct.Response != DIR)||(Actual_SNS_DeviceInformation.Struct.CRC != crc))
 	{
 		//Возвращаем признак неудачи
-		return 0; 
+		return SNS_WRONG_CRC; 
 	}
 	// Проверки верны, поэтому возвращаем полученные данные
 	*SNS_DeviceInformation = Actual_SNS_DeviceInformation;
 	
 	//Возвращаем признак успеха
-	return  1;
+	return  SNS_OK;
 }
 
 
@@ -284,7 +284,7 @@ uint8_t SNS_GetDeviceInformation(SNS_Device_Information_Response_Union*  SNS_Dev
 /**************************************************************************************************************
 								 SNS_GetDataState - Запрос доступных данных от СНС                                            *
 **************************************************************************************************************/
-uint8_t SNS_GetDataState(SNS_Available_Data_Response_Union*  SNS_DataState)
+SNS_Status SNS_GetDataState(SNS_Available_Data_Response_Union*  SNS_DataState)
 {
 	SNS_Available_Data_Response_Union  Actual_SNS_DataState;               // Актуальный ответ от СНС
 	uint32_t timeout = 0;                                                  // Таймаут счетчик
@@ -301,7 +301,7 @@ uint8_t SNS_GetDataState(SNS_Available_Data_Response_Union*  SNS_DataState)
 	if(timeout == SNS_MAX_TIMEOUT)
 	{		
 		//Возвращаем признак неудачи
-		return 0;
+		return SNS_TIMEOUT;
 	}
 	// Сбросим счетчик таймаута, и продолжаем
 	timeout = 0;
@@ -322,14 +322,14 @@ uint8_t SNS_GetDataState(SNS_Available_Data_Response_Union*  SNS_DataState)
 	if((Actual_SNS_DataState.Struct.Response != DSR)||(Actual_SNS_DataState.Struct.CRC != crc))
 	{		
 		// Возвращаем признак неудачи
-		return 0; 
+		return SNS_WRONG_CRC; 
 	}
 	
 	// Проверки верны, поэтому возвращаем полученные данные
 	*SNS_DataState = Actual_SNS_DataState;
 	
 	//Возвращаем признак успеха
-	return  1;
+	return  SNS_OK;
 }
 
 
@@ -337,7 +337,7 @@ uint8_t SNS_GetDataState(SNS_Available_Data_Response_Union*  SNS_DataState)
 /**************************************************************************************************************
 								 SNS_GetPositionData - Запрос информации о местоположении от СНС                              *
 **************************************************************************************************************/
-uint8_t SNS_GetPositionData(SNS_Position_Data_Response_Union*  SNS_PositionData)
+SNS_Status SNS_GetPositionData(SNS_Position_Data_Response_Union*  SNS_PositionData)
 {
 	SNS_Position_Data_Response_Union  Actual_SNS_PositionData;             // Актуальный ответ от СНС
 	uint32_t timeout = 0;                                                  // Таймаут счетчик
@@ -354,7 +354,7 @@ uint8_t SNS_GetPositionData(SNS_Position_Data_Response_Union*  SNS_PositionData)
 	if(timeout == SNS_MAX_TIMEOUT) 
 	{
 		// Возвращаем признак неудачи 
-		return 0;
+		return SNS_TIMEOUT;
 	}
 	// Сбросим счетчик таймаута, и продолжаем
 	timeout = 0;
@@ -375,14 +375,14 @@ uint8_t SNS_GetPositionData(SNS_Position_Data_Response_Union*  SNS_PositionData)
 	if((Actual_SNS_PositionData.Struct.Response != PDR)||(Actual_SNS_PositionData.Struct.CRC != crc))
 	{
 		// Возвращаем признак неудачи
-		return 0;  
+		return SNS_WRONG_CRC;  
 	}
 	
 	// Проверки верны, поэтому возвращаем полученные данные
 	*SNS_PositionData = Actual_SNS_PositionData;
 	
 	//Возвращаем признак успеха
-	return  1;
+	return  SNS_OK;
 }
 
 
@@ -390,7 +390,7 @@ uint8_t SNS_GetPositionData(SNS_Position_Data_Response_Union*  SNS_PositionData)
 /**************************************************************************************************************
 								 SNS_GetOrientationData - Запрос информации об ориентации от СНС                              *
 **************************************************************************************************************/
-uint8_t SNS_GetOrientationData(SNS_Orientation_Data_Response_Union*  SNS_OrientationData)
+SNS_Status SNS_GetOrientationData(SNS_Orientation_Data_Response_Union*  SNS_OrientationData)
 {
 	SNS_Orientation_Data_Response_Union  Actual_SNS_OrientationData;          // Актуальный ответ от СНС
 	uint32_t timeout = 0;                                                     // Таймаут счетчик
@@ -407,7 +407,7 @@ uint8_t SNS_GetOrientationData(SNS_Orientation_Data_Response_Union*  SNS_Orienta
 	if(timeout == SNS_MAX_TIMEOUT) 
 	{
 		// Возвращаем признак неудачи 
-		return 0;
+		return SNS_TIMEOUT;
 	}
 	
 	// Сбросим счетчик таймаута, и продолжаем
@@ -429,14 +429,14 @@ uint8_t SNS_GetOrientationData(SNS_Orientation_Data_Response_Union*  SNS_Orienta
 	if((Actual_SNS_OrientationData.Struct.Response != ODR)||(Actual_SNS_OrientationData.Struct.CRC != crc))
 	{
 		// Возвращаем признак неудачи 
-		return 0; 
+		return SNS_WRONG_CRC; 
 	}	
 	
 	// Проверки верны, поэтому возвращаем полученные данные
 	*SNS_OrientationData = Actual_SNS_OrientationData;
 	
 	//Возвращаем признак успеха
-	return  1;
+	return  SNS_OK;
 }
 
 
@@ -444,9 +444,9 @@ uint8_t SNS_GetOrientationData(SNS_Orientation_Data_Response_Union*  SNS_Orienta
 /**************************************************************************************************************
 						SNS_StartGyroCalibration - Команда начала калибровки гироскопа                                    *
 ***************************************************************************************************************/
-uint8_t SNS_StartGyroCalibration (void)
+SNS_Status SNS_StartGyroCalibration (void)
 {
-	uint8_t result;
+	SNS_Status result;
 	// Подключаемся к СНС
 	SNS_RetargetPins();
 	SNS_init();
@@ -463,9 +463,9 @@ uint8_t SNS_StartGyroCalibration (void)
 /**************************************************************************************************************
 						SNS_ResetGyroCalibration - Команда сброса калибровки гироскопа                                    *
 ***************************************************************************************************************/
-uint8_t SNS_ResetGyroCalibration (void)
+SNS_Status SNS_ResetGyroCalibration (void)
 {
-	uint8_t result;
+	SNS_Status result;
 	// Подключаемся к СНС
 	SNS_RetargetPins();
 	SNS_init();
@@ -482,9 +482,9 @@ uint8_t SNS_ResetGyroCalibration (void)
 /**************************************************************************************************************
 						SNS_StartMagnetometerCalibration - Команда начала калибровки магнитометра                         *
 ***************************************************************************************************************/
-uint8_t SNS_StartMagnetometerCalibration (void)
+SNS_Status SNS_StartMagnetometerCalibration (void)
 {
-	uint8_t result;
+	SNS_Status result;
 	// Подключаемся к СНС
 	SNS_RetargetPins();
 	SNS_init();
@@ -501,9 +501,9 @@ uint8_t SNS_StartMagnetometerCalibration (void)
 /**************************************************************************************************************
 						SNS_ResetMagnetometerCalibration - Команда сброса калибровки магнитометра                         * 
 ***************************************************************************************************************/
-uint8_t SNS_ResetMagnetometerCalibration (void)
+SNS_Status SNS_ResetMagnetometerCalibration (void)
 {
-	uint8_t result;
+	SNS_Status result;
 	// Подключаемся к СНС
 	SNS_RetargetPins();
 	SNS_init();
@@ -520,9 +520,9 @@ uint8_t SNS_ResetMagnetometerCalibration (void)
 /**************************************************************************************************************
 						SNS_EnableHorizontalCorrection - Команда включения горизонтальной коррекции                       *
 ***************************************************************************************************************/
-uint8_t SNS_EnableHorizontalCorrection (void)
+SNS_Status SNS_EnableHorizontalCorrection (void)
 {
-	uint8_t result;
+	SNS_Status result;
 	// Подключаемся к СНС
 	SNS_RetargetPins();
 	SNS_init();
@@ -539,9 +539,9 @@ uint8_t SNS_EnableHorizontalCorrection (void)
 /**************************************************************************************************************
 						SNS_DisableHorizontalCorrection - Команда отключения горизонтальной коррекции                     *
 ***************************************************************************************************************/
-uint8_t SNS_DisableHorizontalCorrection (void)
+SNS_Status SNS_DisableHorizontalCorrection (void)
 {
-	uint8_t result;
+	SNS_Status result;
 	// Подключаемся к СНС
 	SNS_RetargetPins();
 	SNS_init();

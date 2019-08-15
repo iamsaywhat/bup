@@ -265,9 +265,13 @@ SelfTesing_STATUS SelfTesting_BLIND(void)
 ************************************************************************************/
 SelfTesing_STATUS SelfTesting_SNS(void)
 {
-	SNS_Device_Information_Response_Union SNS_DeviceInformation;
+	SNS_Device_Information_Response_Union   SNS_DeviceInformation;
+	uint8_t timeout = 0;
 	
-	if(SNS_GetDeviceInformation(&SNS_DeviceInformation))
+	// Связь с СНС работает не очень хорошо, поэтому будем пытаться установить связь 10 раз
+	while (SNS_GetDeviceInformation(&SNS_DeviceInformation) != SNS_OK && timeout != 10) timeout ++;
+	
+	if(timeout != 10)
 		SelfTesting_SET_OK(ST_sns);
 	else
 		SelfTesting_SET_FAULT(ST_sns);

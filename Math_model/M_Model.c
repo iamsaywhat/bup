@@ -18,6 +18,10 @@
 	#include "../debug.h"
 #endif //************************************************************************** !DEBUG_VARS
 
+#ifdef LOGS_ENABLE  //************************************************************* Если включено логирование в черный ящик
+	#include "../RetargetPrintf/RetargetPrintf.h"
+#endif //************************************************************************** !LOGS_ENABLE	
+
 
 #define lat 0
 #define lon 1
@@ -156,6 +160,18 @@ void M_Model_PrepareData (SNS_Position_Data_Response_Type SNS_PosData, SNS_Orien
 	else
 		SelfTesting_SET_OK(ST_MapAvailability);
 	
+#ifdef LOGS_ENABLE  //******************************************************* Если включено логирование в черный ящик
+	printf("Model_Lat: %f\n", SNS_Lat);
+	printf("Model_Lon: %f\n", SNS_Lon);
+	printf("Model_Alt: %f\n", SNS_Alt);
+	printf("Model_Course: %f\n", HeadingTrue);
+	if (SelfTesting_STATUS(ST_MapAvailability))
+		printf("MAP: %d\n", Map_Alt);
+	else
+		printf("MAP: NOT_AVAILABLE\n");
+#endif //******************************************************* !LOGS_ENABLE	
+	
+	
 #ifdef DEBUG_VARS	//*************************************************************** Если активна отладка переменн
 	// Вывод общесистемной отладочной информации 
 	debug_vars.SNSalt            = SNS_PosData.Pos_alt;      // Высота в том виде в котором принимаем от СНС
@@ -231,6 +247,11 @@ void M_Model_Control (void)
 {	
 #ifdef flightRegulatorCFB	//******************************************************* Если выбран flightRegulatorCFB
 	
+	#ifdef LOGS_ENABLE  //******************************************************* Если включено логирование в черный ящик
+		printf("Model_BIM_CMD: %f\n", rtY.tightenSling*rtY.directionOfRotation);
+		printf("Model_TD_CMD: %d\n", rtY.cmdTouchDown);
+	#endif //******************************************************************* !LOGS_ENABLE	
+	
 	// Если команда на посадку не пришла, мы еще в полете, будем управлять
 	if(rtY.cmdTouchDown == 0)
 	{
@@ -291,6 +312,10 @@ void M_Model_Control (void)
 	
 #else //*************************************************************************** Если выбран Easy_reg
 
+	#ifdef LOGS_ENABLE  //******************************************************* Если включено логирование в черный ящик
+		printf("Model_BIM_CMD: %f\n", Easy_reg_Y.BIM_CMD);
+		printf("Model_TD_CMD: %d\n", Easy_reg_Y.TD_CMD);
+	#endif //******************************************************************** !LOGS_ENABLE	
 	// Возможно пришла команда на посадку?
   if (Easy_reg_Y.TD_CMD == 1)
 	{

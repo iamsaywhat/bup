@@ -56,8 +56,8 @@ void ZPZ_Response_BIM_CONTROL (ZPZ_RequestControlBIM_Union* BIM_Data, uint16_t N
 uint16_t ZPZ_Request_BIM_STATUS (uint16_t CRC, ZPZ_RequestControlBIM_Union* BIMControl);
 void ZPZ_Response_BIM_STATUS(uint8_t Side, uint16_t NumPacket);
 /*--------------------------------------------------------------------------------------------Обслуживание команды LOG_FORMAT----------*/
-uint16_t ZPZ_Request_LOG_FORMAT (uint16_t CRC);
-void ZPZ_Response_LOG_FORMAT (uint16_t NumPacket);
+uint16_t ZPZ_Request_LOG_FORMAT (uint16_t CRC, uint8_t* Subcommand);
+void ZPZ_Response_LOG_FORMAT (uint16_t NumPacket, uint8_t Subcommand);
 /*--------------------------------------------------------------------------------------------Обслуживание команды LOG_FILES-----------*/
 uint16_t ZPZ_Request_LOG_FILES (uint16_t CRC);
 void ZPZ_Response_LOG_FILES (uint16_t NumPacket);
@@ -260,11 +260,12 @@ uint8_t ZPZ_Service (void)
 	ZPZ_BasePacket_Union          ZPZ_Base_Request;  // Сюда складывается приходящий запрос (кроме полей "данные")
 	ZPZ_RequestControlBIM_Union   BIM_Control;       // Структура для обслуживания команд BIM_CONTROL и BIM_STATUS
 	
-	uint32_t timeout;             // Контроль превышения времени обработки
-	uint16_t crc, i; 							// Контрольная сумма и счетчик циклов
-	uint16_t Log_files = 0;				// Номер запрашиваемого файла (обслуж. команды LOG_UPLOAD)
-	uint8_t  SNS_opt[3];					// Буфер для обслуживания команды REQ_SNS_SETTINGS
-	uint8_t  CAN_buff[11];        // Буфер для обслуживания команды CAN_TRANSMIT
+	uint32_t timeout;                 // Контроль превышения времени обработки
+	uint16_t crc, i; 							    // Контрольная сумма и счетчик циклов
+	uint16_t Log_files = 0;				    // Номер запрашиваемого файла (обслуж. команды LOG_UPLOAD)
+	uint8_t  SNS_opt[3];					    // Буфер для обслуживания команды REQ_SNS_SETTINGS
+	uint8_t  CAN_buff[11];            // Буфер для обслуживания команды CAN_TRANSMIT
+	uint8_t  LOG_FS_Subcommand = 0;   // Подкоманда для форматирования "черного ящика"
 		
 	
 	//Вычищаем FIFO от мусора и ждем пока не появится заголовок
@@ -330,7 +331,7 @@ uint8_t ZPZ_Service (void)
 			break;
 		
 		case LOG_FORMAT:
-			crc = ZPZ_Request_LOG_FORMAT(crc);
+			crc = ZPZ_Request_LOG_FORMAT(crc, &LOG_FS_Subcommand);
 		  break;
 		
 		case LOG_FILES:
@@ -424,7 +425,7 @@ uint8_t ZPZ_Service (void)
 			break;
 		
 		case LOG_FORMAT:
-			ZPZ_Response_LOG_FORMAT (ZPZ_Base_Request.Struct.Count);
+			ZPZ_Response_LOG_FORMAT (ZPZ_Base_Request.Struct.Count, LOG_FS_Subcommand);
 			break;
 		
 		case LOG_FILES:
@@ -944,22 +945,37 @@ void ZPZ_Response_BIM_STATUS(uint8_t Side, uint16_t NumPacket)
 
 
 //-----------------------------------------Обслуживание команды LOG_FORMAT---------------------------------------------------------*/
-uint16_t ZPZ_Request_LOG_FORMAT (uint16_t CRC)
+uint16_t ZPZ_Request_LOG_FORMAT (uint16_t CRC, uint8_t* Subcommand)
 {
-	return ZPZ_RequestWithEmptyData(CRC);
+	uint16_t crc;
+	// Принимаем байт подкоманды: Запуск форматирования или Статус форматирования
+	*Subcommand = UARTReceiveByte_by_SLIP(ZPZ_UART, 0xFFFF);
+	// Подсчитываем контрольную сумму
+	crc = Crc16(Subcommand, 1, CRC);
+	
+	return crc;
 }
 
-void ZPZ_Response_LOG_FORMAT (uint16_t NumPacket)
+void ZPZ_Response_LOG_FORMAT (uint16_t NumPacket, uint8_t Subcommand)
 {
 	// Запрос на форматирование накопителя черного ящика
-	// Отвечаем, что приняли команду и переходим на её выполнение
-	ZPZ_ShortResponse(LOG_FORMAT, NumPacket, 0x00);
-	// Запускаем форматирование
-	LogFs_Formatting();
-	// И сообщаем о готовности
-	ZPZ_ShortResponse(LOG_FORMAT, NumPacket, 0xFF);
-	// После форматирование необходимо обновить информацию о файловой системе
-	LogFs_Info();
+	if(Subcommand == 0x01)
+	{
+		// Отвечаем, что приняли команду и переходим на её выполнение
+		ZPZ_ShortResponse(LOG_FORMAT, NumPacket, FORMATING_LOG_FS_STARTED);
+		// Запускаем форматирование
+		LogFs_Formatting();
+		// И сообщаем о готовности
+		ZPZ_ShortResponse(LOG_FORMAT, NumPacket, FORMATING_LOG_FS_COMPLETED);
+		// После форматирование необходимо обновить информацию о файловой системе
+		LogFs_Info();
+	}
+	// Запрос статуса форматирования
+	else if (Subcommand == 0x00)
+	{
+		// Отвечаем, что форматирование завершено или в данный момент не выполняется
+		ZPZ_ShortResponse(LOG_FORMAT, NumPacket, FORMATING_LOG_FS_COMPLETED);
+	}
 }
 
 
@@ -986,9 +1002,9 @@ void ZPZ_Response_LOG_FILES (uint16_t NumPacket)
 	// Команда (1б) + Номер пакета (2б) + Кол-во файлов (2б)
 	// Остальное зависит от количества файлов в накопителе
 	ZPZ_BaseResponse.Struct.PacketSize = 5;
-	// Тогда определим количество файлов и прибавим (для каждого файла отводится 4 байта сообщения)
+	// Тогда определим количество файлов и прибавим (для каждого файла отводится 6 байт сообщения)
 	files = LogFs_GetFileNum();
-	ZPZ_BaseResponse.Struct.PacketSize += 4*files;
+	ZPZ_BaseResponse.Struct.PacketSize += 6*files;
 	
 	// Теперь посчитаем контрольную сумму начала пакета (первые 7 байт)
 	ZPZ_BaseResponse.Struct.CRC = Crc16(&ZPZ_BaseResponse.Buffer[0], 7, CRC16_INITIAL_FFFF);
@@ -1015,24 +1031,30 @@ void ZPZ_Response_LOG_FILES (uint16_t NumPacket)
 		// Если первая итерация то, (как бы устанавливаем точку отсчета)
 		// Ищем первый (самый старый файл в директории)
 		if(j == 0) 
-			result = Log_Fs_FindFIle(FIRST_FILE);
+			result = Log_Fs_FindFile(FIRST_FILE);
 		// При последующих итерациях нужно просто прокручивать файлы 
 		// Командой "NEXT_FILE"
 		else 
-			result = Log_Fs_FindFIle(NEXT_FILE);
+			result = Log_Fs_FindFile(NEXT_FILE);
 		
-		// Узнаем его номер и сразу упакуем в буфер для отправки
+		// Узнаем его номер файла и сразу упакуем в буфер для отправки
 		*(uint16_t*)buffer = Log_Fs_GetFileProperties (FILE_NUMBER);
+		// Подсчитываем контрольную сумму
+		ZPZ_BaseResponse.Struct.CRC = Crc16(buffer, 2, 	ZPZ_BaseResponse.Struct.CRC);
+		// Отправляем эти 2 байта информации о номере файла
+		for(i = 0; i < 2; i++)
+			UARTSendByte_by_SLIP (ZPZ_UART, 0xFFFF, buffer[i]);
+		
 		// Узнаем его размер и сразу упакуем в буфер для отправки
-		*((uint16_t*)buffer+1) = Log_Fs_GetFileProperties (FILE_SIZE);
-		// Подсчитываем контрольную сумму с учетом их
+		*((uint32_t*)buffer) = Log_Fs_GetFileProperties (FILE_SIZE);
+		// Подсчитываем контрольную сумму 
 		ZPZ_BaseResponse.Struct.CRC = Crc16(buffer, 4, 	ZPZ_BaseResponse.Struct.CRC);
-		// Отправляем эти 4 байта информации о файле
+		// Отправляем эти 4 байта информации о размере файла
 		for(i = 0; i < 4; i++)
 			UARTSendByte_by_SLIP (ZPZ_UART, 0xFFFF, buffer[i]);
 		
 		// Дополнительная проверка по выходу из цикла
-		// Если все файлы были просмотрены, функция Log_Fs_FindFIle() возвращает FS_ALL_FILES_SCROLLS
+		// Если все файлы были просмотрены, функция Log_Fs_FindFile() возвращает FS_ALL_FILES_SCROLLS
 		// Проконтролируем это
 		if (result ==  FS_ALL_FILES_SCROLLS)
 			break;
@@ -1069,7 +1091,7 @@ uint8_t ZPZ_Response_LOG_UPLOAD(uint16_t File_num, uint16_t NumPacket)
 {
 	ZPZ_BasePacket_Union  ZPZ_BaseResponse;
 	uint8_t  temp[2];
-	uint16_t filesize;
+	uint32_t filesize;
 	uint16_t packet_count = 0;
 	uint32_t i;
 	
@@ -1097,9 +1119,9 @@ uint8_t ZPZ_Response_LOG_UPLOAD(uint16_t File_num, uint16_t NumPacket)
 	// на которые будет разбит файл с номером File_num
 	if(NumPacket == 0)
 	{
-		// Узнаем на сколько пакетов по 100 байт разобьётся файл 
-		packet_count = (uint16_t)((filesize/100.0));
-		if (filesize % 100 != 0)
+		// Узнаем на сколько пакетов по BYTE_FROM_FILE байт разобьётся файл 
+		packet_count = (uint16_t)((filesize/BYTE_FROM_FILE));
+		if (filesize % BYTE_FROM_FILE != 0)
 			packet_count++;
 		
 		ZPZ_BaseResponse.Struct.PacketSize += 2;
@@ -1135,9 +1157,9 @@ uint8_t ZPZ_Response_LOG_UPLOAD(uint16_t File_num, uint16_t NumPacket)
 	{
 		// Нужно проверить есть ли вообще такой номер пакета
 		
-		// Узнаем на сколько пакетов по 100 байт разобьётся файл 
-		packet_count = (uint16_t)((filesize/100.0));
-		if (filesize % 100 != 0)
+		// Узнаем на сколько пакетов по BYTE_FROM_FILE байт разобьётся файл 
+		packet_count = (uint16_t)((filesize/BYTE_FROM_FILE));
+		if (filesize % BYTE_FROM_FILE != 0)
 			packet_count++;
 		
 		// Если запрашиваемый номер пакета не существует
@@ -1155,7 +1177,7 @@ uint8_t ZPZ_Response_LOG_UPLOAD(uint16_t File_num, uint16_t NumPacket)
 		if(packet_count - NumPacket == 0)
 		{
 			// Увеличиваем размер на оставшуюся часть файла
-			ZPZ_BaseResponse.Struct.PacketSize += filesize - (packet_count - 1) * 100;
+			ZPZ_BaseResponse.Struct.PacketSize += filesize - (packet_count - 1) * BYTE_FROM_FILE;
 			
 			// Теперь посчитаем контрольную сумму начала пакета (первые 7 байт)
 			ZPZ_BaseResponse.Struct.CRC = Crc16(&ZPZ_BaseResponse.Buffer[0], 7, CRC16_INITIAL_FFFF);
@@ -1176,15 +1198,15 @@ uint8_t ZPZ_Response_LOG_UPLOAD(uint16_t File_num, uint16_t NumPacket)
 		
 			// Нужно совершить мнимое считывание от начала файла до нужной позиции, 
 			// чтобы сместить на неё указатель внутри функции чтения файла 
-			// То есть нужно прочитать NumPacket - 1 раз по 100 байт
-			for (i = 0; i < (NumPacket - 1) * 100; i++)
+			// То есть нужно прочитать NumPacket - 1 раз по BYTE_FROM_FILE байт
+			for (i = 0; i < (NumPacket - 1) * BYTE_FROM_FILE; i++)
 			{
 				// Не используем буферизацию, поэтому читаем побайтово
 				LogFs_ReadFile(&temp[0], 1);
 			}
 			
 			// Сместили указатель внутри функции чтения, теперь готовы читать нужную часть 
-			for(i = 0; i < (filesize - (packet_count - 1) * 100); i++)
+			for(i = 0; i < (filesize - (packet_count - 1) * BYTE_FROM_FILE); i++)
 			{
 				// Будем читать и отправлять побайтово, не забывая пересчитывать контрольную сумму
 				LogFs_ReadFile(&temp[0], 1);
@@ -1197,8 +1219,8 @@ uint8_t ZPZ_Response_LOG_UPLOAD(uint16_t File_num, uint16_t NumPacket)
 		// Пакет не крайний 
 		else
 		{
-			// Увеличиваем размер на 100 байт данных
-			ZPZ_BaseResponse.Struct.PacketSize += 100;
+			// Увеличиваем размер на BYTE_FROM_FILE байт данных
+			ZPZ_BaseResponse.Struct.PacketSize += BYTE_FROM_FILE;
 			
 			// Теперь посчитаем контрольную сумму начала пакета (первые 7 байт)
 			ZPZ_BaseResponse.Struct.CRC = Crc16(&ZPZ_BaseResponse.Buffer[0], 7, CRC16_INITIAL_FFFF);
@@ -1221,14 +1243,14 @@ uint8_t ZPZ_Response_LOG_UPLOAD(uint16_t File_num, uint16_t NumPacket)
 			
 			// Нужно совершить мнимое считывание от начала файла до нужной позиции, 
 			// чтобы сместить на неё указатель внутри функции чтения файла 
-			// То есть нужно прочитать NumPacket - 1 раз по 100 байт
-			for (i = 0; i < (NumPacket - 1) * 100; i++)
+			// То есть нужно прочитать NumPacket - 1 раз по BYTE_FROM_FILE байт
+			for (i = 0; i < (NumPacket - 1) * BYTE_FROM_FILE; i++)
 			{
 				// Не используем буферизацию, поэтому читаем побайтово
 				LogFs_ReadFile(&temp[0], 1);
 			}
 			// Сместили указатель внутри функции чтения, теперь готовы читать нужную часть 
-			for(i = 0; i < 100; i++)
+			for(i = 0; i < BYTE_FROM_FILE; i++)
 			{
 				// Будем читать и отправлять побайтово, не забывая пересчитывать контрольную сумму
 				LogFs_ReadFile(&temp[0], 1);
@@ -1347,9 +1369,9 @@ uint8_t ZPZ_Response_REQ_SNS_POS (uint16_t NumPacket)
 	
 
 	// Запрашиваем данные местоположения
-	while(!SNS_GetPositionData(&SNS_Position_Data_Response)&& (timeout != 0xFFFF)) timeout ++;
+	while(SNS_GetPositionData(&SNS_Position_Data_Response) != SNS_OK && (timeout != 0xFFFF)) timeout ++;
 	// Запрашиваем данные ориентации
-	while(!SNS_GetOrientationData(&SNS_Orientation_Data_Response)&& (timeout != 0xFFFF)) timeout ++;
+	while(SNS_GetOrientationData(&SNS_Orientation_Data_Response)!= SNS_OK && (timeout != 0xFFFF)) timeout ++;
 
 	// Проверим, вдруг выход был по таймауту, тогда нужно ответить ошибкой и завершиться
 	if (timeout == 0xFFFF)
@@ -1420,9 +1442,9 @@ uint8_t ZPZ_Response_REQ_SNS_STATE (uint16_t NumPacket)
 	uint8_t  i;
 	
 	// Получим данные об устройстве
-  while(!SNS_GetDeviceInformation(&SNS_DevInfo)&& (timeout != 0xFFFF)) timeout ++;
+  while(SNS_GetDeviceInformation(&SNS_DevInfo) != SNS_OK && (timeout != 0xFFFF)) timeout ++;
 	// Получим информацию о доступных данных 
-  while(!SNS_GetDataState(&SNS_AvailableData)&& (timeout != 0xFFFF)) timeout ++;
+  while(SNS_GetDataState(&SNS_AvailableData) != SNS_OK && (timeout != 0xFFFF)) timeout ++;
 
 	// Проверим, вдруг выход был по таймауту, тогда нужно ответить ошибкой и завершиться
 	if (timeout == 0xFFFF)

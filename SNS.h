@@ -56,13 +56,13 @@
 					 
 					 
 					 // Последовательно собираем информацию с СНС, используя контроль ошибок приёма и таймаут, на перезапросы 
-					 while(!SNS_GetDeviceInformation(&SNS_Device_Information_Response)&& (timeout != 0xFFFF)) timeout ++;
+					 while(SNS_GetDeviceInformation(&SNS_Device_Information_Response) != SNS_OK && (timeout != 0xFFFF)) timeout ++;
 		       timeout = 0;
-		       while(!SNS_GetDataState(&SNS_Available_Data_Response)&& (timeout != 0xFFFF)) timeout ++;
+		       while(SNS_GetDataState(&SNS_Available_Data_Response) != SNS_OK && (timeout != 0xFFFF)) timeout ++;
 		       timeout = 0;
-		       while(!SNS_GetPositionData(&SNS_Position_Data_Response)&& (timeout != 0xFFFF)) timeout ++;
+		       while(SNS_GetPositionData(&SNS_Position_Data_Response) != SNS_OK && (timeout != 0xFFFF)) timeout ++;
 		       timeout = 0;
-		       while(!SNS_GetOrientationData(&SNS_Orientation_Data_Response)&& (timeout != 0xFFFF)) timeout ++;
+		       while(SNS_GetOrientationData(&SNS_Orientation_Data_Response) != SNS_OK && (timeout != 0xFFFF)) timeout ++;
 					 
 					 		 
 *******************************************************************************************************/
@@ -106,11 +106,21 @@
 #define SizeAnsODR		21
 
 
+/************************************************************
+							Типы возвращаемых значений                    *
+************************************************************/
+typedef enum{
+	SNS_OK         = 1,      // Обмен успешно завершен
+	SNS_TIMEOUT    = 0,      // Ошибка, истекло время на отправке/приёме
+	SNS_WRONG_CRC  = 2,      // Ошибка в контрольной сумме принятого ответа
+}SNS_Status;
+
+
+
 // Здесь используются объединения (union), для того, чтобы к структуре можно было обратиться как массиву unint8
 // Что будет удобно для расчета CRC и заполнения структуры прямиком из FIFO UART - побайтово.
 // Хотя можно использовать указатели, для такого же эффекта.
 // Есть проблема с выравниванием структуры в памяти, которая решается добавлением  "__packed" перед struct.
-
 
 /************************************************************
 							Структура запроса данных от СНС               *
@@ -221,11 +231,13 @@ typedef union {
 						Параметры:                                                                                        *
 											SNS_DeviceInformation - структура пакета данных ответа на запрос DIR                    *
 						                                                                                                  *
-						Возвращает: 0 - Если ошибка проверки кода ответа и контрольной суммы								  						*
-												1 - Если проверка верна		 																														*
+						Возвращает:                                                           							  						*
+												SNS_OK        - Если информация успешно получена																	  	*
+                        SNS_TIMEOUT   - Время на отправку запроса или приёма ответа вышло                     *
+                        SNS_WRONG_CRC - Неверная контрольная сумма на приёме                                  *
 											                                                                                        * 
 ***************************************************************************************************************/
-uint8_t SNS_GetDeviceInformation(SNS_Device_Information_Response_Union*  SNS_DeviceInformation);
+SNS_Status SNS_GetDeviceInformation(SNS_Device_Information_Response_Union*  SNS_DeviceInformation);
 
 
 
@@ -236,11 +248,13 @@ uint8_t SNS_GetDeviceInformation(SNS_Device_Information_Response_Union*  SNS_Dev
 						Параметры:                                                                                        *
 											SNS_DataState - структура пакета данных ответа на запрос DSR                            *
 						                                                                                                  *
-						Возвращает: 0 - Если ошибка проверки кода ответа и контрольной суммы								  						*
-												1 - Если проверка верна		 																														*
+						Возвращает:                                                           							  						*
+												SNS_OK        - Если информация успешно получена																	  	*
+                        SNS_TIMEOUT   - Время на отправку запроса или приёма ответа вышло                     *
+                        SNS_WRONG_CRC - Неверная контрольная сумма на приёме                                  *
 											                                                                                        * 
 ***************************************************************************************************************/
-uint8_t SNS_GetDataState(SNS_Available_Data_Response_Union*  SNS_DataState);
+SNS_Status SNS_GetDataState(SNS_Available_Data_Response_Union*  SNS_DataState);
 
 
 
@@ -252,11 +266,13 @@ uint8_t SNS_GetDataState(SNS_Available_Data_Response_Union*  SNS_DataState);
 						Параметры:                                                                                        *
 											SNS_PositionData - структура пакета данных ответа на запрос PDR                         *
 						                                                                                                  *
-						Возвращает: 0 - Если ошибка проверки кода ответа и контрольной суммы								  						*
-												1 - Если проверка верна		 																														*
+						Возвращает:                                                           							  						*
+												SNS_OK        - Если информация успешно получена																	  	*
+                        SNS_TIMEOUT   - Время на отправку запроса или приёма ответа вышло                     *
+                        SNS_WRONG_CRC - Неверная контрольная сумма на приёме                                  *
 											                                                                                        * 
 ***************************************************************************************************************/
-uint8_t SNS_GetPositionData(SNS_Position_Data_Response_Union*  SNS_PositionData);
+SNS_Status SNS_GetPositionData(SNS_Position_Data_Response_Union*  SNS_PositionData);
 
 
 
@@ -267,11 +283,13 @@ uint8_t SNS_GetPositionData(SNS_Position_Data_Response_Union*  SNS_PositionData)
 						Параметры:                                                                                        *
 											SNS_OrientationData - структура пакета данных ответа на запрос PDR                      *
 						                                                                                                  *
-						Возвращает: 0 - Если ошибка проверки кода ответа и контрольной суммы								  						*
-												1 - Если проверка верна		 																														*
+						Возвращает:                                                           							  						*
+												SNS_OK        - Если информация успешно получена																	  	*
+                        SNS_TIMEOUT   - Время на отправку запроса или приёма ответа вышло                     *
+                        SNS_WRONG_CRC - Неверная контрольная сумма на приёме                                  *
 											                                                                                        * 
 ***************************************************************************************************************/
-uint8_t SNS_GetOrientationData(SNS_Orientation_Data_Response_Union*  SNS_OrientationData);
+SNS_Status SNS_GetOrientationData(SNS_Orientation_Data_Response_Union*  SNS_OrientationData);
 
 
 
@@ -279,11 +297,12 @@ uint8_t SNS_GetOrientationData(SNS_Orientation_Data_Response_Union*  SNS_Orienta
                                                                                                               * 
 						SNS_StartGyroCalibration - Команда начала калибровки гироскопа                                    *
 						                                                                                                  *
-						Возвращает: 0 - Если превышение времени на отправку (ошибка по таймауту)							  					*
-												1 - Успешно отправлена		 																														*
+						Возвращает:                                                           							  						*
+												SNS_OK        - Если информация успешно получена																	  	*
+                        SNS_TIMEOUT   - Время на отправку запроса или приёма ответа вышло                     *
 											                                                                                        * 
 ***************************************************************************************************************/
-uint8_t SNS_StartGyroCalibration (void);
+SNS_Status SNS_StartGyroCalibration (void);
 
 
 
@@ -291,11 +310,12 @@ uint8_t SNS_StartGyroCalibration (void);
                                                                                                               * 
 						SNS_ResetGyroCalibration - Команда сброса калибровки гироскопа                                    *
 						                                                                                                  *
-						Возвращает: 0 - Если превышение времени на отправку (ошибка по таймауту)							  					*
-												1 - Успешно отправлена		 																														*
+						Возвращает:                                                           							  						*
+												SNS_OK        - Если информация успешно получена																	  	*
+                        SNS_TIMEOUT   - Время на отправку запроса или приёма ответа вышло                     *
 											                                                                                        * 
 ***************************************************************************************************************/
-uint8_t SNS_ResetGyroCalibration (void);
+SNS_Status SNS_ResetGyroCalibration (void);
 
 
 
@@ -303,11 +323,12 @@ uint8_t SNS_ResetGyroCalibration (void);
                                                                                                               * 
 						SNS_StartMagnetometerCalibration - Команда начала калибровки магнитометра                         *
 						                                                                                                  *
-						Возвращает: 0 - Если превышение времени на отправку (ошибка по таймауту)							  					*
-												1 - Успешно отправлена		 																														*
+						Возвращает:                                                           							  						*
+												SNS_OK        - Если информация успешно получена																	  	*
+                        SNS_TIMEOUT   - Время на отправку запроса или приёма ответа вышло                     *
 											                                                                                        * 
 ***************************************************************************************************************/
-uint8_t SNS_StartMagnetometerCalibration (void);
+SNS_Status SNS_StartMagnetometerCalibration (void);
 
 
 
@@ -315,11 +336,12 @@ uint8_t SNS_StartMagnetometerCalibration (void);
                                                                                                               * 
 						SNS_ResetMagnetometerCalibration - Команда сброса калибровки магнитометра                         *
 						                                                                                                  *
-						Возвращает: 0 - Если превышение времени на отправку (ошибка по таймауту)							  					*
-												1 - Успешно отправлена		 																														*
+						Возвращает:                                                           							  						*
+												SNS_OK        - Если информация успешно получена																	  	*
+                        SNS_TIMEOUT   - Время на отправку запроса или приёма ответа вышло                     *
 											                                                                                        * 
 ***************************************************************************************************************/
-uint8_t SNS_ResetMagnetometerCalibration (void);
+SNS_Status SNS_ResetMagnetometerCalibration (void);
 
 
 
@@ -327,11 +349,12 @@ uint8_t SNS_ResetMagnetometerCalibration (void);
                                                                                                               * 
 						SNS_EnableHorizontalCorrection - Команда включения горизонтальной коррекции                       *
 						                                                                                                  *
-						Возвращает: 0 - Если превышение времени на отправку (ошибка по таймауту)							  					*
-												1 - Успешно отправлена		 																														*
+						Возвращает:                                                           							  						*
+												SNS_OK        - Если информация успешно получена																	  	*
+                        SNS_TIMEOUT   - Время на отправку запроса или приёма ответа вышло                     *
 											                                                                                        * 
 ***************************************************************************************************************/
-uint8_t SNS_EnableHorizontalCorrection (void);
+SNS_Status SNS_EnableHorizontalCorrection (void);
 
 
 
@@ -339,11 +362,12 @@ uint8_t SNS_EnableHorizontalCorrection (void);
                                                                                                               * 
 						SNS_DisableHorizontalCorrection - Команда отключения горизонтальной коррекции                     *
 						                                                                                                  *
-						Возвращает: 0 - Если превышение времени на отправку (ошибка по таймауту)							  					*
-												1 - Успешно отправлена		 																														*
+						Возвращает:                                                           							  						*
+												SNS_OK        - Если информация успешно получена																	  	*
+                        SNS_TIMEOUT   - Время на отправку запроса или приёма ответа вышло                     *
 											                                                                                        * 
 ***************************************************************************************************************/
-uint8_t SNS_DisableHorizontalCorrection (void);
+SNS_Status SNS_DisableHorizontalCorrection (void);
 
 
 
