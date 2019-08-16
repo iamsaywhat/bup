@@ -7,9 +7,9 @@
  *
  * Code generated for Simulink model 'Easy_reg'.
  *
- * Model version                  : 1.23
+ * Model version                  : 1.28
  * Simulink Coder version         : 8.14 (R2018a) 06-Feb-2018
- * C/C++ source code generated on : Fri Aug  9 18:34:51 2019
+ * C/C++ source code generated on : Fri Aug 16 11:44:13 2019
  *
  * Target selection: ert.tlc
  * Embedded hardware selection: ARM Compatible->ARM Cortex
@@ -56,13 +56,52 @@ void Easy_reg_Heading_true(real_T rtu_u1, real_T rtu_u1_b, real_T rtu_u0, real_T
   }
 }
 
+real_T rt_roundd_snf(real_T u)
+{
+  real_T y;
+  if (fabs(u) < 4.503599627370496E+15) {
+    if (u >= 0.5) {
+      y = floor(u + 0.5);
+    } else if (u > -0.5) {
+      y = u * 0.0;
+    } else {
+      y = ceil(u - 0.5);
+    }
+  } else {
+    y = u;
+  }
+
+  return y;
+}
+
 /* Model step function */
 void Easy_reg_step(void)
 {
-  real_T rtb_y_j;
-  real_T rtb_y_k;
+  boolean_T rtb_LogicalOperator1;
+  real_T dif_idx_1;
+  real_T dif_idx_0;
 
   /* Outputs for Atomic SubSystem: '<Root>/Easy_reg' */
+  /* MATLAB Function: '<S6>/Distance_calc_deg' incorporates:
+   *  Inport: '<Root>/Pos_lat'
+   *  Inport: '<Root>/Pos_lon'
+   *  Inport: '<Root>/TDP_lat'
+   *  Inport: '<Root>/TDP_lon'
+   */
+  dif_idx_0 = Easy_reg_U.TDP_lon - Easy_reg_U.Pos_lon;
+  dif_idx_1 = Easy_reg_U.TDP_lat - Easy_reg_U.Pos_lat;
+
+  /* Logic: '<S6>/Logical Operator1' incorporates:
+   *  Constant: '<S6>/TD_RAD'
+   *  Constant: '<S6>/TD_reg_disable_alt'
+   *  Inport: '<Root>/Pos_alt'
+   *  MATLAB Function: '<S6>/Distance_calc_deg'
+   *  RelationalOperator: '<S6>/Relational Operator1'
+   *  RelationalOperator: '<S6>/Relational Operator2'
+   */
+  rtb_LogicalOperator1 = ((sqrt(dif_idx_0 * dif_idx_0 + dif_idx_1 * dif_idx_1) <=
+    0.007) && (Easy_reg_U.Pos_alt > 650.0));
+
   /* MATLAB Function: '<S1>/Heading_true' incorporates:
    *  Inport: '<Root>/Pos_lat'
    *  Inport: '<Root>/Pos_lon'
@@ -70,72 +109,54 @@ void Easy_reg_step(void)
    *  Inport: '<Root>/TDP_lon'
    */
   Easy_reg_Heading_true(Easy_reg_U.TDP_lon, Easy_reg_U.TDP_lat,
-                        Easy_reg_U.Pos_lon, Easy_reg_U.Pos_lat, &rtb_y_j);
-
-  /* MATLAB Function: '<S1>/Heading_true1' incorporates:
-   *  Inport: '<Root>/Pos_lat'
-   *  Inport: '<Root>/Pos_lon'
-   *  Memory: '<S1>/Memory'
-   */
-  Easy_reg_Heading_true(Easy_reg_U.Pos_lon, Easy_reg_U.Pos_lat,
-                        Easy_reg_DW.Memory_1_PreviousInput,
-                        Easy_reg_DW.Memory_2_PreviousInput, &rtb_y_k);
+                        Easy_reg_U.Pos_lon, Easy_reg_U.Pos_lat, &dif_idx_0);
 
   /* Sum: '<S1>/Sum1' incorporates:
+   *  Inport: '<Root>/ActualCourse'
+   *  Product: '<S6>/Product'
    *  Sum: '<S1>/Sum'
    */
-  rtb_y_j = (rtb_y_j - Easy_reg_ConstB.Product) - rtb_y_k;
+  dif_idx_0 = (dif_idx_0 - (real_T)rtb_LogicalOperator1 * Easy_reg_ConstB.Gain5)
+    - Easy_reg_U.ActualCourse;
 
-  /* MATLAB Function: '<S1>/MATLAB Function' */
-  if (rtb_y_j > 3.14) {
-    rtb_y_j -= 6.2819;
+  /* MATLAB Function: '<S1>/ControlDemode' */
+  if (dif_idx_0 > 3.14) {
+    dif_idx_0 -= 6.2819;
   } else {
-    if (rtb_y_j < -3.14) {
-      rtb_y_j += 6.2819;
+    if (dif_idx_0 < -3.14) {
+      dif_idx_0 += 6.2819;
     }
   }
 
-  /* End of MATLAB Function: '<S1>/MATLAB Function' */
+  /* End of MATLAB Function: '<S1>/ControlDemode' */
 
   /* Switch: '<S1>/Switch' */
-  if (Easy_reg_ConstB.LogicalOperator) {
-    /* Gain: '<S1>/Gain1' incorporates:
-     *  Gain: '<S1>/Gain4'
+  if (rtb_LogicalOperator1) {
+    /* Gain: '<S1>/TD_Gain' incorporates:
+     *  Gain: '<S1>/Gain1'
      */
-    Easy_reg_Y.BIM_CMD = 57.295779513082323 * rtb_y_j * 2.0;
+    dif_idx_0 = 57.295779513082323 * dif_idx_0 * 3.0;
 
-    /* Saturate: '<S1>/Wait_Sat' */
-    if (Easy_reg_Y.BIM_CMD > 20.0) {
-      /* Gain: '<S1>/Gain1' incorporates:
-       *  Outport: '<Root>/BIM_CMD'
-       */
-      Easy_reg_Y.BIM_CMD = 20.0;
+    /* Saturate: '<S1>/TD_Sat' */
+    if (dif_idx_0 > 20.0) {
+      dif_idx_0 = 20.0;
     } else {
-      if (Easy_reg_Y.BIM_CMD < -20.0) {
-        /* Gain: '<S1>/Gain1' incorporates:
-         *  Outport: '<Root>/BIM_CMD'
-         */
-        Easy_reg_Y.BIM_CMD = -20.0;
+      if (dif_idx_0 < -20.0) {
+        dif_idx_0 = -20.0;
       }
     }
 
-    /* End of Saturate: '<S1>/Wait_Sat' */
+    /* End of Saturate: '<S1>/TD_Sat' */
   } else {
     /* Gain: '<S1>/Gain1' */
-    Easy_reg_Y.BIM_CMD = 57.295779513082323 * rtb_y_j;
+    dif_idx_0 *= 57.295779513082323;
 
     /* Saturate: '<S1>/Base_Sat' */
-    if (Easy_reg_Y.BIM_CMD > 50.0) {
-      /* Gain: '<S1>/Gain1' incorporates:
-       *  Outport: '<Root>/BIM_CMD'
-       */
-      Easy_reg_Y.BIM_CMD = 50.0;
+    if (dif_idx_0 > 50.0) {
+      dif_idx_0 = 50.0;
     } else {
-      if (Easy_reg_Y.BIM_CMD < -50.0) {
-        /* Gain: '<S1>/Gain1' incorporates:
-         *  Outport: '<Root>/BIM_CMD'
-         */
-        Easy_reg_Y.BIM_CMD = -50.0;
+      if (dif_idx_0 < -50.0) {
+        dif_idx_0 = -50.0;
       }
     }
 
@@ -144,6 +165,29 @@ void Easy_reg_step(void)
 
   /* End of Switch: '<S1>/Switch' */
 
+  /* Gain: '<S1>/Gain' */
+  dif_idx_0 *= 0.1;
+
+  /* Rounding: '<S1>/Rounding Function' */
+  dif_idx_0 = rt_roundd_snf(dif_idx_0);
+
+  /* Outport: '<Root>/TD_CMD' incorporates:
+   *  Inport: '<Root>/Pos_alt'
+   *  Inport: '<Root>/TDP_alt'
+   *  ManualSwitch: '<S1>/TD_SysSwitch'
+   *  RelationalOperator: '<S7>/Relational Operator'
+   */
+  Easy_reg_Y.TD_CMD = (Easy_reg_U.Pos_alt <= Easy_reg_U.TDP_alt);
+
+  /* MATLAB Function: '<S1>/Heading_true1' incorporates:
+   *  Inport: '<Root>/Pos_lat'
+   *  Inport: '<Root>/Pos_lon'
+   *  Memory: '<S1>/Memory'
+   */
+  Easy_reg_Heading_true(Easy_reg_U.Pos_lon, Easy_reg_U.Pos_lat,
+                        Easy_reg_DW.Memory_1_PreviousInput,
+                        Easy_reg_DW.Memory_2_PreviousInput, &dif_idx_1);
+
   /* Update for Memory: '<S1>/Memory' incorporates:
    *  Inport: '<Root>/Pos_lat'
    *  Inport: '<Root>/Pos_lon'
@@ -151,12 +195,12 @@ void Easy_reg_step(void)
   Easy_reg_DW.Memory_1_PreviousInput = Easy_reg_U.Pos_lon;
   Easy_reg_DW.Memory_2_PreviousInput = Easy_reg_U.Pos_lat;
 
-  /* End of Outputs for SubSystem: '<Root>/Easy_reg' */
-
-  /* Outport: '<Root>/TD_CMD' incorporates:
-   *  Constant: '<S1>/Constant1'
+  /* Outport: '<Root>/BIM_CMD' incorporates:
+   *  Gain: '<S1>/Gain4'
    */
-  Easy_reg_Y.TD_CMD = 0.0;
+  Easy_reg_Y.BIM_CMD = 10.0 * dif_idx_0;
+
+  /* End of Outputs for SubSystem: '<Root>/Easy_reg' */
 }
 
 /* Model initialize function */

@@ -7,9 +7,9 @@
  *
  * Code generated for Simulink model 'Easy_reg'.
  *
- * Model version                  : 1.23
+ * Model version                  : 1.28
  * Simulink Coder version         : 8.14 (R2018a) 06-Feb-2018
- * C/C++ source code generated on : Fri Aug  9 18:34:51 2019
+ * C/C++ source code generated on : Fri Aug 16 11:44:13 2019
  *
  * Target selection: ert.tlc
  * Embedded hardware selection: ARM Compatible->ARM Cortex
@@ -46,9 +46,7 @@ typedef struct {
 
 /* Invariant block signals (default storage) */
 typedef struct {
-  const real_T Gain5;                  /* '<S1>/Gain5' */
-  const real_T Product;                /* '<S1>/Product' */
-  const boolean_T LogicalOperator;     /* '<S1>/Logical Operator' */
+  const real_T Gain5;                  /* '<S6>/Gain5' */
 } ConstB_Easy_reg_T;
 
 /* External inputs (root inport signals with default storage) */
@@ -94,19 +92,10 @@ extern RT_MODEL_Easy_reg_T *const Easy_reg_M;
 /*-
  * These blocks were eliminated from the model due to optimizations:
  *
- * Block '<S1>/Cast' : Unused code path elimination
- * Block '<S1>/Constant' : Unused code path elimination
- * Block '<S1>/Fin_Man_Alt' : Unused code path elimination
  * Block '<S1>/Gain2' : Unused code path elimination
  * Block '<S1>/Gain3' : Unused code path elimination
- * Block '<S1>/Relational Operator' : Unused code path elimination
- * Block '<S1>/Relational Operator1' : Unused code path elimination
- * Block '<S1>/Relational Operator2' : Unused code path elimination
  * Block '<S1>/Scope1' : Unused code path elimination
  * Block '<S1>/Scope10' : Unused code path elimination
- * Block '<S1>/Scope11' : Unused code path elimination
- * Block '<S1>/Scope12' : Unused code path elimination
- * Block '<S1>/Scope14' : Unused code path elimination
  * Block '<S1>/Scope2' : Unused code path elimination
  * Block '<S1>/Scope3' : Unused code path elimination
  * Block '<S1>/Scope4' : Unused code path elimination
@@ -114,8 +103,13 @@ extern RT_MODEL_Easy_reg_T *const Easy_reg_M;
  * Block '<S1>/Scope6' : Unused code path elimination
  * Block '<S1>/Scope7' : Unused code path elimination
  * Block '<S1>/Scope8' : Unused code path elimination
- * Block '<S1>/Wait_RAD' : Unused code path elimination
- * Block '<S1>/Gain' : Eliminated nontunable gain of 1
+ * Block '<S1>/Scope9' : Unused code path elimination
+ * Block '<S7>/Constant' : Unused code path elimination
+ * Block '<S1>/Base_Gain' : Eliminated nontunable gain of 1
+ * Block '<S1>/CourseSwitch' : Eliminated due to constant selection input
+ * Block '<S1>/TD_RegSwitch' : Eliminated due to constant selection input
+ * Block '<S1>/TD_RegSwitch1' : Eliminated due to constant selection input
+ * Block '<S1>/Constant2' : Unused code path elimination
  */
 
 /*-
@@ -137,11 +131,13 @@ extern RT_MODEL_Easy_reg_T *const Easy_reg_M;
  *
  * '<Root>' : 'BUP_FOR_GUI'
  * '<S1>'   : 'BUP_FOR_GUI/Easy_reg'
- * '<S2>'   : 'BUP_FOR_GUI/Easy_reg/Distance_calc_KM'
- * '<S3>'   : 'BUP_FOR_GUI/Easy_reg/Distance_calc_deg'
+ * '<S2>'   : 'BUP_FOR_GUI/Easy_reg/ControlDemode'
+ * '<S3>'   : 'BUP_FOR_GUI/Easy_reg/Distance_calc_KM'
  * '<S4>'   : 'BUP_FOR_GUI/Easy_reg/Heading_true'
  * '<S5>'   : 'BUP_FOR_GUI/Easy_reg/Heading_true1'
- * '<S6>'   : 'BUP_FOR_GUI/Easy_reg/MATLAB Function'
+ * '<S6>'   : 'BUP_FOR_GUI/Easy_reg/TD_Reg'
+ * '<S7>'   : 'BUP_FOR_GUI/Easy_reg/TouchDownGen'
+ * '<S8>'   : 'BUP_FOR_GUI/Easy_reg/TD_Reg/Distance_calc_deg'
  */
 #endif                                 /* RTW_HEADER_Easy_reg_h_ */
 

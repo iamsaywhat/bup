@@ -6,7 +6,7 @@
 #ifndef _CONFIG_H_
 #define _CONFIG_H_
 
-#define flightRegulatorCFB       // Использовать flightRegulatorCFB регулятор
+//#define flightRegulatorCFB       // Использовать flightRegulatorCFB регулятор
 #define DEBUG_VARS               // Включить вывод отладочной информации (модуль debug.c)
 #define LOGS_ENABLE              // Включить логирование в черный ящик
 //#define TRACE_SYS_STATE          // Включить трассировку состояния системы в CAN

@@ -71,11 +71,11 @@ void M_Model_Init(void)
 	BIM_ReceiveResponse (RIGHT_BIM);
 	BIM_ReceiveResponse (LEFT_BIM);
 	
-#ifdef flightRegulatorCFB //******************************************************* Если выбран flightRegulatorCFB
-	flightRegulatorCFB_initialize();
-#else //*************************************************************************** Если выбран Easy_reg
-	Easy_reg_initialize();
-#endif
+	#ifdef flightRegulatorCFB //******************************************************* Если выбран flightRegulatorCFB
+		flightRegulatorCFB_initialize();
+	#else //*************************************************************************** Если выбран Easy_reg
+		Easy_reg_initialize();
+	#endif
 }
 
 /***************************************************************************
@@ -83,11 +83,11 @@ void M_Model_Init(void)
 ***************************************************************************/
 void M_Model_Step(void)
 {
-#ifdef flightRegulatorCFB //******************************************************* Если выбран flightRegulatorCFB
-	flightRegulatorCFB_step();
-#else //*************************************************************************** Если выбран Easy_reg
-	Easy_reg_step();
-#endif
+	#ifdef flightRegulatorCFB //******************************************************* Если выбран flightRegulatorCFB
+		flightRegulatorCFB_step();
+	#else //*************************************************************************** Если выбран Easy_reg
+		Easy_reg_step();
+	#endif
 }
 
 /***************************************************************************
@@ -160,46 +160,43 @@ void M_Model_PrepareData (SNS_Position_Data_Response_Type SNS_PosData, SNS_Orien
 	else
 		SelfTesting_SET_OK(ST_MapAvailability);
 	
-#ifdef LOGS_ENABLE  //******************************************************* Если включено логирование в черный ящик
-	printf("Model_Lat: %f\n", SNS_Lat);
-	printf("Model_Lon: %f\n", SNS_Lon);
-	printf("Model_Alt: %f\n", SNS_Alt);
-	printf("Model_Course: %f\n", HeadingTrue);
-	if (SelfTesting_STATUS(ST_MapAvailability))
-		printf("MAP: %d\n", Map_Alt);
-	else
-		printf("MAP: NOT_AVAILABLE\n");
-#endif //******************************************************* !LOGS_ENABLE	
+	#ifdef LOGS_ENABLE  //******************************************************* Если включено логирование в черный ящик
+		printf("Model_Lat: %f\n", SNS_Lat);
+		printf("Model_Lon: %f\n", SNS_Lon);
+		printf("Model_Alt: %f\n", SNS_Alt);
+		printf("Model_Course: %f\n", HeadingTrue);
+		if (SelfTesting_STATUS(ST_MapAvailability))
+			printf("MAP: %d\n", Map_Alt);
+		else
+			printf("MAP: NOT_AVAILABLE\n");
+	#endif //******************************************************************** !LOGS_ENABLE	
 	
 	
-#ifdef DEBUG_VARS	//*************************************************************** Если активна отладка переменн
-	// Вывод общесистемной отладочной информации 
-	debug_vars.SNSalt            = SNS_PosData.Pos_alt;      // Высота в том виде в котором принимаем от СНС
-	debug_vars.rtU_XYZi_Lat      = SNS_Lat;                  // Широта преобразованная в градусы
-	debug_vars.rtU_XYZi_Lon      = SNS_Lon;                  // Долгота преобразованная в градусы
-	debug_vars.rtU_XYZi_Alt      = SNS_Alt;                  // Высота преобразованная в метры
-	debug_vars.Relief_height     = Map_Alt;                  // Высота рельефа под нами в метрах
-	debug_vars.Alt2model         = SNS_Alt;                  // Высота преобразованная в метры
-	debug_vars.SysState          = SystemState;              // Состояние системы (из SelfTesing)
-#endif //************************************************************************** !DEBUG_VARS
+	#ifdef DEBUG_VARS	//*************************************************************** Если активна отладка переменн
+		// Вывод общесистемной отладочной информации 
+		debug_vars.SNSalt            = SNS_PosData.Pos_alt;      // Высота в том виде в котором принимаем от СНС
+		debug_vars.rtU_XYZi_Lat      = SNS_Lat;                  // Широта преобразованная в градусы
+		debug_vars.rtU_XYZi_Lon      = SNS_Lon;                  // Долгота преобразованная в градусы
+		debug_vars.rtU_XYZi_Alt      = SNS_Alt;                  // Высота преобразованная в метры
+		debug_vars.Relief_height     = Map_Alt;                  // Высота рельефа под нами в метрах
+		debug_vars.Alt2model         = SNS_Alt;                  // Высота преобразованная в метры
+		debug_vars.SysState          = SystemState;              // Состояние системы (из SelfTesing)
+	#endif //************************************************************************** !DEBUG_VARS
 	
 	
-#ifdef flightRegulatorCFB //******************************************************* Если выбран flightRegulatorCFB
-	// Координаты точки приземления (подгружаем из памяти)
-  rtU.xyzPoints[lat] = GetTouchDownPointLat();
-	rtU.xyzPoints[lon] = GetTouchDownPointLon();
-  rtU.xyzPoints[alt] = 0;
-		
-	// Текущие координаты:
-	rtU.XYZi[lat] = SNS_Lat;
-	rtU.XYZi[lon] = SNS_Lon;
-	rtU.XYZi[alt] = SNS_Alt;
-	
-	// Истинный курс
- 	rtU.angle = HeadingTrue;
-	
-  // Статус навигационного решения от СНС
-  rtU.isVeracityGns = 1; //SNS_PosData.Quality;
+	#ifdef flightRegulatorCFB //******************************************************* Если выбран flightRegulatorCFB
+		// Координаты точки приземления (подгружаем из памяти)
+		rtU.xyzPoints[lat] = GetTouchDownPointLat();
+		rtU.xyzPoints[lon] = GetTouchDownPointLon();
+		rtU.xyzPoints[alt] = 0;
+		// Текущие координаты:
+		rtU.XYZi[lat] = SNS_Lat;
+		rtU.XYZi[lon] = SNS_Lon;
+		rtU.XYZi[alt] = SNS_Alt;
+		// Истинный курс
+		rtU.angle = HeadingTrue;
+		// Статус навигационного решения от СНС
+		rtU.isVeracityGns = 1; //SNS_PosData.Quality;
 	
 	
 //  // Высота над рельефом
@@ -225,15 +222,15 @@ void M_Model_PrepareData (SNS_Position_Data_Response_Type SNS_PosData, SNS_Orien
 //  // Работает ли правый БИМ: "1" - да, "-1" - нет.		
 //  rtU.RightEnginehadWork = 1.0;  
 
-#else //*************************************************************************** Если выбран Easy_reg
-	Easy_reg_U.TDP_lon        = GetTouchDownPointLon();
-	Easy_reg_U.TDP_lat        = GetTouchDownPointLat();
-	Easy_reg_U.TDP_alt        = 0;
-	Easy_reg_U.Pos_lon        = SNS_Lon;
-	Easy_reg_U.Pos_lat        = SNS_Lat;
-	Easy_reg_U.Pos_alt        = SNS_Alt;
-	Easy_reg_U.ActualCourse   = HeadingTrue;
-#endif //************************************************************************** !flightRegulatorCFB 
+	#else //*************************************************************************** Если выбран Easy_reg
+		Easy_reg_U.TDP_lon        = GetTouchDownPointLon();
+		Easy_reg_U.TDP_lat        = GetTouchDownPointLat();
+		Easy_reg_U.TDP_alt        = GetTouchDownPoinAlt();
+		Easy_reg_U.Pos_lon        = SNS_Lon;
+		Easy_reg_U.Pos_lat        = SNS_Lat;
+		Easy_reg_U.Pos_alt        = SNS_Alt;
+		Easy_reg_U.ActualCourse   = HeadingTrue;
+	#endif //************************************************************************** !flightRegulatorCFB 
 
 	// Данные были обновлены, сообщаем об этом Мат. модели
 	M_Model_Need2UpdateReset();
@@ -245,109 +242,108 @@ void M_Model_PrepareData (SNS_Position_Data_Response_Type SNS_PosData, SNS_Orien
 ***************************************************************************/
 void M_Model_Control (void)
 {	
-#ifdef flightRegulatorCFB	//******************************************************* Если выбран flightRegulatorCFB
+	#ifdef flightRegulatorCFB	//******************************************************* Если выбран flightRegulatorCFB
 	
-	#ifdef LOGS_ENABLE  //******************************************************* Если включено логирование в черный ящик
-		printf("Model_BIM_CMD: %f\n", rtY.tightenSling*rtY.directionOfRotation);
-		printf("Model_TD_CMD: %d\n", rtY.cmdTouchDown);
-	#endif //******************************************************************* !LOGS_ENABLE	
+		#ifdef LOGS_ENABLE  //******************************************************* Если включено логирование в черный ящик
+			printf("Model_BIM_CMD: %f\n", rtY.tightenSling*rtY.directionOfRotation);
+			printf("Model_TD_CMD: %d\n", rtY.cmdTouchDown);
+		#endif //******************************************************************* !LOGS_ENABLE	
 	
-	// Если команда на посадку не пришла, мы еще в полете, будем управлять
-	if(rtY.cmdTouchDown == 0)
-	{
-		// Управление БИМами по выходу модели
-		// Обе стропы отпустить
-		if(rtY.directionOfRotation == 0.0)
+		// Если команда на посадку не пришла, мы еще в полете, будем управлять
+		if(rtY.cmdTouchDown == 0)
 		{
-			M_Model_Cmd2BIM (rtY.tightenSling*rtY.directionOfRotation);
+			// Управление БИМами по выходу модели
+			// Обе стропы отпустить
+			if(rtY.directionOfRotation == 0.0)
+			{
+				M_Model_Cmd2BIM (rtY.tightenSling*rtY.directionOfRotation);
+			}
+			// Левая стропа
+			else if(rtY.directionOfRotation == -1.0)
+			{
+				M_Model_Cmd2BIM (rtY.tightenSling*rtY.directionOfRotation);
+			}
+			// Правая стропа
+			else if(rtY.directionOfRotation == 1.0)		
+			{
+				M_Model_Cmd2BIM (rtY.tightenSling*rtY.directionOfRotation);
+			}
 		}
-		// Левая стропа
-		else if(rtY.directionOfRotation == -1.0)
+		// Это команда на посадку 
+		else if (rtY.cmdTouchDown == 1)
 		{
-			M_Model_Cmd2BIM (rtY.tightenSling*rtY.directionOfRotation);
+			// Замок створки открыть
+			BLIND_CTRL_ON();
+			// Отключаем БИМы
+			BIM_Supply_OFF();
+			// Ждем 5 секунд
+			delay_us(5000000);
+			// Отключаем реле створки замка (нельзя удерживать дольше 10 секунд)
+			BLIND_CTRL_OFF();
+			// Повисаем в ожидании перезапуска
+			while(1);
 		}
-		// Правая стропа
-		else if(rtY.directionOfRotation == 1.0)		
+	
+		#ifdef DEBUG_VARS	//*************************************************************** Если активна отладка переменных 
+			// Заполняем структуру отладочной информации (для flightRegulatorCFB)
+			debug_vars.distanceAB              = (int16_t)(rtY.distanceAB);
+			debug_vars.orderAngle              = (uint8_t)(rtY.orderAngle);
+			debug_vars.diffAngle               = (int16_t)(rtY.diffAngle);
+			debug_vars.setAngle                = (int16_t)(rtY.setAngle);
+			debug_vars.stateTurn               = (uint8_t)(rtY.stateTurn);
+			debug_vars.stateAngleDoing         = (uint8_t)(rtY.stateAngleDoing);
+			debug_vars.stateAngleCorrection    = (uint8_t)(rtY.stateAngleCorrection);
+			debug_vars.changeControl           = (uint8_t)(rtY.changeControl);
+			debug_vars.doingManeuverMode       = (uint8_t)(rtY.doingManeuverMode);
+			debug_vars.angle                   = (int16_t)(rtU.angle);
+			debug_vars.directionOfRotation     = (double)(rtY.directionOfRotation);
+			debug_vars.TightenSlings           = (double)(rtY.tightenSling);
+			debug_vars.Lat1                    = (double)(rtY.lat1);
+			debug_vars.Lat2                    = (double)(rtY.lat2);
+			debug_vars.Lon1                    = (double)(rtY.lon1);
+			debug_vars.Lon2                    = (double)(rtY.lon2);
+			debug_vars.distanceB               = (double)(rtY.distanceB);
+			debug_vars.distance2               = (uint16_t)(rtY.distance2);
+			debug_vars.BIM_CMD                 = (int16_t)(rtY.tightenSling*rtY.directionOfRotation);
+		#endif //************************************************************************** !DEBUG_VARS
+	
+	#else //*************************************************************************** Если выбран Easy_reg
+
+		#ifdef LOGS_ENABLE  //******************************************************* Если включено логирование в черный ящик
+			printf("Model_BIM_CMD: %f\n", Easy_reg_Y.BIM_CMD);
+			printf("Model_TD_CMD: %d\n", (uint8_t)Easy_reg_Y.TD_CMD);
+		#endif //******************************************************************** !LOGS_ENABLE	
+		// Возможно пришла команда на посадку?
+		if (Easy_reg_Y.TD_CMD == 1)
 		{
-			M_Model_Cmd2BIM (rtY.tightenSling*rtY.directionOfRotation);
-		}
-	}
-	// Это команда на посадку 
-	else if (rtY.cmdTouchDown == 1)
-	{
-		// Замок створки открыть
-		BLIND_CTRL_ON();
-		// Отключаем БИМы
-		BIM_Supply_OFF();
-		// Ждем 5 секунд
-		delay_us(5000000);
-		// Отключаем реле створки замка (нельзя удерживать дольше 10 секунд)
-		BLIND_CTRL_OFF();
-		// Повисаем в ожидании перезапуска
-		while(1);
-	}
-	
-#ifdef DEBUG_VARS	//*************************************************************** Если активна отладка переменных 
-	// Заполняем структуру отладочной информации (для flightRegulatorCFB)
-  debug_vars.distanceAB              = (int16_t)(rtY.distanceAB);
-	debug_vars.orderAngle              = (uint8_t)(rtY.orderAngle);
-	debug_vars.diffAngle               = (int16_t)(rtY.diffAngle);
-	debug_vars.setAngle                = (int16_t)(rtY.setAngle);
-	debug_vars.stateTurn               = (uint8_t)(rtY.stateTurn);
-	debug_vars.stateAngleDoing         = (uint8_t)(rtY.stateAngleDoing);
-	debug_vars.stateAngleCorrection    = (uint8_t)(rtY.stateAngleCorrection);
-	debug_vars.changeControl           = (uint8_t)(rtY.changeControl);
-	debug_vars.doingManeuverMode       = (uint8_t)(rtY.doingManeuverMode);
-	debug_vars.angle                   = (int16_t)(rtU.angle);
-	debug_vars.directionOfRotation     = (double)(rtY.directionOfRotation);
-	debug_vars.TightenSlings           = (double)(rtY.tightenSling);
-  debug_vars.Lat1                    = (double)(rtY.lat1);
-	debug_vars.Lat2                    = (double)(rtY.lat2);
-	debug_vars.Lon1                    = (double)(rtY.lon1);
-	debug_vars.Lon2                    = (double)(rtY.lon2);
-	debug_vars.distanceB               = (double)(rtY.distanceB);
-	debug_vars.distance2               = (uint16_t)(rtY.distance2);
-	debug_vars.BIM_CMD                 = (int16_t)(rtY.tightenSling*rtY.directionOfRotation);
-#endif //************************************************************************** !DEBUG_VARS
-	
-#else //*************************************************************************** Если выбран Easy_reg
+			// Замок створки открыть
+			BLIND_CTRL_ON();
+			// Отключаем БИМы
+			BIM_Supply_OFF();
+			// Ждем 5 секунд
+			delay_us(5000000);
+			// Отключаем реле створки замка (нельзя удерживать дольше 10 секунд)
+			BLIND_CTRL_OFF();
+			// Повисаем в ожидании перезапуска
+			while(1);
+		}	
+		// Команды на посадку не было, поэтому будем управлять стропами
+		else if (Easy_reg_Y.TD_CMD == 0)
+			M_Model_Cmd2BIM (Easy_reg_Y.BIM_CMD);
 
-	#ifdef LOGS_ENABLE  //******************************************************* Если включено логирование в черный ящик
-		printf("Model_BIM_CMD: %f\n", Easy_reg_Y.BIM_CMD);
-		printf("Model_TD_CMD: %d\n", Easy_reg_Y.TD_CMD);
-	#endif //******************************************************************** !LOGS_ENABLE	
-	// Возможно пришла команда на посадку?
-  if (Easy_reg_Y.TD_CMD == 1)
-	{
-		// Замок створки открыть
-		BLIND_CTRL_ON();
-		// Отключаем БИМы
-		BIM_Supply_OFF();
-		// Ждем 5 секунд
-		delay_us(5000000);
-		// Отключаем реле створки замка (нельзя удерживать дольше 10 секунд)
-		BLIND_CTRL_OFF();
-		// Повисаем в ожидании перезапуска
-		while(1);
-	}	
-	// Команды на посадку не было, поэтому будем управлять стропами
-	else if (Easy_reg_Y.TD_CMD == 0)
-		M_Model_Cmd2BIM (Easy_reg_Y.BIM_CMD);
-
-#ifdef DEBUG_VARS	//*************************************************************** Если активна отладка переменных 
-	debug_vars.BIM_CMD = (int16_t)(Easy_reg_Y.BIM_CMD);
-#endif //************************************************************************** !DEBUG_VARS 
+		#ifdef DEBUG_VARS	//*************************************************************** Если активна отладка переменных 
+			debug_vars.BIM_CMD = (int16_t)(Easy_reg_Y.BIM_CMD);
+		#endif //************************************************************************** !DEBUG_VARS 
 	
-#endif //************************************************************************** !flightRegulatorCFB 
+	#endif //************************************************************************** !flightRegulatorCFB 
 
-#ifdef DEBUG_VARS	//*************************************************************** Если активна отладка переменных 
-	// Заполняем структуру отладочной информации (общесистемной)
-	debug_vars.TDP_Lat = GetTouchDownPointLat();
-	debug_vars.TDP_Lon = GetTouchDownPointLon();
-  // Отправляем отладочные данные в CAN
-	debug_can_full_struct();
-#endif //************************************************************************** !DEBUG_VARS 
-	
+	#ifdef DEBUG_VARS	//*************************************************************** Если активна отладка переменных 
+		// Заполняем структуру отладочной информации (общесистемной)
+		debug_vars.TDP_Lat = GetTouchDownPointLat();
+		debug_vars.TDP_Lon = GetTouchDownPointLon();
+		// Отправляем отладочные данные в CAN
+		debug_can_full_struct();
+	#endif //************************************************************************** !DEBUG_VARS 	
 }
 
 

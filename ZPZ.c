@@ -297,7 +297,7 @@ uint8_t ZPZ_Service (void)
 	crc = Crc16(&ZPZ_Base_Request.Buffer[0], 7, CRC16_INITIAL_FFFF);
 	
 	
-	// Далее программа ветвится в зависимсти от команды, информационная часть пакета будет 
+	// Далее программа ветвится в зависимости от команды, информационная часть пакета будет 
 	// обрабатываться разными подфункциями
 	// Сценарии работы при получении всех возможных команд
 	switch (ZPZ_Base_Request.Struct.Command)
@@ -1061,7 +1061,7 @@ void ZPZ_Response_LOG_FILES (uint16_t NumPacket)
 	}
 	
 	// После сверху посылаем контрольную сумму
-	for(i = 0; i < 2; i++)
+	for(i = 7; i < 9; i++)
 		UARTSendByte_by_SLIP (ZPZ_UART, 0xFFFF, ZPZ_BaseResponse.Buffer[i]);
 	// И в конце опять разделитель
 	SendFEND(ZPZ_UART, 0xFFF);
@@ -1263,7 +1263,7 @@ uint8_t ZPZ_Response_LOG_UPLOAD(uint16_t File_num, uint16_t NumPacket)
 	}
 		
 	// После сверху посылаем контрольную сумму
-	for(i = 0; i < 2; i++)
+	for(i = 7; i < 9; i++)
 		UARTSendByte_by_SLIP (ZPZ_UART, 0xFFFF, ZPZ_BaseResponse.Buffer[i]);
 	// И в конце опять разделитель
 	SendFEND(ZPZ_UART, 0xFFF);
