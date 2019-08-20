@@ -78,7 +78,8 @@
 #define BAUDRATE_ZPZ              115200                 // Бит/с - скорость обмена с ZPZ по UART
 #define ZPZ_IRQn									UART2_IRQn             // Идентификатор источника прерывания
 #define ZPZ_CAN                   MDR_CAN1               // Идентификатор CAN модуля, к которому ZPZ имеет доступ
-
+#define ZPZ_SEND_BYTE_TIMEOUT     0xFFF                  // Таймаут на отправку одного байта
+#define ZPZ_RECEIVE_BYTE_TIMEOUT  0xFFF                  // Таймаут на приём одного байта
 
 
 // Заголовки - идентификаторы пакетов
@@ -119,8 +120,22 @@ typedef enum {
 typedef enum {
 	SUCCES                     = 0x00,    // Ошибок нет												
 	FAIL                       = 0xFF,    // Сбой при обмене
+	WRONG_CRC                  = 0x33,    // Ошибка в контрольной сумме принятого пакета
+	WITHOUT_CLOSING_FEND       = 0x44,    // Входящий пакет не завершился FEND
 	FORMATING_LOG_FS_STARTED   = 0x00,    // Запущено форматирование "черного ящика"
-	FORMATING_LOG_FS_COMPLETED = 0xFF,    // Форматирование "черного ящика" завершено
+	FORMATING_LOG_FS_COMPLETED = 0x5F,    // Форматирование "черного ящика" завершено
+	LOG_FORMAT_SUBCMD_ERROR    = 0x4F,    // Подкоманда команды LOG_FORMAT не опознана 
+	LOG_FS_IS_CORRUPTED        = 0x3F,    // Файловая система поверждена, чтение данных невозможно
+	LOG_FS_FILE_NOT_FIND       = 0x2F,    // Запрашиваемый файл не найден
+	LOG_FS_PACKET_NOT_EXIST    = 0x1F,    // Запрашиваемый пакет из файла не существует
+  SWS_IS_UNAVAILABLE         = 0xAA,    // Не удаётся получить данные от СВС
+	SNS_IS_UNAVAILABLE         = 0xAA,    // Не удаётся получить данные от СНС
+	SNS_SETTINGS_WRONG_PAR     = 0xCC,    // В параметрах настройки СНС присутствуют ошибки
+	CAN_SENDING_TIMEOUT        = 0xBB,    // Таймаут при отправке в CAN
+	CAN_DISABLE_BY_PIN1        = 0xDD,    // CAN передатчик аппаратно отключен шпилькой 1
+	CAN_DISABLE_BY_RELAY       = 0xDC,    // CAN передатчик аппаратно отключен реле питания БИМ
+	BIM_CTRL_FAILED            = 0x11,    // Отправка команды БИМам не удалась
+	BIM_ID_NOT_EXIST           = 0x22,    // БИМ с таким ID не существует
 } ZPZ_Short_State;
 
 
@@ -216,16 +231,13 @@ typedef union {
 	Структура информационного кадра запроса на управление БИМами    *
 ******************************************************************/
 typedef __packed struct{
-	uint8_t     Error;             // Резерв        
 	uint8_t     Side;              // Какой из БИМОВ
-	uint8_t     Line;              // CAN линия
-	uint16_t    Err;               // Статус-флаги БИМ (см. протокол работы с БИМ)
+	uint16_t    StatusFlags;       // Статус-флаги БИМ (см. протокол работы с БИМ)
 	uint8_t     Position;          // Положение двигателя
 	uint8_t     Voltage;           // Напряжение двигателя
-	uint8_t     ElAngle;           // Электрический угол
-	uint8_t     Current;           // Ток двигателя
-  uint8_t     Speed;             // Скорость двигателя
-	}ZPZ_ResponseStatusBIM_Type;
+	int8_t      Current;           // Ток двигателя
+	int8_t      Speed;             // Скорость двигателя
+}ZPZ_ResponseStatusBIM_Type;
 
 typedef union {    
 	ZPZ_ResponseStatusBIM_Type   Struct;

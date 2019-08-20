@@ -7,27 +7,25 @@
  *
  * Code generated for Simulink model 'Easy_reg'.
  *
- * Model version                  : 1.28
+ * Model version                  : 1.30
  * Simulink Coder version         : 8.14 (R2018a) 06-Feb-2018
- * C/C++ source code generated on : Fri Aug 16 11:44:13 2019
+ * C/C++ source code generated on : Fri Aug 16 20:03:27 2019
  *
  * Target selection: ert.tlc
  * Embedded hardware selection: ARM Compatible->ARM Cortex
- * Code generation objectives: Unspecified
+ * Code generation objectives:
+ *    1. RAM efficiency
+ *    2. Execution efficiency
  * Validation result: Not run
  */
 
 #ifndef RTW_HEADER_Easy_reg_h_
 #define RTW_HEADER_Easy_reg_h_
 #include <math.h>
-#include <string.h>
-#include <stddef.h>
 #ifndef Easy_reg_COMMON_INCLUDES_
 # define Easy_reg_COMMON_INCLUDES_
 #include "rtwtypes.h"
 #endif                                 /* Easy_reg_COMMON_INCLUDES_ */
-
-#include "Easy_reg_types.h"
 
 /* Macros for accessing real-time model data structure */
 #ifndef rtmGetErrorStatus
@@ -38,16 +36,21 @@
 # define rtmSetErrorStatus(rtm, val)   ((rtm)->errorStatus = (val))
 #endif
 
-/* Block states (default storage) for system '<Root>' */
+/* Forward declaration for rtModel */
+typedef struct tag_RTM RT_MODEL;
+
+/* Block signals and states (default storage) for system '<S1>/Heading_true' */
 typedef struct {
+  real_T y;                            /* '<S1>/Heading_true' */
+} DW_Heading_true;
+
+/* Block signals and states (default storage) for system '<Root>' */
+typedef struct {
+  DW_Heading_true sf_Heading_true1;    /* '<S1>/Heading_true1' */
+  DW_Heading_true sf_Heading_true;     /* '<S1>/Heading_true' */
   real_T Memory_1_PreviousInput;       /* '<S1>/Memory' */
   real_T Memory_2_PreviousInput;       /* '<S1>/Memory' */
-} DW_Easy_reg_T;
-
-/* Invariant block signals (default storage) */
-typedef struct {
-  const real_T Gain5;                  /* '<S6>/Gain5' */
-} ConstB_Easy_reg_T;
+} DW;
 
 /* External inputs (root inport signals with default storage) */
 typedef struct {
@@ -58,36 +61,34 @@ typedef struct {
   real_T Pos_lat;                      /* '<Root>/Pos_lat' */
   real_T Pos_alt;                      /* '<Root>/Pos_alt' */
   real_T ActualCourse;                 /* '<Root>/ActualCourse' */
-} ExtU_Easy_reg_T;
+} ExtU;
 
 /* External outputs (root outports fed by signals with default storage) */
 typedef struct {
   real_T BIM_CMD;                      /* '<Root>/BIM_CMD' */
   real_T TD_CMD;                       /* '<Root>/TD_CMD' */
-} ExtY_Easy_reg_T;
+} ExtY;
 
 /* Real-time Model Data Structure */
-struct tag_RTM_Easy_reg_T {
+struct tag_RTM {
   const char_T * volatile errorStatus;
 };
 
-/* Block states (default storage) */
-extern DW_Easy_reg_T Easy_reg_DW;
+/* Block signals and states (default storage) */
+extern DW Easy_reg_DW;
 
 /* External inputs (root inport signals with default storage) */
-extern ExtU_Easy_reg_T Easy_reg_U;
+extern ExtU Easy_reg_U;
 
 /* External outputs (root outports fed by signals with default storage) */
-extern ExtY_Easy_reg_T Easy_reg_Y;
-extern const ConstB_Easy_reg_T Easy_reg_ConstB;/* constant block i/o */
+extern ExtY Easy_reg_Y;
 
 /* Model entry point functions */
 extern void Easy_reg_initialize(void);
 extern void Easy_reg_step(void);
-extern void Easy_reg_terminate(void);
 
 /* Real-time Model object */
-extern RT_MODEL_Easy_reg_T *const Easy_reg_M;
+extern RT_MODEL *const Easy_reg_M;
 
 /*-
  * These blocks were eliminated from the model due to optimizations:

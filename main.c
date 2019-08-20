@@ -29,6 +29,8 @@
 	char CHM = 0;
 	double iii = 0;
 	short pp = 0;
+	char p1;
+	char p2;
 
 
 int main(void)
@@ -57,6 +59,16 @@ int main(void)
 	// Запускаем диагностику системы
 	SelfTestingFull();
 
+
+////BIM_Supply_ON();
+//  while(1)
+//	{
+//	SelfTestingFull();
+//	SelfTestingOnline();
+//	}
+//	while(1){
+//	p1 = PIN2_DIR_CHECK;
+//p2 = PIN2_INV_CHECK;}
 //	BIM_Supply_ON();
 //	while(1)
 //	{
@@ -203,10 +215,13 @@ int main(void)
 		Timer_SetInterruptPeriod (MDR_TIMER2, 0.5*SECOND_TICKS);  // Сделать макросом?
 		// Для тестирования БИМов подадим на них питание
 		BIM_Supply_ON();
-		// И уходим на обслуживание режима ЗПЗ
+		// И уходим на обслуживание режима ЗПЗ,
 		while(!CONNECT_ZPZ_CHECK)
 		{
+			// Запускаем модуль обслуживания ЗПЗ
 			ZPZ_Service();
+			// Будем в свободное время будем заниматься самодиагностикой
+			// SelfTestingBreakingTest ();			
 		}
 	}
 	

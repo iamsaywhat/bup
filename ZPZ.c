@@ -12,7 +12,7 @@
 #include "SWS.h"
 #include "discrete_io.h"
 #include "otherlib.h"
-
+#include "SelfTesting.h"   
 
 
 // Определения и макросы для реализации SLIP протокола
@@ -62,7 +62,7 @@ void ZPZ_Response_LOG_FORMAT (uint16_t NumPacket, uint8_t Subcommand);
 uint16_t ZPZ_Request_LOG_FILES (uint16_t CRC);
 void ZPZ_Response_LOG_FILES (uint16_t NumPacket);
 /*--------------------------------------------------------------------------------------------Обслуживание команды LOG_UPLOAD----------*/
-uint16_t ZPZ_Request_LOG_UPLOAD(uint16_t* NUM, uint16_t CRC);
+uint16_t ZPZ_Request_LOG_UPLOAD(uint16_t CRC, uint16_t* NUM);
 uint8_t ZPZ_Response_LOG_UPLOAD(uint16_t File_num, uint16_t NumPacket);
 /*--------------------------------------------------------------------------------------------Обслуживание команды REQ_SWS-------------*/
 uint16_t ZPZ_Request_REQ_SWS (uint16_t CRC);
@@ -162,19 +162,19 @@ void ZPZ_ShortResponse(uint8_t Command, uint16_t Count, uint8_t Error)
 	// Если FIFO передатчика заполнен, то ждем пока освободится
 	while ((UART_GetFlagStatus (ZPZ_UART, UART_FLAG_TXFF) == SET) && (timeout != 0xFFF)){ timeout++;}
 	// Посылаем признак начала пакета
-	SendFEND(ZPZ_UART, 0xFFF);
+	SendFEND(ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT);
 	
 	// Теперь остальную часть пакета
 	for(i = 0; i < 10; i++)
 	{
-		UARTSendByte_by_SLIP (ZPZ_UART, 0xFFF, ZPZ_Response.Buffer[i]);
+		UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, ZPZ_Response.Buffer[i]);
 	}
 	// Ждем завершения передачи
 	while ((UART_GetFlagStatus (ZPZ_UART, UART_FLAG_TXFF) == SET) && (timeout != 0xFFF)) 
 		timeout++;
 	// Посылаем признак конца пакета
 	
-	SendFEND(ZPZ_UART, 0xFFF);
+	SendFEND(ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT);
 }
 
 
@@ -260,7 +260,7 @@ uint8_t ZPZ_Service (void)
 	ZPZ_BasePacket_Union          ZPZ_Base_Request;  // Сюда складывается приходящий запрос (кроме полей "данные")
 	ZPZ_RequestControlBIM_Union   BIM_Control;       // Структура для обслуживания команд BIM_CONTROL и BIM_STATUS
 	
-	uint32_t timeout;                 // Контроль превышения времени обработки
+	uint32_t timeout = 0;             // Контроль превышения времени обработки
 	uint16_t crc, i; 							    // Контрольная сумма и счетчик циклов
 	uint16_t Log_files = 0;				    // Номер запрашиваемого файла (обслуж. команды LOG_UPLOAD)
 	uint8_t  SNS_opt[3];					    // Буфер для обслуживания команды REQ_SNS_SETTINGS
@@ -269,21 +269,22 @@ uint8_t ZPZ_Service (void)
 		
 	
 	//Вычищаем FIFO от мусора и ждем пока не появится заголовок
-	while (UART_GetFlagStatus (ZPZ_UART, UART_FLAG_RXFE) != SET) UART_ReceiveData(ZPZ_UART);	
+	//while (UART_GetFlagStatus (ZPZ_UART, UART_FLAG_RXFE) != SET) UART_ReceiveData(ZPZ_UART);	
 	
-	// Ожидаем заголовок
-	while(timeout != 0xFFFF)
+	// Ожидаем заголовок. Пытаемся 30 раз словить начало пакета.
+	while(timeout !=  100)
 	{
+		timeout ++;
 		// Сначала ловим FEND по SLIP протоколу
-		if (UARTReceiveByte_by_SLIP(ZPZ_UART, 0xFFFF) != FEND) continue; 
+		if (UARTReceiveByte_by_SLIP(ZPZ_UART, ZPZ_RECEIVE_BYTE_TIMEOUT) != FEND) continue; 
 		// Если первый байт заголовка не совпал, дальше не ждем, переходим к следующей итерации
-		if (UARTReceiveByte_by_SLIP(ZPZ_UART, 0xFFFF) != HANDLER_P) continue; 
+		if (UARTReceiveByte_by_SLIP(ZPZ_UART, ZPZ_RECEIVE_BYTE_TIMEOUT) != HANDLER_P) continue; 
 		// Если второй символ тоже совпал, значит покидаем данный цикл и переходим к приёму остального пакета
-		if (UARTReceiveByte_by_SLIP(ZPZ_UART, 0xFFFF) == HANDLER_C) break;
+		if (UARTReceiveByte_by_SLIP(ZPZ_UART, ZPZ_RECEIVE_BYTE_TIMEOUT) == HANDLER_C) break;
 	}	
 	
 	// Если был таймаут, значит связи нет, можно отключиться
-	if(timeout == 0xFFFF) 
+	if(timeout == 100) 
 		return ZPZ_TIMEOUT;
 		
 	// Заголовок обнаружен, далее приём синхронен
@@ -291,7 +292,7 @@ uint8_t ZPZ_Service (void)
 	for(i = 2; i < 7; i++)
 	{
 		// Принимаем остальное
-		ZPZ_Base_Request.Buffer[i] = UARTReceiveByte_by_SLIP(ZPZ_UART, 0xFFFF);
+		ZPZ_Base_Request.Buffer[i] = UARTReceiveByte_by_SLIP(ZPZ_UART, ZPZ_RECEIVE_BYTE_TIMEOUT);
 	}
 	// Считаем контрольную сумму начала сообщения
 	crc = Crc16(&ZPZ_Base_Request.Buffer[0], 7, CRC16_INITIAL_FFFF);
@@ -339,7 +340,7 @@ uint8_t ZPZ_Service (void)
 		  break;
 			
 		case LOG_UPLOAD:
-			crc = ZPZ_Request_LOG_UPLOAD(&Log_files, crc);
+			crc = ZPZ_Request_LOG_UPLOAD(crc, &Log_files);
 			break;
 		
 		case REQ_SWS:
@@ -380,16 +381,22 @@ uint8_t ZPZ_Service (void)
 	// Принимаем контрольную сумму сообщения
 	for(i = 7; i < 9; i++)
 	{
-		ZPZ_Base_Request.Buffer[i] = UARTReceiveByte_by_SLIP(ZPZ_UART, 0xFFFF);
+		ZPZ_Base_Request.Buffer[i] = UARTReceiveByte_by_SLIP(ZPZ_UART, ZPZ_RECEIVE_BYTE_TIMEOUT);
 	}
-	// Сверяем контрольные суммы и проверяем, что пакет завершился признаком FEND
-	if(crc != ZPZ_Base_Request.Struct.CRC || UARTReceiveByte_by_SLIP(ZPZ_UART, 0xFFFF) != FEND)
+	// Сверяем контрольные суммы
+	if(crc != ZPZ_Base_Request.Struct.CRC)
 	{
 		//Если не сошлись - ошибка, отправляем ответ об ошибке
-		ZPZ_ShortResponse(ZPZ_Base_Request.Struct.Command, ZPZ_Base_Request.Struct.Count, FAIL);
+		ZPZ_ShortResponse(ZPZ_Base_Request.Struct.Command, ZPZ_Base_Request.Struct.Count, WRONG_CRC);
 		return ZPZ_WRONG_CRC;
 	}
-	
+	// Проверяем, что пакет завершился признаком FEND
+	if(crc != ZPZ_Base_Request.Struct.CRC || UARTReceiveByte_by_SLIP(ZPZ_UART, ZPZ_RECEIVE_BYTE_TIMEOUT) != FEND)
+	{
+		//Если не завершился FEND, отправляем отчет с ошибкой
+		ZPZ_ShortResponse(ZPZ_Base_Request.Struct.Command, ZPZ_Base_Request.Struct.Count, WITHOUT_CLOSING_FEND);
+		return ZPZ_WRONG_CRC;
+	}
 	
 	
 	
@@ -598,7 +605,7 @@ uint16_t ZPZ_RequestWithEmptyData(uint16_t CRC)
 	// Это простой запрос:
 	// Тут следует только один пустой байт (=0), перед CRC
   // Просто примем его прям тут и посчитаем CRC с его учетом
-	temp = UARTReceiveByte_by_SLIP(ZPZ_UART, 0xFFFF);
+	temp = UARTReceiveByte_by_SLIP(ZPZ_UART, ZPZ_RECEIVE_BYTE_TIMEOUT);
 	crc = Crc16(&temp, 1, CRC);
 	
 	return crc;
@@ -628,7 +635,7 @@ uint16_t ZPZ_Request_START_DOWNLOAD (uint16_t CRC)
 	uint8_t  buffer[PACKET0_DATASIZE];
 	
 	// Приём пустого байта перед информацией (фиктивное считывание)
-	temp = UARTReceiveByte_by_SLIP(ZPZ_UART, 0xFFFF);
+	temp = UARTReceiveByte_by_SLIP(ZPZ_UART, ZPZ_RECEIVE_BYTE_TIMEOUT);
 	// Сразу же подсчитаем изменения в контрольной сумме
 	crc = Crc16(&temp, 1, CRC);
 	
@@ -636,7 +643,7 @@ uint16_t ZPZ_Request_START_DOWNLOAD (uint16_t CRC)
 	for(i = 0; i < PACKET0_DATASIZE; i++)
 	{
 		// Принимаем байт информации
-		buffer[i] = UARTReceiveByte_by_SLIP(ZPZ_UART, 0xFFFF);
+		buffer[i] = UARTReceiveByte_by_SLIP(ZPZ_UART, ZPZ_RECEIVE_BYTE_TIMEOUT);
 		// Пересчитываем контрольную сумму
 		crc = Crc16(&buffer[i], 1, crc);
 	}
@@ -666,7 +673,7 @@ uint16_t ZPZ_Request_MAP_DOWNLOAD (uint16_t CRC, uint16_t NumPacket)
 	uint8_t  buff [4];
 	
 	// Ожидаем приёма пустого байта перед информацией
-	temp = UARTReceiveByte_by_SLIP(ZPZ_UART, 0xFFFF);
+	temp = UARTReceiveByte_by_SLIP(ZPZ_UART, ZPZ_RECEIVE_BYTE_TIMEOUT);
 	// Сразу же подсчитаем изменения в контрольной сумме
 	crc = Crc16(&temp, 1, CRC);
 	
@@ -676,7 +683,7 @@ uint16_t ZPZ_Request_MAP_DOWNLOAD (uint16_t CRC, uint16_t NumPacket)
 	for(i = 0; i < PACKETnMAP_DATASIZE; i++)
 	{
 		// Принимаем байт информации
-		temp = UARTReceiveByte_by_SLIP(ZPZ_UART, 0xFFFF);
+		temp = UARTReceiveByte_by_SLIP(ZPZ_UART, ZPZ_RECEIVE_BYTE_TIMEOUT);
 		// Записываем во внешнюю SPI память по байтово
 		ZPZ_WriteIntoCSnUnion(Address + i, &temp, 1);
 		// Пересчитываем контрольную сумму
@@ -710,34 +717,28 @@ uint16_t ZPZ_Request_START_UPLOAD (uint16_t CRC)
 
 void ZPZ_Response_START_UPLOAD (uint16_t NumPacket) 
 {
-	ZPZ_BasePacket_Union ZPZ_Base_Request;
-	uint32_t timeout;
-	uint16_t i;
-	uint8_t  temp = 0;
+	ZPZ_Response_Union   ZPZ_Response;     // Стандартный ответ к ЗПЗ           
+	uint16_t             i;                // Счетчик циклов
+	uint8_t              temp = 0;         // Временное хранилище читаемого из SPI Flash 
 	
 	// Заполняем структуру ответа и сразу начнем считать контрольную сумму
-	ZPZ_Base_Request.Struct.Handler     = HANDLER_BU;
-	ZPZ_Base_Request.Struct.PacketSize  = 0x003C; 
-	ZPZ_Base_Request.Struct.Command     = START_UPLOAD;
-	ZPZ_Base_Request.Struct.Count       = NumPacket;
-	ZPZ_Base_Request.Struct.CRC         = Crc16(&ZPZ_Base_Request.Buffer[0], 7, CRC16_INITIAL_FFFF);
-	
-	// Если FIFO занято - ждем освобождения
-	while ((UART_GetFlagStatus (ZPZ_UART, UART_FLAG_TXFF) == SET) && (timeout != 0xFFFF)) timeout++;
+	ZPZ_Response.Struct.Handler     = HANDLER_BU;           // Заголовок BU
+	ZPZ_Response.Struct.PacketSize  = 0x003C;               // Размер пакета 60 байт
+	ZPZ_Response.Struct.Command     = START_UPLOAD;         // Команда: Инициация выгрузки карты
+	ZPZ_Response.Struct.Count       = NumPacket;            // Номер пакета берем из запроса
+	ZPZ_Response.Struct.Error       = SUCCES;               // Статус выполнения: без ошибок
+	// Считаем контрольную сумму базовой части пакета
+	ZPZ_Response.Struct.CRC         = Crc16(&ZPZ_Response.Buffer[0], 8, CRC16_INITIAL_FFFF);
+		
 	// Посылаем признак начала пакета
-	SendFEND(ZPZ_UART, 0xFFF);
+	SendFEND(ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT);
 	
 	// Отправим базовую часть пакета
-	for(i = 0; i < 7; i++)
+	for(i = 0; i < 8; i++)
 	{
 		// Посылаем байт информации
-		UARTSendByte_by_SLIP (ZPZ_UART, 0xFFFF, ZPZ_Base_Request.Buffer[i]);
+		UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, ZPZ_Response.Buffer[i]);
 	}
-	
-	// Отправляем пустой байт (как в протоколе) и продолжаем считать контрольную сумму
-	temp = 0;
-	ZPZ_Base_Request.Struct.CRC = Crc16(&temp, 1, ZPZ_Base_Request.Struct.CRC);
-	UARTSendByte_by_SLIP (ZPZ_UART, 0xFFFF, temp);
 	
 	// Далее будем читать внешнюю SPI память побайтно и сразу отправлять
 	for(i = 0; i < PACKET0_DATASIZE; i++)
@@ -745,21 +746,20 @@ void ZPZ_Response_START_UPLOAD (uint16_t NumPacket)
 		// Читаем байт
 		ZPZ_ReadIntoCSnUnion(PACKET0_ADR+i, &temp, 1);
 		// Пересчитываем с его учетом контрольную сумму
-		ZPZ_Base_Request.Struct.CRC = Crc16(&temp, 1, ZPZ_Base_Request.Struct.CRC);
+		ZPZ_Response.Struct.CRC = Crc16(&temp, 1, ZPZ_Response.Struct.CRC);
 		// Отправляем считанный байт
-		UARTSendByte_by_SLIP (ZPZ_UART, 0xFFFF, temp);
+		UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, temp);
 	}
 	
 	// Отправим контрольную сумму
-	for(i = 7; i < 9; i++)
+	for(i = 8; i < 10; i++)
 	{
 		// Отправляем контрольную сумму
-		UARTSendByte_by_SLIP (ZPZ_UART, 0xFFFF, ZPZ_Base_Request.Buffer[i]);
+		UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, ZPZ_Response.Buffer[i]);
 	}
-	// Ждем завершения передачи
-	while ((UART_GetFlagStatus (ZPZ_UART, UART_FLAG_TXFF) == SET) && (timeout != 0xFFF)) timeout++;
+	
 	//В конце посылаем признак конца пакета
-	SendFEND(ZPZ_UART, 0xFFF);
+	SendFEND(ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT);
 }
 
 
@@ -772,35 +772,30 @@ uint16_t ZPZ_Request_MAP_UPLOAD (uint16_t CRC)
 
 void ZPZ_Response_MAP_UPLOAD (uint16_t NumPacket)
 {
-	ZPZ_BasePacket_Union ZPZ_Base_Request;
-
-	uint8_t  temp;
-	uint16_t i, timeout = 0;
-	uint32_t Address;
+	ZPZ_Response_Union      ZPZ_Response;       // Стандартный ответ к ЗПЗ
+	uint8_t                 temp;               // Временное хранилище читаемого из SPI Flash 
+	uint16_t                i;                  // Счетчик циклов
+	uint32_t                Address;            // Адрес чтения из SPI Flash
 	
 	// Заполняем структуру ответа и сразу начнем считать контрольную сумму
-	ZPZ_Base_Request.Struct.Handler     = HANDLER_BU;
-	ZPZ_Base_Request.Struct.PacketSize  = 0x0324;
-	ZPZ_Base_Request.Struct.Command     = MAP_UPLOAD;
-	ZPZ_Base_Request.Struct.Count       = NumPacket;
-	ZPZ_Base_Request.Struct.CRC         = Crc16(&ZPZ_Base_Request.Buffer[0], 7, CRC16_INITIAL_FFFF);
+	ZPZ_Response.Struct.Handler     = HANDLER_BU;       // Заголовок BU
+	ZPZ_Response.Struct.PacketSize  = 0x0324;           // Размер пакета 804 байта
+	ZPZ_Response.Struct.Command     = MAP_UPLOAD;       // Команда-запрос: Выгрузка карты
+	ZPZ_Response.Struct.Count       = NumPacket;        // Номер пакета повторяем из запроса
+	ZPZ_Response.Struct.Error       = SUCCES;           // Статус выполянения: без ошибок
 	
-		// Если FIFO занято - ждем освобождения
-	while ((UART_GetFlagStatus (ZPZ_UART, UART_FLAG_TXFF) == SET) && (timeout != 0xFFFF)) timeout++;
+	// Вычисляем контрольную сумму базовой части пакета
+	ZPZ_Response.Struct.CRC         = Crc16(&ZPZ_Response.Buffer[0], 8, CRC16_INITIAL_FFFF);
+		
 	// Посылаем признак начала пакета
-	SendFEND(ZPZ_UART, 0xFFF);
+	SendFEND(ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT);
 	
 	// Отправим базовую часть пакета
-	for(i = 0; i < 7; i++)
+	for(i = 0; i < 8; i++)
 	{
 		// Отправляем байт за байтом основной части пакета
-		UARTSendByte_by_SLIP (ZPZ_UART, 0xFFFF, ZPZ_Base_Request.Buffer[i]);
+		UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, ZPZ_Response.Buffer[i]);
 	}
-
-	// Отправляем пустой байт (как в протоколе) и продолжаем считать контрольную сумму
-	temp = 0;
-	ZPZ_Base_Request.Struct.CRC = Crc16(&temp, 1, ZPZ_Base_Request.Struct.CRC);
-	UARTSendByte_by_SLIP (ZPZ_UART, 0xFFFF, temp);
 
 	// Далее будем читать внешнюю SPI память побайтно и сразу отправлять
 	for(i = 0; i < PACKETnMAP_DATASIZE; i++)
@@ -810,22 +805,19 @@ void ZPZ_Response_MAP_UPLOAD (uint16_t NumPacket)
 		// Читаем байт
 		ZPZ_ReadIntoCSnUnion(Address + i, &temp, 1);
 		// Пересчитываем с его учетом контрольную сумму
-		ZPZ_Base_Request.Struct.CRC = Crc16(&temp, 1, ZPZ_Base_Request.Struct.CRC);
+		ZPZ_Response.Struct.CRC = Crc16(&temp, 1, ZPZ_Response.Struct.CRC);
 		// Отправляем считанное
-		UARTSendByte_by_SLIP (ZPZ_UART, 0xFFFF, temp);
+		UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, temp);
 	}
 	
 	// Отправим контрольную сумму
-	for(i = 7; i < 9; i++)
+	for(i = 8; i < 10; i++)
 	{
-		UARTSendByte_by_SLIP (ZPZ_UART, 0xFFFF, ZPZ_Base_Request.Buffer[i]);
+		UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, ZPZ_Response.Buffer[i]);
 	}
 	
-	// Ждем завершения передачи
-	while ((UART_GetFlagStatus (ZPZ_UART, UART_FLAG_TXFF) == SET) && (timeout != 0xFFF)) timeout++;
-	
 	//В конце посылаем признак конца пакета
-	SendFEND(ZPZ_UART, 0xFFF);
+	SendFEND(ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT);
 }
 
 
@@ -843,9 +835,9 @@ uint16_t ZPZ_Request_BIM_CONTROL (uint16_t CRC, ZPZ_RequestControlBIM_Union* BIM
   // Position 0…255 (0=0%, 255=100%) значение положения стропы		
 	
 	// Принимаем информационную часть
-	BIM_Data->Struct.Side = UARTReceiveByte_by_SLIP(ZPZ_UART,0xFFFF);
-	BIM_Data->Struct.State = UARTReceiveByte_by_SLIP(ZPZ_UART,0xFFFF);
-	BIM_Data->Struct.Position = UARTReceiveByte_by_SLIP(ZPZ_UART,0xFFFF);
+	BIM_Data->Struct.Side = UARTReceiveByte_by_SLIP(ZPZ_UART,ZPZ_RECEIVE_BYTE_TIMEOUT);
+	BIM_Data->Struct.State = UARTReceiveByte_by_SLIP(ZPZ_UART,ZPZ_RECEIVE_BYTE_TIMEOUT);
+	BIM_Data->Struct.Position = UARTReceiveByte_by_SLIP(ZPZ_UART,ZPZ_RECEIVE_BYTE_TIMEOUT);
 	
 	// Считаем контрольную сумму, используя контрольную сумму основной части пакета CRC 
 	crc = Crc16(&BIM_Data->Buffer[0], 3, CRC);
@@ -856,20 +848,47 @@ uint16_t ZPZ_Request_BIM_CONTROL (uint16_t CRC, ZPZ_RequestControlBIM_Union* BIM
 void ZPZ_Response_BIM_CONTROL (ZPZ_RequestControlBIM_Union* BIM_Data, uint16_t NumPacket)
 {
 	uint16_t BIM_Side;
+	uint8_t  status = 0;
 	
+	// Для отправки запроса БИМ необходимо, чтобы БИМ был запитан аппаратно 
+	// Если шпилька 1 вставлена
+	if (SelfTesting_PIN1() == ST_OK)
+	{
+		// Ответим, что аппаратно питания на CAN нет, значит дальше не идем
+		ZPZ_ShortResponse(BIM_CONTROL, NumPacket, CAN_DISABLE_BY_PIN1);
+		// И завершаемся с ошибкой
+		return;
+	}
+	// Если реле питания БИМ выкл
+	if (SelfTesting_POW_BIM() != ST_OK)
+	{
+		// Ответим, что аппаратно питания на CAN нет, значит дальше не идем
+		ZPZ_ShortResponse(BIM_CONTROL, NumPacket, CAN_DISABLE_BY_RELAY);
+		// И завершаемся с ошибкой
+		return;
+	}
+		
 	// Определяем правым или левым БИМом будем управлять
 	if (BIM_Data->Struct.Side == L_BIM) 
 		BIM_Side =  DEVICE_101;
 	else if (BIM_Data->Struct.Side == R_BIM) 
 		BIM_Side = DEVICE_100;
 	else 
-		BIM_Side = 0xFFFF;
+	{
+		// Такого ID не существует
+		ZPZ_ShortResponse(BIM_CONTROL, NumPacket, BIM_ID_NOT_EXIST);
+		// И завершаемся с ошибкой
+		return;
+	}
+	
 	// Отправляем запрос на управление с параметрами
-	BIM_SendRequest (BIM_Side, BIM_Data->Struct.State, BIM_Data->Struct.Position, 7, 255, 255);
-	// Получим ответ, чтобы убедиться, что все в порядке
-	BIM_ReceiveResponse (BIM_Side);
+	status = BIM_SendRequest (BIM_Side, BIM_Data->Struct.State, BIM_Data->Struct.Position, 7, 255, 255);
+	
 	// Теперь нужно ответить по ЗПЗ
-	ZPZ_ShortResponse(BIM_CONTROL, NumPacket, SUCCES);
+	if(status)
+		ZPZ_ShortResponse(BIM_CONTROL, NumPacket, SUCCES);
+	else 
+		ZPZ_ShortResponse(BIM_CONTROL, NumPacket, BIM_CTRL_FAILED);
 }
 
 
@@ -878,10 +897,14 @@ void ZPZ_Response_BIM_CONTROL (ZPZ_RequestControlBIM_Union* BIM_Data, uint16_t N
 uint16_t ZPZ_Request_BIM_STATUS (uint16_t CRC, ZPZ_RequestControlBIM_Union* BIMControl)	
 {
 	uint16_t crc = 0;
+	
+	// Данные поля просто устанавливаем в ноль, они не используются
+	BIMControl->Struct.State       = 0; 
+	BIMControl->Struct.Position    = 0;
+	
 	// Принимаем байт выбора БИМа
-	BIMControl->Struct.State = 0;
-	BIMControl->Struct.Position = 0;
-	BIMControl->Struct.Side = UARTReceiveByte_by_SLIP(ZPZ_UART, 0xFFFF);
+	BIMControl->Struct.Side        = UARTReceiveByte_by_SLIP(ZPZ_UART, ZPZ_RECEIVE_BYTE_TIMEOUT);
+	// Подсчитываем контрольную сумму с учетом принятого байта
 	crc = Crc16(&BIMControl->Struct.Side, 1, CRC);
 	
 	return crc;
@@ -889,9 +912,28 @@ uint16_t ZPZ_Request_BIM_STATUS (uint16_t CRC, ZPZ_RequestControlBIM_Union* BIMC
 
 void ZPZ_Response_BIM_STATUS(uint8_t Side, uint16_t NumPacket)
 {
-	ZPZ_ResponseStatusBIM_Union   ZPZ_BIM_Status;
-	ZPZ_BasePacket_Union          ZPZ_BaseResponse;
-	uint16_t BIM_Side, i;
+	ZPZ_ResponseStatusBIM_Union   ZPZ_BIM_Status;      // Структура с информацией от БИМ
+	ZPZ_Response_Union            ZPZ_Response;        // Стандартный ответ к ЗПЗ
+	uint16_t                      BIM_Side, i;         // Выбор левого, правого БИМ; счетчик циклов
+	uint8_t                       status = 0;          // Статус обмена с БИМ
+	
+	// Для отправки запроса БИМ необходимо, чтобы БИМ был запитан аппаратно 
+	// Если шпилька 1 вставлена
+	if (SelfTesting_PIN1() == ST_OK)
+	{
+		// Ответим, что аппаратно питания на CAN нет, значит дальше не идем
+		ZPZ_ShortResponse(BIM_STATUS, NumPacket, CAN_DISABLE_BY_PIN1);
+		// И завершаемся с ошибкой
+		return;
+	}
+	// Если реле питания БИМ выкл
+	if (SelfTesting_POW_BIM() != ST_OK)
+	{
+		// Ответим, что аппаратно питания на CAN нет, значит дальше не идем
+		ZPZ_ShortResponse(BIM_STATUS, NumPacket, CAN_DISABLE_BY_RELAY);
+		// И завершаемся с ошибкой
+		return;
+	}
 	
 	// Определяем правым или левым БИМом будем управлять
 	if (Side == L_BIM) 
@@ -900,46 +942,59 @@ void ZPZ_Response_BIM_STATUS(uint8_t Side, uint16_t NumPacket)
 		BIM_Side = DEVICE_100;
 	// Это случай ошибки, адрес выбран произвольно 
 	else 
-		BIM_Side = 0xFFFF;
+	{
+		// Такого ID не существует
+		ZPZ_ShortResponse(BIM_STATUS, NumPacket, BIM_ID_NOT_EXIST);
+		// И завершаемся с ошибкой
+		return;
+	}
 	
 	// Спросим состояние БИМов
-	BIM_ReceiveResponse (BIM_Side);
+	status = BIM_SendRequest(BIM_Side, BIM_CMD_REQ, 0, 0, 0, 0);
+	// Проверим состоялся ли обмен, и если нет, то ответим ошибкой
+	if(!status)
+	{	
+		ZPZ_ShortResponse(BIM_STATUS, NumPacket, BIM_CTRL_FAILED);
+		return;
+	}
 	
-	// Заполняем информационные поля 
-	ZPZ_BIM_Status.Struct.Current  = BIM_GetCurrent (BIM_Side);
-	ZPZ_BIM_Status.Struct.Voltage  = BIM_GetVoltage (BIM_Side);
-	ZPZ_BIM_Status.Struct.Speed    = BIM_GetSpeed (BIM_Side);
-	ZPZ_BIM_Status.Struct.Position = BIM_GetStrapPosition (BIM_Side);
-	ZPZ_BIM_Status.Struct.Err      = BIM_GetStatusFlags(BIM_Side);
-	ZPZ_BIM_Status.Struct.Line     = LINE_MAIN;
-	ZPZ_BIM_Status.Struct.Side     = BIM_Side;
-	ZPZ_BIM_Status.Struct.Error    = SUCCES;
-	ZPZ_BIM_Status.Struct.ElAngle  = 0;
+	// Заполняем информационные поля информацией от БИМ
+	ZPZ_BIM_Status.Struct.Side          = Side;
+	ZPZ_BIM_Status.Struct.StatusFlags   = BIM_GetStatusFlags(BIM_Side);
+	ZPZ_BIM_Status.Struct.Position      = BIM_GetStrapPosition (BIM_Side);
+	ZPZ_BIM_Status.Struct.Voltage       = BIM_GetVoltage (BIM_Side);
+	ZPZ_BIM_Status.Struct.Current       = BIM_GetCurrent (BIM_Side);
+	ZPZ_BIM_Status.Struct.Speed         = BIM_GetSpeed (BIM_Side);
+	
 	
 	// Заполняем структуру базовых полей всех пакетов
-	ZPZ_BaseResponse.Struct.Handler    = HANDLER_BU;
-	ZPZ_BaseResponse.Struct.PacketSize = 0x13;
-	ZPZ_BaseResponse.Struct.Command    = BIM_STATUS;
-	ZPZ_BaseResponse.Struct.Count      = NumPacket;
+	ZPZ_Response.Struct.Handler    = HANDLER_BU;        // Заголовок BU
+	ZPZ_Response.Struct.PacketSize = 11;                // Размер пакета 11 байт
+	ZPZ_Response.Struct.Command    = BIM_STATUS;        // Команда-запрос информации от БИМов
+	ZPZ_Response.Struct.Count      = NumPacket;         // Номер пакета повторяем из запроса
+	ZPZ_Response.Struct.Error      = SUCCES;            // Статус выполнения: без ошибок
 	
 	// Считаем контрольную сумму
-	ZPZ_BaseResponse.Struct.CRC = Crc16(&ZPZ_BaseResponse.Buffer[0], 7, CRC16_INITIAL_FFFF);
-	ZPZ_BaseResponse.Struct.CRC = Crc16(&ZPZ_BIM_Status.Buffer[0], 10, ZPZ_BaseResponse.Struct.CRC);
+	ZPZ_Response.Struct.CRC = Crc16(&ZPZ_Response.Buffer[0], 8, CRC16_INITIAL_FFFF);
+	ZPZ_Response.Struct.CRC = Crc16(&ZPZ_BIM_Status.Buffer[0], 7, ZPZ_Response.Struct.CRC);
 	
 	// Сначала отправляем признак-разделитель начала пакета
-	SendFEND(ZPZ_UART, 0xFFF);
-	// Отправляем первичную часть пакета
-	for(i = 0; i < 7; i++)
-		UARTSendByte_by_SLIP (ZPZ_UART, 0xFFFF, ZPZ_BaseResponse.Buffer[i]);
+	SendFEND(ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT);
+	
+	// Отправляем первичную часть пакета (первые 8 байт)
+	for(i = 0; i < 8; i++)
+		UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, ZPZ_Response.Buffer[i]);
+	
 	// Отправляем информационную часть пакета
 	for(i = 0; i < 10; i++)
-		UARTSendByte_by_SLIP (ZPZ_UART, 0xFFFF, ZPZ_BIM_Status.Buffer[i]);
+		UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, ZPZ_BIM_Status.Buffer[i]);
+	
 	// И в конце сверху посылаем контрольную сумму
-	for(i = 0; i < 2; i++)
-		UARTSendByte_by_SLIP (ZPZ_UART, 0xFFFF, ZPZ_BaseResponse.Buffer[i]);
+	for(i = 8; i < 10; i++)
+		UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, ZPZ_Response.Buffer[i]);
 	
 	// И в конце опять разделитель
-	SendFEND(ZPZ_UART, 0xFFF);
+	SendFEND(ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT);
 }
 
 
@@ -949,7 +1004,7 @@ uint16_t ZPZ_Request_LOG_FORMAT (uint16_t CRC, uint8_t* Subcommand)
 {
 	uint16_t crc;
 	// Принимаем байт подкоманды: Запуск форматирования или Статус форматирования
-	*Subcommand = UARTReceiveByte_by_SLIP(ZPZ_UART, 0xFFFF);
+	*Subcommand = UARTReceiveByte_by_SLIP(ZPZ_UART, ZPZ_RECEIVE_BYTE_TIMEOUT);
 	// Подсчитываем контрольную сумму
 	crc = Crc16(Subcommand, 1, CRC);
 	
@@ -958,15 +1013,51 @@ uint16_t ZPZ_Request_LOG_FORMAT (uint16_t CRC, uint8_t* Subcommand)
 
 void ZPZ_Response_LOG_FORMAT (uint16_t NumPacket, uint8_t Subcommand)
 {
+	ZPZ_Response_Union   ZPZ_Response;    // Стандартный ответ к ЗПЗ
+	uint8_t              temp;            // Дополнительный байт статуса
+	uint8_t              i;               // Счетчик циклов
+	
+	// Проверим верная ли пришла подкоманда:
+	if(Subcommand != 0x00 || Subcommand != 0x01)
+	{
+		// Такой подкоманды не реализовано, коротко отвечаем с соответствующим признаком
+		ZPZ_ShortResponse(LOG_FORMAT, NumPacket, LOG_FORMAT_SUBCMD_ERROR);
+		return;
+	}
+	
+	// Заполняем структуру ответа
+	ZPZ_Response.Struct.Handler    = HANDLER_BU;    // Заголовок BU
+	ZPZ_Response.Struct.PacketSize = 0x05;          // Размер пакета 5 байт
+	ZPZ_Response.Struct.Command    = LOG_FORMAT;    // Команда форматирования черного ящика
+	ZPZ_Response.Struct.Count      = NumPacket;     // Номер пакета берем из запроса
+	ZPZ_Response.Struct.Error      = SUCCES;        // Статус выполнения: Без ошибок
+		
+	// Подсчитываем контрольную сумму основной части пакета
+	ZPZ_Response.Struct.CRC = Crc16(&ZPZ_Response.Buffer[0], 8, CRC16_INITIAL_FFFF);
+	
+	// Сначала отправляем признак-разделитель начала пакета
+	SendFEND(ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT);
+	
+	// Отправляем первичную часть пакета - 8 байт
+	for(i = 0; i < 8; i++)
+		UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, ZPZ_Response.Buffer[i]);
+	
 	// Запрос на форматирование накопителя черного ящика
 	if(Subcommand == 0x01)
 	{
 		// Отвечаем, что приняли команду и переходим на её выполнение
-		ZPZ_ShortResponse(LOG_FORMAT, NumPacket, FORMATING_LOG_FS_STARTED);
+		temp = FORMATING_LOG_FS_STARTED;
+		ZPZ_Response.Struct.CRC = Crc16(&temp, 1, ZPZ_Response.Struct.CRC);
+		UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, temp);
+		
+		// После сверху посылаем контрольную сумму
+		for(i = 8; i < 10; i++)
+			UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, ZPZ_Response.Buffer[i]);
+		// И в конце опять разделитель
+		SendFEND(ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT);
+		
 		// Запускаем форматирование
 		LogFs_Formatting();
-		// И сообщаем о готовности
-		ZPZ_ShortResponse(LOG_FORMAT, NumPacket, FORMATING_LOG_FS_COMPLETED);
 		// После форматирование необходимо обновить информацию о файловой системе
 		LogFs_Info();
 	}
@@ -974,7 +1065,15 @@ void ZPZ_Response_LOG_FORMAT (uint16_t NumPacket, uint8_t Subcommand)
 	else if (Subcommand == 0x00)
 	{
 		// Отвечаем, что форматирование завершено или в данный момент не выполняется
-		ZPZ_ShortResponse(LOG_FORMAT, NumPacket, FORMATING_LOG_FS_COMPLETED);
+		temp = FORMATING_LOG_FS_COMPLETED;
+		ZPZ_Response.Struct.CRC = Crc16(&temp, 1, ZPZ_Response.Struct.CRC);
+		UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, temp);
+		
+		// После сверху посылаем контрольную сумму
+		for(i = 8; i < 10; i++)
+			UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, ZPZ_Response.Buffer[i]);
+		// И в конце опять разделитель
+		SendFEND(ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT);
 	}
 }
 
@@ -988,41 +1087,51 @@ uint16_t ZPZ_Request_LOG_FILES (uint16_t CRC)
 
 void ZPZ_Response_LOG_FILES (uint16_t NumPacket)
 {
-	ZPZ_BasePacket_Union  ZPZ_BaseResponse;
-	uint8_t  buffer[4];
-	uint16_t files = 0;
-	uint8_t  result = 0;
-	uint8_t  i, j;
+	ZPZ_Response_Union    ZPZ_Response;    // Стандартный ответ к ЗПЗ
+	uint8_t               buffer[4];       
+	uint16_t              files = 0;
+	uint8_t               result = 0;
+	uint8_t               i, j;
+	
+	// Проверим целлостность и разметку файловой системы
+	if(SelfTesting_LogFs() != ST_OK)
+	{
+		// Файловая система поверждена, чтение данных невозможно
+		ZPZ_ShortResponse(LOG_FILES, NumPacket, LOG_FS_IS_CORRUPTED);
+		return;
+	}
 	
 	// Заполняем структуру общей части всех пакетов
-	ZPZ_BaseResponse.Struct.Handler    = HANDLER_BU;
-	ZPZ_BaseResponse.Struct.Command    = LOG_FILES;
-	ZPZ_BaseResponse.Struct.Count      = NumPacket;
+	ZPZ_Response.Struct.Handler    = HANDLER_BU;     // Заголовок BU
+	ZPZ_Response.Struct.Command    = LOG_FILES;      // Команда: Запрос информации о содержимом
+	ZPZ_Response.Struct.Count      = NumPacket;      // Номер пакета берем из запроса
+	ZPZ_Response.Struct.Error      = SUCCES;         // Статус выполнения: Без ошибок
+		
 	// Минимально возможное число байт пакета: 
-	// Команда (1б) + Номер пакета (2б) + Кол-во файлов (2б)
+	// Команда (1б) + Номер пакета (2б) + Error (1б) + Кол-во файлов (2б) = 6 байт
 	// Остальное зависит от количества файлов в накопителе
-	ZPZ_BaseResponse.Struct.PacketSize = 5;
+	ZPZ_Response.Struct.PacketSize = 6;
 	// Тогда определим количество файлов и прибавим (для каждого файла отводится 6 байт сообщения)
 	files = LogFs_GetFileNum();
-	ZPZ_BaseResponse.Struct.PacketSize += 6*files;
+	ZPZ_Response.Struct.PacketSize += 6*files;
 	
-	// Теперь посчитаем контрольную сумму начала пакета (первые 7 байт)
-	ZPZ_BaseResponse.Struct.CRC = Crc16(&ZPZ_BaseResponse.Buffer[0], 7, CRC16_INITIAL_FFFF);
+	// Теперь посчитаем контрольную сумму начала пакета (первые 8 байт)
+	ZPZ_Response.Struct.CRC = Crc16(&ZPZ_Response.Buffer[0], 8, CRC16_INITIAL_FFFF);
 	
 	// Начнём отправлять сообщение
 	// Сначала отправляем признак-разделитель начала пакета
-	SendFEND(ZPZ_UART, 0xFFF);
-	// Теперь первые 7 байт 
-	for(i = 0; i < 7; i++)
-		UARTSendByte_by_SLIP (ZPZ_UART, 0xFFFF, ZPZ_BaseResponse.Buffer[i]);
+	SendFEND(ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT);
+	// Теперь первые 8 байт 
+	for(i = 0; i < 8; i++)
+		UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, ZPZ_Response.Buffer[i]);
 	
 	// Готовим к отправке число файлов (2 байта)
 	*(uint16_t*)buffer = (uint16_t)files;
 	// Подсчитываем контрольную сумму с учетом этого
-	ZPZ_BaseResponse.Struct.CRC = Crc16(buffer, 2, 	ZPZ_BaseResponse.Struct.CRC);
+	ZPZ_Response.Struct.CRC = Crc16(buffer, 2, 	ZPZ_Response.Struct.CRC);
 	// Отправляем эти два байта с числом файлов
 	for(i = 0; i < 2; i++)
-		UARTSendByte_by_SLIP (ZPZ_UART, 0xFFFF, buffer[i]);
+		UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, buffer[i]);
 	
 	
 	// Определение, упаковка, подсчет контрольной суммы и отправка остальной части пакета (номера файлов и размеры)
@@ -1040,18 +1149,18 @@ void ZPZ_Response_LOG_FILES (uint16_t NumPacket)
 		// Узнаем его номер файла и сразу упакуем в буфер для отправки
 		*(uint16_t*)buffer = Log_Fs_GetFileProperties (FILE_NUMBER);
 		// Подсчитываем контрольную сумму
-		ZPZ_BaseResponse.Struct.CRC = Crc16(buffer, 2, 	ZPZ_BaseResponse.Struct.CRC);
+		ZPZ_Response.Struct.CRC = Crc16(buffer, 2, 	ZPZ_Response.Struct.CRC);
 		// Отправляем эти 2 байта информации о номере файла
 		for(i = 0; i < 2; i++)
-			UARTSendByte_by_SLIP (ZPZ_UART, 0xFFFF, buffer[i]);
+			UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, buffer[i]);
 		
 		// Узнаем его размер и сразу упакуем в буфер для отправки
 		*((uint32_t*)buffer) = Log_Fs_GetFileProperties (FILE_SIZE);
 		// Подсчитываем контрольную сумму 
-		ZPZ_BaseResponse.Struct.CRC = Crc16(buffer, 4, 	ZPZ_BaseResponse.Struct.CRC);
+		ZPZ_Response.Struct.CRC = Crc16(buffer, 4, 	ZPZ_Response.Struct.CRC);
 		// Отправляем эти 4 байта информации о размере файла
 		for(i = 0; i < 4; i++)
-			UARTSendByte_by_SLIP (ZPZ_UART, 0xFFFF, buffer[i]);
+			UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, buffer[i]);
 		
 		// Дополнительная проверка по выходу из цикла
 		// Если все файлы были просмотрены, функция Log_Fs_FindFile() возвращает FS_ALL_FILES_SCROLLS
@@ -1061,26 +1170,26 @@ void ZPZ_Response_LOG_FILES (uint16_t NumPacket)
 	}
 	
 	// После сверху посылаем контрольную сумму
-	for(i = 7; i < 9; i++)
-		UARTSendByte_by_SLIP (ZPZ_UART, 0xFFFF, ZPZ_BaseResponse.Buffer[i]);
+	for(i = 8; i < 10; i++)
+		UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, ZPZ_Response.Buffer[i]);
 	// И в конце опять разделитель
-	SendFEND(ZPZ_UART, 0xFFF);
+	SendFEND(ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT);
 }
 
 
 
 //-----------------------------------------Обслуживание команды LOG_UPLOAD---------------------------------------------------------*/
-uint16_t ZPZ_Request_LOG_UPLOAD(uint16_t* NUM, uint16_t CRC)
+uint16_t ZPZ_Request_LOG_UPLOAD(uint16_t CRC, uint16_t* NUM)
 {
 	uint8_t temp = 0;
 	uint16_t crc = 0;
 	
 	// Допринимаем остальные два байта с номером файла
 	// который просят отправить
-	temp = UARTReceiveByte_by_SLIP(ZPZ_UART, 0xFFFF);
+	temp = UARTReceiveByte_by_SLIP(ZPZ_UART, ZPZ_RECEIVE_BYTE_TIMEOUT);
 	crc = Crc16(&temp, 1, CRC);
 	*NUM = temp;
-	temp = UARTReceiveByte_by_SLIP(ZPZ_UART, 0xFFFF);
+	temp = UARTReceiveByte_by_SLIP(ZPZ_UART, ZPZ_RECEIVE_BYTE_TIMEOUT);
 	crc = Crc16(&temp, 1, crc);
 	*NUM |= (uint8_t)(temp << 8);
 	
@@ -1089,7 +1198,7 @@ uint16_t ZPZ_Request_LOG_UPLOAD(uint16_t* NUM, uint16_t CRC)
 
 uint8_t ZPZ_Response_LOG_UPLOAD(uint16_t File_num, uint16_t NumPacket)
 {
-	ZPZ_BasePacket_Union  ZPZ_BaseResponse;
+	ZPZ_Response_Union    ZPZ_Response;    // Стандартный ответ к ЗПЗ
 	uint8_t  temp[2];
 	uint32_t filesize;
 	uint16_t packet_count = 0;
@@ -1099,8 +1208,8 @@ uint8_t ZPZ_Response_LOG_UPLOAD(uint16_t File_num, uint16_t NumPacket)
 	// Если функция не найдет файл, то выдаст ошибку, тогда можно не продолжать
 	if(Log_Fs_FindFile_ByNum(File_num)!= FS_FINE)
 	{
-		// Ответим ошибкой
-		ZPZ_ShortResponse(LOG_UPLOAD, 0, FAIL);
+		// Ответим ошибкой: Файл с таким номером не найден
+		ZPZ_ShortResponse(LOG_UPLOAD, 0, LOG_FS_FILE_NOT_FIND);
 		return 1;
 	}
 
@@ -1109,11 +1218,13 @@ uint8_t ZPZ_Response_LOG_UPLOAD(uint16_t File_num, uint16_t NumPacket)
 
 	
 	// Заполняем структуру общей части всех пакетов
-	ZPZ_BaseResponse.Struct.Handler    = HANDLER_BU;
-	ZPZ_BaseResponse.Struct.Command    = LOG_UPLOAD;
-	ZPZ_BaseResponse.Struct.Count      = NumPacket;
-	// Размер пакета всегда не меньше 5 байт (Код команды, Номер пакета, Номер файла)
-	ZPZ_BaseResponse.Struct.PacketSize = 5;
+	ZPZ_Response.Struct.Handler    = HANDLER_BU;       // Заголовок BU
+	ZPZ_Response.Struct.Command    = LOG_UPLOAD;       // Команда: выгрузка файла
+	ZPZ_Response.Struct.Count      = NumPacket;        // Номер пакета при разбиении файла
+	ZPZ_Response.Struct.Error      = SUCCES;           // Статус выполнения: Без ошибок
+	
+	// Размер пакета всегда не меньше 6 байт (Код команды, Номер пакета, Статус, Номер файла)
+	ZPZ_Response.Struct.PacketSize = 6;
 	
 	// Если номер пакета нулевой, то запрашивается количество пакетов, 
 	// на которые будет разбит файл с номером File_num
@@ -1124,31 +1235,31 @@ uint8_t ZPZ_Response_LOG_UPLOAD(uint16_t File_num, uint16_t NumPacket)
 		if (filesize % BYTE_FROM_FILE != 0)
 			packet_count++;
 		
-		ZPZ_BaseResponse.Struct.PacketSize += 2;
-		// Теперь посчитаем контрольную сумму начала пакета (первые 7 байт)
-	  ZPZ_BaseResponse.Struct.CRC = Crc16(&ZPZ_BaseResponse.Buffer[0], 7, CRC16_INITIAL_FFFF);
+		ZPZ_Response.Struct.PacketSize += 2;
+		// Теперь посчитаем контрольную сумму начала пакета (первые 8 байт)
+	  ZPZ_Response.Struct.CRC = Crc16(&ZPZ_Response.Buffer[0], 8, CRC16_INITIAL_FFFF);
 		// Начнём отправлять сообщение
 	  // Сначала отправляем признак-разделитель начала пакета
-	  SendFEND(ZPZ_UART, 0xFFF);
-	  // Теперь первые 7 байт 
-	  for(i = 0; i < 7; i++)
-			UARTSendByte_by_SLIP (ZPZ_UART, 0xFFFF, ZPZ_BaseResponse.Buffer[i]);
+	  SendFEND(ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT);
+	  // Теперь первые 8 байт 
+	  for(i = 0; i < 8; i++)
+			UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, ZPZ_Response.Buffer[i]);
 		
 		// Отправляем номер файла
 	  *(uint16_t*)temp = File_num;
 	  // Подсчитываем контрольную сумму с учетом этого
-	  ZPZ_BaseResponse.Struct.CRC = Crc16(temp, 2, 	ZPZ_BaseResponse.Struct.CRC);
+	  ZPZ_Response.Struct.CRC = Crc16(temp, 2, 	ZPZ_Response.Struct.CRC);
 	  // Отправляем номер файла
 	  for(i = 0; i < 2; i++)
-			UARTSendByte_by_SLIP (ZPZ_UART, 0xFFFF, temp[i]);
+			UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, temp[i]);
 		
 		// Отправляем количество пакетов файла
 	  *(uint16_t*)temp = packet_count;
 	  // Подсчитываем контрольную сумму с учетом этого
-	  ZPZ_BaseResponse.Struct.CRC = Crc16(temp, 2, 	ZPZ_BaseResponse.Struct.CRC);
+	  ZPZ_Response.Struct.CRC = Crc16(temp, 2, 	ZPZ_Response.Struct.CRC);
 	  // Отправляем номер файла
 	  for(i = 0; i < 2; i++)
-			UARTSendByte_by_SLIP (ZPZ_UART, 0xFFFF, temp[i]);			
+			UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, temp[i]);			
 	}
 	
 	// Если не нулевой номер пакета, то уже запращивается информация из файла
@@ -1166,7 +1277,7 @@ uint8_t ZPZ_Response_LOG_UPLOAD(uint16_t File_num, uint16_t NumPacket)
 		if(NumPacket > packet_count)
 		{
 			// Ответим ошибкой
-			ZPZ_ShortResponse(LOG_UPLOAD, NumPacket, FAIL);
+			ZPZ_ShortResponse(LOG_UPLOAD, NumPacket, LOG_FS_PACKET_NOT_EXIST);
 			return 1;
 		}
 		
@@ -1177,24 +1288,24 @@ uint8_t ZPZ_Response_LOG_UPLOAD(uint16_t File_num, uint16_t NumPacket)
 		if(packet_count - NumPacket == 0)
 		{
 			// Увеличиваем размер на оставшуюся часть файла
-			ZPZ_BaseResponse.Struct.PacketSize += filesize - (packet_count - 1) * BYTE_FROM_FILE;
+			ZPZ_Response.Struct.PacketSize += filesize - (packet_count - 1) * BYTE_FROM_FILE;
 			
 			// Теперь посчитаем контрольную сумму начала пакета (первые 7 байт)
-			ZPZ_BaseResponse.Struct.CRC = Crc16(&ZPZ_BaseResponse.Buffer[0], 7, CRC16_INITIAL_FFFF);
+			ZPZ_Response.Struct.CRC = Crc16(&ZPZ_Response.Buffer[0], 7, CRC16_INITIAL_FFFF);
 			// Начнём отправлять сообщение
 			// Сначала отправляем признак-разделитель начала пакета
-			SendFEND(ZPZ_UART, 0xFFF);
+			SendFEND(ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT);
 			// Теперь первые 7 байт 
 			for(i = 0; i < 7; i++)
-				UARTSendByte_by_SLIP (ZPZ_UART, 0xFFFF, ZPZ_BaseResponse.Buffer[i]);
+				UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, ZPZ_Response.Buffer[i]);
 			
 			// Отправляем номер файла
 			*(uint16_t*)temp = File_num;
 			// Подсчитываем контрольную сумму с учетом этого
-			ZPZ_BaseResponse.Struct.CRC = Crc16(temp, 2, 	ZPZ_BaseResponse.Struct.CRC);
+			ZPZ_Response.Struct.CRC = Crc16(temp, 2, 	ZPZ_Response.Struct.CRC);
 			// Отправляем номер файла
 			for(i = 0; i < 2; i++)
-				UARTSendByte_by_SLIP (ZPZ_UART, 0xFFFF, temp[i]);
+				UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, temp[i]);
 		
 			// Нужно совершить мнимое считывание от начала файла до нужной позиции, 
 			// чтобы сместить на неё указатель внутри функции чтения файла 
@@ -1211,33 +1322,33 @@ uint8_t ZPZ_Response_LOG_UPLOAD(uint16_t File_num, uint16_t NumPacket)
 				// Будем читать и отправлять побайтово, не забывая пересчитывать контрольную сумму
 				LogFs_ReadFile(&temp[0], 1);
 				// Сразу подсчитываем контрольную сумму
-			  ZPZ_BaseResponse.Struct.CRC = Crc16(&temp[0], 1, 	ZPZ_BaseResponse.Struct.CRC);
+			  ZPZ_Response.Struct.CRC = Crc16(&temp[0], 1, 	ZPZ_Response.Struct.CRC);
 			  // И сразу отправляем
-			  UARTSendByte_by_SLIP (ZPZ_UART, 0xFFFF, temp[0]);
+			  UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, temp[0]);
 			}
 		}
 		// Пакет не крайний 
 		else
 		{
 			// Увеличиваем размер на BYTE_FROM_FILE байт данных
-			ZPZ_BaseResponse.Struct.PacketSize += BYTE_FROM_FILE;
+			ZPZ_Response.Struct.PacketSize += BYTE_FROM_FILE;
 			
 			// Теперь посчитаем контрольную сумму начала пакета (первые 7 байт)
-			ZPZ_BaseResponse.Struct.CRC = Crc16(&ZPZ_BaseResponse.Buffer[0], 7, CRC16_INITIAL_FFFF);
+			ZPZ_Response.Struct.CRC = Crc16(&ZPZ_Response.Buffer[0], 7, CRC16_INITIAL_FFFF);
 			// Начнём отправлять сообщение
 			// Сначала отправляем признак-разделитель начала пакета
-			SendFEND(ZPZ_UART, 0xFFF);
+			SendFEND(ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT);
 			// Теперь первые 7 байт 
 			for(i = 0; i < 7; i++)
-				UARTSendByte_by_SLIP (ZPZ_UART, 0xFFFF, ZPZ_BaseResponse.Buffer[i]);
+				UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, ZPZ_Response.Buffer[i]);
 			
 			// Отправляем номер файла
 			*(uint16_t*)temp = File_num;
 			// Подсчитываем контрольную сумму с учетом этого
-			ZPZ_BaseResponse.Struct.CRC = Crc16(temp, 2, 	ZPZ_BaseResponse.Struct.CRC);
+			ZPZ_Response.Struct.CRC = Crc16(temp, 2, 	ZPZ_Response.Struct.CRC);
 			// Отправляем номер файла
 			for(i = 0; i < 2; i++)
-				UARTSendByte_by_SLIP (ZPZ_UART, 0xFFFF, temp[i]);
+				UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, temp[i]);
 			
 			// Далее займёмся отправкой данный пакета
 			
@@ -1255,18 +1366,18 @@ uint8_t ZPZ_Response_LOG_UPLOAD(uint16_t File_num, uint16_t NumPacket)
 				// Будем читать и отправлять побайтово, не забывая пересчитывать контрольную сумму
 				LogFs_ReadFile(&temp[0], 1);
 				// Сразу подсчитываем контрольную сумму
-			  ZPZ_BaseResponse.Struct.CRC = Crc16(&temp[0], 1, 	ZPZ_BaseResponse.Struct.CRC);
+			  ZPZ_Response.Struct.CRC = Crc16(&temp[0], 1, 	ZPZ_Response.Struct.CRC);
 			  // И сразу отправляем
-			  UARTSendByte_by_SLIP (ZPZ_UART, 0xFFFF, temp[0]);
+			  UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, temp[0]);
 			}
 		}
 	}
 		
 	// После сверху посылаем контрольную сумму
-	for(i = 7; i < 9; i++)
-		UARTSendByte_by_SLIP (ZPZ_UART, 0xFFFF, ZPZ_BaseResponse.Buffer[i]);
+	for(i = 8; i < 10; i++)
+		UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, ZPZ_Response.Buffer[i]);
 	// И в конце опять разделитель
-	SendFEND(ZPZ_UART, 0xFFF);
+	SendFEND(ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT);
 	
 	return 0;
 }
@@ -1281,72 +1392,67 @@ uint16_t ZPZ_Request_REQ_SWS (uint16_t CRC)
 
 uint8_t ZPZ_Response_REQ_SWS (uint16_t NumPacket)
 {
-	ZPZ_BasePacket_Union  ZPZ_BaseResponse;
-	SWS_Packet_Type_Union SWS_data;
-	uint32_t timeout = 0;
-	uint8_t  i;
+	ZPZ_Response_Union    ZPZ_Response;    // Стандартный ответ к ЗПЗ
+	SWS_Packet_Type_Union SWS_data;        // Структура ответа от СВС
+	uint32_t timeout = 0;                  // Таймаут счетчик
+	uint8_t  i;                            // Счетчик циклов
 
-	// Первым делом нужно получить данные с СВС
-	// Готовимся к работе с СВС
-	SWS_RetargetPins ();
-	SWS_init ();
 	// Принимаем данные. 
 	while(SWS_GetPacket (&SWS_data) && (timeout < 0xFFF)) timeout ++;
-	// Отключаемся от СВС и освобождаем UART
-	SWS_deinit ();
 	
 	// Проверим был ли это выход по таймауту
 	if(timeout == 0xFFF)
 	{
-		// Если да, то нужно ответить ошибкой
-		ZPZ_ShortResponse(REQ_SWS, 0, FAIL);
+		// Если да, то нужно ответить ошибкой, так как СВС недоступен
+		ZPZ_ShortResponse(REQ_SWS, 0, SWS_IS_UNAVAILABLE);
 		// И завершиться с ошибкой
 		return 1;
 	}
 	
 	// Если данные приняты верно, то надо продолжать
 	// Заполняем структуру общей части всех пакетов
-	ZPZ_BaseResponse.Struct.Handler    = HANDLER_BU;
-	ZPZ_BaseResponse.Struct.PacketSize = 27;
-	ZPZ_BaseResponse.Struct.Command    = REQ_SWS;
-	ZPZ_BaseResponse.Struct.Count      = NumPacket;
+	ZPZ_Response.Struct.Handler    = HANDLER_BU;      // Заголовок BU
+	ZPZ_Response.Struct.PacketSize = 28;              // Размер пакета 28 байт
+	ZPZ_Response.Struct.Command    = REQ_SWS;         // Команда-запрос данных от СВС
+	ZPZ_Response.Struct.Count      = NumPacket;       // Номер ответа берём из запроса
+	ZPZ_Response.Struct.Error      = SUCCES;          // Статус выполнения: без ошибок
 	
-  // Теперь посчитаем контрольную сумму начала пакета (первые 7 байт)
-	ZPZ_BaseResponse.Struct.CRC = Crc16(&ZPZ_BaseResponse.Buffer[0], 7, CRC16_INITIAL_FFFF);
+  // Теперь посчитаем контрольную сумму начала пакета (первые 8 байт)
+	ZPZ_Response.Struct.CRC = Crc16(&ZPZ_Response.Buffer[0], 8, CRC16_INITIAL_FFFF);
 	
 	// Начнём отправлять сообщение
 	// Сначала отправляем признак-разделитель начала пакета
-	SendFEND(ZPZ_UART, 0xFFF);
+	SendFEND(ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT);
 	// Теперь первые 7 байт 
-	for(i = 0; i < 7; i++)
-		UARTSendByte_by_SLIP (ZPZ_UART, 0xFFFF, ZPZ_BaseResponse.Buffer[i]);
+	for(i = 0; i < 8; i++)
+		UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, ZPZ_Response.Buffer[i]);
 	
 	// Теперь будем отправлять информацию от СВС
 	// Нас интересует данные начиная со статического давления, кроме резервных полей и CRC
-	// Начинаем отправлять с давления, поэтому с 8 до истинной скорости до 28 байты
-	for(i = 8; i < 27; i++)
+	// Начинаем отправлять с давления (8 байт), до истинной скорости (до 28 байта)
+	for(i = 8; i < 28; i++)
 	{
 		// Сразу подсчитываем контрольную сумму
-		ZPZ_BaseResponse.Struct.CRC = Crc16(&SWS_data.Buffer[i], 1, 	ZPZ_BaseResponse.Struct.CRC);
+		ZPZ_Response.Struct.CRC = Crc16(&SWS_data.Buffer[i], 1, ZPZ_Response.Struct.CRC);
 		// И отправляем по байтам
-		UARTSendByte_by_SLIP (ZPZ_UART, 0xFFFF, SWS_data.Buffer[i]);
+		UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, SWS_data.Buffer[i]);
 	}
 	
-	// Так же отправляем 4 байт состояния СВС (с 52 по 56 байт)
-	for(i = 52; i < 56; i++)
+	// Так же отправляем 4 байта состояния СВС (с 48 по 52 байт)
+	for(i = 48; i < 52; i++)
 	{
 		// Сразу подсчитываем контрольную сумму
-		ZPZ_BaseResponse.Struct.CRC = Crc16(&SWS_data.Buffer[i], 1, 	ZPZ_BaseResponse.Struct.CRC);
+		ZPZ_Response.Struct.CRC = Crc16(&SWS_data.Buffer[i], 1, ZPZ_Response.Struct.CRC);
 		// И отправляем по байтам
-		UARTSendByte_by_SLIP (ZPZ_UART, 0xFFFF, SWS_data.Buffer[i]);
+		UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, SWS_data.Buffer[i]);
 	}
 	
 	// После сверху посылаем контрольную сумму
-	for(i = 0; i < 2; i++)
-		UARTSendByte_by_SLIP (ZPZ_UART, 0xFFFF, ZPZ_BaseResponse.Buffer[i]);
+	for(i = 8; i < 10; i++)
+		UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, ZPZ_Response.Buffer[i]);
 	// И в конце опять разделитель
 	// Если FIFO передатчика заполнен, то ждем пока освободится
-	SendFEND(ZPZ_UART, 0xFFF);
+	SendFEND(ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT);
 	
 	return 0;
 }
@@ -1361,49 +1467,62 @@ uint16_t ZPZ_Request_REQ_SNS_POS (uint16_t CRC)
 
 uint8_t ZPZ_Response_REQ_SNS_POS (uint16_t NumPacket)
 {
-	ZPZ_BasePacket_Union                    ZPZ_BaseResponse;
-	SNS_Position_Data_Response_Union				SNS_Position_Data_Response;
-	SNS_Orientation_Data_Response_Union			SNS_Orientation_Data_Response;
-	uint32_t timeout = 0;
-	uint8_t  i;
+	ZPZ_Response_Union                      ZPZ_Response;                    // Стандартный ответ к ЗПЗ
+	SNS_Position_Data_Response_Union				SNS_Position_Data_Response;      // Данные местоположения от СНС
+	SNS_Orientation_Data_Response_Union			SNS_Orientation_Data_Response;   // Данные ориентации от СНС
+	uint32_t timeout = 0;                                                    // Таймаут-счетчик
+	uint8_t  i;                                                              // Счетчик циклов
 	
 
 	// Запрашиваем данные местоположения
-	while(SNS_GetPositionData(&SNS_Position_Data_Response) != SNS_OK && (timeout != 0xFFFF)) timeout ++;
-	// Запрашиваем данные ориентации
-	while(SNS_GetOrientationData(&SNS_Orientation_Data_Response)!= SNS_OK && (timeout != 0xFFFF)) timeout ++;
-
+	while(SNS_GetPositionData(&SNS_Position_Data_Response) != SNS_OK && (timeout != 30)) timeout ++;
 	// Проверим, вдруг выход был по таймауту, тогда нужно ответить ошибкой и завершиться
-	if (timeout == 0xFFFF)
+	if (timeout == 30)
 	{
-	  // Если да, то нужно ответить ошибкой
-		ZPZ_ShortResponse(REQ_SNS_POS, 0, FAIL);
+	  // Если да, то нужно ответить ошибкой: Не удаётся получить данные от СНС
+		ZPZ_ShortResponse(REQ_SNS_POS, NumPacket, SNS_IS_UNAVAILABLE);
 		// И завершиться с ошибкой
 		return 1;
 	}
+	
+	// Запрашиваем данные ориентации
+	timeout = 0;
+	while(SNS_GetOrientationData(&SNS_Orientation_Data_Response)!= SNS_OK && (timeout != 30)) timeout ++;
+	// Проверим, вдруг выход был по таймауту, тогда нужно ответить ошибкой и завершиться
+	if (timeout == 30)
+	{
+	  // Если да, то нужно ответить ошибкой: Не удаётся получить данные от СНС
+		ZPZ_ShortResponse(REQ_SNS_POS, NumPacket, SNS_IS_UNAVAILABLE);
+		// И завершиться с ошибкой
+		return 1;
+	}
+	
 	// Иначе продолжаем
 	// Заполняем структуру общей части всех пакетов
-	ZPZ_BaseResponse.Struct.Handler    = HANDLER_BU;
-	ZPZ_BaseResponse.Struct.PacketSize = 71;
-	ZPZ_BaseResponse.Struct.Command    = REQ_SNS_POS;
-	ZPZ_BaseResponse.Struct.Count      = NumPacket;	
-	// Теперь посчитаем контрольную сумму начала пакета (первые 7 байт)
-	ZPZ_BaseResponse.Struct.CRC = Crc16(&ZPZ_BaseResponse.Buffer[0], 7, CRC16_INITIAL_FFFF);
+	ZPZ_Response.Struct.Handler    = HANDLER_BU;          // Заголовок BU
+	ZPZ_Response.Struct.PacketSize = 72;                  // Размер пакета 72 байта
+	ZPZ_Response.Struct.Command    = REQ_SNS_POS;         // Команда-запрос информации об местоположении от СНС
+	ZPZ_Response.Struct.Count      = NumPacket;	          // Повторяем номер из запроса
+	ZPZ_Response.Struct.Error      = SUCCES;              // Статус выполнения: без ошибок
+	
+	// Теперь посчитаем контрольную сумму начала пакета (первые 8 байт)
+	ZPZ_Response.Struct.CRC = Crc16(&ZPZ_Response.Buffer[0], 8, CRC16_INITIAL_FFFF);
+	
 	// Начнём отправлять сообщение
 	// Сначала отправляем признак-разделитель начала пакета
-	SendFEND(ZPZ_UART, 0xFFF);
-	// Теперь первые 7 байт 
-	for(i = 0; i < 7; i++)
-		UARTSendByte_by_SLIP (ZPZ_UART, 0xFFFF, ZPZ_BaseResponse.Buffer[i]);
+	SendFEND(ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT);
+	// Теперь первые 8 байт 
+	for(i = 0; i < 8; i++)
+		UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, ZPZ_Response.Buffer[i]);
 	
 	// Высылаем данные местоположения
 	// Из полученного пакета с местоположением от СНС выкидываем CRC, тип ответа и счетчик в начале, поэтому i = 4
 	for (i = 4; i < SizeAnsPDR; i++)
 	{
 		// Побайтово досчитываем контрольную сумму
-		ZPZ_BaseResponse.Struct.CRC = Crc16(&SNS_Position_Data_Response.Buffer[i], 1, ZPZ_BaseResponse.Struct.CRC);
-		// и отправляем
-		UARTSendByte_by_SLIP (ZPZ_UART, 0xFFFF,	SNS_Position_Data_Response.Buffer[i]);
+		ZPZ_Response.Struct.CRC = Crc16(&SNS_Position_Data_Response.Buffer[i], 1, ZPZ_Response.Struct.CRC);
+		// И отправляем
+		UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT,	SNS_Position_Data_Response.Buffer[i]);
 	}
 	
 	// Высылаем данные ориентации
@@ -1411,16 +1530,16 @@ uint8_t ZPZ_Response_REQ_SNS_POS (uint16_t NumPacket)
 	for (i = 4; i < SizeAnsODR; i++)
 	{
 		// Побайтово досчитываем контрольную сумму
-		ZPZ_BaseResponse.Struct.CRC = Crc16(&SNS_Orientation_Data_Response.Buffer[i], 1, ZPZ_BaseResponse.Struct.CRC);
-		// и отправляем
-		UARTSendByte_by_SLIP (ZPZ_UART, 0xFFFF,	SNS_Orientation_Data_Response.Buffer[i]);
+		ZPZ_Response.Struct.CRC = Crc16(&SNS_Orientation_Data_Response.Buffer[i], 1, ZPZ_Response.Struct.CRC);
+		// И отправляем
+		UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT,	SNS_Orientation_Data_Response.Buffer[i]);
 	}
 	
 	// После сверху посылаем контрольную сумму
-	for(i = 0; i < 2; i++)
-		UARTSendByte_by_SLIP (ZPZ_UART, 0xFFFF, ZPZ_BaseResponse.Buffer[i]);
+	for(i = 8; i < 10; i++)
+		UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, ZPZ_Response.Buffer[i]);
 	// И в конце опять разделитель
-	SendFEND(ZPZ_UART, 0xFFF);
+	SendFEND(ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT);
 	
 	return 0;
 }
@@ -1435,40 +1554,52 @@ uint16_t ZPZ_Request_REQ_SNS_STATE (uint16_t CRC)
 
 uint8_t ZPZ_Response_REQ_SNS_STATE (uint16_t NumPacket)
 {
-	ZPZ_BasePacket_Union                   ZPZ_BaseResponse;
-	SNS_Device_Information_Response_Union  SNS_DevInfo;
-	SNS_Available_Data_Response_Union      SNS_AvailableData;
-	uint32_t timeout = 0;
-	uint8_t  i;
+	ZPZ_Response_Union                     ZPZ_Response;          // Стандартный ответ к ЗПЗ
+	SNS_Device_Information_Response_Union  SNS_DevInfo;           // Информация о СНС
+	SNS_Available_Data_Response_Union      SNS_AvailableData;     // Доступные данные 
+	uint32_t timeout = 0;                                         // Таймаут-счетчик
+	uint8_t  i;                                                   // Счетчик циклов
 	
 	// Получим данные об устройстве
-  while(SNS_GetDeviceInformation(&SNS_DevInfo) != SNS_OK && (timeout != 0xFFFF)) timeout ++;
-	// Получим информацию о доступных данных 
-  while(SNS_GetDataState(&SNS_AvailableData) != SNS_OK && (timeout != 0xFFFF)) timeout ++;
-
+  while(SNS_GetDeviceInformation(&SNS_DevInfo) != SNS_OK && (timeout != 30)) timeout ++;
 	// Проверим, вдруг выход был по таймауту, тогда нужно ответить ошибкой и завершиться
-	if (timeout == 0xFFFF)
+	if (timeout == 30)
 	{
 	  // Если да, то нужно ответить ошибкой
-		ZPZ_ShortResponse(REQ_SNS_STATE, 0, FAIL);
+		ZPZ_ShortResponse(REQ_SNS_STATE, NumPacket, SNS_IS_UNAVAILABLE);
+		// И завершиться с ошибкой
+		return 1;
+	}
+	
+	// Получим информацию о доступных данных 
+  timeout = 0;
+	while(SNS_GetDataState(&SNS_AvailableData) != SNS_OK && (timeout != 30)) timeout ++;
+	// Проверим, вдруг выход был по таймауту, тогда нужно ответить ошибкой и завершиться
+	if (timeout == 30)
+	{
+	  // Если да, то нужно ответить ошибкой
+		ZPZ_ShortResponse(REQ_SNS_STATE, NumPacket, SNS_IS_UNAVAILABLE);
 		// И завершиться с ошибкой
 		return 1;
 	}
 	
 	// Иначе продолжаем
 	// Заполняем структуру общей части всех пакетов
-	ZPZ_BaseResponse.Struct.Handler    = HANDLER_BU;
-	ZPZ_BaseResponse.Struct.PacketSize = 22;
-	ZPZ_BaseResponse.Struct.Command    = REQ_SNS_STATE;
-	ZPZ_BaseResponse.Struct.Count      = NumPacket;	
-	// Теперь посчитаем контрольную сумму начала пакета (первые 7 байт)
-	ZPZ_BaseResponse.Struct.CRC = Crc16(&ZPZ_BaseResponse.Buffer[0], 7, CRC16_INITIAL_FFFF);
+	ZPZ_Response.Struct.Handler    = HANDLER_BU;         // Заголовок BU
+	ZPZ_Response.Struct.PacketSize = 23;                 // Размер пакета 23 байта
+	ZPZ_Response.Struct.Command    = REQ_SNS_STATE;      // Команда-запрос состояния СНС
+	ZPZ_Response.Struct.Count      = NumPacket;	         // Повторяем номер как в запросе
+	ZPZ_Response.Struct.Error      = SUCCES;             // Статус выполнения команда: без ошибок
+	
+	// Теперь посчитаем контрольную сумму начала пакета (первые 8 байт)
+	ZPZ_Response.Struct.CRC = Crc16(&ZPZ_Response.Buffer[0], 8, CRC16_INITIAL_FFFF);
+	
 	// Начнём отправлять сообщение
 	// Сначала отправляем признак-разделитель начала пакета
-	SendFEND(ZPZ_UART, 0xFFF);
-	// Теперь первые 7 байт 
-	for(i = 0; i < 7; i++)
-		UARTSendByte_by_SLIP (ZPZ_UART, 0xFFFF, ZPZ_BaseResponse.Buffer[i]);
+	SendFEND(ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT);
+	// Теперь первые 8 байт 
+	for(i = 0; i < 8; i++)
+		UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, ZPZ_Response.Buffer[i]);
 	
 	
 	// Высылаем данные об устройстве
@@ -1476,23 +1607,23 @@ uint8_t ZPZ_Response_REQ_SNS_STATE (uint16_t NumPacket)
 	for (i = 4; i < SizeAnsDIR; i++)
 	{
 		// Побайтово досчитываем контрольную сумму
-		ZPZ_BaseResponse.Struct.CRC = Crc16(&SNS_DevInfo.Buffer[i], 1, ZPZ_BaseResponse.Struct.CRC);
-		// и отправляем
-		UARTSendByte_by_SLIP (ZPZ_UART, 0xFFFF,	SNS_DevInfo.Buffer[i]);
+		ZPZ_Response.Struct.CRC = Crc16(&SNS_DevInfo.Buffer[i], 1, ZPZ_Response.Struct.CRC);
+		// И отправляем
+		UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT,	SNS_DevInfo.Buffer[i]);
 	}
 
 	// Высылаем инфу о доступных данных
 	// из полученного пакета с доступными данными от СНС необходимо только поле Data_State
 	// Побайтово досчитываем контрольную сумму
-	ZPZ_BaseResponse.Struct.CRC = Crc16(&SNS_AvailableData.Struct.Data_State, 1, ZPZ_BaseResponse.Struct.CRC);
-	// и отправляем
-	UARTSendByte_by_SLIP (ZPZ_UART, 0xFFFF,	SNS_AvailableData.Struct.Data_State);
+	ZPZ_Response.Struct.CRC = Crc16(&SNS_AvailableData.Struct.Data_State, 1, ZPZ_Response.Struct.CRC);
+	// И отправляем
+	UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT,	SNS_AvailableData.Struct.Data_State);
 	
 	// После сверху посылаем контрольную сумму
-	for(i = 0; i < 2; i++)
-		UARTSendByte_by_SLIP (ZPZ_UART, 0xFFFF, ZPZ_BaseResponse.Buffer[i]);
+	for(i = 8; i < 10; i++)
+		UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, ZPZ_Response.Buffer[i]);
 	// И в конце опять разделитель
-	SendFEND(ZPZ_UART, 0xFFF);
+	SendFEND(ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT);
 	
 	return 0;	
 }
@@ -1503,20 +1634,22 @@ uint8_t ZPZ_Response_REQ_SNS_STATE (uint16_t NumPacket)
 uint16_t ZPZ_Request_REQ_SNS_SETTINGS(uint16_t CRC, uint8_t* buffer)
 {
 	uint8_t i;
+	uint16_t crc = 0;
+	
 	for(i = 0; i < 3; i++)
 	{
-		buffer[i] = UARTReceiveByte_by_SLIP(ZPZ_UART, 0xFFFF);
+		buffer[i] = UARTReceiveByte_by_SLIP(ZPZ_UART, ZPZ_RECEIVE_BYTE_TIMEOUT);
 	}
-	CRC = Crc16(buffer, 3, CRC);
+	crc = Crc16(buffer, 3, CRC);
 
-	return CRC;
+	return crc;
 }
 
 // Реагируем на запрос на изменение настроек СНС
 uint8_t ZPZ_Response_REQ_SNS_SETTINGS (uint8_t* params, uint16_t NumPacket)
 {
-	ZPZ_BasePacket_Union     ZPZ_BaseResponse;
-	uint8_t  i;
+	ZPZ_Response_Union   ZPZ_Response;          // Стандартный ответ к ЗПЗ
+	uint8_t  i;                                 // Счетчик циклов
 		
 	// Анализируем пришедшую команду и выполняем действия
 	
@@ -1528,6 +1661,15 @@ uint8_t ZPZ_Response_REQ_SNS_SETTINGS (uint8_t* params, uint16_t NumPacket)
 	else if (params[0] == 0x02) 
 		SNS_DisableHorizontalCorrection();
 	
+	// Параметр не опознан
+	else 
+	{
+		// Ответим, что ошибка в параметрах команды
+		ZPZ_ShortResponse(REQ_SNS_STATE, NumPacket, SNS_SETTINGS_WRONG_PAR);
+		// И завершаемся с ошибкой
+		return 1;
+	}
+		
 	// Команда начала калибровки гироскопа
 	if(params[1]== 0x01) 
 		SNS_StartGyroCalibration();
@@ -1535,6 +1677,15 @@ uint8_t ZPZ_Response_REQ_SNS_SETTINGS (uint8_t* params, uint16_t NumPacket)
 	// Команда сброса калибровки гироскопа
 	else if (params[1] == 0x02)
 		SNS_ResetGyroCalibration();
+	
+	// Параметр не опознан
+	else
+	{
+		// Ответим, что ошибка в параметрах команды
+		ZPZ_ShortResponse(REQ_SNS_STATE, NumPacket, SNS_SETTINGS_WRONG_PAR);
+		// И завершаемся с ошибкой
+		return 1;
+	}
 	
 	// Команда начала калибровки магнитометра
 	if(params[2]== 0x01)
@@ -1544,36 +1695,48 @@ uint8_t ZPZ_Response_REQ_SNS_SETTINGS (uint8_t* params, uint16_t NumPacket)
 	else if (params[2] == 0x02)
 		SNS_ResetMagnetometerCalibration();
 
+	// Параметр не опознан
+	else
+	{
+		// Ответим, что ошибка в параметрах команды
+		ZPZ_ShortResponse(REQ_SNS_STATE, NumPacket, SNS_SETTINGS_WRONG_PAR);
+		// И завершаемся с ошибкой
+		return 1;
+	}
+	
 	
 	// Теперь нужно ответить 
-	// Заполняем структуру общей части всех пакетов
-	ZPZ_BaseResponse.Struct.Handler    = HANDLER_BU;
-	ZPZ_BaseResponse.Struct.PacketSize = 6;
-	ZPZ_BaseResponse.Struct.Command    = REQ_SNS_SETTINGS;
-	ZPZ_BaseResponse.Struct.Count      = NumPacket;	
-	// Теперь посчитаем контрольную сумму начала пакета (первые 7 байт)
-	ZPZ_BaseResponse.Struct.CRC = Crc16(&ZPZ_BaseResponse.Buffer[0], 7, CRC16_INITIAL_FFFF);
+	// Заполняем структуру общей части всех пакетов 
+	ZPZ_Response.Struct.Handler    = HANDLER_BU;          // Заголовок BU
+	ZPZ_Response.Struct.PacketSize = 7;                   // Размер пакета 7 байт
+	ZPZ_Response.Struct.Command    = REQ_SNS_SETTINGS;    // Команда-запрос Настройки СНС
+	ZPZ_Response.Struct.Count      = NumPacket;	          // Номер пакета повторяем из запроса
+	ZPZ_Response.Struct.Error      = SUCCES;              // Статус выполнения: без ошибок
+	
+
+	// Теперь посчитаем контрольную сумму начала пакета (первые 8 байт)
+	ZPZ_Response.Struct.CRC = Crc16(&ZPZ_Response.Buffer[0], 8, CRC16_INITIAL_FFFF);
 	// Начнём отправлять сообщение
 	// Сначала отправляем признак-разделитель начала пакета
-	SendFEND(ZPZ_UART, 0xFFF);
-	// Теперь первые 7 байт 
-	for(i = 0; i < 7; i++)
-		UARTSendByte_by_SLIP (ZPZ_UART, 0xFFFF, ZPZ_BaseResponse.Buffer[i]);
+	SendFEND(ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT);
+	// Теперь первые 8 байт 
+	for(i = 0; i < 8; i++)
+		UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, ZPZ_Response.Buffer[i]);
 	
 	// В ответе нужно продублировать (повторить) настройки (3 байта)
 	for (i = 0; i < 3; i++)
 	{
 		// Побайтово досчитываем контрольную сумму
-		ZPZ_BaseResponse.Struct.CRC = Crc16(params, 3, ZPZ_BaseResponse.Struct.CRC);
-		// и отправляем
-		UARTSendByte_by_SLIP (ZPZ_UART, 0xFFFF,	params[i]);
+		ZPZ_Response.Struct.CRC = Crc16(params, 3, ZPZ_Response.Struct.CRC);
+		// И отправляем
+		UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT,	params[i]);
 	}
 	
 	// После сверху посылаем контрольную сумму
-	for(i = 0; i < 2; i++)
-		UARTSendByte_by_SLIP (ZPZ_UART, 0xFFFF, ZPZ_BaseResponse.Buffer[i]);
+	for(i = 8; i < 10; i++)
+		UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, ZPZ_Response.Buffer[i]);
 	// И в конце опять разделитель
-	SendFEND(ZPZ_UART, 0xFFF);
+	SendFEND(ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT);
 	
 	return 0;	
 }
@@ -1610,22 +1773,22 @@ void ZPZ_Response_PIN_STATE (uint16_t NumPacket)
 	ZPZ_BaseResponse.Struct.CRC = Crc16(&ZPZ_BaseResponse.Buffer[0], 7, CRC16_INITIAL_FFFF);
 	// Начнём отправлять сообщение
 	// Сначала отправляем признак-разделитель начала пакета
-	SendFEND(ZPZ_UART, 0xFFF);
+	SendFEND(ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT);
 	// Теперь первые 7 байт 
 	for(i = 0; i < 7; i++)
-		UARTSendByte_by_SLIP (ZPZ_UART, 0xFFFF, ZPZ_BaseResponse.Buffer[i]);
+		UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, ZPZ_BaseResponse.Buffer[i]);
 	
 	// Досчитаем контрольную сумму с учётом buff
 	ZPZ_BaseResponse.Struct.CRC = Crc16(buff, 3, ZPZ_BaseResponse.Struct.CRC);
 	// Отправляем содержимое buff
 	for(i = 0; i < 3; i++)
-		UARTSendByte_by_SLIP (ZPZ_UART, 0xFFFF, buff[i]);
+		UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, buff[i]);
 	
 	// После сверху посылаем контрольную сумму
 	for(i = 0; i < 2; i++)
-		UARTSendByte_by_SLIP (ZPZ_UART, 0xFFFF, ZPZ_BaseResponse.Buffer[i]);
+		UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, ZPZ_BaseResponse.Buffer[i]);
 	// И в конце опять разделитель
-	SendFEND(ZPZ_UART, 0xFFF);
+	SendFEND(ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT);
 }
 
 
@@ -1655,11 +1818,11 @@ uint16_t ZPZ_Request_CAN_TRANSMIT (uint16_t CRC, uint8_t* buffer)
 	uint8_t i;
 	for(i = 0; i < 3; i++)
 	{
-		buffer[i] = UARTReceiveByte_by_SLIP(ZPZ_UART, 0xFFFF);
+		buffer[i] = UARTReceiveByte_by_SLIP(ZPZ_UART, ZPZ_RECEIVE_BYTE_TIMEOUT);
 	}
 	for(i = 3; i < buffer[2]+3; i++)
 	{
-		buffer[i] = UARTReceiveByte_by_SLIP(ZPZ_UART, 0xFFFF);
+		buffer[i] = UARTReceiveByte_by_SLIP(ZPZ_UART, ZPZ_RECEIVE_BYTE_TIMEOUT);
 	}
 	CRC = Crc16(buffer, 3 + buffer[2], CRC);
 
@@ -1667,13 +1830,32 @@ uint16_t ZPZ_Request_CAN_TRANSMIT (uint16_t CRC, uint8_t* buffer)
 }
 void ZPZ_Response_CAN_TRANSMIT (uint8_t* buffer, uint16_t NumPacket)
 {
-	ZPZ_BasePacket_Union     ZPZ_BaseResponse;
+	ZPZ_Response_Union       ZPZ_Response;          // Стандартный ответ к ЗПЗ
 	CAN_TxMsgTypeDef         CANTxMsg;
 	uint32_t timeout = 0;
 	uint8_t  i;
 	uint8_t  buff[3];
 	uint32_t Buffer_number;
-
+	
+	// Для отправки необходимо, чтобы CAN был запитан аппаратно 
+	// Если шпилька 1 вставлена
+	if (SelfTesting_PIN1() == ST_OK)
+	{
+		// Ответим, что аппаратно питания на CAN нет, значит дальше не идем
+		ZPZ_ShortResponse(CAN_TRANSMIT, NumPacket, CAN_DISABLE_BY_PIN1);
+		// И завершаемся с ошибкой
+		return;
+	}
+	// Если реле питания БИМ выкл
+	if (SelfTesting_POW_BIM() != ST_OK)
+	{
+		// Ответим, что аппаратно питания на CAN нет, значит дальше не идем
+		ZPZ_ShortResponse(CAN_TRANSMIT, NumPacket, CAN_DISABLE_BY_RELAY);
+		// И завершаемся с ошибкой
+		return;
+	}
+	
+	
 	// Адрес - первые два байта
 	CANTxMsg.ID = CAN_STDID_TO_EXTID(*((uint16_t*)(buffer)));
 	// Длина сообщения начинается со второго байта
@@ -1692,34 +1874,44 @@ void ZPZ_Response_CAN_TRANSMIT (uint8_t* buffer, uint16_t NumPacket)
 	// Кладём сообщение в нужный буфер и ждем отправки
 	CAN_Transmit(ZPZ_CAN, Buffer_number, &CANTxMsg);
 	// Ожидаем конца передачи, либо превышения времени ожидания
-	while(((CAN_GetBufferStatus(ZPZ_CAN, Buffer_number) & CAN_STATUS_TX_REQ) != RESET) && (timeout != 0xFFFF))
+	while(((CAN_GetBufferStatus(ZPZ_CAN, Buffer_number) & CAN_STATUS_TX_REQ) != RESET) && (timeout != 0x3FFF))
 		timeout++;
 	
+	// Если превышено время на ожидание отправки
+	if (timeout == 0x3FFF)
+	{
+		// Ответим, что истекло время на отправку
+		ZPZ_ShortResponse(CAN_TRANSMIT, NumPacket, CAN_SENDING_TIMEOUT);
+		// И завершаемся с ошибкой
+		return;
+	}
+
 	// Теперь нужно ответить 
 	// Заполняем структуру общей части всех пакетов
-	ZPZ_BaseResponse.Struct.Handler    = HANDLER_BU;
-	// 6 Байт обязательны
-	ZPZ_BaseResponse.Struct.PacketSize = 6 + CANTxMsg.DLC; 
-	ZPZ_BaseResponse.Struct.Command    = CAN_TRANSMIT;
-	ZPZ_BaseResponse.Struct.Count      = NumPacket;	
-	// Теперь посчитаем контрольную сумму начала пакета (первые 7 байт)
-	ZPZ_BaseResponse.Struct.CRC = Crc16(&ZPZ_BaseResponse.Buffer[0], 7, CRC16_INITIAL_FFFF);
+	ZPZ_Response.Struct.Handler    = HANDLER_BU;          // Заголовок BU
+	// 6 Байт обязательны + Длина сообщения          
+	ZPZ_Response.Struct.PacketSize = 6 + CANTxMsg.DLC;    // Размер пакета в байтах  
+	ZPZ_Response.Struct.Command    = CAN_TRANSMIT;        // Команда: передача по CAN
+	ZPZ_Response.Struct.Count      = NumPacket;	          // Номер пакета повторяем из запроса
+	ZPZ_Response.Struct.Error      = SUCCES;              
+	// Теперь посчитаем контрольную сумму начала пакета (первые 8 байт)
+	ZPZ_Response.Struct.CRC = Crc16(&ZPZ_Response.Buffer[0], 8, CRC16_INITIAL_FFFF);
 	// Начнём отправлять сообщение
 	// Сначала отправляем признак-разделитель начала пакета
-	SendFEND(ZPZ_UART, 0xFFF);
-	// Теперь первые 7 байт 
-	for(i = 0; i < 7; i++)
-		UARTSendByte_by_SLIP (ZPZ_UART, 0xFFFF, ZPZ_BaseResponse.Buffer[i]);
+	SendFEND(ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT);
+	// Теперь первые 8 байт 
+	for(i = 0; i < 8; i++)
+		UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, ZPZ_Response.Buffer[i]);
 	
 	// Досчитаем контрольную сумму с учётом buff
-	ZPZ_BaseResponse.Struct.CRC = Crc16(buffer, 3 + CANTxMsg.DLC, ZPZ_BaseResponse.Struct.CRC);
+	ZPZ_Response.Struct.CRC = Crc16(buffer, 3 + CANTxMsg.DLC, ZPZ_Response.Struct.CRC);
 	// Отправляем содержимое buffer
 	for(i = 0; i < 3 + CANTxMsg.DLC; i++)
-		UARTSendByte_by_SLIP (ZPZ_UART, 0xFFFF, buffer[i]);
+		UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, buffer[i]);
 	
 	// После сверху посылаем контрольную сумму
-	for(i = 0; i < 2; i++)
-		UARTSendByte_by_SLIP (ZPZ_UART, 0xFFFF, ZPZ_BaseResponse.Buffer[i]);
+	for(i = 8; i < 10; i++)
+		UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, ZPZ_Response.Buffer[i]);
 	// И в конце опять разделитель
-	SendFEND(ZPZ_UART, 0xFFF);	
+	SendFEND(ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT);	
 }

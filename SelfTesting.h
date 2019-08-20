@@ -30,6 +30,7 @@
           10 бит - SNS (Состояние СНС)
           11 бит - SWS (Состояние СВС)
 					12 бит - Доступность карты рельефа
+					13 бит - POW_BIM (Реле питания БИМ)
 					
 			 Использование:
 			     Состояние того или иного устройства модуля можно узнать с помощью
@@ -39,18 +40,20 @@
 			     Принудительная установка состояния в НЕИСПРАВЕН
 					    SelfTesting_RESET_OK(x);
 					 где x - идентификатор устройства/модуля из перечня:
-              ST_MAP         - Карта и полётное задание
-              ST_1636PP52Y   - Внешняя SPI память от Миландр              
-              ST_25Q64FV     - Внешняя SPI память от Winbond            
-              ST_LogFS       - Файловая система логирования               
-              ST_Left_BIM    - Левый БИМ            
-              ST_Right_BIM   - Правый БИМ            
-              ST_pin1        - Шпилька 1         (ST_OK/ST_FAULT  = Воткнута/Извлечена)
-              ST_pin2        - Шпилька 2         (ST_OK/ST_FAULT  = Воткнута/Извлечена)
-              ST_pyro        - Реле пиропатрона  (ST_OK/ST_FAULT  = Включено/Выключено)
-              ST_blind       - Реле створки      (ST_OK/ST_FAULT  = Включено/Выключено) 
-              ST_sns         - СНС
-              ST_sws         - СВС  				
+              ST_MAP              - Карта и полётное задание
+              ST_1636PP52Y        - Внешняя SPI память от Миландр              
+              ST_25Q64FV          - Внешняя SPI память от Winbond            
+              ST_LogFS            - Файловая система логирования               
+              ST_Left_BIM         - Левый БИМ            
+              ST_Right_BIM        - Правый БИМ            
+              ST_pin1             - Шпилька 1                  (ST_OK/ST_FAULT  = Воткнута/Извлечена)
+              ST_pin2             - Шпилька 2                  (ST_OK/ST_FAULT  = Воткнута/Извлечена)
+              ST_pyro             - Реле пиропатрона           (ST_OK/ST_FAULT  = Включено/Выключено)
+              ST_blind            - Реле створки               (ST_OK/ST_FAULT  = Включено/Выключено) 
+              ST_sns              - СНС
+              ST_sws              - СВС  				
+							ST_MapAvailability  - Доступность карты рельефа
+							ST_POW_BIM          - Реле питания БИМ и CAN     (ST_OK/ST_FAULT  = Включено/Выключено) 
 		 
 ************************************************************************************/
 
@@ -72,7 +75,7 @@ extern uint16_t SystemState;
 typedef enum {
 	ST_OK = 1,
 	ST_FAULT = 0,
-} SelfTesing_STATUS;
+} SelfTesting_STATUS_TYPE;
 
 
 /*************************************************************************
@@ -91,6 +94,7 @@ typedef enum {
 #define ST_sns                     (10)
 #define ST_sws                     (11)
 #define ST_MapAvailability         (12)
+#define ST_POW_BIM                 (13)
 #define SelfTesting_SET_OK(x)      (SystemState|=(1<<x))          // Результат проверки - ОК
 #define SelfTesting_SET_FAULT(x)   (SystemState&=~(1<<x))         // Результат проверки - FAULT
 #define SelfTesting_STATUS(x)      ((SystemState&(1<<x))>>(x))    // Узнать состояние
@@ -113,6 +117,15 @@ void SelfTestingOnline (void);
 
 
 /************************************************************************************
+       SelfTestingBreakingTest - Оперативная проверка состояния системы
+                                 с разбиением на подзадачи
+
+       Примечание: должна периодически запускаться, например, по таймеру  
+************************************************************************************/
+void SelfTestingBreakingTest (void);
+
+	
+/************************************************************************************
        SelfTesting_SysState2CAN - Вывод состояния системы в CAN 
 ************************************************************************************/
 void SelfTesting_SysState2CAN(void);	
@@ -124,7 +137,7 @@ void SelfTesting_SysState2CAN(void);
 				Возвращает: ST_OK    - Если память работает
 				            ST_FAULT - Если память недоступна
 ************************************************************************************/
-SelfTesing_STATUS SelfTesting_1636PP52Y(void);
+SelfTesting_STATUS_TYPE SelfTesting_1636PP52Y(void);
 
 
 /************************************************************************************
@@ -133,7 +146,7 @@ SelfTesing_STATUS SelfTesting_1636PP52Y(void);
 				Возвращает: ST_OK    - Если память работает
 				            ST_FAULT - Если память недоступна
 ************************************************************************************/
-SelfTesing_STATUS SelfTesting_25Q64FV(void);
+SelfTesting_STATUS_TYPE SelfTesting_25Q64FV(void);
 
 
 /************************************************************************************
@@ -142,7 +155,7 @@ SelfTesing_STATUS SelfTesting_25Q64FV(void);
 				Возвращает: ST_OK    - Если задание и карта загружены
 				            ST_FAULT - Если карта и задание отсутствует или повреждены
 ************************************************************************************/
-SelfTesing_STATUS SelfTesting_MapNtask(void);
+SelfTesting_STATUS_TYPE SelfTesting_MapNtask(void);
 
 
 /************************************************************************************
@@ -151,7 +164,7 @@ SelfTesing_STATUS SelfTesting_MapNtask(void);
 				Возвращает: ST_OK    - Если файловая система исправна
 				            ST_FAULT - Если форматирование повреждено
 ************************************************************************************/
-SelfTesing_STATUS SelfTesting_LogFs(void);
+SelfTesting_STATUS_TYPE SelfTesting_LogFs(void);
 
 
 /************************************************************************************
@@ -160,7 +173,7 @@ SelfTesing_STATUS SelfTesting_LogFs(void);
 				Возвращает: ST_OK    - Если БИМ исправен
 				            ST_FAULT - Если БИМ неисправен, либо связь отсутствует
 ************************************************************************************/
-SelfTesing_STATUS SelfTesting_LEFT_BIM(void);
+SelfTesting_STATUS_TYPE SelfTesting_LEFT_BIM(void);
 
 
 /************************************************************************************
@@ -169,7 +182,7 @@ SelfTesing_STATUS SelfTesting_LEFT_BIM(void);
 				Возвращает: ST_OK    - Если БИМ исправен
 				            ST_FAULT - Если БИМ неисправен, либо связь отсутствует
 ************************************************************************************/
-SelfTesing_STATUS SelfTesting_RIGHT_BIM(void);
+SelfTesting_STATUS_TYPE SelfTesting_RIGHT_BIM(void);
 
 
 /************************************************************************************
@@ -178,7 +191,7 @@ SelfTesing_STATUS SelfTesting_RIGHT_BIM(void);
 				Возвращает: ST_OK    - Если шпилька 1 вставлена
 				            ST_FAULT - Если шпилька 1 отсутствует
 ************************************************************************************/
-SelfTesing_STATUS SelfTesting_PIN1(void);
+SelfTesting_STATUS_TYPE SelfTesting_PIN1(void);
 
 
 /************************************************************************************
@@ -187,7 +200,7 @@ SelfTesing_STATUS SelfTesting_PIN1(void);
 				Возвращает: ST_OK    - Если шпилька 2 вставлена
 				            ST_FAULT - Если шпилька 2 отсутствует
 ************************************************************************************/
-SelfTesing_STATUS SelfTesting_PIN2(void);
+SelfTesting_STATUS_TYPE SelfTesting_PIN2(void);
 
 
 /************************************************************************************
@@ -196,7 +209,7 @@ SelfTesing_STATUS SelfTesting_PIN2(void);
 				Возвращает: ST_OK    - Если реле пиропатрона включено
 				            ST_FAULT - Если реле пиропатрона выключено
 ************************************************************************************/
-SelfTesing_STATUS SelfTesting_PYRO(void);
+SelfTesting_STATUS_TYPE SelfTesting_PYRO(void);
 
 
 /************************************************************************************
@@ -205,7 +218,7 @@ SelfTesing_STATUS SelfTesting_PYRO(void);
 				Возвращает: ST_OK    - Если реле створки включено
 				            ST_FAULT - Если реле створки выключено
 ************************************************************************************/
-SelfTesing_STATUS SelfTesting_BLIND(void);
+SelfTesting_STATUS_TYPE SelfTesting_BLIND(void);
 
 
 /************************************************************************************
@@ -214,7 +227,7 @@ SelfTesing_STATUS SelfTesting_BLIND(void);
 				Возвращает: ST_OK    - Если связь с СНС есть
 				            ST_FAULT - Если связь с СНС отсутствует
 ************************************************************************************/
-SelfTesing_STATUS SelfTesting_SNS(void);
+SelfTesting_STATUS_TYPE SelfTesting_SNS(void);
 
 
 /************************************************************************************
@@ -223,8 +236,16 @@ SelfTesing_STATUS SelfTesting_SNS(void);
 				Возвращает: ST_OK    - Если связь с СВС есть
 				            ST_FAULT - Если связь с СВС отсутствует
 ************************************************************************************/
-SelfTesing_STATUS SelfTesting_SWS(void);
+SelfTesting_STATUS_TYPE SelfTesting_SWS(void);
 
+
+/************************************************************************************
+        SelfTesting_POW_BIM - Проверка состояния реле питания БИМ
+				
+				Возвращает: ST_OK    - Если реле питания БИМ включено
+				            ST_FAULT - Если реле питания БИМ выключено
+************************************************************************************/
+SelfTesting_STATUS_TYPE SelfTesting_POW_BIM (void);
 
 #endif
 
