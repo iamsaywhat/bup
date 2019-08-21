@@ -56,61 +56,11 @@ int main(void)
 	BIM_CAN_init ();
 	// Запускаем файловую систему
 	LogFs_Info();
+	
 	// Запускаем диагностику системы
 	SelfTestingFull();
 
 
-////BIM_Supply_ON();
-//  while(1)
-//	{
-//	SelfTestingFull();
-//	SelfTestingOnline();
-//	}
-//	while(1){
-//	p1 = PIN2_DIR_CHECK;
-//p2 = PIN2_INV_CHECK;}
-//	BIM_Supply_ON();
-//	while(1)
-//	{
-//		BIM_SendRequest (RIGHT_BIM, BIM_CMD_ON, 50, 9, 255, 255);
-//		BIM_ReceiveResponse (RIGHT_BIM);
-//		BIM_SendRequest (LEFT_BIM, BIM_CMD_ON, 50, 7, 255, 255);
-//		BIM_ReceiveResponse (LEFT_BIM);
-//		
-//		BIM_SendRequest (RIGHT_BIM, BIM_CMD_REQ, 50, 9, 255, 255);
-//		BIM_ReceiveResponse (RIGHT_BIM);
-//		BIM_SendRequest (RIGHT_BIM, BIM_CMD_REQ, 50, 9, 255, 255);
-//		BIM_ReceiveResponse (RIGHT_BIM);
-//		BIM_SendRequest (RIGHT_BIM, BIM_CMD_REQ, 50, 9, 255, 255);
-//		BIM_ReceiveResponse (RIGHT_BIM);
-//		
-//		BIM_SendRequest (LEFT_BIM, BIM_CMD_REQ, 50, 7, 255, 255);
-//		BIM_ReceiveResponse (LEFT_BIM);
-//		BIM_SendRequest (LEFT_BIM, BIM_CMD_REQ, 50, 7, 255, 255);
-//		BIM_ReceiveResponse (LEFT_BIM);
-//		BIM_SendRequest (LEFT_BIM, BIM_CMD_REQ, 50, 7, 255, 255);
-//		BIM_ReceiveResponse (LEFT_BIM);
-//		
-//		
-//		BIM_SendRequest (RIGHT_BIM, BIM_CMD_ON, 0, 9, 255, 255);
-//		BIM_ReceiveResponse (RIGHT_BIM);
-//		BIM_SendRequest (LEFT_BIM, BIM_CMD_ON, 0, 7, 255, 255);
-//		BIM_ReceiveResponse (LEFT_BIM);
-//		
-//		BIM_SendRequest (RIGHT_BIM, BIM_CMD_REQ, 50, 9, 255, 255);
-//		BIM_ReceiveResponse (RIGHT_BIM);
-//		BIM_SendRequest (RIGHT_BIM, BIM_CMD_REQ, 50, 9, 255, 255);
-//		BIM_ReceiveResponse (RIGHT_BIM);
-//		BIM_SendRequest (RIGHT_BIM, BIM_CMD_REQ, 50, 9, 255, 255);
-//		BIM_ReceiveResponse (RIGHT_BIM);
-//		
-//		BIM_SendRequest (LEFT_BIM, BIM_CMD_REQ, 50, 7, 255, 255);
-//		BIM_ReceiveResponse (LEFT_BIM);
-//		BIM_SendRequest (LEFT_BIM, BIM_CMD_REQ, 50, 7, 255, 255);
-//		BIM_ReceiveResponse (LEFT_BIM);
-//		BIM_SendRequest (LEFT_BIM, BIM_CMD_REQ, 50, 7, 255, 255);
-//		BIM_ReceiveResponse (LEFT_BIM);
-//	}	
 //			SNS_Available_Data_Response_Union  SNS_DataState;
 //			SNS_Device_Information_Response_Union  SNS_DeviceInformation;
 //			
@@ -211,47 +161,80 @@ int main(void)
 		// Запускаем драйвер ЗПЗ
 		ZPZ_init();
 		ZPZ_RetargetPins ();
-		// Запускаем световую индикацию режима
-		Timer_SetInterruptPeriod (MDR_TIMER2, 0.5*SECOND_TICKS);  // Сделать макросом?
+		
 		// Для тестирования БИМов подадим на них питание
 		BIM_Supply_ON();
+		
 		// И уходим на обслуживание режима ЗПЗ,
 		while(!CONNECT_ZPZ_CHECK)
 		{
 			// Запускаем модуль обслуживания ЗПЗ
 			ZPZ_Service();
-			// Будем в свободное время будем заниматься самодиагностикой
-			// SelfTestingBreakingTest ();			
+			
+			// Если ЗПЗ в настоящий момент не занят тяжелым процессом (режим РК)
+			if(ZPZ_CheckHighPriorityTask() == ZPZ_SC_MODE)
+			{
+				// Будем в свободное время будем заниматься самодиагностикой
+				SelfTestingBreakingTest ();
+				
+				// Будем так же на основе тестов, управлять индикацией "Готов" и "Неисправность"
+				if(SelfTesting_STATUS(ST_MAP)       != ST_OK  || 
+					 SelfTesting_STATUS(ST_1636PP52Y) != ST_OK  ||
+	         SelfTesting_STATUS(ST_25Q64FV)   != ST_OK  ||
+				// SelfTesting_STATUS(ST_Left_BIM)  != ST_OK  ||
+				// SelfTesting_STATUS(ST_Right_BIM) != ST_OK  ||
+					 SelfTesting_STATUS(ST_sns)       != ST_OK  ||
+					 SelfTesting_STATUS(ST_sws)       != ST_OK    )
+				{
+					// Гасим "Готовность"
+					LED_READY_OFF();
+					// Зажигаем "Неисправность"
+					LED_FAULT_ON();
+				}
+				else
+				{
+					// Зажигаем "Готовность"
+					LED_READY_ON();
+					// Гасим "Неисправность"
+					LED_FAULT_OFF();
+				}
+			}				
 		}
 	}
-	
+
 	// Проверим состояние системы:
 	// 1. Обе шпильки должны быть вставлены
 	// 2. Работу внешних SPI-flash
 	// 3. Загружена ли карта рельефа и полетное задание
 	// 4. Работает ли файловая система
-	if(SelfTesting_STATUS(ST_pin1)!=ST_OK      || 
-		 SelfTesting_STATUS(ST_pin2)!=ST_OK      || 
-	   SelfTesting_STATUS(ST_MAP)!=ST_OK       || 
-	   SelfTesting_STATUS(ST_1636PP52Y)!=ST_OK ||
-	   SelfTesting_STATUS(ST_25Q64FV)!=ST_OK   ||
-	   SelfTesting_STATUS(ST_LogFS)!=ST_OK)
+	// 5. Связь с СНС
+	// 6. Связь с СВС
+	while(SelfTesting_STATUS(ST_pin1)       != ST_OK || 
+		    SelfTesting_STATUS(ST_pin2)       != ST_OK || 
+	      SelfTesting_STATUS(ST_MAP)        != ST_OK || 
+	      SelfTesting_STATUS(ST_1636PP52Y)  != ST_OK ||
+	      SelfTesting_STATUS(ST_25Q64FV)    != ST_OK ||
+	      SelfTesting_STATUS(ST_LogFS)      != ST_OK ||
+		    SelfTesting_STATUS(ST_sns)        != ST_OK ||
+		    SelfTesting_STATUS(ST_sws)        != ST_OK )
 	{		
 		// Если не вставлены, гасим "Готовность", "Неисправность" зажигаем
 		// Гасим "Готовность"
 		LED_READY_OFF();
 		// Зажигаем "Неисправность"
 		LED_FAULT_ON();
-		// Зависаем в ожидании перезапуска
-		while(1)
-		{
-			// Включим CAN
-			BIM_Supply_ON();
-			// Будем выводить состояние системы в CAN, чтобы установить причину неисправности
-			debug_vars.SysState = SystemState;
-			debug_can(0x527, &debug_vars.SysState, 2);
-			delay_us(1000000);
-		}
+		// Займёмся самодиагностикой
+		SelfTestingOnline ();
+//		// Зависаем в ожидании перезапуска
+//		while(1)
+//		{
+//			// Включим CAN
+//			BIM_Supply_ON();
+//			// Будем выводить состояние системы в CAN, чтобы установить причину неисправности
+//			debug_vars.SysState = SystemState;
+//			debug_can(0x527, &debug_vars.SysState, 2);
+//			delay_us(1000000);
+//		}
 	}
 	#ifdef LOGS_ENABLE	//******************************************************* Если включено логирование в черный ящик
 		// Создаём файл лога
@@ -262,10 +245,12 @@ int main(void)
 		// Пишем загруженую точку посадки
 		printf("TD_Lat: %f;\n", GetTouchDownPointLat());
 		printf("TD_Lon: %f;\n", GetTouchDownPointLon());
+		printf("TD_Lon: %f;\n", GetTouchDownPointAlt());
 		printf("BUP is ready!\n");
 	#endif //******************************************************************** !LOGS_ENABLE	
 
 	// Зажигаю готовность
+	LED_FAULT_OFF();
 	LED_READY_ON();
 	// Ждем пока стабилизирующий парашют выбросится и извлечет шпильку 1
 	while(SelfTesting_PIN1());

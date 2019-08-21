@@ -25,12 +25,7 @@
 					// ограничение скорости 255, ограничение тока 200
 	        BIM_SendRequest (DEVICE_100, BIM_CMD_ON, 255, 6, 255, 200);
 					// То же самое для устройства 101
-	        BIM_SendRequest (DEVICE_101, BIM_CMD_ON, 255, 6, 255, 200);
-					
-					// Прочитаем ответы, на наши запросы
-	        BIM_ReceiveResponse (&BIM_Response, DEVICE_100);
-	        BIM_ReceiveResponse (&BIM_Response, DEVICE_101);
-					
+	        BIM_SendRequest (DEVICE_101, BIM_CMD_ON, 255, 6, 255, 200);		
 
 ****************************************************************************************************/
 

@@ -15,8 +15,10 @@
 #include "SelfTesting.h"   
 
 
-// Определения и макросы для реализации SLIP протокола
-// Разделители в SLIP - Протоколе
+
+/****************************************************************** 
+      Определения и макросы для реализации SLIP протокола         *
+******************************************************************/
 typedef enum {
 	FEND     = 0xC0,
 	FESC     = 0xDB,
@@ -24,6 +26,15 @@ typedef enum {
 	TFESC		 = 0xDD,
 } SLIP_DIV;
 
+/****************************************************************** 
+      Флаг занятости модуля высокоприоритетной задачей            *
+******************************************************************/
+uint8_t HighPriorityTask = ZPZ_SC_MODE;
+
+/****************************************************************** 
+       Счетчик таймаута при выполнении высокоприоритетной задачи  *
+******************************************************************/
+uint8_t TimeoutCounter = 0;
 
 
 /******************************************************************************************************
@@ -89,7 +100,12 @@ void ZPZ_Response_CAN_TRANSMIT (uint8_t* buffer, uint16_t NumPacket);
 uint16_t UARTReceiveByte_by_SLIP(MDR_UART_TypeDef* UARTx, uint32_t TimeoutRange);
 int16_t UARTSendByte_by_SLIP (MDR_UART_TypeDef* UARTx, uint32_t TimeoutRange, uint16_t Byte);
 int16_t SendFEND (MDR_UART_TypeDef* UARTx, uint32_t TimeoutRange);
-
+/*--------------------------------------------------------------------------------------------Режим "ВВПЗ"-----------------------------*/
+void ZPZ_StartHighPriorityTask (void);
+void ZPZ_FinishHighPriorityTask (void);
+void ZPZ_CheckpointHighPriorityTask (void);
+void Timer2_IRQHandler(void);
+/*-------------------------------------------------------------------------------------------------------------------------------------*/
 
 /******************************************************************************************************
 
@@ -140,6 +156,21 @@ void ZPZ_init (void)
 	//NVIC_EnableIRQ(ZPZ_IRQn);
 }
 
+
+/***************************************************************************************************************
+						ZPZ_deinit - Деинициализация ЗПЗ                                                                   *
+***************************************************************************************************************/
+void ZPZ_deinit (void)
+{
+	// Сброс конфигуряции UART
+	UART_DeInit(ZPZ_UART);
+	// Отключение UART
+	UART_Cmd(ZPZ_UART, DISABLE);
+	Pin_Init (ZPZ_PORT, ZPZ_RX, PORT_FUNC_PORT, PORT_OE_OUT);
+	Pin_Init (ZPZ_PORT, ZPZ_TX, PORT_FUNC_PORT, PORT_OE_OUT);
+	// Отключаем таймер
+	TIMER_Cmd(ZPZ_TIMER, DISABLE);
+}
 
 
 /**************************************************************************************************************
@@ -303,71 +334,111 @@ uint8_t ZPZ_Service (void)
 	// Сценарии работы при получении всех возможных команд
 	switch (ZPZ_Base_Request.Struct.Command)
 	{
-		case START_DOWNLOAD:
+		case START_DOWNLOAD: // Начало загрузки полетного задания 
+			
+			// Этот процесс ресурсоемкий, поэтому будем выполнять его в режиме "ВВПЗ"
+			ZPZ_StartHighPriorityTask ();
+			// Принимаем данные запроса
 			crc = ZPZ_Request_START_DOWNLOAD (crc);
 		  break;
 		
-		case MAP_DOWNLOAD:
+		case MAP_DOWNLOAD: // Продолжение загрузки полетного задания 
+			
+			// Отмечаемся в чекпоинт-функции "ВВПЗ", что мы не повисли
+			ZPZ_CheckpointHighPriorityTask ();
+			// Принимаем данные запроса
 			crc = ZPZ_Request_MAP_DOWNLOAD (crc, ZPZ_Base_Request.Struct.Count);
 			break;
 		
-		case START_UPLOAD:
+		case START_UPLOAD: // Начало выгрузки полетного задания 
+			
+		  // Этот процесс ресурсоемкий, поэтому будем выполнять его в режиме "ВВПЗ
+			ZPZ_StartHighPriorityTask ();
+			// Принимаем данные запроса
 			crc = ZPZ_Request_START_UPLOAD (crc);
 			break;
 		
-		case MAP_UPLOAD:
+		case MAP_UPLOAD: // Продолжение выгрузки полетного задания 
+			
+			// Отмечаемся в чекпоинт-функции, что мы не повисли
+			ZPZ_CheckpointHighPriorityTask ();
+			// Принимаем данные запроса
 			crc = ZPZ_Request_MAP_UPLOAD (crc);
 			break;
 		
 		case CHECK_CONNECT:
+			
 			crc = ZPZ_Request_CHECK_CONNECT (crc);
 			break;
 		
 		case BIM_CONTROL:
+			
 			crc = ZPZ_Request_BIM_CONTROL (crc, &BIM_Control);
 		  break;
 		
 		case BIM_STATUS: 	
+			
 			crc = ZPZ_Request_BIM_STATUS (crc, &BIM_Control);	
 			break;
 		
 		case LOG_FORMAT:
+			
 			crc = ZPZ_Request_LOG_FORMAT(crc, &LOG_FS_Subcommand);
 		  break;
 		
 		case LOG_FILES:
+			
 			crc = ZPZ_Request_LOG_FILES (crc);
 		  break;
 			
 		case LOG_UPLOAD:
+			
+			// Этот процесс ресурсоемкий, поэтому будем выполнять его в режиме "ВВПЗ"
+		  // Определять начало процесса выгрузки логов будем по 0-му номеру пакета
+			if(ZPZ_Base_Request.Struct.Count == 0)
+			{
+				// Запускаем режим "ВВПЗ" (а завершится он сам по таймауту)
+				ZPZ_StartHighPriorityTask ();
+			}
+			else
+				ZPZ_CheckpointHighPriorityTask ();
+		  
+			// Принимаем данные запроса
 			crc = ZPZ_Request_LOG_UPLOAD(crc, &Log_files);
 			break;
 		
 		case REQ_SWS:
+			
 			crc = ZPZ_Request_REQ_SWS(crc);
 			break;
 		
 		case REQ_SNS_POS:
+			
       crc = ZPZ_Request_REQ_SNS_POS(crc);
 			break;
 		
 		case REQ_SNS_STATE:
+			
 			crc = ZPZ_Request_REQ_SNS_STATE(crc);
 			break;
 		
 		case REQ_SNS_SETTINGS:
+			
 			crc = ZPZ_Request_REQ_SNS_SETTINGS(crc, SNS_opt);
 			break;
 		
 		case PIN_STATE:
+			
 			crc = ZPZ_Request_PIN_STATE(crc);
 			break;
 		
 		case SYSTEM_STATE:
+			
 			crc = ZPZ_Request_SYSTEM_STATE (crc);
 			break;
 		
 		case CAN_TRANSMIT:
+			
 			crc = ZPZ_Request_CAN_TRANSMIT (crc, CAN_buff);
 		  break;
 		
@@ -404,19 +475,36 @@ uint8_t ZPZ_Service (void)
 	switch (ZPZ_Base_Request.Struct.Command)
 	{
 		case START_DOWNLOAD:
+			
 		  ZPZ_Response_START_DOWNLOAD (ZPZ_Base_Request.Struct.Count);
 			break;
 		
-		case MAP_DOWNLOAD:
+		case MAP_DOWNLOAD: // Продолжение загрузки полетного задания
+			
+			// Формируем ответ
 		  ZPZ_Response_MAP_DOWNLOAD  (ZPZ_Base_Request.Struct.Count);
+			// Если это конец загрузки карты и задания (определяем как 400й пакет)
+			if(ZPZ_Base_Request.Struct.Count == 400)
+			{
+				// Завершаем режим "ВВПЗ" командой:
+				ZPZ_FinishHighPriorityTask ();
+			}	
 			break;
 		
 		case START_UPLOAD:
 			ZPZ_Response_START_UPLOAD (ZPZ_Base_Request.Struct.Count);
 			break;
 		
-		case MAP_UPLOAD:
+		case MAP_UPLOAD: // Продолжение выгрузки полетного задания
+			
+		  // Формируем ответ
 			ZPZ_Response_MAP_UPLOAD (ZPZ_Base_Request.Struct.Count);
+			// Если это конец выгрузки карты и задания (определяем как 400й пакет)
+			if(ZPZ_Base_Request.Struct.Count == 400)
+			{
+				// Завершаем режим "ВВПЗ" командой:
+				ZPZ_FinishHighPriorityTask ();
+			}	
 		  break;
 		
 		case CHECK_CONNECT:
@@ -564,7 +652,8 @@ uint16_t UARTReceiveByte_by_SLIP(MDR_UART_TypeDef* UARTx, uint32_t TimeoutRange)
 	// Ждем прихода информации
 	while ((UART_GetFlagStatus (UARTx, UART_FLAG_RXFE) == SET) && (timeout != TimeoutRange)) timeout++;
 	// Если выход из ожидания по таймауту - возвращаем ошибку и выходим
-	if(timeout == TimeoutRange) return 0xFF;
+	if(timeout == TimeoutRange) 
+		return 0xFF;
   // Иначе принимаем байт
 	Byte = UART_ReceiveData(UARTx);
 	
@@ -574,7 +663,8 @@ uint16_t UARTReceiveByte_by_SLIP(MDR_UART_TypeDef* UARTx, uint32_t TimeoutRange)
 		// Ждем прихода информации
 		while ((UART_GetFlagStatus (UARTx, UART_FLAG_RXFE) == SET) && (timeout != TimeoutRange)) timeout++;
 		// Если выход из ожидания по таймауту - возвращаем ошибку и выходим
-	  if(timeout == TimeoutRange) return 0xFF;
+	  if(timeout == TimeoutRange) 
+			return 0xFF;
 		// Иначе принимаем байт
 		Byte = UART_ReceiveData(UARTx);
 		
@@ -647,6 +737,7 @@ uint16_t ZPZ_Request_START_DOWNLOAD (uint16_t CRC)
 		// Пересчитываем контрольную сумму
 		crc = Crc16(&buffer[i], 1, crc);
 	}
+	
 	// Очищаем память под полетное задание
 	ZPZ_ChipEraseCSnUnion();
 	// Записываем точку приземления и масштабы карты высот
@@ -672,6 +763,7 @@ uint16_t ZPZ_Request_MAP_DOWNLOAD (uint16_t CRC, uint16_t NumPacket)
 	uint32_t Address;
 	uint8_t  buff [4];
 	
+
 	// Ожидаем приёма пустого байта перед информацией
 	temp = UARTReceiveByte_by_SLIP(ZPZ_UART, ZPZ_RECEIVE_BYTE_TIMEOUT);
 	// Сразу же подсчитаем изменения в контрольной сумме
@@ -1003,6 +1095,7 @@ void ZPZ_Response_BIM_STATUS(uint8_t Side, uint16_t NumPacket)
 uint16_t ZPZ_Request_LOG_FORMAT (uint16_t CRC, uint8_t* Subcommand)
 {
 	uint16_t crc;
+	
 	// Принимаем байт подкоманды: Запуск форматирования или Статус форматирования
 	*Subcommand = UARTReceiveByte_by_SLIP(ZPZ_UART, ZPZ_RECEIVE_BYTE_TIMEOUT);
 	// Подсчитываем контрольную сумму
@@ -1018,7 +1111,7 @@ void ZPZ_Response_LOG_FORMAT (uint16_t NumPacket, uint8_t Subcommand)
 	uint8_t              i;               // Счетчик циклов
 	
 	// Проверим верная ли пришла подкоманда:
-	if(Subcommand != 0x00 || Subcommand != 0x01)
+	if(Subcommand != 0x00 && Subcommand != 0x01)
 	{
 		// Такой подкоманды не реализовано, коротко отвечаем с соответствующим признаком
 		ZPZ_ShortResponse(LOG_FORMAT, NumPacket, LOG_FORMAT_SUBCMD_ERROR);
@@ -1088,10 +1181,10 @@ uint16_t ZPZ_Request_LOG_FILES (uint16_t CRC)
 void ZPZ_Response_LOG_FILES (uint16_t NumPacket)
 {
 	ZPZ_Response_Union    ZPZ_Response;    // Стандартный ответ к ЗПЗ
-	uint8_t               buffer[4];       
-	uint16_t              files = 0;
-	uint8_t               result = 0;
-	uint8_t               i, j;
+	uint8_t               buffer[4];       // Временное хранилище данных
+	uint16_t              files = 0;       // Количество файлов в хранилище
+	uint8_t               result = 0;      // Коды ошибок файловой системы
+	uint8_t               i, j;            // Счетчики циклов
 	
 	// Проверим целлостность и разметку файловой системы
 	if(SelfTesting_LogFs() != ST_OK)
@@ -1181,8 +1274,8 @@ void ZPZ_Response_LOG_FILES (uint16_t NumPacket)
 //-----------------------------------------Обслуживание команды LOG_UPLOAD---------------------------------------------------------*/
 uint16_t ZPZ_Request_LOG_UPLOAD(uint16_t CRC, uint16_t* NUM)
 {
-	uint8_t temp = 0;
-	uint16_t crc = 0;
+	uint8_t temp = 0;       // Временная переменная
+	uint16_t crc = 0;       // Контрольная сумма
 	
 	// Допринимаем остальные два байта с номером файла
 	// который просят отправить
@@ -1198,11 +1291,11 @@ uint16_t ZPZ_Request_LOG_UPLOAD(uint16_t CRC, uint16_t* NUM)
 
 uint8_t ZPZ_Response_LOG_UPLOAD(uint16_t File_num, uint16_t NumPacket)
 {
-	ZPZ_Response_Union    ZPZ_Response;    // Стандартный ответ к ЗПЗ
-	uint8_t  temp[2];
-	uint32_t filesize;
-	uint16_t packet_count = 0;
-	uint32_t i;
+	ZPZ_Response_Union    ZPZ_Response;      // Стандартный ответ к ЗПЗ
+	uint8_t               temp[2];           // 
+	uint32_t              filesize;
+	uint16_t              packet_count = 0;
+	uint32_t              i;
 	
 	// Ищем файл в хранилище по номеру
 	// Если функция не найдет файл, то выдаст ошибку, тогда можно не продолжать
@@ -1238,6 +1331,7 @@ uint8_t ZPZ_Response_LOG_UPLOAD(uint16_t File_num, uint16_t NumPacket)
 		ZPZ_Response.Struct.PacketSize += 2;
 		// Теперь посчитаем контрольную сумму начала пакета (первые 8 байт)
 	  ZPZ_Response.Struct.CRC = Crc16(&ZPZ_Response.Buffer[0], 8, CRC16_INITIAL_FFFF);
+		
 		// Начнём отправлять сообщение
 	  // Сначала отправляем признак-разделитель начала пакета
 	  SendFEND(ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT);
@@ -1290,23 +1384,10 @@ uint8_t ZPZ_Response_LOG_UPLOAD(uint16_t File_num, uint16_t NumPacket)
 			// Увеличиваем размер на оставшуюся часть файла
 			ZPZ_Response.Struct.PacketSize += filesize - (packet_count - 1) * BYTE_FROM_FILE;
 			
-			// Теперь посчитаем контрольную сумму начала пакета (первые 7 байт)
-			ZPZ_Response.Struct.CRC = Crc16(&ZPZ_Response.Buffer[0], 7, CRC16_INITIAL_FFFF);
-			// Начнём отправлять сообщение
-			// Сначала отправляем признак-разделитель начала пакета
-			SendFEND(ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT);
-			// Теперь первые 7 байт 
-			for(i = 0; i < 7; i++)
-				UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, ZPZ_Response.Buffer[i]);
+			// Теперь посчитаем контрольную сумму начала пакета (первые 8 байт)
+			ZPZ_Response.Struct.CRC = Crc16(&ZPZ_Response.Buffer[0], 8, CRC16_INITIAL_FFFF);
 			
-			// Отправляем номер файла
-			*(uint16_t*)temp = File_num;
-			// Подсчитываем контрольную сумму с учетом этого
-			ZPZ_Response.Struct.CRC = Crc16(temp, 2, 	ZPZ_Response.Struct.CRC);
-			// Отправляем номер файла
-			for(i = 0; i < 2; i++)
-				UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, temp[i]);
-		
+			// Осуществим поиск нужного куска файла
 			// Нужно совершить мнимое считывание от начала файла до нужной позиции, 
 			// чтобы сместить на неё указатель внутри функции чтения файла 
 			// То есть нужно прочитать NumPacket - 1 раз по BYTE_FROM_FILE байт
@@ -1316,7 +1397,23 @@ uint8_t ZPZ_Response_LOG_UPLOAD(uint16_t File_num, uint16_t NumPacket)
 				LogFs_ReadFile(&temp[0], 1);
 			}
 			
-			// Сместили указатель внутри функции чтения, теперь готовы читать нужную часть 
+			
+			// Начнём отправлять сообщение
+			// Сначала отправляем признак-разделитель начала пакета
+			SendFEND(ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT);
+			// Теперь первые 8 байт 
+			for(i = 0; i < 8; i++)
+				UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, ZPZ_Response.Buffer[i]);
+			
+			// Отправляем номер файла
+			*(uint16_t*)temp = File_num;
+			// Подсчитываем контрольную сумму с учетом этого
+			ZPZ_Response.Struct.CRC = Crc16(temp, 2, 	ZPZ_Response.Struct.CRC);
+			// Отправляем номер файла
+			for(i = 0; i < 2; i++)
+				UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, temp[i]);
+					
+			// Указатель внутри функции чтения уже установлен ранее, теперь готовы читать нужную часть 
 			for(i = 0; i < (filesize - (packet_count - 1) * BYTE_FROM_FILE); i++)
 			{
 				// Будем читать и отправлять побайтово, не забывая пересчитывать контрольную сумму
@@ -1333,13 +1430,25 @@ uint8_t ZPZ_Response_LOG_UPLOAD(uint16_t File_num, uint16_t NumPacket)
 			// Увеличиваем размер на BYTE_FROM_FILE байт данных
 			ZPZ_Response.Struct.PacketSize += BYTE_FROM_FILE;
 			
-			// Теперь посчитаем контрольную сумму начала пакета (первые 7 байт)
-			ZPZ_Response.Struct.CRC = Crc16(&ZPZ_Response.Buffer[0], 7, CRC16_INITIAL_FFFF);
+			// Теперь посчитаем контрольную сумму начала пакета (первые 8 байт)
+			ZPZ_Response.Struct.CRC = Crc16(&ZPZ_Response.Buffer[0], 8, CRC16_INITIAL_FFFF);
+			
+			// Осуществим поиск нужного куска файла
+			// Нужно совершить мнимое считывание от начала файла до нужной позиции, 
+			// чтобы сместить на неё указатель внутри функции чтения файла 
+			// То есть нужно прочитать NumPacket - 1 раз по BYTE_FROM_FILE байт
+			for (i = 0; i < (NumPacket - 1) * BYTE_FROM_FILE; i++)
+			{
+				// Не используем буферизацию, поэтому читаем побайтово
+				LogFs_ReadFile(&temp[0], 1);
+			}
+			
+			
 			// Начнём отправлять сообщение
 			// Сначала отправляем признак-разделитель начала пакета
 			SendFEND(ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT);
-			// Теперь первые 7 байт 
-			for(i = 0; i < 7; i++)
+			// Теперь первые 8 байт 
+			for(i = 0; i < 8; i++)
 				UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, ZPZ_Response.Buffer[i]);
 			
 			// Отправляем номер файла
@@ -1350,17 +1459,9 @@ uint8_t ZPZ_Response_LOG_UPLOAD(uint16_t File_num, uint16_t NumPacket)
 			for(i = 0; i < 2; i++)
 				UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, temp[i]);
 			
-			// Далее займёмся отправкой данный пакета
+			// Далее займёмся отправкой данных пакета
 			
-			// Нужно совершить мнимое считывание от начала файла до нужной позиции, 
-			// чтобы сместить на неё указатель внутри функции чтения файла 
-			// То есть нужно прочитать NumPacket - 1 раз по BYTE_FROM_FILE байт
-			for (i = 0; i < (NumPacket - 1) * BYTE_FROM_FILE; i++)
-			{
-				// Не используем буферизацию, поэтому читаем побайтово
-				LogFs_ReadFile(&temp[0], 1);
-			}
-			// Сместили указатель внутри функции чтения, теперь готовы читать нужную часть 
+			// Указатель внутри функции чтения уже установлен ранее, теперь готовы читать нужную часть 
 			for(i = 0; i < BYTE_FROM_FILE; i++)
 			{
 				// Будем читать и отправлять побайтово, не забывая пересчитывать контрольную сумму
@@ -1423,7 +1524,7 @@ uint8_t ZPZ_Response_REQ_SWS (uint16_t NumPacket)
 	// Начнём отправлять сообщение
 	// Сначала отправляем признак-разделитель начала пакета
 	SendFEND(ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT);
-	// Теперь первые 7 байт 
+	// Теперь первые 8 байт 
 	for(i = 0; i < 8; i++)
 		UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, ZPZ_Response.Buffer[i]);
 	
@@ -1914,4 +2015,89 @@ void ZPZ_Response_CAN_TRANSMIT (uint8_t* buffer, uint16_t NumPacket)
 		UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, ZPZ_Response.Buffer[i]);
 	// И в конце опять разделитель
 	SendFEND(ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT);	
+}
+
+
+//-----------------------------------------Обслуживание режима "ВВПЗ"----------------------------------------------------------------*/
+
+/******************************************************************  
+       Обработчик прерываний от таймера ZPZ                       *
+******************************************************************/
+void Timer2_IRQHandler(void)
+{
+	// Сбрасываем флаг прерываний
+	TIMER_ClearFlag(ZPZ_TIMER,TIMER_STATUS_CNT_ARR);	
+	// Делаем инкремент таймаут-счетчика
+	TimeoutCounter++;
+	
+	// Сменяем состояние индикатора "READY"
+	if (LED_READY_CHECK) 
+		LED_READY_OFF();
+	else 
+		LED_READY_ON();
+	
+	// Здесь реализуем таймаут контроль режима ВВПЗ
+	// Повисание или разрыв связи будем определять так:
+  if(ZPZ_CheckHighPriorityTask() && TimeoutCounter > 20)
+	{
+		// Завершим режим ВППЗ и перейдем в режим РК
+		ZPZ_FinishHighPriorityTask ();
+	}
+}
+
+
+/****************************************************************** 
+				Запуск режима выполнения высокоприоритетной задачи        *
+******************************************************************/
+void ZPZ_StartHighPriorityTask (void)
+{
+	// Выставляем флаг режима High Priority Task
+	HighPriorityTask = ZPZ_HPT_MODE;
+	// Сбрасываем таймаут
+	TimeoutCounter  = 0;
+	// Выключаем "Неисправность"
+	LED_FAULT_OFF();
+	// Запускаем таймер
+	Timer_SetInterruptPeriod(ZPZ_TIMER, 0.2*SECOND_TICKS);
+}
+
+
+/****************************************************************** 
+				Завершение режима выполнения высокоприоритетной задачи    *
+******************************************************************/
+void ZPZ_FinishHighPriorityTask (void)
+{
+	// Отключаем таймер
+	TIMER_Cmd(ZPZ_TIMER, DISABLE);
+	// Выключаем "Готов"
+	LED_READY_OFF();
+	// Выставляем флаг режима по-умолчанию - Single Command
+	HighPriorityTask = ZPZ_SC_MODE;
+	// Сбрасываем таймаут
+	TimeoutCounter  = 0;
+}
+
+/****************************************************************** 
+				Чекпоинт режима выполнения высокоприоритетной задачи      
+
+        Примечание: Эту функция используется для защиты от 
+        повисаний режима выполнения высокоприоритетной задачи.
+        Если данная функция не вызывается некоторое время, то
+        данный режим завершается, автоматически.
+******************************************************************/
+void ZPZ_CheckpointHighPriorityTask (void)
+{
+	// При чекпоинте нам просто необходимо сбросить счетчик таймаута
+	// Принцип работы WDT
+	// Если счетчик переполнится, то режим "ВВЗ" завершится
+	TimeoutCounter  = 0;
+}
+
+
+/****************************************************************** 
+        Проверка занятости модуля высокоприоритетной задачей      *
+******************************************************************/
+uint8_t ZPZ_CheckHighPriorityTask (void)
+{
+	return HighPriorityTask;
 }

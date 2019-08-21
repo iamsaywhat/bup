@@ -148,7 +148,7 @@ void SelfTestingBreakingTest (void)
 	else if (task == 5)
 	{
 		// Проверка связи с СНС
-		//SelfTesting_SNS();
+		SelfTesting_SNS();
 		// Возвращаемся к первой пачке тестов
 		task = 0;
 	}

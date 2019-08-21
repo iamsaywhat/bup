@@ -68,8 +68,6 @@ void M_Model_Init(void)
 {
 	BIM_SendRequest (RIGHT_BIM, BIM_CMD_ON, 0, 9, 255, 255);
 	BIM_SendRequest (LEFT_BIM, BIM_CMD_ON, 0, 7, 255, 255);
-	BIM_ReceiveResponse (RIGHT_BIM);
-	BIM_ReceiveResponse (LEFT_BIM);
 	
 	#ifdef flightRegulatorCFB //******************************************************* Если выбран flightRegulatorCFB
 		flightRegulatorCFB_initialize();
@@ -225,7 +223,7 @@ void M_Model_PrepareData (SNS_Position_Data_Response_Type SNS_PosData, SNS_Orien
 	#else //*************************************************************************** Если выбран Easy_reg
 		Easy_reg_U.TDP_lon        = GetTouchDownPointLon();
 		Easy_reg_U.TDP_lat        = GetTouchDownPointLat();
-		Easy_reg_U.TDP_alt        = GetTouchDownPoinAlt();
+		Easy_reg_U.TDP_alt        = GetTouchDownPointAlt();
 		Easy_reg_U.Pos_lon        = SNS_Lon;
 		Easy_reg_U.Pos_lat        = SNS_Lat;
 		Easy_reg_U.Pos_alt        = SNS_Alt;
@@ -245,8 +243,8 @@ void M_Model_Control (void)
 	#ifdef flightRegulatorCFB	//******************************************************* Если выбран flightRegulatorCFB
 	
 		#ifdef LOGS_ENABLE  //******************************************************* Если включено логирование в черный ящик
-			printf("Model_BIM_CMD: %f\n", rtY.tightenSling*rtY.directionOfRotation);
-			printf("Model_TD_CMD: %d\n", rtY.cmdTouchDown);
+			printf("Model_BIM_CMD: %f\n", (double)(rtY.tightenSling*rtY.directionOfRotation));
+			printf("Model_TD_CMD: %d\n", (uint8_t)rtY.cmdTouchDown);
 		#endif //******************************************************************* !LOGS_ENABLE	
 	
 		// Если команда на посадку не пришла, мы еще в полете, будем управлять
@@ -310,7 +308,7 @@ void M_Model_Control (void)
 	#else //*************************************************************************** Если выбран Easy_reg
 
 		#ifdef LOGS_ENABLE  //******************************************************* Если включено логирование в черный ящик
-			printf("Model_BIM_CMD: %f\n", Easy_reg_Y.BIM_CMD);
+			printf("Model_BIM_CMD: %f\n", (double)Easy_reg_Y.BIM_CMD);
 			printf("Model_TD_CMD: %d\n", (uint8_t)Easy_reg_Y.TD_CMD);
 		#endif //******************************************************************** !LOGS_ENABLE	
 		// Возможно пришла команда на посадку?
@@ -370,13 +368,11 @@ void M_Model_Cmd2BIM (double Side)
 		if(BIM_GetStrapPosition (LEFT_BIM) != SIDE)
 		{ 
 			BIM_SendRequest (LEFT_BIM, BIM_CMD_ON, SIDE, 7, 255, 255);
-			BIM_ReceiveResponse (LEFT_BIM);
 		}
 		// Устанавливать новое положение, будем только если оно отличается от старого (защита от щелчков)
 		if (BIM_GetStrapPosition (RIGHT_BIM) != 0)
 		{
 			BIM_SendRequest (RIGHT_BIM, BIM_CMD_ON, 0, 9, 255, 255);
-			BIM_ReceiveResponse (RIGHT_BIM);
 		}
 	}
 	// Это значит, что нужно ослабить оба БИМА
@@ -385,12 +381,10 @@ void M_Model_Cmd2BIM (double Side)
 		if(BIM_GetStrapPosition (LEFT_BIM) != 0)
 		{
 			BIM_SendRequest (LEFT_BIM, BIM_CMD_ON, 0, 7, 255, 255);
-			BIM_ReceiveResponse (LEFT_BIM);
 		}
 		if(BIM_GetStrapPosition (RIGHT_BIM) != 0)
 		{
 			BIM_SendRequest (RIGHT_BIM, BIM_CMD_ON, 0, 9, 255, 255);
-			BIM_ReceiveResponse (RIGHT_BIM);
 		}
 	}
 	// Положительное значание означает, что нужно затянуть правый БИМ в положение SIDE, и отпустить левый
@@ -403,21 +397,17 @@ void M_Model_Cmd2BIM (double Side)
 		if(BIM_GetStrapPosition (RIGHT_BIM) != SIDE)
 		{ 
 			BIM_SendRequest (RIGHT_BIM, BIM_CMD_ON, SIDE, 9, 255, 255);
-			BIM_ReceiveResponse (RIGHT_BIM);
 		}
 		// Устанавливать новое положение, будем только если оно отличается от старого (защита от щелчков)
 		if(BIM_GetStrapPosition (LEFT_BIM) != 0)
 		{
 			BIM_SendRequest (LEFT_BIM, BIM_CMD_ON, 0, 7, 255, 255);
-			BIM_ReceiveResponse (LEFT_BIM);
 		}
 	}
 	// БИМы не сразу обновляют своё состояние по CAN, поэтому заставляем их 5 раз сообщить своё состояние
 	for(i = 0; i < 5; i++)
 	{
 		BIM_SendRequest (RIGHT_BIM, BIM_CMD_REQ, 0, 0, 0, 0);
-		BIM_ReceiveResponse (RIGHT_BIM);
 		BIM_SendRequest (LEFT_BIM, BIM_CMD_REQ, 0, 0, 0, 0);
-		BIM_ReceiveResponse (LEFT_BIM);
 	}
 }

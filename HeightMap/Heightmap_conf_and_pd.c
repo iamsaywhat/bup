@@ -96,7 +96,7 @@ double GetTouchDownPointLon(void)
 /**********************************************************************************
        GetTouchDownPointAlt - Получить высоту раскрытия парашюта 
 **********************************************************************************/
-double GetTouchDownPoinAlt(void)
+double GetTouchDownPointAlt(void)
 {
 	unsigned char buff[2];
 	ReadMap(Adr_TDP_alt, buff, 2);

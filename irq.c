@@ -5,6 +5,7 @@
 #include "MDR32F9Qx_timer.h"
 
 
+
 unsigned int ControlSecond = 0;
 
 /****************************************************************
@@ -33,14 +34,15 @@ Timer2_IRQHandler - Обслуживание прерываний от Тайм�
   
    - Данный таймер обслуживает световую индикацию
 ****************************************************************/
-void Timer2_IRQHandler(void)
-{
-	TIMER_ClearFlag(MDR_TIMER2,TIMER_STATUS_CNT_ARR);	
-	if (LED_READY_CHECK) 
-		LED_READY_OFF();
-	else 
-		LED_READY_ON();
-}
+//void Timer2_IRQHandler(void)
+//{
+//	
+//	TIMER_ClearFlag(MDR_TIMER2,TIMER_STATUS_CNT_ARR);	
+//	if (LED_READY_CHECK) 
+//		LED_READY_OFF();
+//	else 
+//		LED_READY_ON();
+//}
 
 ///****************************************************************
 //Timer3_IRQHandler - Обслуживание прерываний от Таймера 3
