@@ -124,7 +124,7 @@ typedef __packed union {
 				BIM_Supply_ON() - Макрос подачи питания на БИМы             															            *
 																																																							*																																											*	
 **************************************************************************************************************/
-#define BIM_Supply_ON();          PORT_SetBits   (BIM_SupplyPort, BIM_SupplyPin);
+#define BIM_Supply_ON()          PORT_SetBits   (BIM_SupplyPort, BIM_SupplyPin)
 
 
 /**************************************************************************************************************
@@ -132,7 +132,7 @@ typedef __packed union {
 				BIM_Supply_OFF() - Макрос отключения питания на БИМах             															      *
 																																																							*																																											*	
 **************************************************************************************************************/
-#define BIM_Supply_OFF();					PORT_ResetBits (BIM_SupplyPort, BIM_SupplyPin);
+#define BIM_Supply_OFF()				 PORT_ResetBits (BIM_SupplyPort, BIM_SupplyPin)
 
 
 /**************************************************************************************************************

@@ -9,7 +9,9 @@
 #include "Log_FS/Log_FS.h"
 #include "HeightMap/Heightmap_conf_and_pd.h"
 #include "HeightMap/Heightmap.h"
-#include "RetargetPrintf/RetargetPrintf.h"  
+#include "RetargetPrintf/RetargetPrintf.h"
+
+#include "irq.h"
 
 
 /***************************************
@@ -71,6 +73,8 @@ void SelfTestingOnline (void)
 	SelfTesting_LEFT_BIM();
 	// Проверка правого БИМа
 	SelfTesting_RIGHT_BIM();
+	// Проконтролируем необходимость восстановления связи с БИМ
+	SelfTesting_BIMS_TRY_CONNECT();
 	// Проверка состояния шпильки 1
 	SelfTesting_PIN1();
 	// Проверка состояния шпильки 2
@@ -240,8 +244,8 @@ SelfTesting_STATUS_TYPE SelfTesting_LogFs(void)
 ************************************************************************************/
 SelfTesting_STATUS_TYPE SelfTesting_LEFT_BIM(void)
 {
-	// Нет смысл проверять БИМ, если аппаратно на них не подано питание
-	// (то если вставлена Шпилька1 и Реле питания БИМ включено)
+	// Нет смысла проверять БИМ, если аппаратно на них не подано питание
+	// (то есть вставлена Шпилька1 и/или реле питания БИМ выключено)
 	
 	// Если шпилька не вставлена и питание БИМОВ включено
 	if(SelfTesting_PIN1() != ST_OK  &&  SelfTesting_POW_BIM() == ST_OK)
@@ -266,9 +270,9 @@ SelfTesting_STATUS_TYPE SelfTesting_LEFT_BIM(void)
 				            ST_FAULT - Если БИМ неисправен, либо связь отсутствует
 ************************************************************************************/
 SelfTesting_STATUS_TYPE SelfTesting_RIGHT_BIM(void)
-{
-	// Нет смысл проверять БИМ, если аппаратно на них не подано питание
-	// (то если вставлена Шпилька1 и Реле питания БИМ включено)
+{	
+	// Нет смысла проверять БИМ, если аппаратно на них не подано питание
+	// (то есть вставлена Шпилька1 и/или реле питания БИМ выключено)
 	
 	// Если шпилька не вставлена и питание БИМОВ включено
 	if(SelfTesting_PIN1() != ST_OK  &&  SelfTesting_POW_BIM() == ST_OK)
@@ -284,6 +288,33 @@ SelfTesting_STATUS_TYPE SelfTesting_RIGHT_BIM(void)
 			SelfTesting_SET_FAULT(ST_Right_BIM);
 	
 	return (SelfTesting_STATUS_TYPE)SelfTesting_STATUS(ST_Right_BIM);
+}
+
+
+/************************************************************************************
+        SelfTesting_BIMS_TRY_CONNECT - Попытка восстановления связи с БИМами
+				
+				Примечание: Данная функция будет перезапускать питание БИМ в случае,
+				если связь хотя бы с одним из них будет нарушена. Имеется ограничение
+				на частоту переключения реле питания, для обеспечения этого в функции
+				выполняется таймаут контроль. Во время таймаута никаких действий не 
+				предпринимается.
+************************************************************************************/
+void SelfTesting_BIMS_TRY_CONNECT(void)
+{
+	static unsigned int LastTimestamp = 0;   // Момент времени, когда была предыдущая попытка
+	
+	// Если хоть один из БИМов неисправен, и таймаут с последней попытки восстановить соединение закончился
+	if( (!SelfTesting_STATUS(ST_Right_BIM) || !SelfTesting_STATUS(ST_Left_BIM)) && ((LastTimestamp + 20) < ControlSecond))
+	{
+		// Фиксируем текущую метку времени
+		LastTimestamp = ControlSecond;
+		// Изменим состояние реле питания БИМ на противоположное
+		if(SelfTesting_STATUS(ST_POW_BIM)) 
+			BIM_Supply_OFF();
+		else 
+			BIM_Supply_ON();
+	}
 }
 
 

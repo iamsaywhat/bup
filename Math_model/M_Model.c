@@ -66,9 +66,6 @@ uint8_t M_Model_Need2UpdateCheck(void)
 ***************************************************************************/
 void M_Model_Init(void)
 {
-	// BIM_SendRequest (RIGHT_BIM, BIM_CMD_ON, 0, 9, 255, 255);
-	// BIM_SendRequest (LEFT_BIM, BIM_CMD_ON, 0, 7, 255, 255);
-	
 	// Переведем БИМы в состояние 0
 	M_Model_Cmd2BIM (0.0);
 	
@@ -424,8 +421,6 @@ void M_Model_Cmd2BIM (double Side)
 	// БИМы не сразу обновляют своё состояние по CAN, поэтому заставляем их 5 раз сообщить своё состояние
 	for(i = 0; i < 5; i++)
 	{
-		//BIM_SendRequest (RIGHT_BIM, BIM_CMD_REQ, 0, 0, 0, 0);
-		//BIM_SendRequest (LEFT_BIM, BIM_CMD_REQ, 0, 0, 0, 0);
 		SelfTesting_RIGHT_BIM();
 		SelfTesting_LEFT_BIM();
 	}

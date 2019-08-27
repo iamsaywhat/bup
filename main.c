@@ -246,12 +246,12 @@ int main(void)
 		// Переключаем вывод в ЛОГ
 		printf_switcher(TO_LOG, 0);
 	  // В начало файла кладём его порядковый номер
-		printf("***File № %d***\n", LogFs_GetNumCurrentFile());
+		printf("***File # %d***\n", LogFs_GetNumCurrentFile());
 		printf("BUP_init..\n");
 		// Выведем загруженное полетное задание
 		printf("TD_Lat: %f;\n", GetTouchDownPointLat());
 		printf("TD_Lon: %f;\n", GetTouchDownPointLon());
-		printf("TD_Lon: %f;\n", GetTouchDownPointAlt());
+		printf("TD_Alt: %f;\n", GetTouchDownPointAlt());
 		printf("BUP is ready!\n");
 	#endif //******************************************************************** !LOGS_ENABLE	
 
@@ -300,8 +300,6 @@ int main(void)
 	M_Model_Init();
 	// Сообщаем мат.модели о необходимости обновить данные
 	M_Model_Need2UpdateSet();
-	// К полету готовы, запускаем таймер обслуживания мат модели
-	//Timer_SetInterruptPeriod (MDR_TIMER1, SECOND_TICKS);  // Сделать макросом?
 	
 	// Главный рабочий цикл
 	while(1)
@@ -340,8 +338,8 @@ int main(void)
 				printf("SNS_Vel_alt: %d\n",          SNS_Position.Struct.Vel_alt);
 				printf("SWS_TrueSpeed: %f\n",        SWS_Data.Struct.TrueSpeed);
 				printf("SWS_InstrumentSpeed: %f\n",  SWS_Data.Struct.InstrumentSpeed);
-				printf("BIML_Pos: %d\n",             (uint8_t)(0.3922*BIM_GetStrapPosition(LEFT_BIM)));   // Перевод к процентной шкале
-				printf("BIMR_Pos: %d\n",             (uint8_t)(0.3922*BIM_GetStrapPosition(RIGHT_BIM)));  // Перевод к процентной шкале
+				printf("BIML_Pos: %d\n",             (uint8_t)(0.5 + 0.3922*BIM_GetStrapPosition(LEFT_BIM)));   // Перевод к процентной шкале
+				printf("BIMR_Pos: %d\n",             (uint8_t)(0.5 + 0.3922*BIM_GetStrapPosition(RIGHT_BIM)));  // Перевод к процентной шкале
 				printf("SystemState: %x\n",          SystemState);
 			#endif //******************************************************************** !LOGS_ENABLE	
 
