@@ -2,6 +2,7 @@
 
 #include "MDR32F9Qx_port.h"
 #include "MDR32F9Qx_can.h"
+#include "SelfTesting.h"
 
 // В качестве отладочного CAN используется CAN1
 #define CAN_DEBUG MDR_CAN1
@@ -18,7 +19,7 @@ void debug_can(unsigned short id, void* data, unsigned char size)
   unsigned int i = 0;                   // Счетчик 
 	unsigned int Buffer_number;           // Номер свободного буфера
 	unsigned short per = 0;               // Таймаут-счетчик
-	
+		
 	Tx_msg.ID = CAN_STDID_TO_EXTID(id);
 	Tx_msg.PRIOR_0 = DISABLE;
 	Tx_msg.IDE = CAN_ID_STD;
@@ -31,11 +32,13 @@ void debug_can(unsigned short id, void* data, unsigned char size)
 		*(((unsigned char*)(Tx_msg.Data)) + i) = *(((unsigned char*)(data))++);
 	}
 	// Спросим какой из буферов свободен для использования
-	Buffer_number = CAN_GetEmptyTransferBuffer (CAN_DEBUG);
+	Buffer_number = CAN_GetDisabledBuffer (CAN_DEBUG);
 	// Кладём сообщение в нужный буфер и ждем отправки
 	CAN_Transmit(CAN_DEBUG, Buffer_number, &Tx_msg);
 	// Ожидаем конца передачи, либо превышения времени ожидания
-	while(((CAN_GetBufferStatus(CAN_DEBUG, Buffer_number) & CAN_STATUS_TX_REQ) != RESET) && (per != 0xFFF)){ per++;}
+	while(((CAN_GetBufferStatus(CAN_DEBUG, Buffer_number) & CAN_STATUS_TX_REQ) != RESET) && (per != 0xFFF)) per++;
+	// Вне зависимости от того, удалось отправить или нет, освобождаем буфер
+	CAN_BufferRelease (CAN_DEBUG, Buffer_number);
 }
 
 /*********************************************************************************************************
@@ -43,6 +46,10 @@ void debug_can(unsigned short id, void* data, unsigned char size)
 **********************************************************************************************************/
 void debug_can_full_struct (void)
 {
+	// Заблокируем попытку передачи, если CAN отключен аппаратно шпилькой или программно реле
+	if(SelfTesting_STATUS(ST_pin1) == ST_OK || SelfTesting_STATUS(ST_POW_BIM) != ST_OK)
+		return;
+	
 #ifdef flightRegulatorCFB
 	debug_can(0x500, &debug_vars.distanceAB, 2);	
 	debug_can(0x501, &debug_vars.orderAngle, 1);	

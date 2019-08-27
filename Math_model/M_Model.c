@@ -66,14 +66,20 @@ uint8_t M_Model_Need2UpdateCheck(void)
 ***************************************************************************/
 void M_Model_Init(void)
 {
-	BIM_SendRequest (RIGHT_BIM, BIM_CMD_ON, 0, 9, 255, 255);
-	BIM_SendRequest (LEFT_BIM, BIM_CMD_ON, 0, 7, 255, 255);
+	// BIM_SendRequest (RIGHT_BIM, BIM_CMD_ON, 0, 9, 255, 255);
+	// BIM_SendRequest (LEFT_BIM, BIM_CMD_ON, 0, 7, 255, 255);
+	
+	// Переведем БИМы в состояние 0
+	M_Model_Cmd2BIM (0.0);
 	
 	#ifdef flightRegulatorCFB //******************************************************* Если выбран flightRegulatorCFB
 		flightRegulatorCFB_initialize();
 	#else //*************************************************************************** Если выбран Easy_reg
 		Easy_reg_initialize();
 	#endif
+	
+	// Запускаем таймер обслуживания мат модели (период дискретизации 1 с)
+	Timer_SetInterruptPeriod (MMODEL_TIMER, SECOND_TICKS);
 }
 
 /***************************************************************************
@@ -142,7 +148,9 @@ double Meter_12_to_Meter (int64_t meter)
 /***************************************************************************
 		M_Model_PrepareData - Заполнение входных данных для мат. модели        *
 ***************************************************************************/
-void M_Model_PrepareData (SNS_Position_Data_Response_Type SNS_PosData, SNS_Orientation_Data_Response_Type SNS_Orientation, SWS_Packet_Type SWS_Data)
+void M_Model_PrepareData (SNS_Position_Data_Response_Type SNS_PosData, 
+	                        SNS_Orientation_Data_Response_Type SNS_Orientation, 
+                          SWS_Packet_Type SWS_Data)
 {
 	double SNS_Lat        = Rad_12_to_Deg (SNS_PosData.Pos_lat);
 	double SNS_Lon        = Rad_12_to_Deg (SNS_PosData.Pos_lon);
@@ -159,12 +167,13 @@ void M_Model_PrepareData (SNS_Position_Data_Response_Type SNS_PosData, SNS_Orien
 		SelfTesting_SET_OK(ST_MapAvailability);
 	
 	#ifdef LOGS_ENABLE  //******************************************************* Если включено логирование в черный ящик
-		printf("Model_Lat: %f\n", SNS_Lat);
-		printf("Model_Lon: %f\n", SNS_Lon);
-		printf("Model_Alt: %f\n", SNS_Alt);
-		printf("Model_Course: %f\n", HeadingTrue);
+		printf("Model_Lat: %f\n",     SNS_Lat);
+		printf("Model_Lon: %f\n",     SNS_Lon);
+		printf("Model_Alt: %f\n",     SNS_Alt);
+		printf("Model_Course: %f\n",  HeadingTrue);
+	  // Если карта рельефа в текущей позиции доступна, запишем высоту рельефа
 		if (SelfTesting_STATUS(ST_MapAvailability))
-			printf("MAP: %d\n", Map_Alt);
+			printf("MAP: %d\n",         Map_Alt);
 		else
 			printf("MAP: NOT_AVAILABLE\n");
 	#endif //******************************************************************** !LOGS_ENABLE	
@@ -244,7 +253,7 @@ void M_Model_Control (void)
 	
 		#ifdef LOGS_ENABLE  //******************************************************* Если включено логирование в черный ящик
 			printf("Model_BIM_CMD: %f\n", (double)(rtY.tightenSling*rtY.directionOfRotation));
-			printf("Model_TD_CMD: %d\n", (uint8_t)rtY.cmdTouchDown);
+			printf("Model_TD_CMD: %d\n",  (uint8_t)rtY.cmdTouchDown);
 		#endif //******************************************************************* !LOGS_ENABLE	
 	
 		// Если команда на посадку не пришла, мы еще в полете, будем управлять
@@ -351,12 +360,20 @@ void M_Model_Control (void)
 *******************************************************************************/
 void M_Model_Cmd2BIM (double Side)
 {
-	int16_t i;                                // Счетчик циклов
-	int16_t SIDE = 0;                         // Положение стропы (отриц - левая, полож - правая)
+	int16_t i;          // Счетчик циклов
+	int16_t SIDE = 0;   // Положение стропы (отриц - левая, полож - правая)
 	
 	// Целое число со знаком SIDE в процентах, знак указывает каким БИМом будем управлять
 	// Конвертируем проценты в диапазон [0...255] и отбрасываем дробную часть
 	SIDE = (int16_t)(2.55*Side);
+	
+	// Запретим управление БИМ, если шпилька 1 вставлена (несмотря на то, что это реализованно аппаратно)
+	if(SelfTesting_STATUS(ST_pin1) == ST_OK || SelfTesting_STATUS(ST_POW_BIM) != ST_OK)
+	{
+		// Это необходимо потому что, при износе переключателей, иногда при вставленой шпильке аппаратное отключение не происходит
+		// Так же для общности будем отказываться управлять, если реле питания БИМ выключено (хоть такое происходить и не должно)
+		return;
+	}
 	
 	// Отрицательное значение означает, что нужно затянуть левый БИМ в положение SIDE и отпустить правый
 	if(SIDE < 0)
@@ -407,7 +424,9 @@ void M_Model_Cmd2BIM (double Side)
 	// БИМы не сразу обновляют своё состояние по CAN, поэтому заставляем их 5 раз сообщить своё состояние
 	for(i = 0; i < 5; i++)
 	{
-		BIM_SendRequest (RIGHT_BIM, BIM_CMD_REQ, 0, 0, 0, 0);
-		BIM_SendRequest (LEFT_BIM, BIM_CMD_REQ, 0, 0, 0, 0);
+		//BIM_SendRequest (RIGHT_BIM, BIM_CMD_REQ, 0, 0, 0, 0);
+		//BIM_SendRequest (LEFT_BIM, BIM_CMD_REQ, 0, 0, 0, 0);
+		SelfTesting_RIGHT_BIM();
+		SelfTesting_LEFT_BIM();
 	}
 }

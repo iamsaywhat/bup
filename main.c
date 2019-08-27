@@ -43,7 +43,7 @@ int main(void)
 	
 	// Настраиваем тактовую частоту процессора	
 	InitCLK();
-	// Конфигурируем дискреты, при этом все реле гарантированно отключаются
+	// Конфигурируем дискреты, при этом все реле гарантированно переводятся в состояние по-умолчанию
 	Discrete_RetargetPins();
 	// Запускаем драйвер памяти для полетного задания
 	SPI_1636PP52Y_RetargetPins();
@@ -59,7 +59,22 @@ int main(void)
 	
 	// Запускаем диагностику системы
 	SelfTestingFull();
-
+//////////////
+//	BIM_Supply_ON();
+//	
+//	CAN_BufferRelease (MDR_CAN1, 16);
+//	CAN_BufferRelease (MDR_CAN1, 17);
+//	CAN_BufferRelease (MDR_CAN1, 18);
+//	
+//	while(1)
+//	{
+//		//SelfTesting_RIGHT_BIM();
+//		//SelfTesting_LEFT_BIM();
+//		SelfTestingOnline();
+//		delay_us(100000);
+//		debug_can_full_struct();
+//		delay_us(100000);
+//	}
 
 //			SNS_Available_Data_Response_Union  SNS_DataState;
 //			SNS_Device_Information_Response_Union  SNS_DeviceInformation;
@@ -175,7 +190,7 @@ int main(void)
 			if(ZPZ_CheckHighPriorityTask() == ZPZ_SC_MODE)
 			{
 				// Будем в свободное время будем заниматься самодиагностикой
-				SelfTestingBreakingTest ();
+				SelfTestingBeatTest ();
 				
 				// Будем так же на основе тестов, управлять индикацией "Готов" и "Неисправность"
 				if(SelfTesting_STATUS(ST_MAP)       != ST_OK  || 
@@ -218,40 +233,33 @@ int main(void)
 		    SelfTesting_STATUS(ST_sns)        != ST_OK ||
 		    SelfTesting_STATUS(ST_sws)        != ST_OK )
 	{		
-		// Если не вставлены, гасим "Готовность", "Неисправность" зажигаем
-		// Гасим "Готовность"
+		// Если имеются проблемы хоть с каким-то из модулей, гасим "Готовность", "Неисправность" зажигаем
 		LED_READY_OFF();
-		// Зажигаем "Неисправность"
 		LED_FAULT_ON();
-		// Займёмся самодиагностикой
+		// Запустим самодиагностику
 		SelfTestingOnline ();
-//		// Зависаем в ожидании перезапуска
-//		while(1)
-//		{
-//			// Включим CAN
-//			BIM_Supply_ON();
-//			// Будем выводить состояние системы в CAN, чтобы установить причину неисправности
-//			debug_vars.SysState = SystemState;
-//			debug_can(0x527, &debug_vars.SysState, 2);
-//			delay_us(1000000);
-//		}
 	}
+	
 	#ifdef LOGS_ENABLE	//******************************************************* Если включено логирование в черный ящик
 		// Создаём файл лога
 		LogFs_CreateFile();
 		// Переключаем вывод в ЛОГ
 		printf_switcher(TO_LOG, 0);
+	  // В начало файла кладём его порядковый номер
+		printf("***File № %d***\n", LogFs_GetNumCurrentFile());
 		printf("BUP_init..\n");
-		// Пишем загруженую точку посадки
+		// Выведем загруженное полетное задание
 		printf("TD_Lat: %f;\n", GetTouchDownPointLat());
 		printf("TD_Lon: %f;\n", GetTouchDownPointLon());
 		printf("TD_Lon: %f;\n", GetTouchDownPointAlt());
 		printf("BUP is ready!\n");
 	#endif //******************************************************************** !LOGS_ENABLE	
 
+	// Если оказались здесь, значит БУП готов к работе
 	// Зажигаю готовность
 	LED_FAULT_OFF();
 	LED_READY_ON();
+	
 	// Ждем пока стабилизирующий парашют выбросится и извлечет шпильку 1
 	while(SelfTesting_PIN1());
 	// Выжидаем 10 секунд
@@ -293,7 +301,7 @@ int main(void)
 	// Сообщаем мат.модели о необходимости обновить данные
 	M_Model_Need2UpdateSet();
 	// К полету готовы, запускаем таймер обслуживания мат модели
-	Timer_SetInterruptPeriod (MDR_TIMER1, SECOND_TICKS);  // Сделать макросом?
+	//Timer_SetInterruptPeriod (MDR_TIMER1, SECOND_TICKS);  // Сделать макросом?
 	
 	// Главный рабочий цикл
 	while(1)
@@ -304,7 +312,7 @@ int main(void)
 			// Да, просит. Начинаем готовить данные для матмодели		
 			
 			#ifdef LOGS_ENABLE  //******************************************************* Если включено логирование в черный ящик
-				printf("\nTimestamp: %d\n", ControlSecond); // Метку времени в ЛОГ
+				printf("\nTimestamp, sec: %d\n", ControlSecond); // Метку времени в ЛОГ
 			#endif //******************************************************************** !LOGS_ENABLE
 			
 			// Сбросим таймаут
@@ -322,19 +330,19 @@ int main(void)
 			while(SWS_GetPacket (&SWS_Data) && (timeout != 10)) timeout ++;
 			
 			#ifdef LOGS_ENABLE  //******************************************************* Если включено логирование в черный ящик
-				printf("SNS_Lat: %llu\n", SNS_Position.Struct.Pos_lat);
-				printf("SNS_Lon: %llu\n", SNS_Position.Struct.Pos_lon);
-				printf("SNS_Alt: %llu\n", SNS_Position.Struct.Pos_alt);
-				printf("SNS_Heading_true: %d\n", SNS_Orientation.Struct.Heading_true);
-				printf("SNS_Heading_mgn: %d\n", SNS_Orientation.Struct.Heading_mgn);
-				printf("SNS_Vel_lat: %d\n", SNS_Position.Struct.Vel_lat);
-				printf("SNS_Vel_lon: %d\n", SNS_Position.Struct.Vel_lon);
-				printf("SNS_Vel_alt: %d\n", SNS_Position.Struct.Vel_alt);
-				printf("SWS_TrueSpeed: %f\n", SWS_Data.Struct.TrueSpeed);
-				printf("SWS_InstrumentSpeed: %f\n", SWS_Data.Struct.InstrumentSpeed);
-				printf("BIML_Pos: %d\n",(uint8_t)(0.3922*BIM_GetStrapPosition(LEFT_BIM)));
-				printf("BIMR_Pos: %d\n",(uint8_t)(0.3922*BIM_GetStrapPosition(RIGHT_BIM)));
-				printf("SystemState: %x\n", SystemState);
+				printf("SNS_Lat: %llu\n",            SNS_Position.Struct.Pos_lat);
+				printf("SNS_Lon: %llu\n",            SNS_Position.Struct.Pos_lon);
+				printf("SNS_Alt: %llu\n",            SNS_Position.Struct.Pos_alt);
+				printf("SNS_Heading_true: %d\n",     SNS_Orientation.Struct.Heading_true);
+				printf("SNS_Heading_mgn: %d\n",      SNS_Orientation.Struct.Heading_mgn);
+				printf("SNS_Vel_lat: %d\n",          SNS_Position.Struct.Vel_lat);
+				printf("SNS_Vel_lon: %d\n",          SNS_Position.Struct.Vel_lon);
+				printf("SNS_Vel_alt: %d\n",          SNS_Position.Struct.Vel_alt);
+				printf("SWS_TrueSpeed: %f\n",        SWS_Data.Struct.TrueSpeed);
+				printf("SWS_InstrumentSpeed: %f\n",  SWS_Data.Struct.InstrumentSpeed);
+				printf("BIML_Pos: %d\n",             (uint8_t)(0.3922*BIM_GetStrapPosition(LEFT_BIM)));   // Перевод к процентной шкале
+				printf("BIMR_Pos: %d\n",             (uint8_t)(0.3922*BIM_GetStrapPosition(RIGHT_BIM)));  // Перевод к процентной шкале
+				printf("SystemState: %x\n",          SystemState);
 			#endif //******************************************************************** !LOGS_ENABLE	
 
 			// Отправляем данные математической модели

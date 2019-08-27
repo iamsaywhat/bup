@@ -18,8 +18,6 @@ typedef enum {
  }OperationStatus; 
 
 
-
-
 /**************************************************************************************************************
                                                                                                               * 
 						delay_us - Функция задержки в мкс.                                    										        *
@@ -43,8 +41,6 @@ void delay_us (uint32_t us);
 void Pin_Init(MDR_PORT_TypeDef* PORTx, uint32_t Pin_Num, PORT_FUNC_TypeDef Port_Func, PORT_OE_TypeDef Port_OE);
 
 
-
-
 /**************************************************************************************************************
                                                                                                               *
 						 Timer_SetInterruptPeriod - Настройка таймера TIMERx на прерывание каждые ticks тактов.           *
@@ -64,6 +60,7 @@ void Pin_Init(MDR_PORT_TypeDef* PORTx, uint32_t Pin_Num, PORT_FUNC_TypeDef Port_
 **************************************************************************************************************/
 void Timer_SetInterruptPeriod (MDR_TIMER_TypeDef* TIMERx, unsigned long ticks);
 
+
 /**************************************************************************************************************
                                                                                                               *
 						InitCLK - Настройка тактирования процессора                                                       *
@@ -73,5 +70,6 @@ void Timer_SetInterruptPeriod (MDR_TIMER_TypeDef* TIMERx, unsigned long ticks);
                                                                                                               *
 **************************************************************************************************************/
 void InitCLK(void);
+
 
 #endif

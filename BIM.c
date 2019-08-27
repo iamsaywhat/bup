@@ -84,17 +84,25 @@ void BIM_CAN_init (void)
 	// Запрещаем все прерывания от CAN1
 	CAN_ITConfig(BIM_CAN, CAN_IT_GLBINTEN | CAN_IT_RXINTEN | CAN_IT_TXINTEN | CAN_IT_ERRINTEN | CAN_IT_ERROVERINTEN, DISABLE);
 	
+	
 	// Разрешаем работу буферы 0-15 на прием 
 	for(i = 0; i < 16; i++)
 	{	
 		// Работа i-го буфера на приём, перезапись разрешена
 		CAN_Receive(BIM_CAN, i, ENABLE);
 		// Разрешаем прерывание, изменение состояния буфера генерирует прерывание
-		CAN_RxITConfig(BIM_CAN, i, ENABLE);
+		CAN_RxITConfig(BIM_CAN, (1<<i), ENABLE);
 		// Включаем буфера на передачу
     BIM_CAN->BUF_CON[i+16] = CAN_BUF_CON_EN;
 		// Разрешаем прерывания по передаче из буферов 16-31
-		CAN_TxITConfig(BIM_CAN, i+16, ENABLE);
+		CAN_TxITConfig(BIM_CAN, 1<<(i+16), ENABLE);
+		
+		// Настроили буфер на передачу и отключаем (освобождаем его)
+		CAN_BufferRelease (BIM_CAN, i+16);
+		
+		// Здесь присутсвует нюанс работы с SPL драйвером от Миландр:
+		// Одни функции работы с CAN в качестве номера буфера принимают просто номера от 0 - 31
+		// Другие предлагают либо использование макросов типа CAN_BUFFER_x = 1 << x
 	}
 	
 	//Настройка фильтров
@@ -110,7 +118,7 @@ void BIM_CAN_init (void)
 	CAN_FilterInit (MDR_CAN1, 1, &CAN_FilterInitStruct); 	
 	
 	// Активируем передатчик
-  PORT_SetBits (BIM_CAN_PORT,BIM_CAN_CS1); 
+  PORT_SetBits (BIM_CAN_PORT, BIM_CAN_CS1); 
 }
 
 
@@ -132,12 +140,17 @@ uint8_t BIM_SendRequest (uint16_t DeviceID, uint8_t CMD, uint8_t StrapPosition, 
 	BIM_Request.Data[0]|= ReqCount << 16;           // Счетчик опроса
 	BIM_Request.Data[0]|= SpeedLimit << 24;         // Ограничение скорости
 	BIM_Request.Data[1] = CurrentLimit;             // Ограничение тока
+	
 	// Спросим какой из буферов свободен для использования
-	Buffer_number = CAN_GetEmptyTransferBuffer (BIM_CAN);
+	Buffer_number = CAN_GetDisabledBuffer (BIM_CAN);
+	
 	// Кладём сообщение в нужный буфер и ждем отправки
 	CAN_Transmit(BIM_CAN, Buffer_number, &BIM_Request);
 	// Ожидаем конца передачи, либо превышения времени ожидания
-	while(((CAN_GetBufferStatus(BIM_CAN, Buffer_number) & CAN_STATUS_TX_REQ) != RESET) && (timeout != 0xFFF)){ timeout++;}
+	while(((CAN_GetBufferStatus(BIM_CAN, Buffer_number) & CAN_STATUS_TX_REQ) != RESET) && (timeout != 0xFFF)) timeout++;
+	
+	// Внезависимости от того, удалось отправить или нет, освобождаем буфер
+	CAN_BufferRelease (BIM_CAN, Buffer_number);
 	
 	// Проверяем был ли таймаут, и если да, то выдаём признак неудачи
 	if(timeout == 0xFFF) 

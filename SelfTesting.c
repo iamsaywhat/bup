@@ -89,12 +89,12 @@ void SelfTestingOnline (void)
 
 
 /************************************************************************************
-       SelfTestingBreakingTest - Оперативная проверка состояния системы
+       SelfTestingBeatTest  - Оперативная проверка состояния системы
                                  с разбиением на подзадачи
 
        Примечание: должна периодически запускаться, например, по таймеру  
 ************************************************************************************/
-void SelfTestingBreakingTest (void)
+void SelfTestingBeatTest (void)
 {
 	static uint8_t task = 0;
 	
@@ -281,7 +281,7 @@ SelfTesting_STATUS_TYPE SelfTesting_RIGHT_BIM(void)
 	}
 	// Питание на БИМ отсутствует
 	else
-			SelfTesting_SET_FAULT(ST_Left_BIM);
+			SelfTesting_SET_FAULT(ST_Right_BIM);
 	
 	return (SelfTesting_STATUS_TYPE)SelfTesting_STATUS(ST_Right_BIM);
 }
