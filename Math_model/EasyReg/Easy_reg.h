@@ -9,7 +9,7 @@
  *
  * Model version                  : 1.30
  * Simulink Coder version         : 8.14 (R2018a) 06-Feb-2018
- * C/C++ source code generated on : Fri Aug 16 20:03:27 2019
+ * C/C++ source code generated on : Wed Aug 28 13:54:02 2019
  *
  * Target selection: ert.tlc
  * Embedded hardware selection: ARM Compatible->ARM Cortex
@@ -110,7 +110,17 @@ extern RT_MODEL *const Easy_reg_M;
  * Block '<S1>/CourseSwitch' : Eliminated due to constant selection input
  * Block '<S1>/TD_RegSwitch' : Eliminated due to constant selection input
  * Block '<S1>/TD_RegSwitch1' : Eliminated due to constant selection input
- * Block '<S1>/Constant2' : Unused code path elimination
+ * Block '<S1>/Switch' : Unused code path elimination
+ * Block '<S1>/TD_Gain' : Unused code path elimination
+ * Block '<S6>/Gain5' : Unused code path elimination
+ * Block '<S6>/Logical Operator1' : Unused code path elimination
+ * Block '<S6>/Product' : Unused code path elimination
+ * Block '<S6>/Relational Operator1' : Unused code path elimination
+ * Block '<S6>/Relational Operator2' : Unused code path elimination
+ * Block '<S6>/TD_AngleDiv' : Unused code path elimination
+ * Block '<S6>/TD_RAD' : Unused code path elimination
+ * Block '<S6>/TD_reg_disable_alt' : Unused code path elimination
+ * Block '<S1>/TD_Sat' : Unused code path elimination
  */
 
 /*-

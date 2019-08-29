@@ -224,14 +224,15 @@ int main(void)
 	// 4. Работает ли файловая система
 	// 5. Связь с СНС
 	// 6. Связь с СВС
-	while(SelfTesting_STATUS(ST_pin1)       != ST_OK || 
-		    SelfTesting_STATUS(ST_pin2)       != ST_OK || 
-	      SelfTesting_STATUS(ST_MAP)        != ST_OK || 
-	      SelfTesting_STATUS(ST_1636PP52Y)  != ST_OK ||
-	      SelfTesting_STATUS(ST_25Q64FV)    != ST_OK ||
-	      SelfTesting_STATUS(ST_LogFS)      != ST_OK ||
-		    SelfTesting_STATUS(ST_sns)        != ST_OK ||
-		    SelfTesting_STATUS(ST_sws)        != ST_OK )
+	while(SelfTesting_STATUS(ST_pin1)       != ST_OK 
+		 || SelfTesting_STATUS(ST_pin2)       != ST_OK 
+	   || SelfTesting_STATUS(ST_MAP)        != ST_OK
+	   || SelfTesting_STATUS(ST_1636PP52Y)  != ST_OK
+	   || SelfTesting_STATUS(ST_25Q64FV)    != ST_OK
+	   || SelfTesting_STATUS(ST_LogFS)      != ST_OK
+		 || SelfTesting_STATUS(ST_sns)        != ST_OK 
+//		 || SelfTesting_STATUS(ST_sws)        != ST_OK 
+	     )
 	{		
 		// Если имеются проблемы хоть с каким-то из модулей, гасим "Готовность", "Неисправность" зажигаем
 		LED_READY_OFF();

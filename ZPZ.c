@@ -1292,10 +1292,11 @@ uint16_t ZPZ_Request_LOG_UPLOAD(uint16_t CRC, uint16_t* NUM)
 uint8_t ZPZ_Response_LOG_UPLOAD(uint16_t File_num, uint16_t NumPacket)
 {
 	ZPZ_Response_Union    ZPZ_Response;      // Стандартный ответ к ЗПЗ
-	uint8_t               temp[2];           // 
-	uint32_t              filesize;
-	uint16_t              packet_count = 0;
-	uint32_t              i;
+	uint8_t               temp[2];           // Временный буфер для чтения и отправки
+	uint32_t              filesize;          // Размер файла
+	uint16_t              packet_count = 0;  // Количество пакетов на которые будет разбит файл
+	uint32_t              i;                 // Счетчик циклов
+	uint32_t              offset;            // Смещение (в байтах) от начала файла
 	
 	// Ищем файл в хранилище по номеру
 	// Если функция не найдет файл, то выдаст ошибку, тогда можно не продолжать
@@ -1387,16 +1388,8 @@ uint8_t ZPZ_Response_LOG_UPLOAD(uint16_t File_num, uint16_t NumPacket)
 			// Теперь посчитаем контрольную сумму начала пакета (первые 8 байт)
 			ZPZ_Response.Struct.CRC = Crc16(&ZPZ_Response.Buffer[0], 8, CRC16_INITIAL_FFFF);
 			
-			// Осуществим поиск нужного куска файла
-			// Нужно совершить мнимое считывание от начала файла до нужной позиции, 
-			// чтобы сместить на неё указатель внутри функции чтения файла 
-			// То есть нужно прочитать NumPacket - 1 раз по BYTE_FROM_FILE байт
-			for (i = 0; i < (NumPacket - 1) * BYTE_FROM_FILE; i++)
-			{
-				// Не используем буферизацию, поэтому читаем побайтово
-				LogFs_ReadFile(&temp[0], 1);
-			}
-			
+			// Для выгрузки нужного куска, необходимо вычислить смещение в байтах от начала файла
+			offset = (NumPacket-1)* BYTE_FROM_FILE;
 			
 			// Начнём отправлять сообщение
 			// Сначала отправляем признак-разделитель начала пакета
@@ -1417,7 +1410,7 @@ uint8_t ZPZ_Response_LOG_UPLOAD(uint16_t File_num, uint16_t NumPacket)
 			for(i = 0; i < (filesize - (packet_count - 1) * BYTE_FROM_FILE); i++)
 			{
 				// Будем читать и отправлять побайтово, не забывая пересчитывать контрольную сумму
-				LogFs_ReadFile(&temp[0], 1);
+				LogFs_ReadFile(&temp[0], offset + i, 1);
 				// Сразу подсчитываем контрольную сумму
 			  ZPZ_Response.Struct.CRC = Crc16(&temp[0], 1, 	ZPZ_Response.Struct.CRC);
 			  // И сразу отправляем
@@ -1433,16 +1426,8 @@ uint8_t ZPZ_Response_LOG_UPLOAD(uint16_t File_num, uint16_t NumPacket)
 			// Теперь посчитаем контрольную сумму начала пакета (первые 8 байт)
 			ZPZ_Response.Struct.CRC = Crc16(&ZPZ_Response.Buffer[0], 8, CRC16_INITIAL_FFFF);
 			
-			// Осуществим поиск нужного куска файла
-			// Нужно совершить мнимое считывание от начала файла до нужной позиции, 
-			// чтобы сместить на неё указатель внутри функции чтения файла 
-			// То есть нужно прочитать NumPacket - 1 раз по BYTE_FROM_FILE байт
-			for (i = 0; i < (NumPacket - 1) * BYTE_FROM_FILE; i++)
-			{
-				// Не используем буферизацию, поэтому читаем побайтово
-				LogFs_ReadFile(&temp[0], 1);
-			}
-			
+			// Для выгрузки нужного куска, необходимо вычислить смещение в байтах от начала файла
+			offset = (NumPacket-1)* BYTE_FROM_FILE;
 			
 			// Начнём отправлять сообщение
 			// Сначала отправляем признак-разделитель начала пакета
@@ -1465,7 +1450,7 @@ uint8_t ZPZ_Response_LOG_UPLOAD(uint16_t File_num, uint16_t NumPacket)
 			for(i = 0; i < BYTE_FROM_FILE; i++)
 			{
 				// Будем читать и отправлять побайтово, не забывая пересчитывать контрольную сумму
-				LogFs_ReadFile(&temp[0], 1);
+				LogFs_ReadFile(&temp[0], offset + i, 1);
 				// Сразу подсчитываем контрольную сумму
 			  ZPZ_Response.Struct.CRC = Crc16(&temp[0], 1, 	ZPZ_Response.Struct.CRC);
 			  // И сразу отправляем
