@@ -35,7 +35,6 @@
 
 int main(void)
 {	 
-	uint32_t i = 0;                                           // Счетчик циклов
 	uint32_t timeout = 0;                                     // Таймаут-счетчик
 	SNS_Orientation_Data_Response_Union  SNS_Orientation;     // Данные ориентации от СНС
 	SNS_Position_Data_Response_Union     SNS_Position;        // Данные местоположения от СНС
@@ -57,8 +56,10 @@ int main(void)
 	// Запускаем файловую систему
 	LogFs_Info();
 	
-	// Запускаем диагностику системы
+	// Запускаем фул-тест системы
 	SelfTestingFull();
+	
+	
 //////////////
 //	BIM_Supply_ON();
 //	
@@ -92,81 +93,7 @@ int main(void)
 //			timeout = 0;
 //}
 	
-//// Тестирование файловой системы с логов
-//	for(i=0; i < 200; i++)
-//	{
-//		buff[i] = i;
-//	}
-//	LogFs_Formatting();
-//	
-//	LogFs_Info();
-//	LogFs_CreateFile();
-//	LogFs_WriteToCurrentFile(buff, 8);
-//	
-//	printf_switcher(TO_LOG,0);
-//  printf("Hello world!\n");
-//	
-//	LogFs_Info();
-//	LogFs_CreateFile();
-//	LogFs_WriteToCurrentFile(buff, 50);
-//	
-//	LogFs_Info();
-//	LogFs_CreateFile();
-//	LogFs_WriteToCurrentFile(buff, 200);
-//	
-//	LogFs_Info();
-//	LogFs_CreateFile();
-//	LogFs_WriteToCurrentFile(buff, 2);
-//		
-//	for(i=0; i < 200; i++)
-//	{
-//		buff[i] = 0;
-//	}
-//	
-//	LogFs_Info();
-//	Log_Fs_FindFIle(FIRST_FILE);
-//	temp = Log_Fs_GetFileProperties(FILE_SIZE);
-//	LogFs_ReadFile(buff, temp);
-//	
-//	for(i=0; i < 200; i++)
-//	{
-//		buff[i] = 0;
-//	}
-//	
-//	Log_Fs_FindFIle(NEXT_FILE);
-//	temp = Log_Fs_GetFileProperties(FILE_SIZE);
-//	LogFs_ReadFile(buff, temp);
-//	
-//		
-//	for(i=0; i < 200; i++)
-//	{
-//		buff[i] = 0;
-//	}
-//	
-//	Log_Fs_FindFIle(NEXT_FILE);
-//	temp = Log_Fs_GetFileProperties(FILE_SIZE);
-//	LogFs_ReadFile(buff, temp);
-//			
-//	for(i=0; i < 200; i++)
-//	{
-//		buff[i] = 0;
-//	}
-//	
-//	Log_Fs_FindFIle(NEXT_FILE);
-//	temp = Log_Fs_GetFileProperties(FILE_SIZE);
-//	temp = LogFs_ReadFile(buff, temp);
-//	temp = LogFs_ReadFile(buff, temp);
 
-//	
-//	//создаем огромный файл
-//	LogFs_Info();
-//	LogFs_CreateFile();
-//	LogFs_WriteToCurrentFile(buff, 2);
-//		
-//	for(i=0; i < 200; i++)
-//	{ 
-//		buff[i] = 0;
-//	}
 
 
 	// Проверяем подключение разъема ЗПЗ
@@ -180,7 +107,7 @@ int main(void)
 		// Для тестирования БИМов подадим на них питание
 		BIM_Supply_ON();
 		
-		// И уходим на обслуживание режима ЗПЗ,
+		// И уходим на обслуживание режима ЗПЗ
 		while(!CONNECT_ZPZ_CHECK)
 		{
 			// Запускаем модуль обслуживания ЗПЗ
@@ -191,75 +118,21 @@ int main(void)
 			{
 				// Будем в свободное время будем заниматься самодиагностикой
 				SelfTestingBeatTest ();
-				
-				// Будем так же на основе тестов, управлять индикацией "Готов" и "Неисправность"
-				if(SelfTesting_STATUS(ST_MAP)       != ST_OK  || 
-					 SelfTesting_STATUS(ST_1636PP52Y) != ST_OK  ||
-	         SelfTesting_STATUS(ST_25Q64FV)   != ST_OK  ||
-				// SelfTesting_STATUS(ST_Left_BIM)  != ST_OK  ||
-				// SelfTesting_STATUS(ST_Right_BIM) != ST_OK  ||
-					 SelfTesting_STATUS(ST_sns)       != ST_OK  ||
-					 SelfTesting_STATUS(ST_sws)       != ST_OK    )
-				{
-					// Гасим "Готовность"
-					LED_READY_OFF();
-					// Зажигаем "Неисправность"
-					LED_FAULT_ON();
-				}
-				else
-				{
-					// Зажигаем "Готовность"
-					LED_READY_ON();
-					// Гасим "Неисправность"
-					LED_FAULT_OFF();
-				}
 			}				
 		}
 	}
 
-	// Проверим состояние системы:
-	// 1. Обе шпильки должны быть вставлены
-	// 2. Работу внешних SPI-flash
-	// 3. Загружена ли карта рельефа и полетное задание
-	// 4. Работает ли файловая система
-	// 5. Связь с СНС
-	// 6. Связь с СВС
-	while(SelfTesting_STATUS(ST_pin1)       != ST_OK 
-		 || SelfTesting_STATUS(ST_pin2)       != ST_OK 
-	   || SelfTesting_STATUS(ST_MAP)        != ST_OK
-	   || SelfTesting_STATUS(ST_1636PP52Y)  != ST_OK
-	   || SelfTesting_STATUS(ST_25Q64FV)    != ST_OK
-	   || SelfTesting_STATUS(ST_LogFS)      != ST_OK
-		 || SelfTesting_STATUS(ST_sns)        != ST_OK 
-//		 || SelfTesting_STATUS(ST_sws)        != ST_OK 
-	     )
-	{		
-		// Если имеются проблемы хоть с каким-то из модулей, гасим "Готовность", "Неисправность" зажигаем
-		LED_READY_OFF();
-		LED_FAULT_ON();
-		// Запустим самодиагностику
+  // Здесь начинается боевой режим работы
+	
+	// Проверим готова ли система к запуску управления (периферия в порядке и шпильки парашютов на месте)
+	while(SelfTesting_PreflightDiagnostics() == ST_FAULT)
+	{	
+		// Что-то пошло не так
+		// Запустим самодиагностику, и будем ожидать в недежде готовности системы к полёту
 		SelfTestingOnline ();
 	}
 	
-	#ifdef LOGS_ENABLE	//******************************************************* Если включено логирование в черный ящик
-		// Создаём файл лога
-		LogFs_CreateFile();
-		// Переключаем вывод в ЛОГ
-		printf_switcher(TO_LOG, 0);
-	  // В начало файла кладём его порядковый номер
-		printf("***File # %d***\n", LogFs_GetNumCurrentFile());
-		printf("BUP_init..\n");
-		// Выведем загруженное полетное задание
-		printf("TD_Lat: %f;\n", GetTouchDownPointLat());
-		printf("TD_Lon: %f;\n", GetTouchDownPointLon());
-		printf("TD_Alt: %f;\n", GetTouchDownPointAlt());
-		printf("BUP is ready!\n");
-	#endif //******************************************************************** !LOGS_ENABLE	
-
 	// Если оказались здесь, значит БУП готов к работе
-	// Зажигаю готовность
-	LED_FAULT_OFF();
-	LED_READY_ON();
 	
 	// Ждем пока стабилизирующий парашют выбросится и извлечет шпильку 1
 	while(SelfTesting_PIN1());
@@ -278,23 +151,22 @@ int main(void)
 	BIM_Supply_ON();
 	// Ждем 1 секунду, чтобы питание БИМов стабилировалось
 	delay_us(1000000);
-	// Нужно проверить исправность БИМов
-	while (SelfTesting_RIGHT_BIM()!= ST_OK || SelfTesting_LEFT_BIM()!= ST_OK)
-	{
-		// Если хотя бы один из БИМов не отвечает, передергиваем питание и опять проверяем
-		// Все 3 раза попытаемся перезапустистить БИМы
-		BIM_Supply_OFF();
-		delay_us(1000000);
-		BIM_Supply_ON();
-		delay_us(1000000);
-		i++;
-		if(i > 3)
-		{
-			LED_READY_OFF();
-			LED_FAULT_ON();
-			while(1);
-		}
-	}
+
+  #ifdef LOGS_ENABLE	//******************************************************* Если включено логирование в черный ящик
+		// Создаём файл лога
+		LogFs_CreateFile();
+		// Переключаем вывод в ЛОГ
+		printf_switcher(TO_LOG, 0);
+	  // В начало файла кладём его порядковый номер
+		printf("***File # %d***\n", LogFs_GetNumCurrentFile());
+		printf("BUP_init..\n");
+		// Выведем загруженное полетное задание
+		printf("TD_Lat: %f;\n", GetTouchDownPointLat());
+		printf("TD_Lon: %f;\n", GetTouchDownPointLon());
+		printf("TD_Alt: %f;\n", GetTouchDownPointAlt());
+		printf("BUP is ready!\n");
+	#endif //******************************************************************** !LOGS_ENABLE	
+	
 	// Запустим быструю диагностику системы перед запуском управления
 	SelfTestingOnline();
 	// Инициализируем мат. модель полета
@@ -325,22 +197,25 @@ int main(void)
 
 			// Сбросим таймаут
 			timeout = 0;
-			// Пытаемся получить данные от СВС, не более 20 попыток
+			// Пытаемся получить данные от СВС, не более 10 попыток
 			while(SWS_GetPacket (&SWS_Data) && (timeout != 10)) timeout ++;
 			
 			#ifdef LOGS_ENABLE  //******************************************************* Если включено логирование в черный ящик
 				printf("SNS_Lat: %llu\n",            SNS_Position.Struct.Pos_lat);
 				printf("SNS_Lon: %llu\n",            SNS_Position.Struct.Pos_lon);
 				printf("SNS_Alt: %llu\n",            SNS_Position.Struct.Pos_alt);
-				printf("SNS_Heading_true: %d\n",     SNS_Orientation.Struct.Heading_true);
-				printf("SNS_Heading_mgn: %d\n",      SNS_Orientation.Struct.Heading_mgn);
 				printf("SNS_Vel_lat: %d\n",          SNS_Position.Struct.Vel_lat);
 				printf("SNS_Vel_lon: %d\n",          SNS_Position.Struct.Vel_lon);
 				printf("SNS_Vel_alt: %d\n",          SNS_Position.Struct.Vel_alt);
+				printf("SNS_Course: %d\n",           SNS_Position.Struct.Course);
+				printf("SNS_Heading_true: %d\n",     SNS_Orientation.Struct.Heading_true);
+				printf("SNS_Heading_mgn: %d\n",      SNS_Orientation.Struct.Heading_mgn);
+				printf("SNS_Pitch: %d\n",            SNS_Orientation.Struct.Pitch);
+				printf("SNS_Roll: %d\n",             SNS_Orientation.Struct.Roll);
 				printf("SWS_TrueSpeed: %f\n",        SWS_Data.Struct.TrueSpeed);
 				printf("SWS_InstrumentSpeed: %f\n",  SWS_Data.Struct.InstrumentSpeed);
-				printf("BIML_Pos: %d\n",             (uint8_t)(0.5 + 0.3922*BIM_GetStrapPosition(LEFT_BIM)));   // Перевод к процентной шкале
-				printf("BIMR_Pos: %d\n",             (uint8_t)(0.5 + 0.3922*BIM_GetStrapPosition(RIGHT_BIM)));  // Перевод к процентной шкале
+				printf("BIML_Pos: %d\n",             (uint8_t)(0.5 + 0.3922*BIM_GetStrapPosition(LEFT_BIM)));   // Перевод к процентной шкале с округлением
+				printf("BIMR_Pos: %d\n",             (uint8_t)(0.5 + 0.3922*BIM_GetStrapPosition(RIGHT_BIM)));  // Перевод к процентной шкале с округлением
 				printf("SystemState: %x\n",          SystemState);
 			#endif //******************************************************************** !LOGS_ENABLE	
 
@@ -349,6 +224,8 @@ int main(void)
 			
 			// Запустим быструю диагностику системы
 			SelfTestingOnline();
+			// Анализ тестов и управление индикацией в полете
+			SelfTesting_OnlineDiagnostics ();
 			
 			#ifdef TRACE_SYS_STATE	//******************************************************* Если включена трассировка состояния системы в CAN		
 				// Трассировка состояния системы в CAN

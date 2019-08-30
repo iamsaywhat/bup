@@ -53,6 +53,8 @@ void SelfTestingFull (void)
 	SelfTesting_SNS();
 	// Проверка связи с SWS
 	SelfTesting_SWS();
+	// Управление индикацией, по результатам тестов периферии
+	SelfTesting_OnlineDiagnostics();
 }
 
 
@@ -94,7 +96,7 @@ void SelfTestingOnline (void)
 
 /************************************************************************************
        SelfTestingBeatTest  - Оперативная проверка состояния системы
-                                 с разбиением на подзадачи
+       с разбиением на подзадачи
 
        Примечание: должна периодически запускаться, например, по таймеру  
 ************************************************************************************/
@@ -153,11 +155,109 @@ void SelfTestingBeatTest (void)
 	{
 		// Проверка связи с СНС
 		SelfTesting_SNS();
+		// Переходим к следующим тестам
+		task++;
+	}
+	else if (task == 6)
+	{
+		// Управление индикацией, по результатам тестов периферии
+		SelfTesting_OnlineDiagnostics();
 		// Возвращаемся к первой пачке тестов
 		task = 0;
 	}
 }
 
+
+/************************************************************************************
+        SelfTesting_PreflightDiagnostics - Анализ результатов тестирования 
+        подсистем, управление световой индикацией и решение модуля о готовности 
+        всей системы к запуску системы управления (предполётная диагностика)
+************************************************************************************/
+SelfTesting_STATUS_TYPE SelfTesting_PreflightDiagnostics (void)
+{
+	SelfTesting_STATUS_TYPE status = ST_OK;   // Статус анализа тестов (по-умолчанию OK)
+	
+	// Основная часть тестов, по которым будем судить о неисправности
+	if(   SelfTesting_STATUS(ST_MAP)       == ST_FAULT 
+	   || SelfTesting_STATUS(ST_1636PP52Y) == ST_FAULT 
+	   || SelfTesting_STATUS(ST_25Q64FV)   == ST_FAULT 
+		 || SelfTesting_STATUS(ST_LogFS)     == ST_FAULT
+		 || SelfTesting_STATUS(ST_sns)       == ST_FAULT
+		 || SelfTesting_STATUS(ST_sws)       == ST_FAULT
+	   || SelfTesting_STATUS(ST_pin1)      == ST_FAULT 	
+	   || SelfTesting_STATUS(ST_pin2)      == ST_FAULT )
+		{
+			// Если хоть один из тестов отрицательный - сбрасываем флаг
+			status = ST_FAULT;
+		}
+		
+		// По результатам тестирования принимаем решение о режиме индикации
+		if(status == ST_OK)
+		{
+			// Гасим "Готовность", Зажигаем "Неисправность"
+			LED_READY_ON();
+			LED_FAULT_OFF();
+		}
+		else
+		{
+			// Гасим "Готовность", Зажигаем "Неисправность"
+			LED_READY_OFF();
+			LED_FAULT_ON();
+		}
+		// Так же возвращаем флаг результатов анализа тестов
+		return (SelfTesting_STATUS_TYPE)status;
+}
+
+
+/************************************************************************************
+        SelfTesting_OnlineDiagnostics - Анализ результатов тестирования подсистем, 
+			  управление световой индикацией и решение модуля о готовности всей системы 
+        к работе.
+************************************************************************************/
+SelfTesting_STATUS_TYPE SelfTesting_OnlineDiagnostics (void)
+{
+	SelfTesting_STATUS_TYPE status = ST_OK;   // Статус анализа тестов (по-умолчанию OK)
+	
+	// Основная часть тестов, по которым будем судить о неисправности
+	if(   SelfTesting_STATUS(ST_MAP)       == ST_FAULT 
+	   || SelfTesting_STATUS(ST_1636PP52Y) == ST_FAULT 
+	   || SelfTesting_STATUS(ST_25Q64FV)   == ST_FAULT 
+		 || SelfTesting_STATUS(ST_LogFS)     == ST_FAULT
+		 || SelfTesting_STATUS(ST_sns)       == ST_FAULT 
+		 || SelfTesting_STATUS(ST_sws)       == ST_FAULT  )
+		{
+			// Если хоть один из тестов отрицательный - сбрасываем флаг
+			status = ST_FAULT;
+		}
+		
+		// Если БИМы аппаратно запитаны (вынута шпилька1 и включено реле),
+		// То не обходимо проверить связь с ними
+		if(SelfTesting_STATUS(ST_pin1) != ST_OK && SelfTesting_STATUS(ST_POW_BIM) == ST_OK)
+		{
+			// Если хоть один из БИМов неисправен
+			if(SelfTesting_STATUS(ST_Left_BIM) == ST_FAULT || SelfTesting_STATUS(ST_Right_BIM) == ST_FAULT)
+			{
+				// Сбрасывает флаг и признаём неисправность
+				status = ST_FAULT;
+			}
+		}
+		
+		// По результатам тестирования принимаем решение о режиме индикации
+		if(status == ST_OK)
+		{
+			// Гасим "Готовность", Зажигаем "Неисправность"
+			LED_READY_ON();
+			LED_FAULT_OFF();
+		}
+		else
+		{
+			// Гасим "Готовность", Зажигаем "Неисправность"
+			LED_READY_OFF();
+			LED_FAULT_ON();
+		}
+		// Так же возвращаем флаг результатов анализа тестов
+		return (SelfTesting_STATUS_TYPE)status;
+}
 
 
 /************************************************************************************
@@ -255,7 +355,7 @@ SelfTesting_STATUS_TYPE SelfTesting_LEFT_BIM(void)
 		else 
 			SelfTesting_SET_FAULT(ST_Left_BIM);
 	}
-	// Питание на БИМ отсутствует
+	// Питание на БИМ отсутствует, проверить их нельзя, будем считать, что исправны
 	else 
 		SelfTesting_SET_FAULT(ST_Left_BIM);
 	
@@ -283,7 +383,7 @@ SelfTesting_STATUS_TYPE SelfTesting_RIGHT_BIM(void)
 		else 
 			SelfTesting_SET_FAULT(ST_Right_BIM);
 	}
-	// Питание на БИМ отсутствует
+	// Питание на БИМ отсутствует, проверить их нельзя, будем считать, что исправны
 	else
 			SelfTesting_SET_FAULT(ST_Right_BIM);
 	

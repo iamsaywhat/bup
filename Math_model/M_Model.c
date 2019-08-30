@@ -143,6 +143,17 @@ double Meter_12_to_Meter (int64_t meter)
 
 
 /***************************************************************************
+				Ms_6_to_Ms - Преобразование 10E-6 метров\c в метры\с              *
+***************************************************************************/
+double Ms_6_to_Ms (int32_t Ms)
+{
+	double result = 0;
+	result = ((double)(Ms/1e6));
+	return result;
+}
+
+
+/***************************************************************************
 		M_Model_PrepareData - Заполнение входных данных для мат. модели        *
 ***************************************************************************/
 void M_Model_PrepareData (SNS_Position_Data_Response_Type SNS_PosData, 
@@ -152,9 +163,16 @@ void M_Model_PrepareData (SNS_Position_Data_Response_Type SNS_PosData,
 	double SNS_Lat        = Rad_12_to_Deg (SNS_PosData.Pos_lat);
 	double SNS_Lon        = Rad_12_to_Deg (SNS_PosData.Pos_lon);
 	double SNS_Alt        = Meter_12_to_Meter (SNS_PosData.Pos_alt);
-	short Map_Alt         = GetHeight_OnThisPoint(SNS_Lon, SNS_Lat, TRIANGULARTION);
+	short  Map_Alt        = GetHeight_OnThisPoint(SNS_Lon, SNS_Lat, TRIANGULARTION);
 	double HeadingTrue    = Rad_6_to_Rad(SNS_Orientation.Heading_true);
 	
+	double HeadingMgn     = Rad_6_to_Rad(SNS_Orientation.Heading_mgn);
+	double Pitch          = Rad_6_to_Rad(SNS_Orientation.Pitch);
+	double Roll           = Rad_6_to_Rad(SNS_Orientation.Roll);
+	double Course         = Rad_6_to_Rad(SNS_PosData.Course);
+	double VelocityLat    = Ms_6_to_Ms (SNS_PosData.Vel_lat);
+	double VelocityLon    = Ms_6_to_Ms (SNS_PosData.Vel_lon);
+	double VelocityAlt    = Ms_6_to_Ms (SNS_PosData.Vel_alt);
 	
 	// Проверим доступна ли карта в текущей геолокации (если в данной точке карта недоступна, в Map_Alt будет лежать 0x7FFF)
 	// Сразу же обновляем соответствующий флаг в модуля самодиагностики
@@ -164,13 +182,20 @@ void M_Model_PrepareData (SNS_Position_Data_Response_Type SNS_PosData,
 		SelfTesting_SET_OK(ST_MapAvailability);
 	
 	#ifdef LOGS_ENABLE  //******************************************************* Если включено логирование в черный ящик
-		printf("Model_Lat: %f\n",     SNS_Lat);
-		printf("Model_Lon: %f\n",     SNS_Lon);
-		printf("Model_Alt: %f\n",     SNS_Alt);
-		printf("Model_Course: %f\n",  HeadingTrue);
+		printf("Model_Lat, deg: %f\n",         SNS_Lat);
+		printf("Model_Lon, deg: %f\n",         SNS_Lon);
+		printf("Model_Alt, m: %f\n",           SNS_Alt);
+	  printf("Model_VelocityLat, m/s: %f\n", VelocityLat);
+		printf("Model_VelocityLon, m/s: %f\n", VelocityLon);
+		printf("Model_VelocityAlt, m/s: %f\n", VelocityAlt);
+		printf("Model_HeadingTrue, rad: %f\n", HeadingTrue);
+		printf("Model_HeadingMgn, rad: %f\n",  HeadingMgn);
+		printf("Model_Course, rad: %f\n",      Course);
+		printf("Model_Pitch, rad: %f\n",       Pitch);
+	  printf("Model_Roll, rad: %f\n",        Roll);	
 	  // Если карта рельефа в текущей позиции доступна, запишем высоту рельефа
 		if (SelfTesting_STATUS(ST_MapAvailability))
-			printf("MAP: %d\n",         Map_Alt);
+			printf("MAP, m: %d\n",               Map_Alt);
 		else
 			printf("MAP: NOT_AVAILABLE\n");
 	#endif //******************************************************************** !LOGS_ENABLE	
