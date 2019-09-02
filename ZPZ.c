@@ -1886,11 +1886,42 @@ uint16_t ZPZ_Request_SYSTEM_STATE (uint16_t CRC)
 
 void ZPZ_Response_SYSTEM_STATE (uint16_t NumPacket)
 {
-//	ZPZ_BasePacket_Union     ZPZ_BaseResponse;
-//	uint32_t timeout = 0;
-//	uint8_t  i;
-//	uint8_t  buff[3];
+	ZPZ_Response_Union       ZPZ_Response;          // Стандартный ответ к ЗПЗ
+	uint8_t                  i;                     // Счетчик циклов
+  uint8_t                  buff[2];               // Буфер - временное хранилище
+		
+	// Теперь нужно ответить 
+	// Заполняем структуру общей части всех пакетов
+	ZPZ_Response.Struct.Handler    = HANDLER_BU;          // Заголовок BU       
+	ZPZ_Response.Struct.PacketSize = 6;                   // Размер пакета в байтах  
+	ZPZ_Response.Struct.Command    = SYSTEM_STATE;        // Команда: передача по CAN
+	ZPZ_Response.Struct.Count      = NumPacket;	          // Номер пакета повторяем из запроса
+	ZPZ_Response.Struct.Error      = SUCCES;              // Статус: без ошибок
 	
+	// Теперь посчитаем контрольную сумму начала пакета (первые 8 байт)
+	ZPZ_Response.Struct.CRC = Crc16(&ZPZ_Response.Buffer[0], 8, CRC16_INITIAL_FFFF);
+	
+	// Кладём состояние системы в буфер
+	*((uint16_t*)buff) = SystemState;
+	// Теперь посчитаем контрольную сумму с учетом отправляемого
+	ZPZ_Response.Struct.CRC = Crc16(buff, 2, ZPZ_Response.Struct.CRC);
+	
+	// Начнём отправлять сообщение
+	// Сначала отправляем признак-разделитель начала пакета
+	SendFEND(ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT);
+	// Теперь первые 8 байт 
+	for(i = 0; i < 8; i++)
+		UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, ZPZ_Response.Buffer[i]);
+	
+  // Отправляем информационную часть посылки
+	for(i = 0; i < 2; i++)
+		UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, buff[i]);
+	
+	// После сверху посылаем контрольную сумму
+	for(i = 8; i < 10; i++)
+		UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, ZPZ_Response.Buffer[i]);
+	// И в конце опять разделитель
+	SendFEND(ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT);	
 }
 
 
@@ -1956,15 +1987,17 @@ void ZPZ_Response_CAN_TRANSMIT (uint8_t* buffer, uint16_t NumPacket)
 
 	// Начинаем отправлять в CAN
 	// Спросим какой из буферов CAN свободен для использования
-	Buffer_number = CAN_GetEmptyTransferBuffer (ZPZ_CAN);
+	Buffer_number = CAN_GetDisabledBuffer (ZPZ_CAN);
 	// Кладём сообщение в нужный буфер и ждем отправки
 	CAN_Transmit(ZPZ_CAN, Buffer_number, &CANTxMsg);
 	// Ожидаем конца передачи, либо превышения времени ожидания
-	while(((CAN_GetBufferStatus(ZPZ_CAN, Buffer_number) & CAN_STATUS_TX_REQ) != RESET) && (timeout != 0x3FFF))
-		timeout++;
+	while(((CAN_GetBufferStatus(ZPZ_CAN, Buffer_number) & CAN_STATUS_TX_REQ) != RESET) && (timeout != 0xFFF)) timeout++;
+	
+	// Вне зависимости от того, удалось отправить или нет, освобождаем буфер
+	CAN_BufferRelease (ZPZ_CAN, Buffer_number);
 	
 	// Если превышено время на ожидание отправки
-	if (timeout == 0x3FFF)
+	if (timeout == 0xFFF)
 	{
 		// Ответим, что истекло время на отправку
 		ZPZ_ShortResponse(CAN_TRANSMIT, NumPacket, CAN_SENDING_TIMEOUT);

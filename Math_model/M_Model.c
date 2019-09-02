@@ -160,23 +160,22 @@ void M_Model_PrepareData (SNS_Position_Data_Response_Type SNS_PosData,
 	                        SNS_Orientation_Data_Response_Type SNS_Orientation, 
                           SWS_Packet_Type SWS_Data)
 {
-	double SNS_Lat        = Rad_12_to_Deg (SNS_PosData.Pos_lat);
-	double SNS_Lon        = Rad_12_to_Deg (SNS_PosData.Pos_lon);
-	double SNS_Alt        = Meter_12_to_Meter (SNS_PosData.Pos_alt);
-	short  Map_Alt        = GetHeight_OnThisPoint(SNS_Lon, SNS_Lat, TRIANGULARTION);
-	double HeadingTrue    = Rad_6_to_Rad(SNS_Orientation.Heading_true);
-	
-	double HeadingMgn     = Rad_6_to_Rad(SNS_Orientation.Heading_mgn);
-	double Pitch          = Rad_6_to_Rad(SNS_Orientation.Pitch);
-	double Roll           = Rad_6_to_Rad(SNS_Orientation.Roll);
-	double Course         = Rad_6_to_Rad(SNS_PosData.Course);
-	double VelocityLat    = Ms_6_to_Ms (SNS_PosData.Vel_lat);
-	double VelocityLon    = Ms_6_to_Ms (SNS_PosData.Vel_lon);
-	double VelocityAlt    = Ms_6_to_Ms (SNS_PosData.Vel_alt);
+	double SNS_Lat        = Rad_12_to_Deg (SNS_PosData.Pos_lat);                       // Широта от СНС, град
+	double SNS_Lon        = Rad_12_to_Deg (SNS_PosData.Pos_lon);                       // Долгота от СНС, град
+	double SNS_Alt        = Meter_12_to_Meter (SNS_PosData.Pos_alt);                   // Высота от СНС, м
+	short  Map_Alt        = GetHeight_OnThisPoint(SNS_Lon, SNS_Lat, TRIANGULARTION);   // Высота рельефа в текущих координатах, м
+	double HeadingTrue    = Rad_6_to_Rad(SNS_Orientation.Heading_true);                // Истинный курс от СНС, рад
+	double HeadingMgn     = Rad_6_to_Rad(SNS_Orientation.Heading_mgn);                 // Магнитный курс от СНС, рад
+	double Pitch          = Rad_6_to_Rad(SNS_Orientation.Pitch);                       // Крен от СНС, рад
+	double Roll           = Rad_6_to_Rad(SNS_Orientation.Roll);                        // Тангаж от СНС, рад
+	double Course         = Rad_6_to_Rad(SNS_PosData.Course);                          // Путевой курс от СНС, рад
+	double VelocityLat    = Ms_6_to_Ms (SNS_PosData.Vel_lat);                          // Скорость по широте от СНС, м/с
+	double VelocityLon    = Ms_6_to_Ms (SNS_PosData.Vel_lon);                          // Скорость по долготе от СНС, м/с
+	double VelocityAlt    = Ms_6_to_Ms (SNS_PosData.Vel_alt);                          // Скорость снижения от СНС, м/с
 	
 	// Проверим доступна ли карта в текущей геолокации (если в данной точке карта недоступна, в Map_Alt будет лежать 0x7FFF)
 	// Сразу же обновляем соответствующий флаг в модуля самодиагностики
-	if(Map_Alt == 0x7FFF)
+	if(Map_Alt == MAP_NO_SOLUTION)
 		SelfTesting_SET_FAULT(ST_MapAvailability);
 	else
 		SelfTesting_SET_OK(ST_MapAvailability);
@@ -201,7 +200,7 @@ void M_Model_PrepareData (SNS_Position_Data_Response_Type SNS_PosData,
 	#endif //******************************************************************** !LOGS_ENABLE	
 	
 	
-	#ifdef DEBUG_VARS	//*************************************************************** Если активна отладка переменн
+	#ifdef DEBUG_VARS	//*************************************************************** Если активна отладка переменных
 		// Вывод общесистемной отладочной информации 
 		debug_vars.SNSalt            = SNS_PosData.Pos_alt;      // Высота в том виде в котором принимаем от СНС
 		debug_vars.rtU_XYZi_Lat      = SNS_Lat;                  // Широта преобразованная в градусы
@@ -282,33 +281,21 @@ void M_Model_Control (void)
 		if(rtY.cmdTouchDown == 0)
 		{
 			// Управление БИМами по выходу модели
-			// Обе стропы отпустить
-			if(rtY.directionOfRotation == 0.0)
-			{
-				M_Model_Cmd2BIM (rtY.tightenSling*rtY.directionOfRotation);
-			}
-			// Левая стропа
-			else if(rtY.directionOfRotation == -1.0)
-			{
-				M_Model_Cmd2BIM (rtY.tightenSling*rtY.directionOfRotation);
-			}
-			// Правая стропа
-			else if(rtY.directionOfRotation == 1.0)		
-			{
-				M_Model_Cmd2BIM (rtY.tightenSling*rtY.directionOfRotation);
-			}
+			M_Model_Cmd2BIM (rtY.tightenSling*rtY.directionOfRotation);
 		}
 		// Это команда на посадку 
 		else if (rtY.cmdTouchDown == 1)
 		{
+			// Переводим БИМЫ в состояние по умолчанию
+			M_Model_Cmd2BIM (0.0);
 			// Замок створки открыть
 			BLIND_CTRL_ON();
-			// Отключаем БИМы
-			BIM_Supply_OFF();
 			// Ждем 5 секунд
 			delay_us(5000000);
 			// Отключаем реле створки замка (нельзя удерживать дольше 10 секунд)
 			BLIND_CTRL_OFF();
+			// Отключаем БИМы
+			BIM_Supply_OFF();
 			// Повисаем в ожидании перезапуска
 			while(1);
 		}

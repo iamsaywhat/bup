@@ -183,7 +183,7 @@ SelfTesting_STATUS_TYPE SelfTesting_PreflightDiagnostics (void)
 	   || SelfTesting_STATUS(ST_25Q64FV)   == ST_FAULT 
 		 || SelfTesting_STATUS(ST_LogFS)     == ST_FAULT
 		 || SelfTesting_STATUS(ST_sns)       == ST_FAULT
-		 || SelfTesting_STATUS(ST_sws)       == ST_FAULT
+//		 || SelfTesting_STATUS(ST_sws)       == ST_FAULT
 	   || SelfTesting_STATUS(ST_pin1)      == ST_FAULT 	
 	   || SelfTesting_STATUS(ST_pin2)      == ST_FAULT )
 		{
@@ -224,7 +224,8 @@ SelfTesting_STATUS_TYPE SelfTesting_OnlineDiagnostics (void)
 	   || SelfTesting_STATUS(ST_25Q64FV)   == ST_FAULT 
 		 || SelfTesting_STATUS(ST_LogFS)     == ST_FAULT
 		 || SelfTesting_STATUS(ST_sns)       == ST_FAULT 
-		 || SelfTesting_STATUS(ST_sws)       == ST_FAULT  )
+//		 || SelfTesting_STATUS(ST_sws)       == ST_FAULT  
+	                                                     )
 		{
 			// Если хоть один из тестов отрицательный - сбрасываем флаг
 			status = ST_FAULT;
