@@ -3,9 +3,9 @@
  *
  * Code generated for Simulink model 'flightRegulatorCFB'.
  *
- * Model version                  : 1.1517
+ * Model version                  : 1.1519
  * Simulink Coder version         : 8.14 (R2018a) 06-Feb-2018
- * C/C++ source code generated on : Fri Aug  9 16:13:38 2019
+ * C/C++ source code generated on : Mon Sep  2 14:18:42 2019
  *
  * Target selection: ert.tlc
  * Embedded hardware selection: ARM Compatible->ARM Cortex
@@ -198,43 +198,40 @@ typedef struct {
   TurnModeType TurnMode;               /* '<S4>/angleRegulator' */
   angleCorrectionModeType angleCorrectionMode;/* '<S4>/distanceRegulator' */
   angleDoingModeType angleDoingMode;   /* '<S4>/distanceRegulator' */
-  struct {
-    uint_T is_flightMode:3;            /* '<S3>/parameter&#x421;alculation' */
-    uint_T is_c6_flightRegulatorCFB:2; /* '<S4>/holdingAngle' */
-    uint_T is_controlAngle:2;          /* '<S4>/distanceRegulator' */
-    uint_T is_resetOrder:2;            /* '<S4>/angleRegulator' */
-    uint_T is_calculationTimeTurn:2;   /* '<S4>/angleRegulator' */
-    uint_T is_updatePlan:2;            /* '<S3>/parameter&#x421;alculation' */
-    uint_T is_updateAngle:2;           /* '<S3>/parameter&#x421;alculation' */
-    uint_T is_azimutInCorridor:2;      /* '<S3>/parameter&#x421;alculation' */
-    uint_T is_mathBox:2;               /* '<S3>/parameter&#x421;alculation' */
-    uint_T is_criteriaDefinition:2;    /* '<S3>/parameter&#x421;alculation' */
-    uint_T is_mathChangePoint:2;       /* '<S3>/parameter&#x421;alculation' */
-    uint_T is_active_c6_flightRegulatorCFB:1;/* '<S4>/holdingAngle' */
-    uint_T is_active_c4_flightRegulatorCFB:1;/* '<S4>/distanceRegulator' */
-    uint_T is_active_c5_flightRegulatorCFB:1;/* '<S4>/angleRegulator' */
-    uint_T is_active_c1_flightRegulatorCFB:1;/* '<S3>/parameter&#x421;alculation' */
-    uint_T is_calculateDistance1:1;    /* '<S3>/parameter&#x421;alculation' */
-    uint_T is_active_calculateDistance1:1;/* '<S3>/parameter&#x421;alculation' */
-    uint_T is_changePoint1:1;          /* '<S3>/parameter&#x421;alculation' */
-    uint_T is_active_changePoint1:1;   /* '<S3>/parameter&#x421;alculation' */
-    uint_T is_active_updatePlan:1;     /* '<S3>/parameter&#x421;alculation' */
-    uint_T is_active_updateAngle:1;    /* '<S3>/parameter&#x421;alculation' */
-    uint_T is_active_azimutInCorridor:1;/* '<S3>/parameter&#x421;alculation' */
-    uint_T is_active_flightMode1:1;    /* '<S3>/parameter&#x421;alculation' */
-    uint_T is_active_points:1;         /* '<S3>/parameter&#x421;alculation' */
-    uint_T is_active_outControl:1;     /* '<S3>/parameter&#x421;alculation' */
-    uint_T is_active_flightMode:1;     /* '<S3>/parameter&#x421;alculation' */
-    uint_T is_active_mathBox:1;        /* '<S3>/parameter&#x421;alculation' */
-    uint_T is_active_criteriaDefinition:1;/* '<S3>/parameter&#x421;alculation' */
-    uint_T is_active_mathChangePoint:1;/* '<S3>/parameter&#x421;alculation' */
-    uint_T is_active_criteriaDefinition1:1;/* '<S3>/parameter&#x421;alculation' */
-    uint_T is_DinamicsDefinition:1;    /* '<S3>/parameter&#x421;alculation' */
-    uint_T is_active_DinamicsDefinition:1;/* '<S3>/parameter&#x421;alculation' */
-  } bitsForTID0;
-
+  uint8_T is_active_c6_flightRegulatorCFB;/* '<S4>/holdingAngle' */
+  uint8_T is_c6_flightRegulatorCFB;    /* '<S4>/holdingAngle' */
+  uint8_T is_active_c4_flightRegulatorCFB;/* '<S4>/distanceRegulator' */
+  uint8_T is_controlAngle;             /* '<S4>/distanceRegulator' */
   uint8_T temporalCounter_i1_f;        /* '<S4>/distanceRegulator' */
   uint8_T temporalCounter_i2_b;        /* '<S4>/distanceRegulator' */
+  uint8_T is_active_c5_flightRegulatorCFB;/* '<S4>/angleRegulator' */
+  uint8_T is_resetOrder;               /* '<S4>/angleRegulator' */
+  uint8_T is_calculationTimeTurn;      /* '<S4>/angleRegulator' */
+  uint8_T is_active_c1_flightRegulatorCFB;/* '<S3>/parameter&#x421;alculation' */
+  uint8_T is_calculateDistance1;       /* '<S3>/parameter&#x421;alculation' */
+  uint8_T is_active_calculateDistance1;/* '<S3>/parameter&#x421;alculation' */
+  uint8_T is_changePoint1;             /* '<S3>/parameter&#x421;alculation' */
+  uint8_T is_active_changePoint1;      /* '<S3>/parameter&#x421;alculation' */
+  uint8_T is_updatePlan;               /* '<S3>/parameter&#x421;alculation' */
+  uint8_T is_active_updatePlan;        /* '<S3>/parameter&#x421;alculation' */
+  uint8_T is_updateAngle;              /* '<S3>/parameter&#x421;alculation' */
+  uint8_T is_active_updateAngle;       /* '<S3>/parameter&#x421;alculation' */
+  uint8_T is_azimutInCorridor;         /* '<S3>/parameter&#x421;alculation' */
+  uint8_T is_active_azimutInCorridor;  /* '<S3>/parameter&#x421;alculation' */
+  uint8_T is_active_flightMode1;       /* '<S3>/parameter&#x421;alculation' */
+  uint8_T is_active_points;            /* '<S3>/parameter&#x421;alculation' */
+  uint8_T is_active_outControl;        /* '<S3>/parameter&#x421;alculation' */
+  uint8_T is_flightMode;               /* '<S3>/parameter&#x421;alculation' */
+  uint8_T is_active_flightMode;        /* '<S3>/parameter&#x421;alculation' */
+  uint8_T is_mathBox;                  /* '<S3>/parameter&#x421;alculation' */
+  uint8_T is_active_mathBox;           /* '<S3>/parameter&#x421;alculation' */
+  uint8_T is_criteriaDefinition;       /* '<S3>/parameter&#x421;alculation' */
+  uint8_T is_active_criteriaDefinition;/* '<S3>/parameter&#x421;alculation' */
+  uint8_T is_mathChangePoint;          /* '<S3>/parameter&#x421;alculation' */
+  uint8_T is_active_mathChangePoint;   /* '<S3>/parameter&#x421;alculation' */
+  uint8_T is_active_criteriaDefinition1;/* '<S3>/parameter&#x421;alculation' */
+  uint8_T is_DinamicsDefinition;       /* '<S3>/parameter&#x421;alculation' */
+  uint8_T is_active_DinamicsDefinition;/* '<S3>/parameter&#x421;alculation' */
   uint8_T temporalCounter_i1_e;        /* '<S3>/parameter&#x421;alculation' */
   uint8_T temporalCounter_i3;          /* '<S3>/parameter&#x421;alculation' */
   uint8_T temporalCounter_i4;          /* '<S3>/parameter&#x421;alculation' */
@@ -361,22 +358,22 @@ extern RT_MODEL *const rtM;
  * MATLAB hilite_system command to trace the generated code back
  * to the parent model.  For example,
  *
- * hilite_system('maketKinematic25/flightRegulatorCFB')    - opens subsystem maketKinematic25/flightRegulatorCFB
- * hilite_system('maketKinematic25/flightRegulatorCFB/Kp') - opens and selects block Kp
+ * hilite_system('maketKinematic26/flightRegulatorCFB')    - opens subsystem maketKinematic26/flightRegulatorCFB
+ * hilite_system('maketKinematic26/flightRegulatorCFB/Kp') - opens and selects block Kp
  *
  * Here is the system hierarchy for this model
  *
- * '<Root>' : 'maketKinematic25'
- * '<S1>'   : 'maketKinematic25/flightRegulatorCFB'
- * '<S2>'   : 'maketKinematic25/flightRegulatorCFB/Model Info'
- * '<S3>'   : 'maketKinematic25/flightRegulatorCFB/Subsystem'
- * '<S4>'   : 'maketKinematic25/flightRegulatorCFB/regulator'
- * '<S5>'   : 'maketKinematic25/flightRegulatorCFB/touchDown'
- * '<S6>'   : 'maketKinematic25/flightRegulatorCFB/Subsystem/parameter&#x421;alculation'
- * '<S7>'   : 'maketKinematic25/flightRegulatorCFB/regulator/angleRegulator'
- * '<S8>'   : 'maketKinematic25/flightRegulatorCFB/regulator/distanceRegulator'
- * '<S9>'   : 'maketKinematic25/flightRegulatorCFB/regulator/holdingAngle'
- * '<S10>'  : 'maketKinematic25/flightRegulatorCFB/touchDown/Compare To Constant1'
+ * '<Root>' : 'maketKinematic26'
+ * '<S1>'   : 'maketKinematic26/flightRegulatorCFB'
+ * '<S2>'   : 'maketKinematic26/flightRegulatorCFB/Model Info'
+ * '<S3>'   : 'maketKinematic26/flightRegulatorCFB/Subsystem'
+ * '<S4>'   : 'maketKinematic26/flightRegulatorCFB/regulator'
+ * '<S5>'   : 'maketKinematic26/flightRegulatorCFB/touchDown'
+ * '<S6>'   : 'maketKinematic26/flightRegulatorCFB/Subsystem/parameter&#x421;alculation'
+ * '<S7>'   : 'maketKinematic26/flightRegulatorCFB/regulator/angleRegulator'
+ * '<S8>'   : 'maketKinematic26/flightRegulatorCFB/regulator/distanceRegulator'
+ * '<S9>'   : 'maketKinematic26/flightRegulatorCFB/regulator/holdingAngle'
+ * '<S10>'  : 'maketKinematic26/flightRegulatorCFB/touchDown/Compare To Constant1'
  */
 #endif                                 /* RTW_HEADER_flightRegulatorCFB_h_ */
 

@@ -58,8 +58,7 @@ int main(void)
 	
 	// Запускаем фул-тест системы
 	SelfTestingFull();
-	
-	
+
 //////////////
 //	BIM_Supply_ON();
 //	

@@ -175,12 +175,13 @@ void M_Model_PrepareData (SNS_Position_Data_Response_Type SNS_PosData,
 	
 	// Проверим доступна ли карта в текущей геолокации (если в данной точке карта недоступна, в Map_Alt будет лежать 0x7FFF)
 	// Сразу же обновляем соответствующий флаг в модуля самодиагностики
-	if(Map_Alt == MAP_NO_SOLUTION)
-		SelfTesting_SET_FAULT(ST_MapAvailability);
-	else
-		SelfTesting_SET_OK(ST_MapAvailability);
+//	if(Map_Alt == MAP_NO_SOLUTION)
+//		SelfTesting_SET_FAULT(ST_MapAvailability);
+//	else
+//		SelfTesting_SET_OK(ST_MapAvailability);
+	SelfTesting_MapAvailability (SNS_Lat, SNS_Lon);
 	
-	#ifdef LOGS_ENABLE  //******************************************************* Если включено логирование в черный ящик
+		#ifdef LOGS_ENABLE  //******************************************************* Если включено логирование в черный ящик
 		printf("Model_Lat, deg: %f\n",         SNS_Lat);
 		printf("Model_Lon, deg: %f\n",         SNS_Lon);
 		printf("Model_Alt, m: %f\n",           SNS_Alt);
@@ -198,8 +199,8 @@ void M_Model_PrepareData (SNS_Position_Data_Response_Type SNS_PosData,
 		else
 			printf("MAP: NOT_AVAILABLE\n");
 	#endif //******************************************************************** !LOGS_ENABLE	
-	
-	
+
+
 	#ifdef DEBUG_VARS	//*************************************************************** Если активна отладка переменных
 		// Вывод общесистемной отладочной информации 
 		debug_vars.SNSalt            = SNS_PosData.Pos_alt;      // Высота в том виде в котором принимаем от СНС
@@ -262,6 +263,8 @@ void M_Model_PrepareData (SNS_Position_Data_Response_Type SNS_PosData,
 
 	// Данные были обновлены, сообщаем об этом Мат. модели
 	M_Model_Need2UpdateReset();
+	
+
 }
 
 

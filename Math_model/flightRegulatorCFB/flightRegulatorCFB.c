@@ -3,9 +3,9 @@
  *
  * Code generated for Simulink model 'flightRegulatorCFB'.
  *
- * Model version                  : 1.1517
+ * Model version                  : 1.1519
  * Simulink Coder version         : 8.14 (R2018a) 06-Feb-2018
- * C/C++ source code generated on : Fri Aug  9 16:13:38 2019
+ * C/C++ source code generated on : Mon Sep  2 14:18:42 2019
  *
  * Target selection: ert.tlc
  * Embedded hardware selection: ARM Compatible->ARM Cortex
@@ -317,9 +317,9 @@ real32_T rtGetMinusInfF(void)
 /* Function for Chart: '<S3>/parameter&#x421;alculation' */
 static void changePoint1(void)
 {
-  if (!((rtDW.bitsForTID0.is_changePoint1 != IN_math) || (!(rtDW.sfEvent ==
+  if (!((rtDW.is_changePoint1 != IN_math) || (!(rtDW.sfEvent ==
          event_eventChangePoint)))) {
-    rtDW.bitsForTID0.is_changePoint1 = IN_math;
+    rtDW.is_changePoint1 = IN_math;
     rtDW.phi1 = rtDW.phiC;
     rtDW.la1 = rtDW.laC;
   }
@@ -364,7 +364,7 @@ real_T rt_atan2d_snf(real_T u0, real_T u1)
 /* Function for Chart: '<S3>/parameter&#x421;alculation' */
 static void calculateDistance1(void)
 {
-  if (rtDW.bitsForTID0.is_calculateDistance1 == IN_math) {
+  if (rtDW.is_calculateDistance1 == IN_math) {
     rtDW.phiC = rtDW.TmpSignalConversionAtSFunctionI[0];
     rtDW.laC = rtDW.TmpSignalConversionAtSFunctionI[1];
     rtDW.phiB = rtDW.TmpSignalConversionAtSFunctio_j[0];
@@ -390,18 +390,18 @@ static void calculateDistance1(void)
 /* Function for Chart: '<S3>/parameter&#x421;alculation' */
 static void azimutInCorridor(void)
 {
-  switch (rtDW.bitsForTID0.is_azimutInCorridor) {
+  switch (rtDW.is_azimutInCorridor) {
    case IN_inCorridor:
     /* Inport: '<Root>/angle' */
     if (fabs(rtU.angle - rtDW.azimutB) > rtDW.angleCorridor) {
-      rtDW.bitsForTID0.is_azimutInCorridor = IN_noCorridor;
+      rtDW.is_azimutInCorridor = IN_noCorridor;
     }
     break;
 
    case IN_noCorridor:
     /* Inport: '<Root>/angle' */
     if (fabs(rtU.angle - rtDW.azimutB) < rtDW.angleCorridor) {
-      rtDW.bitsForTID0.is_azimutInCorridor = IN_inCorridor;
+      rtDW.is_azimutInCorridor = IN_inCorridor;
     }
     break;
   }
@@ -410,16 +410,16 @@ static void azimutInCorridor(void)
 /* Function for Chart: '<S3>/parameter&#x421;alculation' */
 static void updateAngle(void)
 {
-  switch (rtDW.bitsForTID0.is_updateAngle) {
+  switch (rtDW.is_updateAngle) {
    case IN_angleUpdate:
     if ((rtDW.sfEvent == CALL_EVENT) && (rtDW.temporalCounter_i1_e >= 2)) {
-      if (rtDW.bitsForTID0.is_updateAngle == IN_angleUpdate) {
+      if (rtDW.is_updateAngle == IN_angleUpdate) {
         rtDW.orderAngle_g = 0.0;
-        rtDW.bitsForTID0.is_updateAngle = IN_NO_ACTIVE_CHILD;
+        rtDW.is_updateAngle = IN_NO_ACTIVE_CHILD;
       }
 
-      if (rtDW.bitsForTID0.is_updateAngle != IN_update) {
-        rtDW.bitsForTID0.is_updateAngle = IN_update;
+      if (rtDW.is_updateAngle != IN_update) {
+        rtDW.is_updateAngle = IN_update;
         rtDW.temporalCounter_i1_e = 0U;
       }
     }
@@ -427,7 +427,7 @@ static void updateAngle(void)
 
    case IN_update:
     if ((rtDW.sfEvent == CALL_EVENT) && (rtDW.temporalCounter_i1_e >= 10)) {
-      rtDW.bitsForTID0.is_updateAngle = IN_angleUpdate;
+      rtDW.is_updateAngle = IN_angleUpdate;
       rtDW.temporalCounter_i1_e = 0U;
       rtDW.orderAngle_g = 1.0;
     }
@@ -476,14 +476,14 @@ static void flightMode1(void)
 
        case event_flightBox:
         rtDW.flightMode1Mode = flightMode1ModeType_flightBox;
-        rtDW.bitsForTID0.is_active_points = 1;
+        rtDW.is_active_points = 1U;
         rtDW.isFlightBox = 1.0;
         if (!(rtDW.pointsMode == pointsModeType_startBox)) {
           rtDW.pointsMode = pointsModeType_startBox;
         }
 
-        if (rtDW.bitsForTID0.is_active_outControl != 1U) {
-          rtDW.bitsForTID0.is_active_outControl = 1;
+        if (rtDW.is_active_outControl != 1U) {
+          rtDW.is_active_outControl = 1U;
         }
         break;
 
@@ -504,14 +504,14 @@ static void flightMode1(void)
 
        case event_flightBox:
         rtDW.flightMode1Mode = flightMode1ModeType_flightBox;
-        rtDW.bitsForTID0.is_active_points = 1;
+        rtDW.is_active_points = 1U;
         rtDW.isFlightBox = 1.0;
         if (!(rtDW.pointsMode == pointsModeType_startBox)) {
           rtDW.pointsMode = pointsModeType_startBox;
         }
 
-        if (rtDW.bitsForTID0.is_active_outControl != 1U) {
-          rtDW.bitsForTID0.is_active_outControl = 1;
+        if (rtDW.is_active_outControl != 1U) {
+          rtDW.is_active_outControl = 1U;
         }
         break;
 
@@ -524,13 +524,13 @@ static void flightMode1(void)
 
    case flightMode1ModeType_flightBox:
     if (rtDW.sfEvent == event_finishLine) {
-      rtDW.bitsForTID0.is_active_outControl = 0;
+      rtDW.is_active_outControl = 0U;
       rtDW.pointsMode = pointsModeType_None;
-      rtDW.bitsForTID0.is_active_points = 0;
+      rtDW.is_active_points = 0U;
       rtDW.flightMode1Mode = flightMode1ModeType_finishLine;
       rtDW.orderAngle_g = 1.0;
     } else {
-      if (rtDW.bitsForTID0.is_active_points != 0U) {
+      if (rtDW.is_active_points != 0U) {
         switch (rtDW.pointsMode) {
          case pointsModeType_startBox:
           rtDW.pointsMode = pointsModeType_goToPoint1;
@@ -625,7 +625,7 @@ static void flightMode1(void)
         }
       }
 
-      if (rtDW.bitsForTID0.is_active_outControl != 0U) {
+      if (rtDW.is_active_outControl != 0U) {
         rtDW.outAngle_h = rtDW.azimut;
         rtDW.flatX1 = 0.0;
         rtDW.flatY1 = 0.0;
@@ -651,14 +651,14 @@ static void flightMode1(void)
         rtDW.flightMode1Mode = flightMode1ModeType_flightTurning;
       } else if (rtDW.sfEvent == event_flightBox) {
         rtDW.flightMode1Mode = flightMode1ModeType_flightBox;
-        rtDW.bitsForTID0.is_active_points = 1;
+        rtDW.is_active_points = 1U;
         rtDW.isFlightBox = 1.0;
         if (!(rtDW.pointsMode == pointsModeType_startBox)) {
           rtDW.pointsMode = pointsModeType_startBox;
         }
 
-        if (rtDW.bitsForTID0.is_active_outControl != 1U) {
-          rtDW.bitsForTID0.is_active_outControl = 1;
+        if (rtDW.is_active_outControl != 1U) {
+          rtDW.is_active_outControl = 1U;
         }
       } else if (rtDW.sfEvent == event_flightLine) {
         rtDW.flightMode1Mode = flightMode1ModeType_flightLine;
@@ -757,23 +757,23 @@ static void c1_flightRegulatorCFB(void)
    *  Outport: '<Root>/tx'
    *  Outport: '<Root>/tz'
    */
-  if (rtDW.bitsForTID0.is_active_c1_flightRegulatorCFB == 0U) {
-    rtDW.bitsForTID0.is_active_c1_flightRegulatorCFB = 1;
-    if (rtDW.bitsForTID0.is_active_changePoint1 != 1U) {
-      rtDW.bitsForTID0.is_active_changePoint1 = 1;
+  if (rtDW.is_active_c1_flightRegulatorCFB == 0U) {
+    rtDW.is_active_c1_flightRegulatorCFB = 1U;
+    if (rtDW.is_active_changePoint1 != 1U) {
+      rtDW.is_active_changePoint1 = 1U;
     }
 
     rtDW.phi1 = rtDW.TmpSignalConversionAtSFunctionI[0];
     rtDW.la1 = rtDW.TmpSignalConversionAtSFunctionI[1];
     rtDW.phiC = rtDW.phi1;
     rtDW.laC = rtDW.la2;
-    if (rtDW.bitsForTID0.is_changePoint1 != IN_math) {
-      rtDW.bitsForTID0.is_changePoint1 = IN_math;
+    if (rtDW.is_changePoint1 != IN_math) {
+      rtDW.is_changePoint1 = IN_math;
       rtDW.la1 = rtDW.laC;
     }
 
-    if (rtDW.bitsForTID0.is_active_calculateDistance1 != 1U) {
-      rtDW.bitsForTID0.is_active_calculateDistance1 = 1;
+    if (rtDW.is_active_calculateDistance1 != 1U) {
+      rtDW.is_active_calculateDistance1 = 1U;
     }
 
     rtDW.phiC = rtDW.TmpSignalConversionAtSFunctionI[0];
@@ -784,90 +784,90 @@ static void c1_flightRegulatorCFB(void)
     rtDW.laB = rtDW.TmpSignalConversionAtSFunctio_j[1];
     rtDW.flatX1 = 0.0;
     rtDW.flatY1 = 0.0;
-    if (rtDW.bitsForTID0.is_calculateDistance1 != IN_math) {
-      rtDW.bitsForTID0.is_calculateDistance1 = IN_math;
+    if (rtDW.is_calculateDistance1 != IN_math) {
+      rtDW.is_calculateDistance1 = IN_math;
     }
 
-    rtDW.bitsForTID0.is_active_azimutInCorridor = 1;
-    if (rtDW.bitsForTID0.is_azimutInCorridor != IN_noCorridor) {
-      rtDW.bitsForTID0.is_azimutInCorridor = IN_noCorridor;
+    rtDW.is_active_azimutInCorridor = 1U;
+    if (rtDW.is_azimutInCorridor != IN_noCorridor) {
+      rtDW.is_azimutInCorridor = IN_noCorridor;
     }
 
-    rtDW.bitsForTID0.is_active_updateAngle = 1;
-    if (rtDW.bitsForTID0.is_updateAngle != IN_update) {
-      rtDW.bitsForTID0.is_updateAngle = IN_update;
+    rtDW.is_active_updateAngle = 1U;
+    if (rtDW.is_updateAngle != IN_update) {
+      rtDW.is_updateAngle = IN_update;
       rtDW.temporalCounter_i1_e = 0U;
     }
 
-    rtDW.bitsForTID0.is_active_flightMode = 1;
-    if (rtDW.bitsForTID0.is_flightMode != IN_flightTurning) {
-      rtDW.bitsForTID0.is_flightMode = IN_flightTurning;
+    rtDW.is_active_flightMode = 1U;
+    if (rtDW.is_flightMode != IN_flightTurning) {
+      rtDW.is_flightMode = IN_flightTurning;
       rtDW.temporalCounter_i3 = 0U;
       broadcast_flightLine();
-      if (rtDW.bitsForTID0.is_flightMode == IN_flightTurning) {
+      if (rtDW.is_flightMode == IN_flightTurning) {
         rtDW.orderAngle_g = 1.0;
       }
     }
 
-    rtDW.bitsForTID0.is_active_criteriaDefinition = 1;
-    if (rtDW.bitsForTID0.is_criteriaDefinition != IN_desicion) {
-      rtDW.bitsForTID0.is_criteriaDefinition = IN_desicion;
+    rtDW.is_active_criteriaDefinition = 1U;
+    if (rtDW.is_criteriaDefinition != IN_desicion) {
+      rtDW.is_criteriaDefinition = IN_desicion;
     }
 
-    rtDW.bitsForTID0.is_active_flightMode1 = 1;
+    rtDW.is_active_flightMode1 = 1U;
     rtDW.flightMode1Mode = flightMode1ModeType_flightStart;
-    rtDW.bitsForTID0.is_active_updatePlan = 1;
+    rtDW.is_active_updatePlan = 1U;
     rtDW.phi2 = rtDW.TmpSignalConversionAtSFunctio_j[0];
     rtDW.la2 = rtDW.TmpSignalConversionAtSFunctio_j[1];
-    if (rtDW.bitsForTID0.is_updatePlan != IN_math) {
-      rtDW.bitsForTID0.is_updatePlan = IN_math;
+    if (rtDW.is_updatePlan != IN_math) {
+      rtDW.is_updatePlan = IN_math;
     }
 
-    rtDW.bitsForTID0.is_active_criteriaDefinition1 = 1;
+    rtDW.is_active_criteriaDefinition1 = 1U;
     if (!(rtDW.criteriaDefinition1Mode == criteriaDefinition1ModeType_desicion))
     {
       rtDW.criteriaDefinition1Mode = criteriaDefinition1ModeType_desicion;
     }
 
-    if (rtDW.bitsForTID0.is_active_mathBox != 1U) {
-      rtDW.bitsForTID0.is_active_mathBox = 1;
+    if (rtDW.is_active_mathBox != 1U) {
+      rtDW.is_active_mathBox = 1U;
     }
 
-    if (rtDW.bitsForTID0.is_mathBox != IN_math_d) {
-      rtDW.bitsForTID0.is_mathBox = IN_math_d;
+    if (rtDW.is_mathBox != IN_math_d) {
+      rtDW.is_mathBox = IN_math_d;
     }
 
-    if (rtDW.bitsForTID0.is_active_DinamicsDefinition != 1U) {
-      rtDW.bitsForTID0.is_active_DinamicsDefinition = 1;
+    if (rtDW.is_active_DinamicsDefinition != 1U) {
+      rtDW.is_active_DinamicsDefinition = 1U;
     }
 
-    if (rtDW.bitsForTID0.is_DinamicsDefinition != IN_angleMath) {
-      rtDW.bitsForTID0.is_DinamicsDefinition = IN_angleMath;
+    if (rtDW.is_DinamicsDefinition != IN_angleMath) {
+      rtDW.is_DinamicsDefinition = IN_angleMath;
     }
 
-    rtDW.bitsForTID0.is_active_mathChangePoint = 1;
-    if (rtDW.bitsForTID0.is_mathChangePoint != IN_wait) {
-      rtDW.bitsForTID0.is_mathChangePoint = IN_wait;
+    rtDW.is_active_mathChangePoint = 1U;
+    if (rtDW.is_mathChangePoint != IN_wait) {
+      rtDW.is_mathChangePoint = IN_wait;
     }
   } else {
-    if (rtDW.bitsForTID0.is_active_changePoint1 != 0U) {
+    if (rtDW.is_active_changePoint1 != 0U) {
       changePoint1();
     }
 
-    if (rtDW.bitsForTID0.is_active_calculateDistance1 != 0U) {
+    if (rtDW.is_active_calculateDistance1 != 0U) {
       calculateDistance1();
     }
 
-    if (rtDW.bitsForTID0.is_active_azimutInCorridor != 0U) {
+    if (rtDW.is_active_azimutInCorridor != 0U) {
       azimutInCorridor();
     }
 
-    if (rtDW.bitsForTID0.is_active_updateAngle != 0U) {
+    if (rtDW.is_active_updateAngle != 0U) {
       updateAngle();
     }
 
-    if (rtDW.bitsForTID0.is_active_flightMode != 0U) {
-      switch (rtDW.bitsForTID0.is_flightMode) {
+    if (rtDW.is_active_flightMode != 0U) {
+      switch (rtDW.is_flightMode) {
        case IN_finishLine:
         rtDW.isOffFlightTurning = 0.0;
         rtDW.orderAngle_g = 1.0;
@@ -876,7 +876,7 @@ static void c1_flightRegulatorCFB(void)
        case IN_flightBox:
         if (rtDW.tD < rtDW.tdMinFinish) {
           rtDW.orderAngle_g = 1.0;
-          rtDW.bitsForTID0.is_flightMode = IN_finishLine;
+          rtDW.is_flightMode = IN_finishLine;
           enter_atomic_finishLine();
         } else {
           rtDW.isOffFlightTurning = 1.0;
@@ -887,7 +887,7 @@ static void c1_flightRegulatorCFB(void)
        case IN_flightLine:
         if ((rtDW.tD > rtDW.tdMinBox) && (rtDW.outDistanceB <
              rtDW.distanceStartBox) && (rtDW.boxAllow != 0.0)) {
-          rtDW.bitsForTID0.is_flightMode = IN_flightBox;
+          rtDW.is_flightMode = IN_flightBox;
           b_previousEvent = rtDW.sfEvent;
           rtDW.sfEvent = event_flightBox;
           c1_flightRegulatorCFB();
@@ -895,7 +895,7 @@ static void c1_flightRegulatorCFB(void)
         } else {
           if ((rtDW.outDistanceB < rtDW.distanceStartBox) && (!(rtDW.boxAllow !=
                 0.0))) {
-            rtDW.bitsForTID0.is_flightMode = IN_finishLine;
+            rtDW.is_flightMode = IN_finishLine;
             enter_atomic_finishLine();
           }
         }
@@ -904,20 +904,20 @@ static void c1_flightRegulatorCFB(void)
        case IN_flightTurning:
         if ((rtDW.sfEvent == CALL_EVENT) && (rtDW.temporalCounter_i3 >= 2)) {
           rtDW.isOffFlightTurning = 1.0;
-          rtDW.bitsForTID0.is_flightMode = IN_flightLine;
+          rtDW.is_flightMode = IN_flightLine;
           broadcast_flightLine();
         }
         break;
       }
     }
 
-    if (rtDW.bitsForTID0.is_active_criteriaDefinition != 0U) {
+    if (rtDW.is_active_criteriaDefinition != 0U) {
       guard1 = false;
-      switch (rtDW.bitsForTID0.is_criteriaDefinition) {
+      switch (rtDW.is_criteriaDefinition) {
        case IN_checkOrderAngle:
         if ((rtDW.sfEvent == CALL_EVENT) && (rtDW.temporalCounter_i4 >= 1)) {
           rtDW.orderAngle_g = 0.0;
-          rtDW.bitsForTID0.is_criteriaDefinition = IN_desicion;
+          rtDW.is_criteriaDefinition = IN_desicion;
         }
         break;
 
@@ -934,24 +934,24 @@ static void c1_flightRegulatorCFB(void)
       }
 
       if (guard1) {
-        rtDW.bitsForTID0.is_criteriaDefinition = IN_checkOrderAngle;
+        rtDW.is_criteriaDefinition = IN_checkOrderAngle;
         rtDW.temporalCounter_i4 = 0U;
       }
     }
 
-    if (rtDW.bitsForTID0.is_active_flightMode1 != 0U) {
+    if (rtDW.is_active_flightMode1 != 0U) {
       flightMode1();
     }
 
-    if (rtDW.bitsForTID0.is_active_updatePlan != 0U) {
-      switch (rtDW.bitsForTID0.is_updatePlan) {
+    if (rtDW.is_active_updatePlan != 0U) {
+      switch (rtDW.is_updatePlan) {
        case IN_math:
         if (rtDW.changePoint != 0.0) {
-          rtDW.bitsForTID0.is_updatePlan = IN_math1;
+          rtDW.is_updatePlan = IN_math1;
           enter_atomic_math1();
         } else if ((rtDW.last_phi2 != rtDW.phi2) || (rtDW.last_la2 != rtDW.la2))
         {
-          rtDW.bitsForTID0.is_updatePlan = IN_math2;
+          rtDW.is_updatePlan = IN_math2;
         } else {
           rtDW.phi2 = rtDW.TmpSignalConversionAtSFunctio_j[0];
           rtDW.la2 = rtDW.TmpSignalConversionAtSFunctio_j[1];
@@ -959,17 +959,17 @@ static void c1_flightRegulatorCFB(void)
         break;
 
        case IN_math1:
-        rtDW.bitsForTID0.is_updatePlan = IN_math;
+        rtDW.is_updatePlan = IN_math;
         break;
 
        case IN_math2:
-        rtDW.bitsForTID0.is_updatePlan = IN_math1;
+        rtDW.is_updatePlan = IN_math1;
         enter_atomic_math1();
         break;
       }
     }
 
-    if (!((rtDW.bitsForTID0.is_active_criteriaDefinition1 == 0U) ||
+    if (!((rtDW.is_active_criteriaDefinition1 == 0U) ||
           (rtDW.criteriaDefinition1Mode != criteriaDefinition1ModeType_desicion)))
     {
       rtDW.outDistanceAB = distanceFromLine((rtDW.phiC - rtDW.phi1) *
@@ -984,10 +984,9 @@ static void c1_flightRegulatorCFB(void)
       rtDW.tD = rtY.tz / rtY.tx;
     }
 
-    if ((rtDW.bitsForTID0.is_active_mathBox != 0U) &&
-        (rtDW.bitsForTID0.is_mathBox == IN_math_d)) {
+    if ((rtDW.is_active_mathBox != 0U) && (rtDW.is_mathBox == IN_math_d)) {
       if ((rtDW.isFlightBox != 0.0) && (rtDW.isCalcBox != 0.0)) {
-        rtDW.bitsForTID0.is_mathBox = IN_flyingBox;
+        rtDW.is_mathBox = IN_flyingBox;
       } else {
         boxPoints_tmp = rtDW.sideBox / rtDW.radEarth;
         boxPoints_tmp_0 = rtDW.phiB - boxPoints_tmp;
@@ -1006,21 +1005,21 @@ static void c1_flightRegulatorCFB(void)
       }
     }
 
-    if (!((rtDW.bitsForTID0.is_active_DinamicsDefinition == 0U) ||
-          (rtDW.bitsForTID0.is_DinamicsDefinition != IN_angleMath))) {
+    if (!((rtDW.is_active_DinamicsDefinition == 0U) ||
+          (rtDW.is_DinamicsDefinition != IN_angleMath))) {
       rtDW.angleVelocity = fabs(cutAngle(rtU.angle - rtDW.angleLast)) /
         rtDW.TdReg1;
       rtY.angleVelocity = rtDW.angleVelocity * 180.0 / 3.1415926535897931;
       rtDW.angleLast = rtU.angle;
     }
 
-    if (rtDW.bitsForTID0.is_active_mathChangePoint != 0U) {
-      switch (rtDW.bitsForTID0.is_mathChangePoint) {
+    if (rtDW.is_active_mathChangePoint != 0U) {
+      switch (rtDW.is_mathChangePoint) {
        case IN_desicion1:
         if ((rtDW.sfEvent == CALL_EVENT) && (rtDW.temporalCounter_i5 >= 1)) {
           rtDW.changePoint = 0.0;
           rtDW.orderAngle_g = 0.0;
-          rtDW.bitsForTID0.is_mathChangePoint = IN_wait;
+          rtDW.is_mathChangePoint = IN_wait;
         }
         break;
 
@@ -1028,7 +1027,7 @@ static void c1_flightRegulatorCFB(void)
         if ((fabs(rtDW.outDistanceAB) > rtDW.overDistanceAB) &&
             (rtDW.isFlightBox == 0.0)) {
           rtDW.orderAngle_g = 1.0;
-          rtDW.bitsForTID0.is_mathChangePoint = IN_desicion1;
+          rtDW.is_mathChangePoint = IN_desicion1;
           rtDW.temporalCounter_i5 = 0U;
           rtDW.changePoint = 1.0;
         }
@@ -1306,21 +1305,14 @@ void flightRegulatorCFB_step(void)
 {
   real_T ncA;
   real_T nsA;
-  real_T angleCorridor;
+  int16_T rtb_DataTypeConversion11;
+  real_T rtb_Add;
+  real_T rtb_Switch2;
   int16_T rtb_DataTypeConversion11_0;
   int32_T tmp;
   boolean_T guard1 = false;
 
   /* Outputs for Atomic SubSystem: '<Root>/flightRegulatorCFB' */
-  /* SignalConversion: '<S6>/TmpSignal ConversionAt SFunction Inport1' incorporates:
-   *  Chart: '<S3>/parameter&#x421;alculation'
-   *  Gain: '<S1>/Gain5'
-   *  Gain: '<S1>/Gain6'
-   *  Inport: '<Root>/XYZi'
-   */
-  rtDW.TmpSignalConversionAtSFunctionI[0] = 0.017453292519943295 * rtU.XYZi[0];
-  rtDW.TmpSignalConversionAtSFunctionI[1] = 0.017453292519943295 * rtU.XYZi[1];
-
   /* Switch: '<S1>/Switch' incorporates:
    *  Constant: '<S1>/Constant4'
    *  Inport: '<Root>/HighDigitalTerrain'
@@ -1334,12 +1326,20 @@ void flightRegulatorCFB_step(void)
 
   /* End of Switch: '<S1>/Switch' */
 
+  /* Sum: '<S1>/Add' incorporates:
+   *  Inport: '<Root>/XYZi'
+   */
+  rtb_Add = rtU.XYZi[2] - ncA;
+
   /* SignalConversion: '<S6>/TmpSignal ConversionAt SFunction Inport1' incorporates:
    *  Chart: '<S3>/parameter&#x421;alculation'
+   *  Gain: '<S1>/Gain5'
+   *  Gain: '<S1>/Gain6'
    *  Inport: '<Root>/XYZi'
-   *  Sum: '<S1>/Add'
    */
-  rtDW.TmpSignalConversionAtSFunctionI[2] = rtU.XYZi[2] - ncA;
+  rtDW.TmpSignalConversionAtSFunctionI[0] = 0.017453292519943295 * rtU.XYZi[0];
+  rtDW.TmpSignalConversionAtSFunctionI[1] = 0.017453292519943295 * rtU.XYZi[1];
+  rtDW.TmpSignalConversionAtSFunctionI[2] = rtb_Add;
 
   /* SignalConversion: '<S6>/TmpSignal ConversionAt SFunction Inport2' incorporates:
    *  Chart: '<S3>/parameter&#x421;alculation'
@@ -1378,21 +1378,21 @@ void flightRegulatorCFB_step(void)
   c1_flightRegulatorCFB();
 
   /* DataTypeConversion: '<S1>/Data Type Conversion11' */
-  rtY.distanceAB = (int16_T)floor(rtDW.outDistanceAB);
+  rtb_DataTypeConversion11 = (int16_T)floor(rtDW.outDistanceAB);
 
   /* Chart: '<S4>/holdingAngle' */
-  if (rtDW.bitsForTID0.is_active_c6_flightRegulatorCFB == 0U) {
-    rtDW.bitsForTID0.is_active_c6_flightRegulatorCFB = 1;
+  if (rtDW.is_active_c6_flightRegulatorCFB == 0U) {
+    rtDW.is_active_c6_flightRegulatorCFB = 1U;
     rtDW.outAngle = rtDW.outAngle_h;
-    rtDW.bitsForTID0.is_c6_flightRegulatorCFB = IN_angleCorrection;
-  } else if (rtDW.bitsForTID0.is_c6_flightRegulatorCFB == IN_angleCorrection) {
+    rtDW.is_c6_flightRegulatorCFB = IN_angleCorrection;
+  } else if (rtDW.is_c6_flightRegulatorCFB == IN_angleCorrection) {
     if (rtDW.orderAngle_g == 1.0) {
       rtDW.outAngle = rtDW.outAngle_h;
-      rtDW.bitsForTID0.is_c6_flightRegulatorCFB = IN_angleCorrection1;
+      rtDW.is_c6_flightRegulatorCFB = IN_angleCorrection1;
     }
   } else {
     if (rtDW.orderAngle_g == 0.0) {
-      rtDW.bitsForTID0.is_c6_flightRegulatorCFB = IN_angleCorrection;
+      rtDW.is_c6_flightRegulatorCFB = IN_angleCorrection;
     }
   }
 
@@ -1407,25 +1407,25 @@ void flightRegulatorCFB_step(void)
     rtDW.temporalCounter_i2_b++;
   }
 
-  if (rtDW.bitsForTID0.is_active_c4_flightRegulatorCFB == 0U) {
-    rtDW.bitsForTID0.is_active_c4_flightRegulatorCFB = 1;
+  if (rtDW.is_active_c4_flightRegulatorCFB == 0U) {
+    rtDW.is_active_c4_flightRegulatorCFB = 1U;
     rtDW.outAngle_f = rtDW.outAngle;
     rtDW.angleDoingMode = angleDoingModeType_angleWaitCorrection;
     rtDW.orderAngle = 0.0;
     rtDW.localOutAngle = rtDW.outAngle_f;
-    rtDW.bitsForTID0.is_controlAngle = IN_waitChangeAngle;
+    rtDW.is_controlAngle = IN_waitChangeAngle;
   } else {
     switch (rtDW.angleDoingMode) {
      case angleDoingModeType_angleWaitCorrection:
-      if (rtY.distanceAB < 0) {
-        tmp = -rtY.distanceAB;
+      if (rtb_DataTypeConversion11 < 0) {
+        tmp = -rtb_DataTypeConversion11;
         if (tmp > 32767) {
           tmp = 32767;
         }
 
         rtb_DataTypeConversion11_0 = (int16_T)tmp;
       } else {
-        rtb_DataTypeConversion11_0 = rtY.distanceAB;
+        rtb_DataTypeConversion11_0 = rtb_DataTypeConversion11;
       }
 
       /* Switch: '<S3>/Switch1' incorporates:
@@ -1433,9 +1433,9 @@ void flightRegulatorCFB_step(void)
        *  Constant: '<S3>/anglePos5'
        */
       if (rtDW.outPrecision != 0.0) {
-        tmp = 3;
+        tmp = 50;
       } else {
-        tmp = 5;
+        tmp = 200;
       }
 
       /* End of Switch: '<S3>/Switch1' */
@@ -1447,15 +1447,15 @@ void flightRegulatorCFB_step(void)
       break;
 
      case angleDoingModeType_angleCorrection:
-      if (rtY.distanceAB < 0) {
-        tmp = -rtY.distanceAB;
+      if (rtb_DataTypeConversion11 < 0) {
+        tmp = -rtb_DataTypeConversion11;
         if (tmp > 32767) {
           tmp = 32767;
         }
 
         rtb_DataTypeConversion11_0 = (int16_T)tmp;
       } else {
-        rtb_DataTypeConversion11_0 = rtY.distanceAB;
+        rtb_DataTypeConversion11_0 = rtb_DataTypeConversion11;
       }
 
       /* Switch: '<S3>/Switch2' incorporates:
@@ -1463,13 +1463,13 @@ void flightRegulatorCFB_step(void)
        *  Constant: '<S3>/anglePos6'
        */
       if (rtDW.outPrecision != 0.0) {
-        tmp = 1;
+        ncA = 50.0;
       } else {
-        tmp = 2;
+        ncA = 100.0;
       }
 
       /* End of Switch: '<S3>/Switch2' */
-      if (rtb_DataTypeConversion11_0 < tmp) {
+      if (rtb_DataTypeConversion11_0 < (int32_T)ncA) {
         rtDW.angleCorrectionMode = angleCorrectionModeType_None;
         rtDW.angleDoingMode = angleDoingModeType_waitOrderAngle;
         rtDW.temporalCounter_i1_f = 0U;
@@ -1478,11 +1478,11 @@ void flightRegulatorCFB_step(void)
       } else {
         switch (rtDW.angleCorrectionMode) {
          case angleCorrectionModeType_startAngleCorrection:
-          if (rtY.distanceAB < 0) {
+          if (rtb_DataTypeConversion11 < 0) {
             rtDW.angleCorrectionMode = angleCorrectionModeType_rightAngle;
             rtDW.angleAdded = -0.22689280275926282;
           } else {
-            if (rtY.distanceAB > 0) {
+            if (rtb_DataTypeConversion11 > 0) {
               rtDW.angleCorrectionMode = angleCorrectionModeType_leftAngle;
               rtDW.angleAdded = turnAngle;
             }
@@ -1494,10 +1494,10 @@ void flightRegulatorCFB_step(void)
           break;
 
          case angleCorrectionModeType_waitZeroDistance:
-          if (rtY.distanceAB < 0) {
+          if (rtb_DataTypeConversion11 < 0) {
             rtDW.angleCorrectionMode = angleCorrectionModeType_rightAngle;
             rtDW.angleAdded = -0.22689280275926282;
-          } else if (rtY.distanceAB > 0) {
+          } else if (rtb_DataTypeConversion11 > 0) {
             rtDW.angleCorrectionMode = angleCorrectionModeType_leftAngle;
             rtDW.angleAdded = turnAngle;
           } else {
@@ -1523,14 +1523,14 @@ void flightRegulatorCFB_step(void)
       break;
     }
 
-    if (rtDW.bitsForTID0.is_controlAngle == IN_setOrderAngle) {
+    if (rtDW.is_controlAngle == IN_setOrderAngle) {
       if (rtDW.temporalCounter_i2_b >= 3) {
         rtDW.orderAngle = 0.0;
-        rtDW.bitsForTID0.is_controlAngle = IN_waitChangeAngle;
+        rtDW.is_controlAngle = IN_waitChangeAngle;
       }
     } else {
       if (rtDW.localOutAngle != rtDW.outAngle_f) {
-        rtDW.bitsForTID0.is_controlAngle = IN_setOrderAngle;
+        rtDW.is_controlAngle = IN_setOrderAngle;
         rtDW.temporalCounter_i2_b = 0U;
         rtDW.orderAngle = 1.0;
         rtDW.localOutAngle = rtDW.outAngle_f;
@@ -1555,7 +1555,7 @@ void flightRegulatorCFB_step(void)
   /* End of Switch: '<S3>/Switch' */
 
   /* Gain: '<S3>/Gain3' */
-  angleCorridor = 0.017453292519943295 * (real_T)tmp;
+  rtb_Switch2 = 0.017453292519943295 * (real_T)tmp;
 
   /* Chart: '<S4>/angleRegulator' incorporates:
    *  Inport: '<Root>/angle'
@@ -1566,8 +1566,8 @@ void flightRegulatorCFB_step(void)
     rtDW.temporalCounter_i1++;
   }
 
-  if (rtDW.bitsForTID0.is_active_c5_flightRegulatorCFB == 0U) {
-    rtDW.bitsForTID0.is_active_c5_flightRegulatorCFB = 1;
+  if (rtDW.is_active_c5_flightRegulatorCFB == 0U) {
+    rtDW.is_active_c5_flightRegulatorCFB = 1U;
 
     /* Outport: '<Root>/tightenSling' */
     rtY.tightenSling = rtDW.pTightenSling;
@@ -1576,20 +1576,20 @@ void flightRegulatorCFB_step(void)
     rtDW.TurnMode = TurnModeType_wait;
     rtDW.waitingEnginesMode = waitingEnginesModeType_enableEngines;
     rtDW.orderAngle_a = 0.0;
-    rtDW.bitsForTID0.is_resetOrder = IN_resetOrderAngle;
+    rtDW.is_resetOrder = IN_resetOrderAngle;
 
     /* Outport: '<Root>/directionOfRotation' */
     rtY.directionOfRotation = 0.0;
-    rtDW.bitsForTID0.is_calculationTimeTurn = IN_previewTightenSling;
+    rtDW.is_calculationTimeTurn = IN_previewTightenSling;
   } else {
     if (rtDW.TurnMode == TurnModeType_wait) {
       if (rtDW.enableEngines == 1.0) {
         guard1 = false;
         if (rtDW.orderAngle_a > 0.0) {
           ncA = fabs(rtDW.diffAngle);
-          if (ncA > angleCorridor) {
+          if (ncA > rtb_Switch2) {
             rtDW.TurnMode = TurnModeType_turning;
-          } else if (ncA <= angleCorridor) {
+          } else if (ncA <= rtb_Switch2) {
             rtDW.TurnMode = TurnModeType_wait;
           } else {
             guard1 = true;
@@ -1658,27 +1658,27 @@ void flightRegulatorCFB_step(void)
       break;
     }
 
-    if (rtDW.bitsForTID0.is_resetOrder == IN_resetOrderAngle) {
+    if (rtDW.is_resetOrder == IN_resetOrderAngle) {
       if (rtDW.orderAngle > 0.0) {
-        rtDW.bitsForTID0.is_resetOrder = IN_resetOrderAngle1;
+        rtDW.is_resetOrder = IN_resetOrderAngle1;
         rtDW.orderAngle_a = rtDW.orderAngle;
       }
     } else {
-      if (fabs(rtDW.diffAngle) <= angleCorridor) {
+      if (fabs(rtDW.diffAngle) <= rtb_Switch2) {
         rtY.directionOfRotation = 0.0;
         if (rtDW.orderAngle == 0.0) {
           rtDW.orderAngle_a = 0.0;
-          rtDW.bitsForTID0.is_resetOrder = IN_resetOrderAngle;
+          rtDW.is_resetOrder = IN_resetOrderAngle;
           rtY.directionOfRotation = 0.0;
         }
       }
     }
 
-    if (rtDW.bitsForTID0.is_calculationTimeTurn == IN_enableEngines1) {
-      rtDW.bitsForTID0.is_calculationTimeTurn = IN_previewTightenSling;
+    if (rtDW.is_calculationTimeTurn == IN_enableEngines1) {
+      rtDW.is_calculationTimeTurn = IN_previewTightenSling;
     } else {
       if (rtY.tightenSling != rtDW.lastTightenSling) {
-        rtDW.bitsForTID0.is_calculationTimeTurn = IN_enableEngines1;
+        rtDW.is_calculationTimeTurn = IN_enableEngines1;
         calculateTimeTurn();
       }
     }
@@ -1709,10 +1709,13 @@ void flightRegulatorCFB_step(void)
   rtY.cmdTightenSlings = 0U;
 
   /* Outport: '<Root>/cmdTouchDown' incorporates:
+   *  Constant: '<S10>/Constant'
    *  DataTypeConversion: '<S1>/Data Type Conversion12'
+   *  Inport: '<Root>/isVeracityGns'
    *  Logic: '<S5>/Logical Operator'
+   *  RelationalOperator: '<S10>/Compare'
    */
-  rtY.cmdTouchDown = 0U;
+  rtY.cmdTouchDown = (uint8_T)((rtb_Add <= 300.0) && (rtU.isVeracityGns != 0.0));
 
   /* Outport: '<Root>/Period_ms' incorporates:
    *  Gain: '<S1>/Gain2'
@@ -1723,6 +1726,9 @@ void flightRegulatorCFB_step(void)
 
   /* Outport: '<Root>/txNextPoint' */
   rtY.txNextPoint = 0.0;
+
+  /* Outport: '<Root>/distanceAB' */
+  rtY.distanceAB = rtb_DataTypeConversion11;
 
   /* Outputs for Atomic SubSystem: '<Root>/flightRegulatorCFB' */
   /* Outport: '<Root>/distanceB' incorporates:
@@ -1814,8 +1820,9 @@ void flightRegulatorCFB_initialize(void)
     rtDW.sideBox = 500.0;
     rtDW.minimumDistance = 50.0;
     rtDW.tdMinBox = 3.0;
-    rtDW.tdMinFinish = 1.1;
+    rtDW.tdMinFinish = 2.1;
     rtDW.ticksPauseBox = 2.0;
+    rtDW.boxAllow = 1.0;
     rtDW.TdReg1 = 1.0;
     rtDW.flightMode1Mode = flightMode1ModeType_None;
     rtDW.pointsMode = pointsModeType_None;

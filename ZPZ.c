@@ -13,6 +13,7 @@
 #include "discrete_io.h"
 #include "otherlib.h"
 #include "SelfTesting.h"   
+#include "Math_model/M_Model.h"
 
 
 
@@ -1111,7 +1112,7 @@ void ZPZ_Response_LOG_FORMAT (uint16_t NumPacket, uint8_t Subcommand)
 	uint8_t              i;               // Счетчик циклов
 	
 	// Проверим верная ли пришла подкоманда:
-	if(Subcommand != 0x00 && Subcommand != 0x01)
+	if(Subcommand != 0x02 && Subcommand != 0x01)
 	{
 		// Такой подкоманды не реализовано, коротко отвечаем с соответствующим признаком
 		ZPZ_ShortResponse(LOG_FORMAT, NumPacket, LOG_FORMAT_SUBCMD_ERROR);
@@ -1136,7 +1137,7 @@ void ZPZ_Response_LOG_FORMAT (uint16_t NumPacket, uint8_t Subcommand)
 		UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, ZPZ_Response.Buffer[i]);
 	
 	// Запрос на форматирование накопителя черного ящика
-	if(Subcommand == 0x01)
+	if(Subcommand == 0x02)
 	{
 		// Отвечаем, что приняли команду и переходим на её выполнение
 		temp = FORMATING_LOG_FS_STARTED;
@@ -1153,9 +1154,11 @@ void ZPZ_Response_LOG_FORMAT (uint16_t NumPacket, uint8_t Subcommand)
 		LogFs_Formatting();
 		// После форматирование необходимо обновить информацию о файловой системе
 		LogFs_Info();
+		
+		return;
 	}
 	// Запрос статуса форматирования
-	else if (Subcommand == 0x00)
+	else if (Subcommand == 0x01)
 	{
 		// Отвечаем, что форматирование завершено или в данный момент не выполняется
 		temp = FORMATING_LOG_FS_COMPLETED;
@@ -1167,6 +1170,8 @@ void ZPZ_Response_LOG_FORMAT (uint16_t NumPacket, uint8_t Subcommand)
 			UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, ZPZ_Response.Buffer[i]);
 		// И в конце опять разделитель
 		SendFEND(ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT);
+		
+		return;
 	}
 }
 
@@ -1556,9 +1561,9 @@ uint8_t ZPZ_Response_REQ_SNS_POS (uint16_t NumPacket)
 	ZPZ_Response_Union                      ZPZ_Response;                    // Стандартный ответ к ЗПЗ
 	SNS_Position_Data_Response_Union				SNS_Position_Data_Response;      // Данные местоположения от СНС
 	SNS_Orientation_Data_Response_Union			SNS_Orientation_Data_Response;   // Данные ориентации от СНС
-	uint32_t timeout = 0;                                                    // Таймаут-счетчик
-	uint8_t  i;                                                              // Счетчик циклов
-	
+	uint32_t                                timeout = 0;                     // Таймаут-счетчик
+	uint8_t                                 i;                               // Счетчик циклов
+	double                                  Lat, Lon;
 
 	// Запрашиваем данные местоположения
 	while(SNS_GetPositionData(&SNS_Position_Data_Response) != SNS_OK && (timeout != 30)) timeout ++;
@@ -1582,6 +1587,12 @@ uint8_t ZPZ_Response_REQ_SNS_POS (uint16_t NumPacket)
 		// И завершиться с ошибкой
 		return 1;
 	}
+	
+	
+	// Раз получили текущие координаты, узнаем доступна ли карта высот
+	Lat = Rad_12_to_Deg (SNS_Position_Data_Response.Struct.Pos_lat);
+	Lon = Rad_12_to_Deg (SNS_Position_Data_Response.Struct.Pos_lon);
+	SelfTesting_MapAvailability (Lat, Lon);
 	
 	// Иначе продолжаем
 	// Заполняем структуру общей части всех пакетов

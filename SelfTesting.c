@@ -95,7 +95,7 @@ void SelfTestingOnline (void)
 
 
 /************************************************************************************
-       SelfTestingBeatTest  - Оперативная проверка состояния системы
+       SelfTestingBeatTest - Оперативная проверка состояния системы
        с разбиением на подзадачи
 
        Примечание: должна периодически запускаться, например, по таймеру  
@@ -545,6 +545,35 @@ SelfTesting_STATUS_TYPE SelfTesting_POW_BIM (void)
 	return (SelfTesting_STATUS_TYPE)SelfTesting_STATUS(ST_POW_BIM);
 }
 	
+
+/************************************************************************************
+        SelfTesting_MapAvailability - Проверка доступноти карты рельефа в 
+				точке с координатами (Lat, Lon).
+
+        Параметры:
+                   Lat - Широта в градусах
+                   Lon - Долгота в грудусах
+
+        Возвращает: ST_OK    - Если карта доступна в данной точке
+				            ST_FAULT - Если карта доступна в данной точке
+************************************************************************************/
+SelfTesting_STATUS_TYPE SelfTesting_MapAvailability (double Lat, double Lon)
+{
+	// Если в точке (Lat, Lon) карта недоступна,
+	if(GetAvailabilityStatus(Lon, Lat) == MAP_NOT_AVAILABLE)
+	{
+		// То сбрасываем бит доступности
+		SelfTesting_SET_FAULT(ST_MapAvailability);
+	}
+	else
+	{
+		// Иначе устанавливаем
+		SelfTesting_SET_OK(ST_MapAvailability);
+	}
+	
+	return (SelfTesting_STATUS_TYPE)SelfTesting_STATUS(ST_MapAvailability);
+}
+
 
 /************************************************************************************
        SelfTesting_SysState2CAN - Вывод состояния системы в CAN 

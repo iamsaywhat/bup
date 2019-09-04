@@ -160,8 +160,8 @@ typedef enum {
 	FAIL                       = 0xFF,    // Сбой при обмене
 	WRONG_CRC                  = 0x33,    // Ошибка в контрольной сумме принятого пакета
 	WITHOUT_CLOSING_FEND       = 0x44,    // Входящий пакет не завершился FEND
-	FORMATING_LOG_FS_STARTED   = 0x00,    // Запущено форматирование "черного ящика"
-	FORMATING_LOG_FS_COMPLETED = 0x5F,    // Форматирование "черного ящика" завершено
+	FORMATING_LOG_FS_STARTED   = 0x01,    // Запущено форматирование "черного ящика"
+	FORMATING_LOG_FS_COMPLETED = 0x02,    // Форматирование "черного ящика" завершено
 	LOG_FORMAT_SUBCMD_ERROR    = 0x4F,    // Подкоманда команды LOG_FORMAT не опознана 
 	LOG_FS_IS_CORRUPTED        = 0x3F,    // Файловая система поверждена, чтение данных невозможно
 	LOG_FS_FILE_NOT_FIND       = 0x2F,    // Запрашиваемый файл не найден
