@@ -3,6 +3,16 @@
 #include "MDR32F9Qx_port.h"
 #include "MDR32F9Qx_can.h"
 #include "SelfTesting.h"
+#include "bup_data_store.h"
+#include "config.h"
+
+
+#ifdef flightRegulatorCFB //******************************************************* Если выбран flightRegulatorCFB
+	#include "Math_model/flightRegulatorCFB/flightRegulatorCFB.h"
+#else //*************************************************************************** Если выбран Easy_reg
+	#include "Math_model/EasyReg/Easy_reg.h"
+#endif //************************************************************************** !flightRegulatorCFB 
+
 
 // В качестве отладочного CAN используется CAN1
 #define CAN_DEBUG MDR_CAN1
@@ -85,3 +95,49 @@ void debug_can_full_struct (void)
 	debug_can(0x526, &debug_vars.Relief_height, 2);
 	debug_can(0x527, &debug_vars.SysState, 2);
 }
+
+/*********************************************************************************************************
+     debug_prepare_data - Подготовка отладочных данных к выводу
+**********************************************************************************************************/
+void debug_prepare_data (void)
+{
+	#ifdef flightRegulatorCFB
+		debug_vars.distanceAB            = (int16_t)(rtY.distanceAB);
+		debug_vars.orderAngle            = (uint8_t)(rtY.orderAngle);
+		debug_vars.diffAngle             = (int16_t)(rtY.diffAngle);
+		debug_vars.setAngle              = (int16_t)(rtY.setAngle);
+		debug_vars.stateTurn             = (uint8_t)(rtY.stateTurn);
+		debug_vars.stateAngleDoing       = (uint8_t)(rtY.stateAngleDoing);
+		debug_vars.stateAngleCorrection	 = (uint8_t)(rtY.stateAngleCorrection);
+		debug_vars.changeControl	       = (uint8_t)(rtY.changeControl);
+		debug_vars.doingManeuverMode     = (uint8_t)(rtY.doingManeuverMode);
+		debug_vars.angle                 = (int16_t)(rtU.angle);
+		debug_vars.directionOfRotation   = (double)(rtY.directionOfRotation);
+		debug_vars.TightenSlings         = (double)(rtY.tightenSling);
+		debug_vars.Lat1                  = (double)(rtY.lat1);
+		debug_vars.Lat2                  = (double)(rtY.lat2);
+		debug_vars.Lon1                  = (double)(rtY.lon1);
+		debug_vars.Lon2                  = (double)(rtY.lon2);
+		debug_vars.distanceB             = (double)(rtY.distanceB);
+		debug_vars.distance2             = (uint16_t)(rtY.distance2);
+	  debug_vars.BIM_CMD               = (int16_t)(rtY.tightenSling*rtY.directionOfRotation);   // Команда БИМам от flightRegulatorCFB
+	#else
+		/* Здесь можно добавить 
+			вывод необходимых переменных относящихся к Easy_reg
+		*/   
+		debug_vars.BIM_CMD = (int16_t)(Easy_reg_Y.BIM_CMD);                                       // Команда БИМам от Easy_reg
+	#endif  
+		debug_vars.TDP_Lat               = BUP_Get_TouchdownLatitude();                          // Широта точки приземления
+		debug_vars.TDP_Lon               = BUP_Get_TouchdownLongitude();                        // Долгота точки приземления
+		debug_vars.Alt2model             = BUP_Get_Altitude();                                 // Высота преобразованная в метры
+		debug_vars.SNSalt                = BUP_GetSNS_Altitude();                             // Высота в том виде в котором принимаем от СНС
+		debug_vars.rtU_XYZi_Lat          = BUP_Get_Latitude();                               // Широта преобразованная в градусы
+		debug_vars.rtU_XYZi_Lon          = BUP_Get_Longitude();                             // Долгота преобразованная в градусы
+		debug_vars.rtU_XYZi_Alt          = BUP_Get_Altitude();                             // Высота преобразованная в метры
+		debug_vars.Relief_height         = BUP_Get_ReliefHeight();                        // Высота рельефа под нами в метрах
+		debug_vars.SysState              = SystemState;                                  // Состояние системы (из SelfTesing)
+}
+
+
+
+

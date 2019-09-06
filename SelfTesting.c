@@ -10,8 +10,7 @@
 #include "HeightMap/Heightmap_conf_and_pd.h"
 #include "HeightMap/Heightmap.h"
 #include "RetargetPrintf/RetargetPrintf.h"
-
-#include "irq.h"
+#include "bup_data_store.h"
 
 
 /***************************************
@@ -91,6 +90,8 @@ void SelfTestingOnline (void)
 	SelfTesting_SWS();
 	// Проверка связи с СНС
 	SelfTesting_SNS();
+	// Проверка доступности карты
+	SelfTesting_MapAvailability (BUP_Get_Latitude(), BUP_Get_Longitude());
 }
 
 
@@ -406,10 +407,10 @@ void SelfTesting_BIMS_TRY_CONNECT(void)
 	static unsigned int LastTimestamp = 0;   // Момент времени, когда была предыдущая попытка
 	
 	// Если хоть один из БИМов неисправен, и таймаут с последней попытки восстановить соединение закончился
-	if( (!SelfTesting_STATUS(ST_Right_BIM) || !SelfTesting_STATUS(ST_Left_BIM)) && ((LastTimestamp + 20) < ControlSecond))
+	if( (!SelfTesting_STATUS(ST_Right_BIM) || !SelfTesting_STATUS(ST_Left_BIM)) && ((LastTimestamp + 20) < BUP_Get_SystemTime()))
 	{
 		// Фиксируем текущую метку времени
-		LastTimestamp = ControlSecond;
+		LastTimestamp = BUP_Get_SystemTime();
 		// Изменим состояние реле питания БИМ на противоположное
 		if(SelfTesting_STATUS(ST_POW_BIM)) 
 			BIM_Supply_OFF();

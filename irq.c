@@ -1,12 +1,14 @@
 #include "irq.h"
 
+
 #include "discrete_io.h"
 #include "Math_model/M_Model.h"
+#include "bup_data_store.h"
 #include "MDR32F9Qx_timer.h"
 
 
 
-unsigned int ControlSecond = 0;
+
 
 /****************************************************************
 Timer1_IRQHandler - Обслуживание прерываний от Таймера 1
@@ -25,7 +27,7 @@ void Timer1_IRQHandler(void)
 	// Шаг расчета был выполнен, требуем обновить данные
 	M_Model_Need2UpdateSet();
 	// Делаем инкремент количества секунд с момента начала управления
-	ControlSecond ++;
+	BUP_DataStorage.ControlSecond ++;
 }
 
 

@@ -13,7 +13,6 @@
 #define _IRQ_H_
 
 
-extern unsigned int ControlSecond;
 
 /****************************************************************
 Timer1_IRQHandler - Обсуживание прерываний от Таймера 2

@@ -1,4 +1,7 @@
+#include <stdint.h>                             // Стандартные типы Keil
+
 #include "../config.h"                           // Файл конфигурации проекта
+#include "bup_data_store.h"
 #include "SWS.h"                                 // Драйвер работы с СВС
 #include "SNS.h"                                 // Драйвер работы с СНС
 #include "BIM.h"                                 // Драйвер работы с БИМ
@@ -7,18 +10,24 @@
 #include "discrete_io.h"                         // Драйвер работы дискретами (реле, LED..)
 #include "ZPZ.h"                                 // Драйвер работы c загрузчиком полетного задания
 #include "otherlib.h"                            // Модуль аппаратнозависимых функций общего назначения
-#include "irq.h"                                 // Обслуживание прерываний
 
-                           
+
 #include "Log_FS/Log_FS.h"                       // Файловая система для записи логов в "черный ящик"
-#include "RetargetPrintf/RetargetPrintf.h"       // Переопределение функции printf для вывода в CAN и записи в черный ящик
 #include "Math_model/M_Model.h"                  // Математическая модель системы управления полетом
-#include "HeightMap/Heightmap_conf_and_pd.h"     // Аппаратнозависимый подмодуль карты высоты рельефа
 #include "SelfTesting.h"                         // Модуль самодиагностики
 
-#include "stdint.h"                              // Стандартные типы Keil
 
-#include "debug.h"                               // Отладочный модуль трассировки внутрисистемных переменных в CAN1
+#ifdef LOGS_ENABLE  //******************************************************* Если включено логирование в черный ящик
+	#include "RetargetPrintf/RetargetPrintf.h"       // Переопределение функции printf для вывода в CAN и записи в черный ящик
+	#include "log_recorder.h"
+#endif //******************************************************************** !LOGS_ENABLE
+
+#ifdef DEBUG_VARS	//*************************************************************** Если активна отладка переменных 
+	#include "debug.h"                               // Отладочный модуль трассировки внутрисистемных переменных в CAN1
+#endif //************************************************************************** !DEBUG_VARS 	
+
+
+
 
 	double temp = 0;
 	int16_t temp2 = 0;
@@ -35,11 +44,6 @@
 
 int main(void)
 {	 
-	uint32_t timeout = 0;                                     // Таймаут-счетчик
-	SNS_Orientation_Data_Response_Union  SNS_Orientation;     // Данные ориентации от СНС
-	SNS_Position_Data_Response_Union     SNS_Position;        // Данные местоположения от СНС
-	SWS_Packet_Type_Union                SWS_Data;            // Данные от СВС
-	
 	// Настраиваем тактовую частоту процессора	
 	InitCLK();
 	// Конфигурируем дискреты, при этом все реле гарантированно переводятся в состояние по-умолчанию
@@ -56,8 +60,12 @@ int main(void)
 	// Запускаем файловую систему
 	LogFs_Info();
 	
+	// Инициализируем хранилище данных БУП
+	BUP_DataInit();
+	
 	// Запускаем фул-тест системы
 	SelfTestingFull();
+
 
 //////////////
 //	BIM_Supply_ON();
@@ -127,7 +135,7 @@ int main(void)
 	while(SelfTesting_PreflightDiagnostics() == ST_FAULT)
 	{	
 		// Что-то пошло не так
-		// Запустим самодиагностику, и будем ожидать в недежде готовности системы к полёту
+		// Запустим самодиагностику, и будем ожидать в надежде готовности системы к полёту
 		SelfTestingOnline ();
 	}
 	
@@ -154,16 +162,8 @@ int main(void)
   #ifdef LOGS_ENABLE	//******************************************************* Если включено логирование в черный ящик
 		// Создаём файл лога
 		LogFs_CreateFile();
-		// Переключаем вывод в ЛОГ
-		printf_switcher(TO_LOG, 0);
-	  // В начало файла кладём его порядковый номер
-		printf("***File # %d***\n", LogFs_GetNumCurrentFile());
-		printf("BUP_init..\n");
-		// Выведем загруженное полетное задание
-		printf("TD_Lat: %f;\n", GetTouchDownPointLat());
-		printf("TD_Lon: %f;\n", GetTouchDownPointLon());
-		printf("TD_Alt: %f;\n", GetTouchDownPointAlt());
-		printf("BUP is ready!\n");
+		// Пишем инициирующую информацию в лог
+		loger_initmsg ();
 	#endif //******************************************************************** !LOGS_ENABLE	
 	
 	// Запустим быструю диагностику системы перед запуском управления
@@ -179,57 +179,20 @@ int main(void)
 		// Просит ли матмодель обновить данные?
 		if(M_Model_Need2UpdateCheck() == 1)
 		{
-			// Да, просит. Начинаем готовить данные для матмодели		
-			
-			#ifdef LOGS_ENABLE  //******************************************************* Если включено логирование в черный ящик
-				printf("\nTimestamp, sec: %d\n", ControlSecond); // Метку времени в ЛОГ
-			#endif //******************************************************************** !LOGS_ENABLE
-			
-			// Сбросим таймаут
-			timeout = 0;
-			// Запрашиваем данные местоположения с контролем таймаута (спрашиваем не более 20 раз подряд)
-			while(SNS_GetPositionData(&SNS_Position) != SNS_OK && (timeout != 20)) timeout ++;	
-			// Сбросим таймаут
-			timeout = 0;
-			// Запрашиваем данные ориентации с контролем таймаута (спрашиваем не более 20 раз подряд)
-			while(SNS_GetOrientationData(&SNS_Orientation) != SNS_OK && (timeout != 20)) timeout ++;
-
-			// Сбросим таймаут
-			timeout = 0;
-			// Пытаемся получить данные от СВС, не более 10 попыток
-			while(SWS_GetPacket (&SWS_Data) && (timeout != 10)) timeout ++;
-			
-			#ifdef LOGS_ENABLE  //******************************************************* Если включено логирование в черный ящик
-				printf("SNS_Lat: %llu\n",            SNS_Position.Struct.Pos_lat);
-				printf("SNS_Lon: %llu\n",            SNS_Position.Struct.Pos_lon);
-				printf("SNS_Alt: %llu\n",            SNS_Position.Struct.Pos_alt);
-				printf("SNS_Vel_lat: %d\n",          SNS_Position.Struct.Vel_lat);
-				printf("SNS_Vel_lon: %d\n",          SNS_Position.Struct.Vel_lon);
-				printf("SNS_Vel_alt: %d\n",          SNS_Position.Struct.Vel_alt);
-				printf("SNS_Course: %d\n",           SNS_Position.Struct.Course);
-				printf("SNS_Heading_true: %d\n",     SNS_Orientation.Struct.Heading_true);
-				printf("SNS_Heading_mgn: %d\n",      SNS_Orientation.Struct.Heading_mgn);
-				printf("SNS_Pitch: %d\n",            SNS_Orientation.Struct.Pitch);
-				printf("SNS_Roll: %d\n",             SNS_Orientation.Struct.Roll);
-				printf("SWS_TrueSpeed: %f\n",        SWS_Data.Struct.TrueSpeed);
-				printf("SWS_InstrumentSpeed: %f\n",  SWS_Data.Struct.InstrumentSpeed);
-				printf("BIML_Pos: %d\n",             (uint8_t)(0.5 + 0.3922*BIM_GetStrapPosition(LEFT_BIM)));   // Перевод к процентной шкале с округлением
-				printf("BIMR_Pos: %d\n",             (uint8_t)(0.5 + 0.3922*BIM_GetStrapPosition(RIGHT_BIM)));  // Перевод к процентной шкале с округлением
-				printf("SystemState: %x\n",          SystemState);
-			#endif //******************************************************************** !LOGS_ENABLE	
-
+			// Да, просит. Начинаем готовить данные для матмодели				
+			// Запускаем обновление данных
+			BUP_DataUpdate ();
 			// Отправляем данные математической модели
-			M_Model_PrepareData (SNS_Position.Struct, SNS_Orientation.Struct, SWS_Data.Struct);
-			
+			M_Model_PrepareData ();
 			// Запустим быструю диагностику системы
 			SelfTestingOnline();
 			// Анализ тестов и управление индикацией в полете
 			SelfTesting_OnlineDiagnostics ();
-			
-			#ifdef TRACE_SYS_STATE	//******************************************************* Если включена трассировка состояния системы в CAN		
-				// Трассировка состояния системы в CAN
-				SelfTesting_SysState2CAN();	
-			#endif
+		
+			#ifdef LOGS_ENABLE  //******************************************************* Если включено логирование в черный ящик
+					loger_periodprint ();
+			#endif //******************************************************************** !LOGS_ENABLE
+		
 		}		
 	}
 }
