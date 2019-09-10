@@ -34,7 +34,9 @@
 
 #define MMODEL_TIMER     MDR_TIMER1
 
+
 extern uint8_t M_Model_Need2UpdateFlag;
+
 
 /***************************************************************************
 			M_Model_Need2UpdateSet - Потребовать обновить данные для Мат.Модели  

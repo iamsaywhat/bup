@@ -13,6 +13,7 @@
 #include "discrete_io.h"
 #include "otherlib.h"
 #include "SelfTesting.h"   
+#include "bup_data_store.h"
 
 
 
@@ -1558,41 +1559,20 @@ uint16_t ZPZ_Request_REQ_SNS_POS (uint16_t CRC)
 
 uint8_t ZPZ_Response_REQ_SNS_POS (uint16_t NumPacket)
 {
-	ZPZ_Response_Union                      ZPZ_Response;                    // Стандартный ответ к ЗПЗ
-	SNS_Position_Data_Response_Union				SNS_Position_Data_Response;      // Данные местоположения от СНС
-	SNS_Orientation_Data_Response_Union			SNS_Orientation_Data_Response;   // Данные ориентации от СНС
-	uint32_t                                timeout = 0;                     // Таймаут-счетчик
-	uint8_t                                 i;                               // Счетчик циклов
-	double                                  Lat, Lon;
-
-	// Запрашиваем данные местоположения
-	while(SNS_GetPositionData(&SNS_Position_Data_Response) != SNS_OK && (timeout != 30)) timeout ++;
-	// Проверим, вдруг выход был по таймауту, тогда нужно ответить ошибкой и завершиться
-	if (timeout == 30)
+	ZPZ_Response_Union    ZPZ_Response;                    // Стандартный ответ к ЗПЗ
+	uint8_t               i;                               // Счетчик циклов
+	
+	// Обновляем данные СНС
+	BUP_UpdateDataFromSNS ();
+	
+	// Проверим исправен ли СНС (функция выше должна обновить состояние)
+	if (SelfTesting_STATUS(ST_sns) == ST_FAULT)
 	{
-	  // Если да, то нужно ответить ошибкой: Не удаётся получить данные от СНС
+		// Если нет, то нужно ответить ошибкой: Не удаётся получить данные от СНС
 		ZPZ_ShortResponse(REQ_SNS_POS, NumPacket, SNS_IS_UNAVAILABLE);
 		// И завершиться с ошибкой
 		return 1;
-	}
-	
-	// Запрашиваем данные ориентации
-	timeout = 0;
-	while(SNS_GetOrientationData(&SNS_Orientation_Data_Response)!= SNS_OK && (timeout != 30)) timeout ++;
-	// Проверим, вдруг выход был по таймауту, тогда нужно ответить ошибкой и завершиться
-	if (timeout == 30)
-	{
-	  // Если да, то нужно ответить ошибкой: Не удаётся получить данные от СНС
-		ZPZ_ShortResponse(REQ_SNS_POS, NumPacket, SNS_IS_UNAVAILABLE);
-		// И завершиться с ошибкой
-		return 1;
-	}
-	
-	
-	// Раз получили текущие координаты, узнаем доступна ли карта высот
-	Lat = Rad_12_to_Deg (SNS_Position_Data_Response.Struct.Pos_lat);
-	Lon = Rad_12_to_Deg (SNS_Position_Data_Response.Struct.Pos_lon);
-	SelfTesting_MapAvailability (Lat, Lon);
+	}		
 	
 	// Иначе продолжаем
 	// Заполняем структуру общей части всех пакетов
@@ -1617,9 +1597,9 @@ uint8_t ZPZ_Response_REQ_SNS_POS (uint16_t NumPacket)
 	for (i = 4; i < SizeAnsPDR; i++)
 	{
 		// Побайтово досчитываем контрольную сумму
-		ZPZ_Response.Struct.CRC = Crc16(&SNS_Position_Data_Response.Buffer[i], 1, ZPZ_Response.Struct.CRC);
+		ZPZ_Response.Struct.CRC = Crc16(&SNS_Orientation.Buffer[i], 1, ZPZ_Response.Struct.CRC);
 		// И отправляем
-		UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT,	SNS_Position_Data_Response.Buffer[i]);
+		UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT,	SNS_Position.Buffer[i]);
 	}
 	
 	// Высылаем данные ориентации
@@ -1627,9 +1607,9 @@ uint8_t ZPZ_Response_REQ_SNS_POS (uint16_t NumPacket)
 	for (i = 4; i < SizeAnsODR; i++)
 	{
 		// Побайтово досчитываем контрольную сумму
-		ZPZ_Response.Struct.CRC = Crc16(&SNS_Orientation_Data_Response.Buffer[i], 1, ZPZ_Response.Struct.CRC);
+		ZPZ_Response.Struct.CRC = Crc16(&SNS_Orientation.Buffer[i], 1, ZPZ_Response.Struct.CRC);
 		// И отправляем
-		UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT,	SNS_Orientation_Data_Response.Buffer[i]);
+		UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT,	SNS_Orientation.Buffer[i]);
 	}
 	
 	// После сверху посылаем контрольную сумму

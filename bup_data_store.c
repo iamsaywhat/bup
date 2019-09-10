@@ -1,6 +1,7 @@
 #include "bup_data_store.h"
 #include "HeightMap/Heightmap_conf_and_pd.h"
 #include "HeightMap/Heightmap.h"
+#include "SelfTesting.h"
 
 
 #define pi_const 3.1415927
@@ -45,20 +46,10 @@ void BUP_DataInit (void)
 ***************************************************************************************************************/
 void BUP_DataUpdate (void)
 {
-	uint32_t timeout = 0;  // Таймаут-счетчик
-	
-	// Сбросим таймаут
-	timeout = 0;
-	// Запрашиваем данные местоположения с контролем таймаута (спрашиваем не более 20 раз подряд)
-	while(SNS_GetPositionData(&SNS_Position) != SNS_OK && (timeout != 20)) timeout ++;	
-	// Сбросим таймаут
-	timeout = 0;
-	// Запрашиваем данные ориентации с контролем таймаута (спрашиваем не более 20 раз подряд)
-	while(SNS_GetOrientationData(&SNS_Orientation) != SNS_OK && (timeout != 20)) timeout ++;
-	// Сбросим таймаут
-	timeout = 0;
-	// Пытаемся получить данные от СВС, не более 10 попыток
-	while(SWS_GetPacket (&SWS_Data) && (timeout != 10)) timeout ++;
+	// Просим данные у СНС
+	BUP_UpdateDataFromSNS ();
+	// Просим данные у СВС
+	BUP_UpdateDataFromSWS ();
 	
 	// Далее конвертируем полученные данные и будем хранить их уже в таком виде
 	BUP_DataStorage.Latitude           = Rad_12_to_Deg (SNS_Position.Struct.Pos_lat);
@@ -68,7 +59,7 @@ void BUP_DataUpdate (void)
 	BUP_DataStorage.HeadingMgn         = Rad_6_to_Rad(SNS_Orientation.Struct.Heading_mgn); 
 	BUP_DataStorage.VelocityLatitude   = Ms_6_to_Ms (SNS_Position.Struct.Vel_lat); 
 	BUP_DataStorage.VelocityLongitude  = Ms_6_to_Ms (SNS_Position.Struct.Vel_lon); 
-	BUP_DataStorage.TouchdownAltitude  = Ms_6_to_Ms (SNS_Position.Struct.Vel_alt); 
+	BUP_DataStorage.VelocityAltitude   = Ms_6_to_Ms (SNS_Position.Struct.Vel_alt); 
 	BUP_DataStorage.Pitch              = Rad_6_to_Rad(SNS_Orientation.Struct.Pitch);
 	BUP_DataStorage.Roll               = Rad_6_to_Rad(SNS_Orientation.Struct.Roll);
 	BUP_DataStorage.Course             = Rad_6_to_Rad(SNS_Position.Struct.Course);
@@ -77,6 +68,34 @@ void BUP_DataUpdate (void)
 	BUP_DataStorage.ReliefHeight       = GetHeight_OnThisPoint(BUP_DataStorage.Longitude, BUP_DataStorage.Latitude, TRIANGULARTION); 
 	
 }
+
+
+void BUP_UpdateDataFromSWS (void)
+{
+	uint8_t timeout = 0;  // Таймаут-счетчик
+	
+	// Пытаемся получить данные от СВС, не более 10 попыток
+	while(SWS_GetPacket (&SWS_Data) && (timeout != 10)) timeout ++;
+	// Если выход по таймауту, то фиксируем как неисправность
+	if (timeout == 10)
+		SelfTesting_SET_FAULT(ST_sws);	
+}
+
+
+void BUP_UpdateDataFromSNS (void)
+{
+	uint8_t timeout1 = 0, timeout2 = 0;  // Таймаут-счетчик
+
+	// Запрашиваем данные местоположения с контролем таймаута (спрашиваем не более 20 раз подряд)
+	while(SNS_GetPositionData(&SNS_Position) != SNS_OK && (timeout1 != 20)) timeout1 ++;	
+
+	// Запрашиваем данные ориентации с контролем таймаута (спрашиваем не более 20 раз подряд)
+	while(SNS_GetOrientationData(&SNS_Orientation) != SNS_OK && (timeout2 != 20)) timeout2 ++;
+	// Если выход по таймауту, то фиксируем как неисправность
+	if(timeout1 == 20 || timeout2 == 20)
+		SelfTesting_SET_FAULT(ST_sns);	
+}
+
 
 
 /***************************************************************************

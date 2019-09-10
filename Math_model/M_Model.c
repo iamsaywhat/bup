@@ -9,9 +9,6 @@
 
 #ifdef flightRegulatorCFB //******************************************************* Если выбран flightRegulatorCFB
 	#include "flightRegulatorCFB/flightRegulatorCFB.h"
-	#define lat 0
-	#define lon 1
-	#define alt 2
 #else //*************************************************************************** Если выбран Easy_reg
 	#include "EasyReg/Easy_reg.h"
 #endif //************************************************************************** !flightRegulatorCFB 
@@ -20,6 +17,9 @@
 	#include "../debug.h"
 #endif //************************************************************************** !DEBUG_VARS
 
+#define lat 0
+#define lon 1
+#define alt 2
 
 // Глобальный для этого модуля флаг
 uint8_t M_Model_Need2UpdateFlag = 0;
@@ -153,13 +153,6 @@ void M_Model_Control (void)
 			// Повисаем в ожидании перезапуска
 			while(1);
 		}
-		
-	#ifdef DEBUG_VARS	//*************************************************************** Если активна отладка переменных 
-		// Подготовим  отладочные данные для отправки
-		debug_prepare_data ();
-		// Отправляем отладочные данные в CAN
-		debug_can_full_struct();
-	#endif //************************************************************************** !DEBUG_VARS 	
 }
 
 

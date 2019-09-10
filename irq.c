@@ -5,7 +5,7 @@
 #include "Math_model/M_Model.h"
 #include "bup_data_store.h"
 #include "MDR32F9Qx_timer.h"
-
+#include "task_manager.h"
 
 
 
@@ -20,31 +20,25 @@ void Timer1_IRQHandler(void)
 {
 	// Сбрасываем флаг прерывания
 	TIMER_ClearFlag(MDR_TIMER1,TIMER_STATUS_CNT_ARR);	
-	// Запускаем шаг расчета				
-	M_Model_Step();
-	// Выполняем требования матмодели
-	M_Model_Control();
-	// Шаг расчета был выполнен, требуем обновить данные
-	M_Model_Need2UpdateSet();
-	// Делаем инкремент количества секунд с момента начала управления
+		// Делаем инкремент количества секунд с момента начала управления
 	BUP_DataStorage.ControlSecond ++;
+	// Перезапускаем цикл задач
+	TaskManager_RestartCycle();
 }
 
 
 /****************************************************************
 Timer2_IRQHandler - Обслуживание прерываний от Таймера 2
   
-   - Данный таймер обслуживает световую индикацию
+   - Данный таймер обслуживает режим ВПЗ модуля ЗПЗ;
+   - Функция перенесена в ZPZ.c
 ****************************************************************/
 //void Timer2_IRQHandler(void)
 //{
-//	
-//	TIMER_ClearFlag(MDR_TIMER2,TIMER_STATUS_CNT_ARR);	
-//	if (LED_READY_CHECK) 
-//		LED_READY_OFF();
-//	else 
-//		LED_READY_ON();
+//	// Сбрасываем флаг прерываний
+//	TIMER_ClearFlag(ZPZ_TIMER,TIMER_STATUS_CNT_ARR);	
 //}
+
 
 ///****************************************************************
 //Timer3_IRQHandler - Обслуживание прерываний от Таймера 3

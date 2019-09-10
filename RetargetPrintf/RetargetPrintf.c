@@ -121,6 +121,8 @@ int sendchar_CAN(int ch)
 			CAN_Transmit(PRINTF_CAN, Buffer_number, &TxMsg_CanPrintf);
 			// Ожидаем конца передачи, либо превышения времени ожидания
 			while(((CAN_GetBufferStatus(PRINTF_CAN, Buffer_number) & CAN_STATUS_TX_REQ) != RESET) && (per != 0xFFF)) per++;
+			// Вне зависимости от того, удалось отправить или нет, освобождаем буфер
+			CAN_BufferRelease (PRINTF_CAN, Buffer_number);
 		}	
 		
 		// Очищаем буфер 
@@ -153,6 +155,8 @@ int sendchar_CAN(int ch)
 			CAN_Transmit(PRINTF_CAN, Buffer_number, &TxMsg_CanPrintf);
 			// Ожидаем конца передачи, либо превышения времени ожидания
 			while(((CAN_GetBufferStatus(PRINTF_CAN, Buffer_number) & CAN_STATUS_TX_REQ) != RESET) && (per != 0xFFF)) per++;
+			// Вне зависимости от того, удалось отправить или нет, освобождаем буфер
+			CAN_BufferRelease (PRINTF_CAN, Buffer_number);
 		}	
 		// Очищаем буфер 
 		for(i=0; i < 80; i++)
@@ -162,8 +166,7 @@ int sendchar_CAN(int ch)
 		cnt = 0; // Сбрасываем счетчик байт, буфер отправлен
 	}
 	
-	// Внезависимости от того, удалось отправить или нет, освобождаем буфер
-	CAN_BufferRelease (PRINTF_CAN, Buffer_number);
+
 	
 	return 0;
 }

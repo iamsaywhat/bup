@@ -71,7 +71,7 @@ void loger_periodprint (void)
 	if (SelfTesting_STATUS(ST_MapAvailability))
 		printf("MAP, m: %d\n",               BUP_Get_ReliefHeight());
 	else
-		printf("MAP: NOT_AVAILABLE\n");
+		printf("MAP, m: NOT_AVAILABLE\n");
 	
 	#ifdef flightRegulatorCFB	//******************************************************* Если выбран flightRegulatorCFB
 		printf("Model_BIM_CMD: %f\n", (double)(rtY.tightenSling*rtY.directionOfRotation));

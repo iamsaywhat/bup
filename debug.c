@@ -25,10 +25,10 @@ debug_output debug_vars;
 **********************************************************************************************************/
 void debug_can(unsigned short id, void* data, unsigned char size)
 {
-	CAN_TxMsgTypeDef Tx_msg;              // Структура CAN сообщения
-  unsigned int i = 0;                   // Счетчик 
-	unsigned int Buffer_number;           // Номер свободного буфера
-	unsigned short per = 0;               // Таймаут-счетчик
+	CAN_TxMsgTypeDef     Tx_msg;              // Структура CAN сообщения
+  unsigned int         i = 0;               // Счетчик 
+	unsigned int         Buffer_number;       // Номер свободного буфера
+	unsigned short       per = 0;             // Таймаут-счетчик
 		
 	Tx_msg.ID = CAN_STDID_TO_EXTID(id);
 	Tx_msg.PRIOR_0 = DISABLE;
@@ -36,10 +36,11 @@ void debug_can(unsigned short id, void* data, unsigned char size)
 	Tx_msg.DLC = size;
 	Tx_msg.Data[0] = 0;
 	Tx_msg.Data[1] = 0;
+	
 	// Заполняем сообщение
 	for (i = 0; i < size; i++)
 	{
-		*(((unsigned char*)(Tx_msg.Data)) + i) = *(((unsigned char*)(data))++);
+		*((unsigned char*)Tx_msg.Data + i) = *((unsigned char*)data + i);
 	}
 	// Спросим какой из буферов свободен для использования
 	Buffer_number = CAN_GetDisabledBuffer (CAN_DEBUG);
