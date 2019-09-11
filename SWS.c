@@ -7,8 +7,9 @@
 int16_t UARTReceiveByte (MDR_UART_TypeDef* UARTx, uint32_t TimeoutRange);
 uint8_t UARTSendByte (MDR_UART_TypeDef* UARTx, uint32_t TimeoutRange, uint16_t Byte);
 
+
 /**************************************************************************************************************
-						SWS_RetargetPins - Функция переопределения UART1 на другие пины, для работы SWS                   *
+    SWS_RetargetPins - Функция переопределения UART1 на другие пины, для работы SWS
 ***************************************************************************************************************/
 void SWS_RetargetPins (void)
 {
@@ -20,8 +21,9 @@ void SWS_RetargetPins (void)
 	Pin_Init (SWS_PORT, SWS_DE, PORT_FUNC_PORT,PORT_OE_OUT);
 }
 
+
 /**************************************************************************************************************
-						SWS_init - Запуск процедуры обмена с SWS                                                          *
+    SWS_init - Запуск процедуры обмена с SWS
 ***************************************************************************************************************/
 void SWS_init (void)
 {
@@ -37,24 +39,24 @@ void SWS_init (void)
 	UART_BRGInit (SWS_UART,UART_HCLKdiv1); 
 	// Заполняем структуру инициализации	
 	UART_InitStructure.UART_BaudRate                = BAUDRATE_SWS;
-  UART_InitStructure.UART_WordLength              = UART_WordLength8b;
-  UART_InitStructure.UART_StopBits                = UART_StopBits1;
-  UART_InitStructure.UART_Parity                  = UART_Parity_No;
-  UART_InitStructure.UART_FIFOMode                = UART_FIFO_ON;
-  UART_InitStructure.UART_HardwareFlowControl     = UART_HardwareFlowControl_RXE | UART_HardwareFlowControl_TXE;
-  // Инициализация UART
-  UART_Init (SWS_UART,&UART_InitStructure);
+	UART_InitStructure.UART_WordLength              = UART_WordLength8b;
+	UART_InitStructure.UART_StopBits                = UART_StopBits1;
+	UART_InitStructure.UART_Parity                  = UART_Parity_No;
+	UART_InitStructure.UART_FIFOMode                = UART_FIFO_ON;
+	UART_InitStructure.UART_HardwareFlowControl     = UART_HardwareFlowControl_RXE | UART_HardwareFlowControl_TXE;
+	// Инициализация UART
+	UART_Init (SWS_UART,&UART_InitStructure);
 		
 	// Включение UART - CВС
-  UART_Cmd(SWS_UART,ENABLE);
+	UART_Cmd(SWS_UART,ENABLE);
 	// Устанавливаем в 0 пин DE - Режим приёмника
 	PORT_ResetBits (SWS_PORT,SWS_DE);
 	// Если нужен режим передатчика - устанавливаем в 1;
-  //PORT_SetBits (SWS_PORT,SWS_DE); 
+	//PORT_SetBits (SWS_PORT,SWS_DE); 
 }
 
 /**************************************************************************************************************
-						SWS_deinit - Деинициализация СВС                                                                  *
+    SWS_deinit - Деинициализация СВС
 ***************************************************************************************************************/
 void SWS_deinit (void)
 {
@@ -72,7 +74,7 @@ void SWS_deinit (void)
 }
 
 /**************************************************************************************************************
-								SWS_GetPacket - Получение структуры пакета от СВС                                             *
+    SWS_GetPacket - Получение структуры пакета от СВС
 ***************************************************************************************************************/
 uint8_t SWS_GetPacket (SWS_Packet_Type_Union* SWS_Pack)
 {
@@ -112,7 +114,7 @@ uint8_t SWS_GetPacket (SWS_Packet_Type_Union* SWS_Pack)
 	if(timeout == SWS_MAX_TIMEOUT) 
 	{
 		// Отключаемся от СВС
-	  SWS_deinit();
+		SWS_deinit();
 		// Возврашаем ошибку
 		return 1;
 	}
@@ -126,7 +128,7 @@ uint8_t SWS_GetPacket (SWS_Packet_Type_Union* SWS_Pack)
 	}
 	
 	// Отключаемся от СВС
-	 SWS_deinit();
+	SWS_deinit();
 		
 	// Вычисляем контрольную сумму 
 	crc = Calc_Crc32_Array(Actual_SWS_Pack.Buffer,56);
@@ -157,7 +159,7 @@ int16_t UARTReceiveByte (MDR_UART_TypeDef* UARTx, uint32_t TimeoutRange)
 	while ((UART_GetFlagStatus (UARTx, UART_FLAG_RXFE) == SET) && (timeout != TimeoutRange)) timeout++;
 	// Если выход из ожидания по таймауту - возвращаем ошибку и выходим
 	if(timeout == TimeoutRange) return 0xFF;
-  // Иначе принимаем байт
+	// Иначе принимаем байт
 	Byte = UART_ReceiveData(UARTx);
 	return Byte;
 }

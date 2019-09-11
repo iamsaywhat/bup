@@ -7,7 +7,7 @@
 
 
 /*******************************************************
-        Актуальные данные о состоянии БИМОВ            *
+    Актуальные данные о состоянии БИМОВ 
 *******************************************************/
 BIM_Response_UnionType Right_BIM;
 BIM_Response_UnionType Left_BIM;
@@ -15,7 +15,7 @@ BIM_Response_UnionType Left_BIM;
 
 
 /**************************************************************************************************************
-				BIM_RetargetPins - Функция переопределения CAN на пины и порт, на на к которых сидят БИМЫ             *
+    BIM_RetargetPins - Функция переопределения CAN на пины и порт, на на к которых сидят БИМЫ
 **************************************************************************************************************/
 void BIM_RetargetPins (void)
 {
@@ -35,7 +35,7 @@ void BIM_RetargetPins (void)
 
 
 /**************************************************************************************************************
-				BIM_CAN_init - Инициализация драйвера для работы с БИМами по CAN протоколу     								        *
+    BIM_CAN_init - Инициализация драйвера для работы с БИМами по CAN протоколу
 **************************************************************************************************************/
 void BIM_CAN_init (void)
 {
@@ -60,10 +60,10 @@ void BIM_CAN_init (void)
 	CAN_InitStruct.CAN_SAP = DISABLE;
 	CAN_InitStruct.CAN_STM = DISABLE;
 	CAN_InitStruct.CAN_ROM = DISABLE;
-  CAN_InitStruct.CAN_PSEG = CAN_PSEG_Mul_5TQ; 
-  CAN_InitStruct.CAN_SEG1 = CAN_SEG1_Mul_8TQ;
-  CAN_InitStruct.CAN_SEG2 = CAN_SEG2_Mul_2TQ;
-  CAN_InitStruct.CAN_SJW = CAN_SJW_Mul_1TQ;
+	CAN_InitStruct.CAN_PSEG = CAN_PSEG_Mul_5TQ; 
+	CAN_InitStruct.CAN_SEG1 = CAN_SEG1_Mul_8TQ;
+	CAN_InitStruct.CAN_SEG2 = CAN_SEG2_Mul_2TQ;
+	CAN_InitStruct.CAN_SJW = CAN_SJW_Mul_1TQ;
 	CAN_InitStruct.CAN_SB = CAN_SB_1_SAMPLE;
 	// Рассчитываем  CAN_BRP
 	BRG = (1 << HCLK_division);
@@ -72,7 +72,7 @@ void BIM_CAN_init (void)
 	SEG2 = ((CAN_InitStruct.CAN_SEG2 >> CAN_BITTMNG_SEG2_Pos)+1);
 	// Определяем количество Time Quanta в битовом интервале 
 	TQ = 1 + SEG1 + SEG2 + PSEG;
-  CAN_InitStruct.CAN_BRP  = (uint8_t)(systemCoreClockUser/BRG/(TQ*BaudRate))-1;
+	CAN_InitStruct.CAN_BRP  = (uint8_t)(systemCoreClockUser/BRG/(TQ*BaudRate))-1;
 	// Допустимое количество ошибок TEC или REC 
 	CAN_InitStruct.CAN_OVER_ERROR_MAX = 255;
 	// Иницилизируем структуру
@@ -93,7 +93,7 @@ void BIM_CAN_init (void)
 		// Разрешаем прерывание, изменение состояния буфера генерирует прерывание
 		CAN_RxITConfig(BIM_CAN, (1<<i), ENABLE);
 		// Включаем буфера на передачу
-    BIM_CAN->BUF_CON[i+16] = CAN_BUF_CON_EN;
+		BIM_CAN->BUF_CON[i+16] = CAN_BUF_CON_EN;
 		// Разрешаем прерывания по передаче из буферов 16-31
 		CAN_TxITConfig(BIM_CAN, 1<<(i+16), ENABLE);
 		
@@ -118,12 +118,12 @@ void BIM_CAN_init (void)
 	CAN_FilterInit (MDR_CAN1, 1, &CAN_FilterInitStruct); 	
 	
 	// Активируем передатчик
-  PORT_SetBits (BIM_CAN_PORT, BIM_CAN_CS1); 
+	PORT_SetBits (BIM_CAN_PORT, BIM_CAN_CS1); 
 }
 
 
 /**************************************************************************************************************
-				BIM_SendRequest - Отправка запроса к БИМу     					  																		        *
+    BIM_SendRequest - Отправка запроса к БИМу
 **************************************************************************************************************/
 uint8_t BIM_SendRequest (uint16_t DeviceID, uint8_t CMD, uint8_t StrapPosition, uint8_t ReqCount, uint8_t SpeedLimit, uint8_t CurrentLimit)
 {
@@ -163,7 +163,7 @@ uint8_t BIM_SendRequest (uint16_t DeviceID, uint8_t CMD, uint8_t StrapPosition, 
 
 
 /**************************************************************************************************************
-				BIM_ReceiveResponse - Получение ответа от к БИМов 			  																		        *
+    BIM_ReceiveResponse - Получение ответа от к БИМов
 **************************************************************************************************************/	
 uint8_t BIM_ReceiveResponse (uint16_t DeviceID)
 {
@@ -190,7 +190,7 @@ uint8_t BIM_ReceiveResponse (uint16_t DeviceID)
 	// БИМов с другимми адресами нет, возвращаем признак ошибки
 	else 
 		return 0;  
-  // Таймаут, возвращаем признак ошибки	
+    // Таймаут, возвращаем признак ошибки	
 	if(timeout == 0x3FFF) 
 		return 0;		
 		
@@ -200,7 +200,7 @@ uint8_t BIM_ReceiveResponse (uint16_t DeviceID)
 
 
 /**************************************************************************************************************
-						BIM_CheckConnection - Проверка связи с БИМами      													                      *	
+    BIM_CheckConnection - Проверка связи с БИМами
 **************************************************************************************************************/
 uint8_t BIM_CheckConnection (uint16_t DeviceID)
 {
@@ -221,7 +221,7 @@ uint8_t BIM_CheckConnection (uint16_t DeviceID)
 
 
 /**************************************************************************************************************
-             BIM_GetStrapPosition - Получить текущее положение стропы     												            *	
+    BIM_GetStrapPosition - Получить текущее положение стропы	
 **************************************************************************************************************/
 uint8_t BIM_GetStrapPosition (uint16_t DeviceID)
 {
@@ -242,7 +242,7 @@ uint8_t BIM_GetStrapPosition (uint16_t DeviceID)
 
 
 /**************************************************************************************************************
-             BIM_GetVoltage - Получить текущее значение напряжения     												               *	
+    BIM_GetVoltage - Получить текущее значение напряжения
 **************************************************************************************************************/
 uint8_t BIM_GetVoltage (uint16_t DeviceID)
 {
@@ -263,7 +263,7 @@ uint8_t BIM_GetVoltage (uint16_t DeviceID)
 
 
 /**************************************************************************************************************
-              BIM_GetCurrent - Получить текущее значение тока     										   		                  *	
+    BIM_GetCurrent - Получить текущее значение тока
 **************************************************************************************************************/
 uint8_t BIM_GetCurrent (uint16_t DeviceID)
 {
@@ -284,7 +284,7 @@ uint8_t BIM_GetCurrent (uint16_t DeviceID)
 
 
 /**************************************************************************************************************
-            BIM_GetSpeed - Получить текущее значение скорости              	   		                            *	
+    BIM_GetSpeed - Получить текущее значение скорости
 **************************************************************************************************************/
 uint8_t BIM_GetSpeed (uint16_t DeviceID)
 {
@@ -305,7 +305,7 @@ uint8_t BIM_GetSpeed (uint16_t DeviceID)
 
 
 /**************************************************************************************************************
-             BIM_GetStatusFlags - Получить актуальные флаги состояния устройства   			                      *	
+    BIM_GetStatusFlags - Получить актуальные флаги состояния устройства
 **************************************************************************************************************/
 uint8_t BIM_GetStatusFlags (uint16_t DeviceID)
 {

@@ -121,21 +121,21 @@ void debug_prepare_data (void)
 		debug_vars.Lon2                  = (double)(rtY.lon2);
 		debug_vars.distanceB             = (double)(rtY.distanceB);
 		debug_vars.distance2             = (uint16_t)(rtY.distance2);
-	  debug_vars.BIM_CMD               = (int16_t)(rtY.tightenSling*rtY.directionOfRotation);   // Команда БИМам от flightRegulatorCFB
+		debug_vars.BIM_CMD               = (int16_t)(rtY.tightenSling*rtY.directionOfRotation);   // Команда БИМам от flightRegulatorCFB
 	#else
 		/* Здесь можно добавить 
 			вывод необходимых переменных относящихся к Easy_reg
 		*/   
-		debug_vars.BIM_CMD = (int16_t)(Easy_reg_Y.BIM_CMD);                                       // Команда БИМам от Easy_reg
+		debug_vars.BIM_CMD = (int16_t)(Easy_reg_Y.BIM_CMD);                              // Команда БИМам от Easy_reg
 	#endif  
-		debug_vars.TDP_Lat               = BUP_Get_TouchdownLatitude();                          // Широта точки приземления
-		debug_vars.TDP_Lon               = BUP_Get_TouchdownLongitude();                        // Долгота точки приземления
-		debug_vars.Alt2model             = BUP_Get_Altitude();                                 // Высота преобразованная в метры
-		debug_vars.SNSalt                = BUP_GetSNS_Altitude();                             // Высота в том виде в котором принимаем от СНС
-		debug_vars.rtU_XYZi_Lat          = BUP_Get_Latitude();                               // Широта преобразованная в градусы
-		debug_vars.rtU_XYZi_Lon          = BUP_Get_Longitude();                             // Долгота преобразованная в градусы
-		debug_vars.rtU_XYZi_Alt          = BUP_Get_Altitude();                             // Высота преобразованная в метры
-		debug_vars.Relief_height         = BUP_Get_ReliefHeight();                        // Высота рельефа под нами в метрах
+		debug_vars.TDP_Lat               = BUP_Get_TouchdownLatitude();                  // Широта точки приземления
+		debug_vars.TDP_Lon               = BUP_Get_TouchdownLongitude();                 // Долгота точки приземления
+		debug_vars.Alt2model             = BUP_Get_Altitude();                           // Высота преобразованная в метры
+		debug_vars.SNSalt                = BUP_GetSNS_Altitude();                        // Высота в том виде в котором принимаем от СНС
+		debug_vars.rtU_XYZi_Lat          = BUP_Get_Latitude();                           // Широта преобразованная в градусы
+		debug_vars.rtU_XYZi_Lon          = BUP_Get_Longitude();                          // Долгота преобразованная в градусы
+		debug_vars.rtU_XYZi_Alt          = BUP_Get_Altitude();                           // Высота преобразованная в метры
+		debug_vars.Relief_height         = BUP_Get_ReliefHeight();                       // Высота рельефа под нами в метрах
 		debug_vars.SysState              = SystemState;                                  // Состояние системы (из SelfTesing)
 }
 

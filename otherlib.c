@@ -6,7 +6,7 @@
 
 
 /**************************************************************************************************************
-						delay_us - Функция задержки в мкс.                                    										        *
+    delay_us - Функция задержки в мкс.
 **************************************************************************************************************/
 void delay_us(uint32_t us)
 {
@@ -27,7 +27,7 @@ void delay_us(uint32_t us)
 
 
 /**************************************************************************************************************
-						Pin_Init - Функция конфигурации отдельных пинов порта                                             *
+    Pin_Init - Функция конфигурации отдельных пинов порта
 **************************************************************************************************************/
 void Pin_Init(MDR_PORT_TypeDef* PORTx, uint32_t Pin_Num, PORT_FUNC_TypeDef Port_Func, PORT_OE_TypeDef Port_OE)
 {
@@ -50,7 +50,7 @@ void Pin_Init(MDR_PORT_TypeDef* PORTx, uint32_t Pin_Num, PORT_FUNC_TypeDef Port_
 
 
 /**************************************************************************************************************
-             Timer_SetInterruptPeriod - Настройка таймера TIMERx на прерывание каждые ticks тактов.           *
+    Timer_SetInterruptPeriod - Настройка таймера TIMERx на прерывание каждые ticks тактов.
 **************************************************************************************************************/
 void Timer_SetInterruptPeriod (MDR_TIMER_TypeDef* TIMERx, unsigned long ticks)
 {
@@ -92,9 +92,9 @@ void Timer_SetInterruptPeriod (MDR_TIMER_TypeDef* TIMERx, unsigned long ticks)
 	// Cобытие переднего фронта на TIM_CLK 
 	sTIMER_CntInit.TIMER_EventSource         = TIMER_EvSrc_None;
 	// Частота семплирования данных FDTS: 00 – каждый TIM_CLK;
-  sTIMER_CntInit.TIMER_FilterSampling      = TIMER_FDTS_TIMER_CLK_div_1;
+	sTIMER_CntInit.TIMER_FilterSampling      = TIMER_FDTS_TIMER_CLK_div_1;
 	// Разрешение мгновенного обновления ARR: 0 – ARR будет перезаписан в момент записи в ARR;
-  sTIMER_CntInit.TIMER_ARR_UpdateMode      = TIMER_ARR_Update_Immediately;
+	sTIMER_CntInit.TIMER_ARR_UpdateMode      = TIMER_ARR_Update_Immediately;
 	// Инициализируем таймер данной структурой
 	TIMER_CntInit (TIMERx,&sTIMER_CntInit);
 	// Разрешаем прерывания внутри таймера по достижению CNT значения ARR (Period)
@@ -118,69 +118,70 @@ void Timer_SetInterruptPeriod (MDR_TIMER_TypeDef* TIMERx, unsigned long ticks)
 
 
 /**************************************************************************************************************
-						InitCLK - Настройка тактирования процессора                                                       *
-						Примечание: Текущая конфигурация соответствует 80 МГц                                             *
+    InitCLK - Настройка тактирования процессора
+    Примечание: Текущая конфигурация соответствует 80 МГц
 **************************************************************************************************************/
 void InitCLK(void){
-			// 8MHZ на отладночной плате 	
-			// Настройки по-умолчанию
-			RST_CLK_DeInit();
-			// Запускаем HSE
-		  RST_CLK_HSEconfig(RST_CLK_HSE_ON);
-			// Ожидаем готовности HSE
-			RST_CLK_HSEstatus();
-			// Предделитель CPU_C1 = HSE
-			RST_CLK_HSEclkPrescaler (RST_CLK_HSEclkDIV1);
-			// Конфигурация PLL (на выходе PLL = HSE*10)
-	    RST_CLK_CPU_PLLconfig(RST_CLK_CPU_PLLsrcHSEdiv1,RST_CLK_CPU_PLLmul10);
-			// Включаем PLL
-			RST_CLK_CPU_PLLcmd(ENABLE);
-			// Проверяем готов ли PLL
-			RST_CLK_CPU_PLLstatus ();
-			// CPU_C3 = CPU_C2/1
-      RST_CLK_CPUclkPrescaler(RST_CLK_CPUclkDIV1);
-			// CPU_C2 = PLLCPU
-      RST_CLK_CPU_PLLuse(ENABLE);
-			// Переключаем таксирование процессора на CPU_C3 = 80MHZ
-      RST_CLK_CPUclkSelection(RST_CLK_CPUclkCPU_C3);
-			// Разрешаем тактирование EEPROM
-			RST_CLK_PCLKcmd(RST_CLK_PCLK_EEPROM, ENABLE);
-			// Выставляем задержку памяти программ при чтении = 3 цикла (до 80 МГц)
-			EEPROM_SetLatency(EEPROM_Latency_3);
-			// Отключаем тактирование EEPROM
-			RST_CLK_PCLKcmd(RST_CLK_PCLK_EEPROM, DISABLE);
-			// Настройки тактирования ADC
-			// ADC_C2 тактируется от CPU_C1
-			RST_CLK_ADCclkSelection(RST_CLK_ADCclkCPU_C1);
-			// ADC_C3 = ADC_C2/1 
-			RST_CLK_ADCclkPrescaler(RST_CLK_ADCclkDIV1);
-			// Разрешаем тактирование ADC
-			RST_CLK_ADCclkEnable(ENABLE);
+
+    // 8MHZ на отладночной плате 	
+    // Настройки по-умолчанию
+    RST_CLK_DeInit();
+    // Запускаем HSE
+    RST_CLK_HSEconfig(RST_CLK_HSE_ON);
+    // Ожидаем готовности HSE
+    RST_CLK_HSEstatus();
+    // Предделитель CPU_C1 = HSE
+    RST_CLK_HSEclkPrescaler (RST_CLK_HSEclkDIV1);
+    // Конфигурация PLL (на выходе PLL = HSE*10)
+    RST_CLK_CPU_PLLconfig(RST_CLK_CPU_PLLsrcHSEdiv1,RST_CLK_CPU_PLLmul10);
+    // Включаем PLL
+    RST_CLK_CPU_PLLcmd(ENABLE);
+    // Проверяем готов ли PLL
+    RST_CLK_CPU_PLLstatus ();
+    // CPU_C3 = CPU_C2/1
+    RST_CLK_CPUclkPrescaler(RST_CLK_CPUclkDIV1);
+    // CPU_C2 = PLLCPU
+    RST_CLK_CPU_PLLuse(ENABLE);
+    // Переключаем таксирование процессора на CPU_C3 = 80MHZ
+    RST_CLK_CPUclkSelection(RST_CLK_CPUclkCPU_C3);
+    // Разрешаем тактирование EEPROM
+    RST_CLK_PCLKcmd(RST_CLK_PCLK_EEPROM, ENABLE);
+    // Выставляем задержку памяти программ при чтении = 3 цикла (до 80 МГц)
+    EEPROM_SetLatency(EEPROM_Latency_3);
+    // Отключаем тактирование EEPROM
+    RST_CLK_PCLKcmd(RST_CLK_PCLK_EEPROM, DISABLE);
+    // Настройки тактирования ADC
+    // ADC_C2 тактируется от CPU_C1
+    RST_CLK_ADCclkSelection(RST_CLK_ADCclkCPU_C1);
+    // ADC_C3 = ADC_C2/1 
+    RST_CLK_ADCclkPrescaler(RST_CLK_ADCclkDIV1);
+    // Разрешаем тактирование ADC
+    RST_CLK_ADCclkEnable(ENABLE);
 			
-	    // Разрешение тактирования перечисленной периферии
-			RST_CLK_PCLKcmd( RST_CLK_PCLK_UART2|
-									   	 RST_CLK_PCLK_UART1|
-									   	 RST_CLK_PCLK_ADC  | 
-											 RST_CLK_PCLK_PORTA|
-											 RST_CLK_PCLK_PORTB|
-											 RST_CLK_PCLK_PORTC| 
-											 RST_CLK_PCLK_PORTD| 
-											 RST_CLK_PCLK_PORTF|
-											 RST_CLK_PCLK_PORTE|
-									  // RST_CLK_PCLK_TIMER3| 
-											 RST_CLK_PCLK_CAN1|
-											 RST_CLK_PCLK_CAN2|
-											 RST_CLK_PCLK_TIMER2|
-											 RST_CLK_PCLK_TIMER1,   
-											 ENABLE); 
-			// Обновим значение тактовой частоты
-			SystemCoreClockUpdate();
+    // Разрешение тактирования перечисленной периферии
+    RST_CLK_PCLKcmd( RST_CLK_PCLK_UART2|
+                     RST_CLK_PCLK_UART1|
+                     RST_CLK_PCLK_ADC  |
+                     RST_CLK_PCLK_PORTA|
+                     RST_CLK_PCLK_PORTB|
+                     RST_CLK_PCLK_PORTC|
+                     RST_CLK_PCLK_PORTD|
+                     RST_CLK_PCLK_PORTF|
+                     RST_CLK_PCLK_PORTE|
+                     // RST_CLK_PCLK_TIMER3|
+                     RST_CLK_PCLK_CAN1|
+                     RST_CLK_PCLK_CAN2|
+                     RST_CLK_PCLK_TIMER2|
+                     RST_CLK_PCLK_TIMER1, 
+                     ENABLE); 
+    // Обновим значение тактовой частоты
+    SystemCoreClockUpdate();
 }
 
 
 /**************************************************************************************************************
-						ADC_init - Инициализация АЦП                                                                      *
-            Примечание: Необходимо доделать, как возникнет необходимость                                      *
+    ADC_init - Инициализация АЦП
+    Примечание: Необходимо доделать, как возникнет необходимость
 **************************************************************************************************************/
 void ADC_init(void)
 {
@@ -191,13 +192,13 @@ void ADC_init(void)
 	// Настройка пина PORTD.9 как аналоговый вход
 	PORT_StructInit(&PORT_Struct);
 	PORT_Struct.PORT_Pin          = PORT_Pin_9 || PORT_Pin_10 || PORT_Pin_11 || PORT_Pin_12;
-  PORT_Struct.PORT_OE           = PORT_OE_IN;
-  PORT_Struct.PORT_MODE         = PORT_MODE_ANALOG;
+	PORT_Struct.PORT_OE           = PORT_OE_IN;
+	PORT_Struct.PORT_MODE         = PORT_MODE_ANALOG;
 	PORT_Init(MDR_PORTD, &PORT_Struct);
 	// Сбрасываем настройки АЦП	
 	ADC_DeInit();
 	// Заполняем структуру инициализации по-умолчанию
-  ADC_StructInit(&sADC);
+	ADC_StructInit(&sADC);
 	
 	// АЦП 1 и 2 работают независимо друг от друга
 	sADC.ADC_SynchronousMode      =  ADC_SyncMode_Independent;
@@ -210,46 +211,46 @@ void ADC_init(void)
 	// Включение датчика внутреннего опорного напряжения (можно измерять на 30 канале АЦП)
 	sADC.ADC_IntVRefConversion    =  ADC_VREF_CONVERSION_Disable;
 	// Подстройка внутреннего опорного напряжения (от 0 до 7)
-  sADC.ADC_IntVRefTrimming      =  0;
+	sADC.ADC_IntVRefTrimming      =  0;
 	// Инициализируем АЦП (общие настройки)
 	ADC_Init (&sADC);
 	
 	// Структура заполняется по-умолчанию
 	ADCx_StructInit (&sADCx);
 	// Источник тактирования ADC_CLOCK = ADC_C3 = CPU_C1 = HSE = 8 МГц
-  sADCx.ADC_ClockSource      = ADC_CLOCK_SOURCE_ADC;
+	sADCx.ADC_ClockSource      = ADC_CLOCK_SOURCE_ADC;
 	// Одиночное преобразование
-  sADCx.ADC_SamplingMode     = ADC_SAMPLING_MODE_SINGLE_CONV;
+	sADCx.ADC_SamplingMode     = ADC_SAMPLING_MODE_SINGLE_CONV;
 	// Переключение между каналами запрещено, используется только выбранный канал
-  sADCx.ADC_ChannelSwitching = ADC_CH_SWITCHING_Disable;
+	sADCx.ADC_ChannelSwitching = ADC_CH_SWITCHING_Disable;
 	// Номер канала 9 - PORTD.9
-  sADCx.ADC_ChannelNumber    = ADC_CH_ADC9;
+	sADCx.ADC_ChannelNumber    = ADC_CH_ADC9;
 	// Используемые каналы АЦП (переключение каналов отключено, а мы явно указали нужный канал выше, поэтому 0)
-  sADCx.ADC_Channels         =  0;
+	sADCx.ADC_Channels         =  0;
 	
 	// Контроль уровня отключен
-  sADCx.ADC_LevelControl     = ADC_LEVEL_CONTROL_Disable;
+	sADCx.ADC_LevelControl     = ADC_LEVEL_CONTROL_Disable;
 	// Границы уровня 0, тк контроль уронвня отключен
-  sADCx.ADC_LowLevel         = 0;
-  sADCx.ADC_HighLevel        = 0;
+	sADCx.ADC_LowLevel         = 0;
+	sADCx.ADC_HighLevel        = 0;
 	// Выбор опорного напряжения - внутренний AUCC и AGND
-  sADCx.ADC_VRefSource       = ADC_VREF_SOURCE_INTERNAL;
+	sADCx.ADC_VRefSource       = ADC_VREF_SOURCE_INTERNAL;
 	// Внутренний источник опорного напряжения с температурной компенсацией
-  sADCx.ADC_IntVRefSource    = ADC_INT_VREF_SOURCE_EXACT;
+	sADCx.ADC_IntVRefSource    = ADC_INT_VREF_SOURCE_EXACT;
 	
 	// Предделитель тактовой частоты АЦП не используется
-  sADCx.ADC_Prescaler        = ADC_CLK_div_None;
+	sADCx.ADC_Prescaler        = ADC_CLK_div_None;
 	// Дополнительная задержка перед началом преобразования после выбора канала
-  sADCx.ADC_DelayGo          = 7;
+	sADCx.ADC_DelayGo          = 7;
 	// Инициализируем АЦП1
-  ADC1_Init (&sADCx);
+	ADC1_Init (&sADCx);
 	// Запускаем АЦП
 	ADC1_Cmd (ENABLE);
 }	
 
 /**************************************************************************************************************
-						GetBatteryCharge - Получить заряд батареи                                                         *
-            Примечание: Необходимо доделать, как возникнет необходимость                                      *
+    GetBatteryCharge - Получить заряд батареи
+    Примечание: Необходимо доделать, как возникнет необходимость
 **************************************************************************************************************/
 uint16_t GetBatteryCharge (void)
 {

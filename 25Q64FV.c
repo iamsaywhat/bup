@@ -7,14 +7,14 @@
 
 // Макросы для выбора микросхемы памяти (0 = выбран, 1 == не выбран)
 // Использовать так: CSnReady(SPI_1636PP52Y_CS1);
-#define CSnReady(x) 	   PORT_ResetBits (SPI_25Q64FV_CSn_PORT, x);  // Выбор микросхемы
-#define CSnDisable(x) 	 PORT_SetBits (SPI_25Q64FV_CSn_PORT, x); 		// Отмена
+#define CSnReady(x)			PORT_ResetBits (SPI_25Q64FV_CSn_PORT, x);       // Выбор микросхемы
+#define CSnDisable(x)		PORT_SetBits (SPI_25Q64FV_CSn_PORT, x);         // Отмена
 
 // Объединение для работы с четырехбайтовым адресом 
 typedef volatile union  
  {
    uint32_t DWord ;    // Доступ к 4-байтному слову	
-   float 		Float;     // Доступ к вещественному значению (4 байта)  
+   float    Float;     // Доступ к вещественному значению (4 байта)  
    uint8_t 	Byte[4];   // Доступ к отдельным байтам
    uint16_t Word[2];   // Доступ к отдельным словам
 
@@ -22,7 +22,7 @@ typedef volatile union
 
 
 /**************************************************************************************************************
-				SPI_25Q64FV_RetargetPins - Назначение пинов для работы с внешней памятью 25Q64FV по SPI       	    	*
+     SPI_25Q64FV_RetargetPins - Назначение пинов для работы с внешней памятью 25Q64FV по SPI                  *
 **************************************************************************************************************/
 void SPI_25Q64FV_RetargetPins (void)
 {
@@ -44,7 +44,7 @@ void SPI_25Q64FV_RetargetPins (void)
 
 
 /**************************************************************************************************************
-				SPI_25Q64FV_Init - Инициализация SSP в режиме SPI для работы с внешней памятью 25Q64FV        	    	*
+     SPI_25Q64FV_Init - Инициализация SSP в режиме SPI для работы с внешней памятью 25Q64FV                   *
 **************************************************************************************************************/
 void SPI_25Q64FV_Init (void)
 {
@@ -83,7 +83,7 @@ void SPI_25Q64FV_Init (void)
 
 
 /**************************************************************************************************************
-				SPI_25Q64FV_WriteEnable - Отправить запрос на разрешение записи во внешнюю SPI-память               	*
+     SPI_25Q64FV_WriteEnable - Отправить запрос на разрешение записи во внешнюю SPI-память                    *
 **************************************************************************************************************/
 void SPI_25Q64FV_WriteEnable (uint32_t CSn)
 {
@@ -104,7 +104,7 @@ void SPI_25Q64FV_WriteEnable (uint32_t CSn)
 }
 
 /**************************************************************************************************************
-				SPI_25Q64FV_WriteDisable - Отправить запрос на запрет записи во внешнюю SPI-память                  	*
+     SPI_25Q64FV_WriteDisable - Отправить запрос на запрет записи во внешнюю SPI-память                       *
 **************************************************************************************************************/ 
 void SPI_25Q64FV_WriteDisable (uint32_t CSn)
 {
@@ -126,22 +126,22 @@ void SPI_25Q64FV_WriteDisable (uint32_t CSn)
 }
 
 /**************************************************************************************************************
-				SPI_25Q64FV_ChipErase - Очистка всей микросхемы внешней SPI-памяти                	              	*
+     SPI_25Q64FV_ChipErase - Очистка всей микросхемы внешней SPI-памяти                                       *
 **************************************************************************************************************/
 void SPI_25Q64FV_ChipErase (uint32_t CSn)
 {
 	uint8_t src, dst;
 	
 	// Разрешаем запись
-  SPI_25Q64FV_WriteEnable (CSn);
+	SPI_25Q64FV_WriteEnable (CSn);
 	
 	// Берем команду на стирание
 	src = _25Q64FV_CMD_ChipErase;
 	
 	// Выставим ChipSelect нужной микросхемы
 	CSnReady(CSn);
-  // Передать блок данных
-  SPI_25Q64FV_WriteBlock (&src, &dst, 1);
+	// Передать блок данных
+	SPI_25Q64FV_WriteBlock (&src, &dst, 1);
 	// Деактивируем ChipSelect микросхемы
 	CSnDisable(CSn);
 	
@@ -154,7 +154,7 @@ void SPI_25Q64FV_ChipErase (uint32_t CSn)
 
 
 /**************************************************************************************************************
-				SPI_25Q64FV_Reset - Перезапуск микросхемы внешней SPI-памяти                	                    	*
+     SPI_25Q64FV_Reset - Перезапуск микросхемы внешней SPI-памяти                                             *
 **************************************************************************************************************/
 void SPI_25Q64FV_Reset (uint32_t CSn)
 {
@@ -174,32 +174,31 @@ void SPI_25Q64FV_Reset (uint32_t CSn)
 
 
 /**************************************************************************************************************
-				SPI_1636PP52Y_ReadID - Запрос ID микросхемы и производителя внешней SPI-памяти                	     	*
+         SPI_1636PP52Y_ReadID - Запрос ID микросхемы и производителя внешней SPI-памяти                       *
 **************************************************************************************************************/
 uint16_t SPI_25Q64FV_ReadID (uint32_t CSn)
 {
   Dword_to_Byte result;
-	uint8_t src[6], dst[6];
-	
-	// Первой идет команда
-	src[0] = _25Q64FV_CMD_ManufacturerDeviceID;
-	// Затем 24 битный адрес (он неважен, поэтому просто нули
-	src[1] = 0x00;
-	src[2] = 0x00;
-	src[3] = 0x00;
-	// Еще байта любым значением (синхронно им будут выданы коды)
-	src[3] = 0x11;
-	src[3] = 0x11;
-	
-	// Выставим ChipSelect нужной микросхемы
-	CSnReady(CSn);
+  uint8_t src[6], dst[6];
+  
+  // Первой идет команда
+  src[0] = _25Q64FV_CMD_ManufacturerDeviceID;
+  // Затем 24 битный адрес (он неважен, поэтому просто нули
+  src[1] = 0x00;
+  src[2] = 0x00;
+  src[3] = 0x00;
+  // Еще байта любым значением (синхронно им будут выданы коды)
+  src[3] = 0x11;
+  src[3] = 0x11;
+  
+  // Выставим ChipSelect нужной микросхемы
+  CSnReady(CSn);
   // Передаём блок данных
   SPI_25Q64FV_WriteBlock (src, dst, 6);
-	// Деактивируем ChipSelect микросхемы
-	CSnDisable(CSn);
-	
-	// Формируем результат
-	result.DWord = 0;
+  // Деактивируем ChipSelect микросхемы
+  CSnDisable(CSn);
+  // Формируем результат
+  result.DWord = 0;
   result.Byte[0] = dst[4];	// Код производителя 0xEF
   result.Byte[1] = dst[5];	// Код микросхемы 0x40
 	
@@ -207,21 +206,21 @@ uint16_t SPI_25Q64FV_ReadID (uint32_t CSn)
 }
 
 /**************************************************************************************************************
-				SPI_25Q64FV_WriteBlock - Внутреняя функция отправки сообщений по SPI                              	 	*
+            SPI_25Q64FV_WriteBlock - Внутреняя функция отправки сообщений по SPI                              *
 **************************************************************************************************************/
 void static SPI_25Q64FV_WriteBlock (uint8_t* Source, uint8_t* Destination, uint32_t Size)
 {
   uint32_t i;
-	uint32_t temp;
-	uint32_t timeout = 0;
-	
-	// Дождаемся полного освобождения буфера
-	while ((SPI_25Q64FV_Module->SR & SSP_FLAG_BSY) && (timeout != TIMEOUT_25Q64FV)) timeout ++;
+  uint32_t temp;
+  uint32_t timeout = 0;
+  
+  // Дождаемся полного освобождения буфера
+  while ((SPI_25Q64FV_Module->SR & SSP_FLAG_BSY) && (timeout != TIMEOUT_25Q64FV)) timeout ++;
 
   // Читаем входной буфер, чтобы его вычистить, так как там может лежать мусор	
-	while ((SPI_25Q64FV_Module->SR & SSP_FLAG_RNE))
-		temp = SPI_25Q64FV_Module->DR;
-	
+  while ((SPI_25Q64FV_Module->SR & SSP_FLAG_RNE))
+	temp = SPI_25Q64FV_Module->DR;
+
 	for (i = 0; i < Size; i++)
 	{
 		// Дождаться появления свободного места в буфера передатчика
@@ -239,49 +238,44 @@ void static SPI_25Q64FV_WriteBlock (uint8_t* Source, uint8_t* Destination, uint3
 }
 
 /**************************************************************************************************************
-            SPI_25Q64FV_SectorErase - Стирание сектора внешней SPI-памяти (4кб)                           	 	*
+     SPI_25Q64FV_SectorErase - Стирание сектора внешней SPI-памяти (4кб)                                      *
 **************************************************************************************************************/
 void SPI_25Q64FV_SectorErase (uint32_t CSn, uint32_t Address)
 {
   Dword_to_Byte Addr;
-	uint8_t src[4], dst[4];  // Посылаем всего 4 байта
-	
-	// Копируем адрес в передаваемый буфер
-	Addr.DWord = Address;
-	src[0] = _25Q64FV_CMD_SectorErase;
-	// Старшим байтом вперед, поэтому переворачиваем
-	src[1] = Addr.Byte[2];								
-	src[2] = Addr.Byte[1];
-	src[3] = Addr.Byte[0];
-	
-	// Разрешить запись
+  uint8_t src[4], dst[4];  // Посылаем всего 4 байта
+  
+  // Копируем адрес в передаваемый буфер
+  Addr.DWord = Address;
+  src[0] = _25Q64FV_CMD_SectorErase;
+  // Старшим байтом вперед, поэтому переворачиваем
+  src[1] = Addr.Byte[2];								
+  src[2] = Addr.Byte[1];
+  src[3] = Addr.Byte[0];
+  
+  // Разрешить запись
   SPI_25Q64FV_WriteEnable (CSn);	
-	
-	// Выставим ChipSelect нужной микросхемы
-	CSnReady(CSn);
+  
+  // Выставим ChipSelect нужной микросхемы 
+  CSnReady(CSn);
   // Передать блок данных
   SPI_25Q64FV_WriteBlock (src, dst, 4);
-	// Деактивируем ChipSelect микросхемы
-	CSnDisable(CSn);
-	
-	// Время стирания сектора, мс:  от 45 до 400
+  // Деактивируем ChipSelect микросхемы
+  CSnDisable(CSn);
+  
+  // Время стирания сектора, мс:  от 45 до 400
   // Ожидание стирания сектора по верхней границе
   delay_us(_25Q64FV_SectorErase_delay_us);
-	
 }
 
 
-
-
-
-
 /**************************************************************************************************************
-				SPI_25Q64FV_ByteProgram - Запись байта во внешнюю память			                        				  	   	*
+     SPI_25Q64FV_ByteProgram - Запись байта во внешнюю память                                                 *
 **************************************************************************************************************/
 void SPI_25Q64FV_ByteProgram (uint32_t CSn, uint32_t Address, uint8_t Value)
 {
 	uint8_t src[5], dst[5];
-  Dword_to_Byte Addr;
+	Dword_to_Byte Addr;
 	Addr.DWord = Address;
 	
 	src[0] = _25Q64FV_CMD_PageProgram;
@@ -291,12 +285,12 @@ void SPI_25Q64FV_ByteProgram (uint32_t CSn, uint32_t Address, uint8_t Value)
 	src[4] = Value;
 		
 	// Разрешить запись
-  SPI_25Q64FV_WriteEnable (CSn);	
+	SPI_25Q64FV_WriteEnable (CSn);	
 	
 	// Выставим ChipSelect нужной микросхемы
 	CSnReady(CSn);
-  // Передать блок данных
-  SPI_25Q64FV_WriteBlock (src, dst, 5);
+    // Передать блок данных
+	SPI_25Q64FV_WriteBlock (src, dst, 5);
 	// Деактивируем ChipSelect микросхемы
 	CSnDisable(CSn);
 	
@@ -310,14 +304,14 @@ void SPI_25Q64FV_ByteProgram (uint32_t CSn, uint32_t Address, uint8_t Value)
 
 
 /**************************************************************************************************************
-				SPI_25Q64FV_ReadArray - Чтение массива данных из внешней SPI-памяти                                  	*
+         SPI_25Q64FV_ReadArray - Чтение массива данных из внешней SPI-памяти                                  *
 **************************************************************************************************************/
 uint32_t SPI_25Q64FV_ReadArray (uint32_t CSn, uint32_t Address, uint8_t* Destination, uint32_t Size)
 {
 	uint32_t timeout = 0;
 	uint8_t src[4];
-  Dword_to_Byte Addr;
-  uint32_t i,count;
+	Dword_to_Byte Addr;
+	uint32_t i,count;
 	volatile uint32_t data;
 	uint8_t* Dst;
 	
@@ -338,11 +332,11 @@ uint32_t SPI_25Q64FV_ReadArray (uint32_t CSn, uint32_t Address, uint8_t* Destina
 	// Дождаться полного освобождения SPI
 	while (((SPI_25Q64FV_Module->SR) & SSP_FLAG_BSY) && (timeout != TIMEOUT_25Q64FV)) timeout ++;
 	
-  // Вычитать все данные из входного буфера, так как там может лежать мусор	
+	// Вычитать все данные из входного буфера, так как там может лежать мусор	
 	while ((SPI_25Q64FV_Module->SR & SSP_FLAG_RNE))
 		data = SPI_25Q64FV_Module->DR;	
 	
-  // Передать 4 байта с кодом команды и адресом
+	// Передать 4 байта с кодом команды и адресом
 	for (i = 0; i < 4; i++)
 		SPI_25Q64FV_Module->DR = src[i];
 	
@@ -377,7 +371,7 @@ uint32_t SPI_25Q64FV_ReadArray (uint32_t CSn, uint32_t Address, uint8_t* Destina
 		 count++;	
 		}		
 	}
-  // Читаем остаток еще не принятых байт	
+	// Читаем остаток еще не принятых байт	
 	while (SPI_25Q64FV_Module->SR & (SSP_FLAG_RNE | SSP_FLAG_BSY))
 	{
 		if ((SPI_25Q64FV_Module->SR & SSP_FLAG_RNE) && count < Size)
@@ -397,8 +391,8 @@ uint32_t SPI_25Q64FV_ReadArray (uint32_t CSn, uint32_t Address, uint8_t* Destina
 
 
 /**************************************************************************************************************
-				SPI_1636PP52Y_TestMemory - Функция тестирования микросхемы памяти. Проиводит запись и чтение          *
-											по всем доступным адресам																																*
+        SPI_1636PP52Y_TestMemory - Функция тестирования микросхемы памяти. Проиводит запись и чтение          *
+                                   по всем доступным адресам                                                  *
 **************************************************************************************************************/
 uint8_t SPI_25Q64FV_TestMemory (uint32_t CSn)
 {

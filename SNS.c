@@ -18,8 +18,8 @@
 
 
 /**************************************************************************************************************
-						SNS_RetargetPins - Функция переопределения UART1 на другие пины, для работы SNS                   *
-						Параметры:  NONE                                                                                  *
+    SNS_RetargetPins - Функция переопределения UART1 на другие пины, для работы SNS
+    Параметры:  NONE
 ***************************************************************************************************************/
 void SNS_RetargetPins (void)
 {
@@ -30,8 +30,8 @@ void SNS_RetargetPins (void)
 }
 
 /**************************************************************************************************************
-						SNS_init - Инициализация UART под SNS                                                             *
-						Параметры:  NONE                                                                                  *
+    SNS_init - Инициализация UART под SNS
+    Параметры:  NONE
 ***************************************************************************************************************/
 void SNS_init (void)
 {
@@ -45,37 +45,37 @@ void SNS_init (void)
 	UART_BRGInit (SNS_UART,UART_HCLKdiv1); 
 	// Заполняем структуру инициализации	
 	UART_InitStructure.UART_BaudRate                = BAUDRATE_SNS;
-  UART_InitStructure.UART_WordLength              = UART_WordLength8b;
-  UART_InitStructure.UART_StopBits                = UART_StopBits1;
-  UART_InitStructure.UART_Parity                  = UART_Parity_No;
-  UART_InitStructure.UART_FIFOMode                = UART_FIFO_ON;
-  UART_InitStructure.UART_HardwareFlowControl     = UART_HardwareFlowControl_RXE | UART_HardwareFlowControl_TXE;
-  // Инициализация UART
-  UART_Init (SNS_UART,&UART_InitStructure);
+	UART_InitStructure.UART_WordLength              = UART_WordLength8b;
+	UART_InitStructure.UART_StopBits                = UART_StopBits1;
+	UART_InitStructure.UART_Parity                  = UART_Parity_No;
+	UART_InitStructure.UART_FIFOMode                = UART_FIFO_ON;
+	UART_InitStructure.UART_HardwareFlowControl     = UART_HardwareFlowControl_RXE | UART_HardwareFlowControl_TXE;
+	// Инициализация UART
+	UART_Init (SNS_UART,&UART_InitStructure);
 	// Включение UART1 - CНС
-  UART_Cmd(SNS_UART,ENABLE);
+	UART_Cmd(SNS_UART,ENABLE);
 
 }
 
 /**************************************************************************************************************
-						SNS_deinit - Деинициализация SNS и освобождение UART                                              *
-						Параметры:  NONE                                                                                  *
+    SNS_deinit - Деинициализация SNS и освобождение UART
+    Параметры:  NONE
 ***************************************************************************************************************/
 void SNS_deinit (void)
 {
 	// Сброс конфигуряции UART
 	UART_DeInit(SNS_UART);
 	// Включение UART1 - CНС
-  UART_Cmd(SNS_UART,DISABLE);
+	UART_Cmd(SNS_UART,DISABLE);
 	Pin_Init (SNS_PORT, SNS_RX, PORT_FUNC_PORT, PORT_OE_OUT);
 	Pin_Init (SNS_PORT, SNS_TX, PORT_FUNC_PORT, PORT_OE_OUT);
 }
 
 /**************************************************************************************************************
-						SNS_Request - SNS_Request - Запрос к СНС с командой                                               *
-						Параметры:  																																											*
-											Command - Код команды, отправляемый СНС 																								*
-										(СНС реагирует только на команды перечисленные а протоколе) 														*
+    SNS_Request - SNS_Request - Запрос к СНС с командой
+    Параметры:
+                Command - Код команды, отправляемый СНС
+                (СНС реагирует только на команды перечисленные а протоколе)
 ***************************************************************************************************************/
 SNS_Status SNS_Request(uint8_t Command)
 {
@@ -88,7 +88,7 @@ SNS_Status SNS_Request(uint8_t Command)
 	// Вычисляем контрольную сумму пакета:
 	// как в описани протокола обмена только для 1го байта - команды
 	SNS_Req.Struct.CRC = Crc16(&SNS_Req.Buffer[2], 1, CRC16_INITIAL_FFFF);
-  // Начинаем отправку запроса
+	// Начинаем отправку запроса
 	UART_SendData(SNS_UART, FEND);	// Отправляем признак начала пакета
 	// Ждем окончания передачи
 	while ((UART_GetFlagStatus (SNS_UART, UART_FLAG_TXFF) == SET) && (timeout != SNS_MAX_TIMEOUT)) timeout++;
@@ -122,8 +122,8 @@ SNS_Status SNS_Request(uint8_t Command)
 		// Проверяем будет ли это выход по таймауту
 		if(timeout == SNS_MAX_TIMEOUT) 
 			return SNS_TIMEOUT;
-	  // Сбросим счетчик таймаут
-	  timeout = 0;
+		// Сбросим счетчик таймаут
+		timeout = 0;
 		
 	}
 	UART_SendData(SNS_UART, FEND);	// Отправляем признак конца пакета
@@ -138,13 +138,13 @@ SNS_Status SNS_Request(uint8_t Command)
 }
 
 /**************************************************************************************************************
-						SNS_GetData_by_SLIP - Приём данных от СНС, распаковка кадров по SLIP                              *
-						Параметры:                                                                                        *
-											  PacketSize - Размер принимаего пакета данных                                          *
-											  Buffer     - Буфер, в который будет помещены принимаемые данные 										  *
-						Возвращает:                                                                                       *
-                        0 - Если ошибка проверки кода ответа и контрольной суммы								  						*
-												1 - Если проверка верна		 																														*
+    SNS_GetData_by_SLIP - Приём данных от СНС, распаковка кадров по SLIP
+    Параметры:
+                PacketSize - Размер принимаего пакета данных;
+                Buffer     - Буфер, в который будет помещены принимаемые данные.
+    Возвращает:
+                0 - Если ошибка проверки кода ответа и контрольной суммы;
+                1 - Если проверка верна.
 ***************************************************************************************************************/
 void SNS_GetData_by_SLIP (uint8_t PacketSize, uint8_t* Buffer)
 {
@@ -167,10 +167,10 @@ void SNS_GetData_by_SLIP (uint8_t PacketSize, uint8_t* Buffer)
 		while ((UART_GetFlagStatus (SNS_UART, UART_FLAG_RXFE) == SET) && (timeout != SNS_MAX_TIMEOUT)) timeout++;
 		
 		// Проверяем будет ли это выход по таймауту
-	  if(timeout == SNS_MAX_TIMEOUT) 
+		if(timeout == SNS_MAX_TIMEOUT) 
 			return;
-	  // Сбросим счетчик таймаут
-	  timeout = 0;
+		// Сбросим счетчик таймаут
+		timeout = 0;
 		
 		// Принимаем символ
 		temp = UART_ReceiveData(SNS_UART);
@@ -180,9 +180,9 @@ void SNS_GetData_by_SLIP (uint8_t PacketSize, uint8_t* Buffer)
 			// Ожидаем приход данных (пока буфер приёмника пуст)
 			while ((UART_GetFlagStatus (SNS_UART, UART_FLAG_RXFE) == SET) && (timeout != SNS_MAX_TIMEOUT)) timeout++;
 			
-			// Проверяем будет ли это выход по таймауту
+		// Проверяем будет ли это выход по таймауту
 	    if(timeout == SNS_MAX_TIMEOUT) 
-				return;
+			return;
 	    // Сбросим счетчик таймаут
 	    timeout = 0;
 			
@@ -196,10 +196,10 @@ void SNS_GetData_by_SLIP (uint8_t PacketSize, uint8_t* Buffer)
 			while ((UART_GetFlagStatus (SNS_UART, UART_FLAG_RXFE) == SET) && (timeout != SNS_MAX_TIMEOUT)) timeout++;
 			
 			// Проверяем будет ли это выход по таймауту
-	    if(timeout == SNS_MAX_TIMEOUT) 
+			if(timeout == SNS_MAX_TIMEOUT) 
 				return;
-	    // Сбросим счетчик таймаут
-	    timeout = 0;
+			// Сбросим счетчик таймаут
+			timeout = 0;
 			
 			// Если следующий символ будет TFESC, то это закодированный символ FESC
 			if(UART_ReceiveData(SNS_UART) == TFESC)
@@ -228,7 +228,7 @@ void SNS_GetData_by_SLIP (uint8_t PacketSize, uint8_t* Buffer)
 /********************************  ПУБЛИЧНАЯ ЧАСТЬ МОДУЛЯ  ************************************************************************************/
 
 /**************************************************************************************************************
-								 SNS_GetDeviceInformation - Запрос информации о девайсе от СНС                                *
+    SNS_GetDeviceInformation - Запрос информации о девайсе от СНС
 **************************************************************************************************************/
 uint8_t SNS_GetDeviceInformation(SNS_Device_Information_Response_Union*  SNS_DeviceInformation)
 {
@@ -240,7 +240,7 @@ uint8_t SNS_GetDeviceInformation(SNS_Device_Information_Response_Union*  SNS_Dev
 	while ((UART_GetFlagStatus (SNS_UART, UART_FLAG_RXFE) != SET)&& (timeout != SNS_MAX_TIMEOUT)) 
 	{
 		timeout++; 
-	  UART_ReceiveData(SNS_UART);
+		UART_ReceiveData(SNS_UART);
 	}
 	
 	// Проверяем будет ли это выход по таймауту
@@ -282,7 +282,7 @@ uint8_t SNS_GetDeviceInformation(SNS_Device_Information_Response_Union*  SNS_Dev
 
 
 /**************************************************************************************************************
-								 SNS_GetDataState - Запрос доступных данных от СНС                                            *
+    SNS_GetDataState - Запрос доступных данных от СНС
 **************************************************************************************************************/
 SNS_Status SNS_GetDataState(SNS_Available_Data_Response_Union*  SNS_DataState)
 {
@@ -335,7 +335,7 @@ SNS_Status SNS_GetDataState(SNS_Available_Data_Response_Union*  SNS_DataState)
 
 
 /**************************************************************************************************************
-								 SNS_GetPositionData - Запрос информации о местоположении от СНС                              *
+    SNS_GetPositionData - Запрос информации о местоположении от СНС    
 **************************************************************************************************************/
 SNS_Status SNS_GetPositionData(SNS_Position_Data_Response_Union*  SNS_PositionData)
 {
@@ -388,7 +388,7 @@ SNS_Status SNS_GetPositionData(SNS_Position_Data_Response_Union*  SNS_PositionDa
 
 
 /**************************************************************************************************************
-								 SNS_GetOrientationData - Запрос информации об ориентации от СНС                              *
+    SNS_GetOrientationData - Запрос информации об ориентации от СНС    
 **************************************************************************************************************/
 SNS_Status SNS_GetOrientationData(SNS_Orientation_Data_Response_Union*  SNS_OrientationData)
 {
@@ -442,7 +442,7 @@ SNS_Status SNS_GetOrientationData(SNS_Orientation_Data_Response_Union*  SNS_Orie
 
 
 /**************************************************************************************************************
-						SNS_StartGyroCalibration - Команда начала калибровки гироскопа                                    *
+    SNS_StartGyroCalibration - Команда начала калибровки гироскопа    
 ***************************************************************************************************************/
 SNS_Status SNS_StartGyroCalibration (void)
 {
@@ -461,7 +461,7 @@ SNS_Status SNS_StartGyroCalibration (void)
 
 
 /**************************************************************************************************************
-						SNS_ResetGyroCalibration - Команда сброса калибровки гироскопа                                    *
+    SNS_ResetGyroCalibration - Команда сброса калибровки гироскопа    
 ***************************************************************************************************************/
 SNS_Status SNS_ResetGyroCalibration (void)
 {
@@ -480,7 +480,7 @@ SNS_Status SNS_ResetGyroCalibration (void)
 
 
 /**************************************************************************************************************
-						SNS_StartMagnetometerCalibration - Команда начала калибровки магнитометра                         *
+    SNS_StartMagnetometerCalibration - Команда начала калибровки магнитометра     
 ***************************************************************************************************************/
 SNS_Status SNS_StartMagnetometerCalibration (void)
 {
@@ -499,7 +499,7 @@ SNS_Status SNS_StartMagnetometerCalibration (void)
 
 
 /**************************************************************************************************************
-						SNS_ResetMagnetometerCalibration - Команда сброса калибровки магнитометра                         * 
+    SNS_ResetMagnetometerCalibration - Команда сброса калибровки магнитометра    
 ***************************************************************************************************************/
 SNS_Status SNS_ResetMagnetometerCalibration (void)
 {
@@ -518,7 +518,7 @@ SNS_Status SNS_ResetMagnetometerCalibration (void)
 
 
 /**************************************************************************************************************
-						SNS_EnableHorizontalCorrection - Команда включения горизонтальной коррекции                       *
+    SNS_EnableHorizontalCorrection - Команда включения горизонтальной коррекции    
 ***************************************************************************************************************/
 SNS_Status SNS_EnableHorizontalCorrection (void)
 {
@@ -537,7 +537,7 @@ SNS_Status SNS_EnableHorizontalCorrection (void)
 
 
 /**************************************************************************************************************
-						SNS_DisableHorizontalCorrection - Команда отключения горизонтальной коррекции                     *
+    SNS_DisableHorizontalCorrection - Команда отключения горизонтальной коррекции    
 ***************************************************************************************************************/
 SNS_Status SNS_DisableHorizontalCorrection (void)
 {

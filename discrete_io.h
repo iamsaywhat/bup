@@ -1,6 +1,6 @@
 /*********************************************************************************************************
 
-              discrete_io - Модуль дискретного управления/контроля переферии
+    discrete_io - Модуль дискретного управления/контроля переферии
 							
 *********************************************************************************************************/
 
@@ -11,7 +11,7 @@
 #define DISCRETE_INPUT_PORT     MDR_PORTA   
 #define CLK_DISCR_INPUT_PORT    RST_CLK_PCLK_PORTA 
 #define PIN1                    PORT_Pin_0             // Шпилька 1
-#define BLIND                   PORT_Pin_1				     // Замок створки	
+#define BLIND                   PORT_Pin_1             // Замок створки	
 #define PIN2_INV                PORT_Pin_2             // Шпилька 2 - инверсный сигнал
 #define PIN2_DIR                PORT_Pin_3             // Шпилька 2 - прямой сигнал
 #define RESERVED1               PORT_Pin_4             // Резерв
@@ -40,14 +40,14 @@
 #define PIN2_INV_CHECK      PORT_ReadInputDataBit (DISCRETE_INPUT_PORT, PIN2_INV)        // Не воткнута ли шпилька 2             (Воткнута = 0)
 #define CONNECT_ZPZ_CHECK   PORT_ReadInputDataBit (DISCRETE_INPUT_PORT, CONNECT_ZPZ)     // Подключен ли ЗПЗ к разъему           (Подключён = 0)
 #define LED_READY_CHECK     PORT_ReadInputDataBit (DISCRETE_OUTPUT_PORT, LED_READY)      // Состояние индикатора "Готов"         (Вкл = 1, Выкл = 0)
-#define LED_FAULT_CHECK     PORT_ReadInputDataBit (DISCRETE_OUTPUT_PORT, LED_FAULT)			 // Состояние индикатора "Неисправность" (Вкл = 1, Выкл = 0)
+#define LED_FAULT_CHECK     PORT_ReadInputDataBit (DISCRETE_OUTPUT_PORT, LED_FAULT)      // Состояние индикатора "Неисправность" (Вкл = 1, Выкл = 0)
 #define RELAY_BIM_CHECK     PORT_ReadInputDataBit (DISCRETE_OUTPUT_PORT, RELAY_BIM)      // Состояние реле питания БИМ           (Вкл = 1, Выкл = 0)
 #define PYRO_CHECK          PORT_ReadInputDataBit (DISCRETE_OUTPUT_PORT, PYRO)           // Состояние реле пиропатрона           (Вкл = 1, Выкл = 0)
 #define BLIND_CTRL_CHECK    PORT_ReadInputDataBit (DISCRETE_OUTPUT_PORT, BLIND_CTRL)     // Состояние реле замка сворки          (Вкл = 1, Выкл = 0)
 
 // Макросы для именованного управления пинами
 #define LED_READY_ON()        PORT_SetBits(DISCRETE_OUTPUT_PORT, LED_READY)              // Зажечь светодиод "ГОТОВ"
-#define LED_READY_OFF()       PORT_ResetBits(DISCRETE_OUTPUT_PORT, LED_READY)						 // Погасить светодиод "ГОТОВ"
+#define LED_READY_OFF()       PORT_ResetBits(DISCRETE_OUTPUT_PORT, LED_READY)            // Погасить светодиод "ГОТОВ"
 #define LED_FAULT_ON()        PORT_SetBits(DISCRETE_OUTPUT_PORT, LED_FAULT)              // Зажечь светодиод "НЕИСПРАВНОСТЬ"
 #define LED_FAULT_OFF()       PORT_ResetBits(DISCRETE_OUTPUT_PORT, LED_FAULT)            // Погасить светодиод "НЕИСПРАВНОСТЬ"
 #define PYRO_ON()             PORT_SetBits(DISCRETE_OUTPUT_PORT, PYRO)                   // Зажечь пиропатрон
@@ -57,7 +57,7 @@
 
 
 /**************************************************************************************************************
-									Discrete_RetargetPins - Конфигурирование дискретных пинов	                                  *
+    Discrete_RetargetPins - Конфигурирование дискретных пинов
 **************************************************************************************************************/
 void Discrete_RetargetPins (void);
 

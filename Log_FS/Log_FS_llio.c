@@ -3,9 +3,9 @@
 #include "MDR32F9Qx_port.h"
 
 
-
+    
 /******************************************************************************************
-*                         Приватные функции нижнего уровня                                *
+    РџСЂРёРІР°С‚РЅС‹Рµ С„СѓРЅРєС†РёРё РЅРёР¶РЅРµРіРѕ СѓСЂРѕРІРЅСЏ
 ******************************************************************************************/
 void MemoryWrite(uint32_t Address, uint8_t* buffer, uint32_t size)
 {
@@ -15,7 +15,6 @@ void MemoryWrite(uint32_t Address, uint8_t* buffer, uint32_t size)
 		SPI_25Q64FV_ByteProgram (SPI_25Q64FV_CSn, Address+i, buffer[i]);
 	}
 }
-
 
 void MemoryRead(uint32_t Address, uint8_t* buffer, uint32_t size)
 {
