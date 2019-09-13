@@ -14,6 +14,11 @@ uint8_t UARTSendByte (MDR_UART_TypeDef* UARTx, uint32_t TimeoutRange, uint16_t B
 void SWS_RetargetPins (void)
 {
 	RST_CLK_PCLKcmd(RST_CLK_PCLK_PORTD, ENABLE);
+	
+	// Здесь гарантированно отключаем используемый UART, от других пинов, на которых он может использоваться 
+	Pin_Init (MDR_PORTB, PORT_Pin_6, PORT_FUNC_PORT, PORT_OE_OUT);
+	Pin_Init (MDR_PORTB, PORT_Pin_5, PORT_FUNC_PORT, PORT_OE_OUT);
+	
 	// Переназчаем UART1 на порт D для работы SWS
 	Pin_Init (SWS_PORT, SWS_RX, PORT_FUNC_OVERRID,PORT_OE_IN);
 	Pin_Init (SWS_PORT, SWS_TX, PORT_FUNC_OVERRID,PORT_OE_OUT);

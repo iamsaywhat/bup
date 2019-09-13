@@ -48,7 +48,7 @@ void task_can_debug(void);
 void TaskManager_RestartCycle(void)
 {
 	TaskManager.Task_num = 0;
-  TaskManager.Task_SelftestingStage = 0;
+	TaskManager.Task_SelftestingStage = 0;
 	TaskManager.Task_CanDebugStage = 0;
 	TaskManager.Task_LogerStage = 0;
 }
@@ -58,6 +58,9 @@ void TaskManager_RestartCycle(void)
 **********************************************************************************************************/
 void TaskManagerGo2Task (TaskManagerCode Code, uint8_t Stage)
 {
+	// Сбрасываем планировщик
+	TaskManager_RestartCycle();
+	
 	// Присваиваем номер задачи
 	TaskManager.Task_num = Code;
 	

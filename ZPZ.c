@@ -2046,7 +2046,7 @@ void Timer2_IRQHandler(void)
 	
 	// Здесь реализуем таймаут контроль режима ВВПЗ
 	// Повисание или разрыв связи будем определять так:
-	if(ZPZ_CheckHighPriorityTask() && TimeoutCounter > 20)
+	if(ZPZ_CheckHighPriorityTask() && TimeoutCounter > 50)
 	{
 		// Завершим режим ВППЗ и перейдем в режим РК
 		ZPZ_FinishHighPriorityTask ();

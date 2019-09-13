@@ -42,6 +42,9 @@
 //	char p1;
 //	char p2;
 
+uint32_t size = 0;
+uint32_t num = 0;
+uint32_t i = 0;
 
 int main(void)
 {	 
@@ -67,6 +70,35 @@ int main(void)
 	// Запускаем фул-тест системы
 	SelfTestingFull();
   
+	
+	
+	
+//	Log_Fs_FindFile(FIRST_FILE);
+//  // Узнаем размер открытого файла (команда FILE_SIZE)
+//  size = Log_Fs_GetFileProperties(FILE_SIZE);
+//  // Так же можно узнать порядковый номер открытого файла (команда FILE_NUMBER)
+//  num = Log_Fs_GetFileProperties(FILE_NUMBER);
+//  // И прочитаем файл в буфер
+//  //LogFs_ReadFile(buffer, 0, size);
+//	
+
+//    // Перейдем к следующему файлу (Внимание! Теперь функция с командой NEXT_FILE)
+//    // То есть этой функцией мы можем последовательно от самого старого к самому новому файлу переключаться между ними)
+//    // Так же можно проверять открылся ли файл
+//    while (Log_Fs_FindFile(NEXT_FILE) != FS_ERROR)
+//    {
+//        // Узнаем размер открытого файла (команда FILE_SIZE)
+//        size = Log_Fs_GetFileProperties(FILE_SIZE);
+//        // Продемонстрируем, что функцией LogFs_ReadFile, можно читать файл в за несколько обращений
+//        // Будем читать по байту size раз (размер файла в байтах)
+////        for (i = 0; i < size; i++)
+////        {
+////            //LogFs_ReadFile(&buffer[i], i, 1);
+////        }
+//    }
+//		
+//		while(1);
+	
 
 //	BIM_Supply_ON();
 //	
@@ -138,7 +170,6 @@ int main(void)
 			if(ZPZ_CheckHighPriorityTask() == ZPZ_SC_MODE)
 			{
 				// Будем в свободное время будем заниматься самодиагностикой
-				// SelfTestingBeatTest ();
 				TaskManagerZPZBackgroundRun ();
 			}				
 		}
@@ -191,8 +222,14 @@ int main(void)
 	// Сбрасываем/инициализируем список задач
 	TaskManager_RestartCycle();
 	
-	// На первом проходе необходимо начать со второй задачи (подготовки данных) перед шагом расчета
-	TaskManagerGo2Task (TaskUpdate, 0);
+	// Перед первым шагом матмодели необходимо подготовить данные
+	// Запускаем обновление данных
+	BUP_DataUpdate ();
+	// Отправляем данные математической модели
+	M_Model_PrepareData ();
+	
+	// Переключаем планировщик на первую из пассивных задач (диагностика)
+	TaskManagerGo2Task (TaskTest, 0);
 	
 	// Главный рабочий цикл
 	while(1)
