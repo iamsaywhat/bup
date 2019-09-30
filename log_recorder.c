@@ -1,7 +1,7 @@
 #include "log_recorder.h"
 
 #include "config.h"
-#include "Log_FS.h"
+#include "Log_FS/Log_FS.h"
 #include "RetargetPrintf/RetargetPrintf.h"
 #include "SelfTesting.h"
 #include "bup_data_store.h"

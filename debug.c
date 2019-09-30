@@ -26,7 +26,7 @@ debug_output debug_vars;
 void debug_can(unsigned short id, void* data, unsigned char size)
 {
 	CAN_TxMsgTypeDef     Tx_msg;              // Структура CAN сообщения
-  unsigned int         i = 0;               // Счетчик 
+	unsigned int         i = 0;               // Счетчик 
 	unsigned int         Buffer_number;       // Номер свободного буфера
 	unsigned short       per = 0;             // Таймаут-счетчик
 		

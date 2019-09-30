@@ -101,13 +101,15 @@ void M_Model_PrepareData (void)
 //  rtU.RightEnginehadWork = 1.0;  
 
 	#else //*************************************************************************** Если выбран Easy_reg
-		Easy_reg_U.TDP_lon        = BUP_Get_TouchdownLongitude();
-		Easy_reg_U.TDP_lat        = BUP_Get_TouchdownLatitude();
-		Easy_reg_U.TDP_alt        = BUP_Get_TouchdownAltitude();
-		Easy_reg_U.Pos_lon        = BUP_Get_Longitude();
-		Easy_reg_U.Pos_lat        = BUP_Get_Latitude();
-		Easy_reg_U.Pos_alt        = BUP_Get_Altitude();
-		Easy_reg_U.ActualCourse   = BUP_Get_HeadingTrue();
+		Easy_reg_U.TDP_lon         = BUP_Get_TouchdownLongitude();
+		Easy_reg_U.TDP_lat         = BUP_Get_TouchdownLatitude();
+		Easy_reg_U.TDP_alt         = BUP_Get_TouchdownAltitude();
+		Easy_reg_U.Pos_lon         = BUP_Get_Longitude();
+		Easy_reg_U.Pos_lat         = BUP_Get_Latitude();
+		Easy_reg_U.Pos_alt         = BUP_Get_Altitude();
+		Easy_reg_U.ActualCourse    = BUP_Get_HeadingTrue();
+		Easy_reg_U.Relief          = BUP_Get_ReliefHeight();
+		Easy_reg_U.ReliefAvailable = SelfTesting_STATUS(ST_MapAvailability);
 	#endif //************************************************************************** !flightRegulatorCFB 
 
 	// Данные были обновлены, сообщаем об этом Мат. модели

@@ -7,9 +7,9 @@
  *
  * Code generated for Simulink model 'Easy_reg'.
  *
- * Model version                  : 1.32
+ * Model version                  : 1.116
  * Simulink Coder version         : 8.14 (R2018a) 06-Feb-2018
- * C/C++ source code generated on : Mon Sep  9 15:12:01 2019
+ * C/C++ source code generated on : Mon Sep 30 15:38:34 2019
  *
  * Target selection: ert.tlc
  * Embedded hardware selection: ARM Compatible->ARM Cortex
@@ -19,6 +19,7 @@
 
 #ifndef RTW_HEADER_Easy_reg_h_
 #define RTW_HEADER_Easy_reg_h_
+#include <stddef.h>
 #include <math.h>
 #ifndef Easy_reg_COMMON_INCLUDES_
 # define Easy_reg_COMMON_INCLUDES_
@@ -37,28 +38,48 @@
 /* Forward declaration for rtModel */
 typedef struct tag_RTM RT_MODEL;
 
-/* Block signals and states (default storage) for system '<S1>/Heading_true' */
+/* Block signals and states (default storage) for system '<S4>/Heading_true' */
 typedef struct {
-  real_T y;                            /* '<S1>/Heading_true' */
+  real_T y;                            /* '<S4>/Heading_true' */
 } DW_Heading_true;
+
+/* Block signals and states (default storage) for system '<S2>/Simulink.Targeting' */
+typedef struct {
+  DW_Heading_true sf_Heading_true1;    /* '<S4>/Heading_true1' */
+  DW_Heading_true sf_Heading_true;     /* '<S4>/Heading_true' */
+  real_T Memory_PreviousInput[3];      /* '<S4>/Memory' */
+  real_T ManualSwitch;                 /* '<S14>/Manual Switch' */
+} DW_SimulinkTargeting;
 
 /* Block signals and states (default storage) for system '<Root>' */
 typedef struct {
-  DW_Heading_true sf_Heading_true1;    /* '<S1>/Heading_true1' */
-  DW_Heading_true sf_Heading_true;     /* '<S1>/Heading_true' */
-  real_T Memory_1_PreviousInput;       /* '<S1>/Memory' */
-  real_T Memory_2_PreviousInput;       /* '<S1>/Memory' */
+  DW_SimulinkTargeting SimulinkTargeting_e;/* '<S2>/Simulink.Targeting' */
+  real_T BoxLDPoint[3];                /* '<S1>/Chart' */
+  real_T AngleManPoint[3];             /* '<S1>/Chart' */
+  real_T BoxLUPoint[3];                /* '<S1>/Chart' */
+  real_T BoxRUPoint[3];                /* '<S1>/Chart' */
+  real_T BoxRDPoint[3];                /* '<S1>/Chart' */
+  real_T TargetPoint[3];               /* '<S1>/Chart' */
+  uint8_T TD_CMD;                      /* '<S1>/Chart' */
+  uint8_T is_active_c1_Easy_reg;       /* '<S1>/Chart' */
+  uint8_T is_Task_Control;             /* '<S1>/Chart' */
+  uint8_T is_Task_Flight;              /* '<S1>/Chart' */
+  uint8_T is_Task_TargetReplace;       /* '<S1>/Chart' */
+  uint8_T is_Task_Touchdown;           /* '<S1>/Chart' */
+  uint8_T BoxEntry;                    /* '<S1>/Chart' */
 } DW;
 
 /* External inputs (root inport signals with default storage) */
 typedef struct {
-  real_T TDP_lon;                      /* '<Root>/TDP_lon' */
   real_T TDP_lat;                      /* '<Root>/TDP_lat' */
+  real_T TDP_lon;                      /* '<Root>/TDP_lon' */
   real_T TDP_alt;                      /* '<Root>/TDP_alt' */
-  real_T Pos_lon;                      /* '<Root>/Pos_lon' */
   real_T Pos_lat;                      /* '<Root>/Pos_lat' */
+  real_T Pos_lon;                      /* '<Root>/Pos_lon' */
   real_T Pos_alt;                      /* '<Root>/Pos_alt' */
   real_T ActualCourse;                 /* '<Root>/ActualCourse' */
+  int16_T Relief;                      /* '<Root>/Relief' */
+  uint8_T ReliefAvailable;             /* '<Root>/ReliefAvailable' */
 } ExtU;
 
 /* External outputs (root outports fed by signals with default storage) */
@@ -91,25 +112,23 @@ extern RT_MODEL *const Easy_reg_M;
 /*-
  * These blocks were eliminated from the model due to optimizations:
  *
- * Block '<S1>/Gain2' : Unused code path elimination
- * Block '<S1>/Gain3' : Unused code path elimination
- * Block '<S1>/Scope1' : Unused code path elimination
- * Block '<S1>/Scope10' : Unused code path elimination
- * Block '<S1>/Scope11' : Unused code path elimination
- * Block '<S1>/Scope2' : Unused code path elimination
- * Block '<S1>/Scope3' : Unused code path elimination
- * Block '<S1>/Scope4' : Unused code path elimination
- * Block '<S1>/Scope5' : Unused code path elimination
- * Block '<S1>/Scope6' : Unused code path elimination
- * Block '<S1>/Scope7' : Unused code path elimination
- * Block '<S1>/Scope8' : Unused code path elimination
- * Block '<S1>/Scope9' : Unused code path elimination
- * Block '<S7>/Constant' : Unused code path elimination
- * Block '<S1>/Base_Gain' : Eliminated nontunable gain of 1
- * Block '<S1>/CourseSwitch' : Eliminated due to constant selection input
- * Block '<S1>/TD_RegSwitch' : Eliminated due to constant selection input
- * Block '<S1>/TD_RegSwitch1' : Eliminated due to constant selection input
- * Block '<S1>/Constant2' : Unused code path elimination
+ * Block '<S9>/Gain' : Unused code path elimination
+ * Block '<S10>/Gain' : Unused code path elimination
+ * Block '<S11>/Gain' : Unused code path elimination
+ * Block '<S12>/Gain' : Unused code path elimination
+ * Block '<S14>/Scope' : Unused code path elimination
+ * Block '<S4>/Scope10' : Unused code path elimination
+ * Block '<S4>/Scope13' : Unused code path elimination
+ * Block '<S4>/Scope2' : Unused code path elimination
+ * Block '<S4>/Scope3' : Unused code path elimination
+ * Block '<S4>/Scope4' : Unused code path elimination
+ * Block '<S4>/Scope5' : Unused code path elimination
+ * Block '<S1>/Display' : Unused code path elimination
+ * Block '<S1>/Display1' : Unused code path elimination
+ * Block '<S1>/Display2' : Unused code path elimination
+ * Block '<S1>/Scope' : Unused code path elimination
+ * Block '<S4>/Base_Gain' : Eliminated nontunable gain of 1
+ * Block '<S4>/CourseSwitch' : Eliminated due to constant selection input
  */
 
 /*-
@@ -131,13 +150,24 @@ extern RT_MODEL *const Easy_reg_M;
  *
  * '<Root>' : 'BUP_FOR_GUI'
  * '<S1>'   : 'BUP_FOR_GUI/Easy_reg'
- * '<S2>'   : 'BUP_FOR_GUI/Easy_reg/ControlDemode'
- * '<S3>'   : 'BUP_FOR_GUI/Easy_reg/Distance_calc_KM'
- * '<S4>'   : 'BUP_FOR_GUI/Easy_reg/Heading_true'
- * '<S5>'   : 'BUP_FOR_GUI/Easy_reg/Heading_true1'
- * '<S6>'   : 'BUP_FOR_GUI/Easy_reg/TD_Reg'
- * '<S7>'   : 'BUP_FOR_GUI/Easy_reg/TouchDownGen'
- * '<S8>'   : 'BUP_FOR_GUI/Easy_reg/TD_Reg/Distance_calc_deg'
+ * '<S2>'   : 'BUP_FOR_GUI/Easy_reg/Chart'
+ * '<S3>'   : 'BUP_FOR_GUI/Easy_reg/Velocity'
+ * '<S4>'   : 'BUP_FOR_GUI/Easy_reg/Chart/Simulink.Targeting'
+ * '<S5>'   : 'BUP_FOR_GUI/Easy_reg/Chart/Simulink.Targeting/Azimut'
+ * '<S6>'   : 'BUP_FOR_GUI/Easy_reg/Chart/Simulink.Targeting/ControlDemode'
+ * '<S7>'   : 'BUP_FOR_GUI/Easy_reg/Chart/Simulink.Targeting/Heading_true'
+ * '<S8>'   : 'BUP_FOR_GUI/Easy_reg/Chart/Simulink.Targeting/Heading_true1'
+ * '<S9>'   : 'BUP_FOR_GUI/Easy_reg/Chart/Simulink.Targeting/Radians to Degrees'
+ * '<S10>'  : 'BUP_FOR_GUI/Easy_reg/Chart/Simulink.Targeting/Radians to Degrees1'
+ * '<S11>'  : 'BUP_FOR_GUI/Easy_reg/Chart/Simulink.Targeting/Radians to Degrees2'
+ * '<S12>'  : 'BUP_FOR_GUI/Easy_reg/Chart/Simulink.Targeting/Radians to Degrees3'
+ * '<S13>'  : 'BUP_FOR_GUI/Easy_reg/Chart/Simulink.Targeting/Radians to Degrees4'
+ * '<S14>'  : 'BUP_FOR_GUI/Easy_reg/Chart/Simulink.Targeting/Roughening'
+ * '<S15>'  : 'BUP_FOR_GUI/Easy_reg/Chart/Simulink.Targeting/Roughening/dead-zone'
+ */
+
+/*-
+ * Requirements for '<Root>': Easy_reg
  */
 #endif                                 /* RTW_HEADER_Easy_reg_h_ */
 

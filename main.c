@@ -1,6 +1,6 @@
 #include <stdint.h>                              // Стандартные типы Keil
 
-#include "../config.h"                           // Файл конфигурации проекта
+#include "config.h"                              // Файл конфигурации проекта
 #include "bup_data_store.h"
 #include "SWS.h"                                 // Драйвер работы с СВС
 #include "SNS.h"                                 // Драйвер работы с СНС

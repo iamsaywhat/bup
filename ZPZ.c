@@ -7,7 +7,7 @@
 #include "1636PP52Y.h"
 #include "crc16.h"
 #include "BIM.h"
-#include "Log_FS.h"
+#include "Log_FS/Log_FS.h"
 #include "SNS.h"
 #include "SWS.h"
 #include "discrete_io.h"
