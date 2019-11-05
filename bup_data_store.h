@@ -46,7 +46,8 @@ typedef struct{
 	double Pitch;                      // Тангаж, радианы
 	double Roll;                       // Крен, радианы
 	double Course;                     // Путевой курс, радианы
-	short ReliefHeight;                // Высота рельефа в текущей точке, метры
+	short  ReliefHeight;               // Высота рельефа в текущей точке, метры
+	short  ReliefOnTDP;                // Высота рельефа в точке приземления, метры
 	uint32_t ControlSecond;            // Системное время БУП
 }BUP_DATA;
 
@@ -127,22 +128,23 @@ inline float BUP_GetSWS_TrueSpeed (void)          { return SWS_Data.Struct.TrueS
 /***************************************************************************
     Функции доступа к данным БУП
 ***************************************************************************/
-inline double BUP_Get_TouchdownLatitude(void)  { return BUP_DataStorage.TouchdownLatitude;}
-inline double BUP_Get_TouchdownLongitude(void) { return BUP_DataStorage.TouchdownLongitude;}
-inline double BUP_Get_TouchdownAltitude(void)  { return BUP_DataStorage.TouchdownAltitude;}
-inline double BUP_Get_Latitude(void)           { return BUP_DataStorage.Latitude;}
-inline double BUP_Get_Longitude(void)          { return BUP_DataStorage.Longitude;}
-inline double BUP_Get_Altitude(void)           { return BUP_DataStorage.Altitude;}
-inline double BUP_Get_HeadingTrue(void)        { return BUP_DataStorage.HeadingTrue;}
-inline double BUP_Get_HeadingMgn(void)         { return BUP_DataStorage.HeadingMgn;}
-inline double BUP_Get_VelocityLatitude(void)   { return BUP_DataStorage.VelocityLatitude;}
-inline double BUP_Get_VelocityLongitude(void)  { return BUP_DataStorage.VelocityLongitude;}
-inline double BUP_Get_VelocityAltitude(void)   { return BUP_DataStorage.VelocityAltitude;}
-inline double BUP_Get_Pitch(void)              { return BUP_DataStorage.Pitch;}
-inline double BUP_Get_Roll(void)               { return BUP_DataStorage.Roll;}
-inline double BUP_Get_Course(void)             { return BUP_DataStorage.Course;}
-inline short  BUP_Get_ReliefHeight(void)       { return BUP_DataStorage.ReliefHeight;}
-inline uint32_t BUP_Get_SystemTime (void)      { return BUP_DataStorage.ControlSecond;}
+inline double   BUP_Get_TouchdownLatitude(void)  { return BUP_DataStorage.TouchdownLatitude;}
+inline double   BUP_Get_TouchdownLongitude(void) { return BUP_DataStorage.TouchdownLongitude;}
+inline double   BUP_Get_TouchdownAltitude(void)  { return BUP_DataStorage.TouchdownAltitude;}
+inline double   BUP_Get_Latitude(void)           { return BUP_DataStorage.Latitude;}
+inline double   BUP_Get_Longitude(void)          { return BUP_DataStorage.Longitude;}
+inline double   BUP_Get_Altitude(void)           { return BUP_DataStorage.Altitude;}
+inline double   BUP_Get_HeadingTrue(void)        { return BUP_DataStorage.HeadingTrue;}
+inline double   BUP_Get_HeadingMgn(void)         { return BUP_DataStorage.HeadingMgn;}
+inline double   BUP_Get_VelocityLatitude(void)   { return BUP_DataStorage.VelocityLatitude;}
+inline double   BUP_Get_VelocityLongitude(void)  { return BUP_DataStorage.VelocityLongitude;}
+inline double   BUP_Get_VelocityAltitude(void)   { return BUP_DataStorage.VelocityAltitude;}
+inline double   BUP_Get_Pitch(void)              { return BUP_DataStorage.Pitch;}
+inline double   BUP_Get_Roll(void)               { return BUP_DataStorage.Roll;}
+inline double   BUP_Get_Course(void)             { return BUP_DataStorage.Course;}
+inline short    BUP_Get_ReliefHeight(void)       { return BUP_DataStorage.ReliefHeight;}
+inline short    BUP_Get_ReliefHeightOnTDP(void)  { return BUP_DataStorage.ReliefOnTDP;}
+inline uint32_t BUP_Get_SystemTime (void)        { return BUP_DataStorage.ControlSecond;}
 
 
 /***************************************************************************

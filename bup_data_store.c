@@ -22,9 +22,9 @@ SWS_Packet_Type_Union                SWS_Data;            // Данные от �
 ***************************************************************************************************************/
 void BUP_DataInit (void)
 {
-	BUP_DataStorage.TouchdownLatitude = GetTouchDownPointLat();    // Подгружаем из памяти
+	BUP_DataStorage.TouchdownLatitude  = GetTouchDownPointLat();    // Подгружаем из памяти
 	BUP_DataStorage.TouchdownLongitude = GetTouchDownPointLon();   // Подгружаем из памяти
-	BUP_DataStorage.TouchdownAltitude = GetTouchDownPointAlt();    // Подгружаем из памяти
+	BUP_DataStorage.TouchdownAltitude  = GetTouchDownPointAlt();    // Подгружаем из памяти
 	BUP_DataStorage.Latitude = 0;
 	BUP_DataStorage.Longitude = 0;
 	BUP_DataStorage.Altitude = 0;
@@ -38,6 +38,12 @@ void BUP_DataInit (void)
 	BUP_DataStorage.Course = 0;
 	BUP_DataStorage.ReliefHeight = 0x7FFF;
 	BUP_DataStorage.ControlSecond = 0;
+	
+	// Определим высоту рельефа в точке приземления
+	BUP_DataStorage.ReliefOnTDP = GetHeight_OnThisPoint(BUP_DataStorage.TouchdownLongitude, BUP_DataStorage.TouchdownLatitude, TRIANGULARTION);
+	if (BUP_DataStorage.ReliefOnTDP == MAP_NO_SOLUTION)
+		BUP_DataStorage.ReliefOnTDP = 0;
+	
 }
 
 

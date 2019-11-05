@@ -18,18 +18,36 @@
 ****************************************************************/
 void Timer1_IRQHandler(void)
 {
+//	// Сбрасываем флаг прерывания
+//	TIMER_ClearFlag(MDR_TIMER1,TIMER_STATUS_CNT_ARR);	
+//	// Делаем инкремент количества секунд с момента начала управления
+//	BUP_DataStorage.ControlSecond ++;
+//	// Запускаем шаг расчета модели				
+//	M_Model_Step();
+//	// Выполняем требования матмодели
+//	M_Model_Control();
+//	// Запускаем обновление данных
+//	BUP_DataUpdate ();
+//	// Отправляем данные математической модели
+//	M_Model_PrepareData ();
+//	// Сбрасываем цикл пассивных задач
+//	TaskManagerGo2Task (TaskTest, 0);
+	
+	
+	
+	
 	// Сбрасываем флаг прерывания
 	TIMER_ClearFlag(MDR_TIMER1,TIMER_STATUS_CNT_ARR);	
 	// Делаем инкремент количества секунд с момента начала управления
 	BUP_DataStorage.ControlSecond ++;
-	// Запускаем шаг расчета модели				
-	M_Model_Step();
-	// Выполняем требования матмодели
-	M_Model_Control();
 	// Запускаем обновление данных
 	BUP_DataUpdate ();
 	// Отправляем данные математической модели
 	M_Model_PrepareData ();
+	// Запускаем шаг расчета модели				
+	M_Model_Step();
+	// Выполняем требования матмодели
+	M_Model_Control();
 	// Сбрасываем цикл пассивных задач
 	TaskManagerGo2Task (TaskTest, 0);
 }

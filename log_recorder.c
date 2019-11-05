@@ -52,6 +52,7 @@ void loger_periodprint (void)
 	printf("SNS_Roll: %d\n",               BUP_GetSNS_Roll());
 	printf("SWS_TrueSpeed: %f\n",          BUP_GetSWS_TrueSpeed());
 	printf("SWS_InstrumentSpeed: %f\n",    BUP_GetSWS_InstrumentalSpeed());
+	printf("SWS_AbsoluteHeight: %f\n",     BUP_GetSWS_AbsoluteHeight());
 	printf("BIML_Pos: %d\n",               (uint8_t)(0.5 + 0.3922*BIM_GetStrapPosition(LEFT_BIM)));   // Перевод к процентной шкале с округлением
 	printf("BIMR_Pos: %d\n",               (uint8_t)(0.5 + 0.3922*BIM_GetStrapPosition(RIGHT_BIM)));  // Перевод к процентной шкале с округлением
 	printf("SystemState: %x\n",            SystemState);
@@ -80,4 +81,22 @@ void loger_periodprint (void)
 		printf("Model_BIM_CMD: %f\n", (double)Easy_reg_Y.BIM_CMD);
 		printf("Model_TD_CMD: %d\n",  (uint8_t)Easy_reg_Y.TD_CMD);
 	#endif //************************************************************************** !flightRegulatorCFB
+}
+
+
+/************************************************************************************
+    loger_exitmsg - Запись в лог информации о завершении работы БУП
+************************************************************************************/
+void loger_exitmsg(void)
+{
+	printf("\nThe flight is over!\n");
+	printf("Model_Lat, deg: %f\n",         BUP_Get_Latitude());
+	printf("Model_Lon, deg: %f\n",         BUP_Get_Longitude());
+	printf("Model_Alt, m: %f\n",           BUP_Get_Altitude());
+	printf("SWS_AbsoluteHeight: %f\n",     BUP_GetSWS_AbsoluteHeight());
+	// Если карта рельефа в текущей позиции доступна, запишем высоту рельефа
+	if (SelfTesting_STATUS(ST_MapAvailability))
+		printf("MAP, m: %d\n",               BUP_Get_ReliefHeight());
+	else
+		printf("MAP, m: NOT_AVAILABLE\n");
 }

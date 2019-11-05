@@ -17,6 +17,11 @@
 	#include "../debug.h"
 #endif //************************************************************************** !DEBUG_VARS
 
+#ifdef LOGS_ENABLE	//************************************************************* Если включено логирование в черный ящик
+   #include	"../log_recorder.h"
+#endif //************************************************************************** !LOGS_ENABLE
+
+
 #define lat 0
 #define lon 1
 #define alt 2
@@ -71,11 +76,14 @@ void M_Model_PrepareData (void)
 		rtU.XYZi[lat] = BUP_Get_Latitude();
 		rtU.XYZi[lon] = BUP_Get_Longitude();
 		rtU.XYZi[alt] = BUP_Get_Altitude();
-		// Истинный курс
-		rtU.angle = BUP_Get_HeadingTrue ();
+		// Путевой курс
+		rtU.angle = BUP_Get_Course();
 		// Статус навигационного решения от СНС
 		rtU.isVeracityGns = 1; //SNS_PosData.Quality;
-	
+		// Подставляем статус доступности карты
+		rtU.isAvailableDigitalTerrain = SelfTesting_STATUS(ST_MapAvailability);
+		rtU.HighDigitalTerrain = BUP_Get_ReliefHeight();
+		rtU.highStopUPS = 300.0;
 	
 //  // Высота над рельефом
 //  rtU.HighAboveTheGround = 0; 
@@ -107,8 +115,9 @@ void M_Model_PrepareData (void)
 		Easy_reg_U.Pos_lon         = BUP_Get_Longitude();
 		Easy_reg_U.Pos_lat         = BUP_Get_Latitude();
 		Easy_reg_U.Pos_alt         = BUP_Get_Altitude();
-		Easy_reg_U.ActualCourse    = BUP_Get_HeadingTrue();
+		Easy_reg_U.ActualCourse    = BUP_Get_Course();
 		Easy_reg_U.Relief          = BUP_Get_ReliefHeight();
+		Easy_reg_U.ReliefOnTDP     = BUP_Get_ReliefHeightOnTDP();
 		Easy_reg_U.ReliefAvailable = SelfTesting_STATUS(ST_MapAvailability);
 	#endif //************************************************************************** !flightRegulatorCFB 
 
@@ -146,6 +155,12 @@ void M_Model_Control (void)
 			M_Model_Cmd2BIM (0.0);
 			// Замок створки открыть
 			BLIND_CTRL_ON();
+			
+			#ifdef LOGS_ENABLE	//************************************************************* Если включено логирование в черный ящик
+			  // Пишем в лог информацию о завершении полета и последние данные
+			  loger_exitmsg();
+			#endif //************************************************************************** !LOGS_ENABLE
+
 			// Ждем 5 секунд
 			delay_us(5000000);
 			// Отключаем реле створки замка (нельзя удерживать дольше 10 секунд)

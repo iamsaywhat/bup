@@ -80,10 +80,17 @@ void debug_can_full_struct (void)
 	debug_can(0x520, &debug_vars.Lon2, 8);
 	debug_can(0x524, &debug_vars.distanceB, 8);
 	debug_can(0x525, &debug_vars.distance2, 2);
+	debug_can(0x528, &debug_vars.td, 8);
+	debug_can(0x529, &debug_vars.tx, 8);
+	debug_can(0x530, &debug_vars.tz, 8);
+	debug_can(0x531, &debug_vars.flightMode, 1);
 #else
   /* Здесь можно добавить 
 	   вывод необходимых переменных относящихся к Easy_reg
 	*/
+	debug_can(0x524, &debug_vars.DistanceToTDP, 8);
+	debug_can(0x529, &debug_vars.TimeToHorTarget, 8);
+	debug_can(0x530, &debug_vars.TimeToTD, 8);
 #endif 
 	debug_can(0x509, &debug_vars.BIM_CMD, 2);
 	debug_can(0x511, &debug_vars.TDP_Lat, 8);
@@ -122,11 +129,18 @@ void debug_prepare_data (void)
 		debug_vars.distanceB             = (double)(rtY.distanceB);
 		debug_vars.distance2             = (uint16_t)(rtY.distance2);
 		debug_vars.BIM_CMD               = (int16_t)(rtY.tightenSling*rtY.directionOfRotation);   // Команда БИМам от flightRegulatorCFB
+		debug_vars.td                    = (double)(rtY.tD);
+		debug_vars.tx                    = (double)(rtY.tx);
+		debug_vars.tz                    = (double)(rtY.tz);
+		debug_vars.flightMode            = (uint8_t)(rtY.executeMode);
 	#else
 		/* Здесь можно добавить 
 			вывод необходимых переменных относящихся к Easy_reg
 		*/   
-		debug_vars.BIM_CMD = (int16_t)(Easy_reg_Y.BIM_CMD);                              // Команда БИМам от Easy_reg
+		debug_vars.BIM_CMD               = (int16_t)(Easy_reg_Y.BIM_CMD);                // Команда БИМам от Easy_reg
+		debug_vars.DistanceToTDP         = (double) (Easy_reg_Y.DistanceToTDP);          // Дистанция до точки приземления, м
+		debug_vars.TimeToHorTarget       = (double) (Easy_reg_Y.TimeToHorTarget);        // Время полета то точки приземления по прямой, сек
+		debug_vars.TimeToTD              = (double) (Easy_reg_Y.TimeToTD);               // Время до открытия парашюта, сек
 	#endif  
 		debug_vars.TDP_Lat               = BUP_Get_TouchdownLatitude();                  // Широта точки приземления
 		debug_vars.TDP_Lon               = BUP_Get_TouchdownLongitude();                 // Долгота точки приземления

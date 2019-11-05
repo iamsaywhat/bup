@@ -70,8 +70,11 @@ int main(void)
 	// Запускаем фул-тест системы
 	SelfTestingFull();
   
-	
-	
+//	while(1)
+//	{
+//		BUP_DataUpdate ();
+//	}
+
 	
 //	Log_Fs_FindFile(FIRST_FILE);
 //  // Узнаем размер открытого файла (команда FILE_SIZE)

@@ -345,75 +345,80 @@ void task_loger (void)
 		}
 		case 14:
 		{
+			printf("SWS_AbsoluteHeight: %f\n", BUP_GetSWS_AbsoluteHeight());
+			TaskManager.Task_LogerStage++; break;
+		}
+		case 15:
+		{
 			printf("BIML_Pos: %d\n",(uint8_t)(0.5 + 0.3922*BIM_GetStrapPosition(LEFT_BIM)));  // Перевод к процентной шкале с округлением
 			TaskManager.Task_LogerStage++; break;  
 		}
-		case 15:
+		case 16:
 		{
 			printf("BIMR_Pos: %d\n",(uint8_t)(0.5 + 0.3922*BIM_GetStrapPosition(RIGHT_BIM))); // Перевод к процентной шкале с округлением
 			TaskManager.Task_LogerStage++; break;
 		}
-		case 16:
+		case 17:
 		{
 			printf("SystemState: %x\n", SystemState); 
 			TaskManager.Task_LogerStage++; break;
 		}
-		case 17:
+		case 18:
 		{
 			printf("Model_Lat, deg: %f\n", BUP_Get_Latitude()); 
 			TaskManager.Task_LogerStage++; break;
 		}
-		case 18:
+		case 19:
 		{
 			printf("Model_Lon, deg: %f\n", BUP_Get_Longitude()); 
 			TaskManager.Task_LogerStage++; break;
 		}
-		case 19:
+		case 20:
 		{
 			printf("Model_Alt, m: %f\n", BUP_Get_Altitude()); 
 			TaskManager.Task_LogerStage++; break;
 		}
-		case 20:
+		case 21:
 		{
 			printf("Model_VelocityLat, m/s: %f\n", BUP_Get_VelocityLatitude()); 
 			TaskManager.Task_LogerStage++; break;
 		}
-		case 21:
+		case 22:
 		{
 			printf("Model_VelocityLon, m/s: %f\n", BUP_Get_VelocityLongitude()); 
 			TaskManager.Task_LogerStage++; break;
 		}
-		case 22:
+		case 23:
 		{
 			printf("Model_VelocityAlt, m/s: %f\n", BUP_Get_VelocityAltitude()); 
 			TaskManager.Task_LogerStage++; break;
 		}
-		case 23:
+		case 24:
 		{
 			printf("Model_HeadingTrue, rad: %f\n", BUP_Get_HeadingTrue()); 
 			TaskManager.Task_LogerStage++; break;
 		}
-		case 24:
+		case 25:
 		{
 			printf("Model_HeadingMgn, rad: %f\n", BUP_Get_HeadingMgn()); 
 			TaskManager.Task_LogerStage++; break;
 		}
-		case 25:
+		case 26:
 		{
 			printf("Model_Course, rad: %f\n", BUP_Get_Course()); 
 			TaskManager.Task_LogerStage++; break;
 		}
-		case 26:
+		case 27:
 		{
 			printf("Model_Pitch, rad: %f\n", BUP_Get_Pitch()); 
 			TaskManager.Task_LogerStage++; break;
 		}
-		case 27:
+		case 28:
 		{
 			printf("Model_Roll, rad: %f\n", BUP_Get_Roll()); 
 			TaskManager.Task_LogerStage++; break;
 		}
-		case 28:
+		case 29:
 		{
 			// Если карта рельефа в текущей позиции доступна, запишем высоту рельефа
 			if (SelfTesting_STATUS(ST_MapAvailability))
@@ -423,7 +428,7 @@ void task_loger (void)
 			
 			TaskManager.Task_LogerStage++; break;
 		}
-		case 29:
+		case 30:
 		{
 			#ifdef flightRegulatorCFB	//******************************************************* Если выбран flightRegulatorCFB
 				printf("Model_BIM_CMD: %f\n", (double)(rtY.tightenSling*rtY.directionOfRotation));
@@ -432,7 +437,7 @@ void task_loger (void)
 			#endif //************************************************************************** !flightRegulatorCFB
 			TaskManager.Task_LogerStage++; break;
 		}
-		case 30:
+		case 31:
 		{
 			#ifdef flightRegulatorCFB	//******************************************************* Если выбран flightRegulatorCFB
 				printf("Model_TD_CMD: %d\n",  (uint8_t)rtY.cmdTouchDown);
