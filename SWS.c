@@ -3,9 +3,11 @@
 #include "otherlib.h"
 
 
-
-int16_t UARTReceiveByte (MDR_UART_TypeDef* UARTx, uint32_t TimeoutRange);
-uint8_t UARTSendByte (MDR_UART_TypeDef* UARTx, uint32_t TimeoutRange, uint16_t Byte);
+/**************************************************************************************************************
+    Объявления локальных функций модуля
+***************************************************************************************************************/
+static int16_t UARTReceiveByte (MDR_UART_TypeDef* UARTx, uint32_t TimeoutRange);
+static uint8_t UARTSendByte (MDR_UART_TypeDef* UARTx, uint32_t TimeoutRange, uint16_t Byte);
 
 
 /**************************************************************************************************************
@@ -154,8 +156,10 @@ uint8_t SWS_GetPacket (SWS_Packet_Type_Union* SWS_Pack)
 
 
 
-
-int16_t UARTReceiveByte (MDR_UART_TypeDef* UARTx, uint32_t TimeoutRange)
+/**************************************************************************************************************
+    UARTReceiveByte - Функция приёма байта данных по UART с контролем таймаутом
+***************************************************************************************************************/
+static int16_t UARTReceiveByte (MDR_UART_TypeDef* UARTx, uint32_t TimeoutRange)
 {
 	uint16_t Byte = 0;
 	uint32_t timeout = 0;
@@ -169,8 +173,10 @@ int16_t UARTReceiveByte (MDR_UART_TypeDef* UARTx, uint32_t TimeoutRange)
 	return Byte;
 }
 
-
-uint8_t UARTSendByte (MDR_UART_TypeDef* UARTx, uint32_t TimeoutRange, uint16_t Byte)
+/**************************************************************************************************************
+    UARTSendByte - Функция отправки байта данных по UART с контролем таймаутом
+***************************************************************************************************************/
+static uint8_t UARTSendByte (MDR_UART_TypeDef* UARTx, uint32_t TimeoutRange, uint16_t Byte)
 {
 	uint32_t timeout = 0;
 	

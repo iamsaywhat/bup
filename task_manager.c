@@ -37,9 +37,9 @@ TaskManagerStatus TaskManager = {0,0,0,0};
 /****************************************************
     Приватные функции задач
 ****************************************************/
-void task_loger (void);
-void task_selftesting(void);
-void task_can_debug(void);
+static void task_loger(void);
+static void task_selftesting(void);
+static void task_can_debug(void);
 
 
 /*********************************************************************************************************
@@ -81,7 +81,7 @@ void TaskManagerRun (void)
 {
 	switch (TaskManager.Task_num)
 	{
-		case 0: /* Задача № 0 - Расчет шага матмодели и управление */
+		case TaskStep: /* Задача № 0 - Расчет шага матмодели и управление */
 		{
 			// Запускаем шаг расчета модели				
 			M_Model_Step();
@@ -94,7 +94,7 @@ void TaskManagerRun (void)
 			TaskManager.Task_num ++;
 			break;
 		}
-		case 1: /* Задача № 1 - Подготовка данных для следующего шага */
+		case TaskUpdate: /* Задача № 1 - Подготовка данных для следующего шага */
 		{
 			// Запускаем обновление данных
 			BUP_DataUpdate ();
@@ -105,12 +105,12 @@ void TaskManagerRun (void)
 			TaskManager.Task_num ++;
 			break;
 		}
-		case 2: /* Задача № 2 - Самодиагностика */
+		case TaskTest: /* Задача № 2 - Самодиагностика */
 		{
 			task_selftesting();
 			break;
 		}
-		case 3: /* Задача № 3 - Отладка */
+		case TaskDebug: /* Задача № 3 - Отладка */
 		{
 			#ifdef DEBUG_VARS	//*************************************************************** Если активна отладка переменных 
 				task_can_debug();
@@ -119,7 +119,7 @@ void TaskManagerRun (void)
 		  #endif //************************************************************************** !DEBUG_VARS 	
 			break;
 		}
-		case 4: /* Задача № 4 - Запись логов */
+		case TaskLoger: /* Задача № 4 - Запись логов */
 		{
 			#ifdef LOGS_ENABLE	//******************************************************* Если включено логирование в черный ящик
 				task_loger();
@@ -173,21 +173,21 @@ void TaskManagerZPZBackgroundRun (void)
 **********************************************************************************************************/
 void task_selftesting(void)
 {
-	switch (TaskManager.Task_LogerStage)
+	switch (TaskManager.Task_SelftestingStage)
 	{
 		case 0: /* Этап 0 - Flash память и полетное задание */
 		{
 			SelfTesting_1636PP52Y();
 			SelfTesting_25Q64FV();
 			SelfTesting_MapNtask();
-			TaskManager.Task_LogerStage++;
+			TaskManager.Task_SelftestingStage++;
 			break;
 		}
 		case 1: /* Этап 1 - Тестирование БИМ */
 		{
 			SelfTesting_LEFT_BIM();
 			SelfTesting_RIGHT_BIM();
-			TaskManager.Task_LogerStage++;
+			TaskManager.Task_SelftestingStage++;
 			break;
 		}
 		case 2: /* Этап 2 - Контроль соединения БИМ и состояние дискретов */
@@ -198,36 +198,36 @@ void task_selftesting(void)
 			SelfTesting_PYRO();
 			SelfTesting_BLIND();
 			SelfTesting_POW_BIM ();
-			TaskManager.Task_LogerStage++;
+			TaskManager.Task_SelftestingStage++;
 			break;
 		}
 		case 3: /* Этап 3 - Проверка СВС */
 		{
 			SelfTesting_SWS();
-			TaskManager.Task_LogerStage++;
+			TaskManager.Task_SelftestingStage++;
 			break;
 		}
 		case 4: /* Этап 4 - Проверка СНС */
 		{
 			SelfTesting_SNS();
-			TaskManager.Task_LogerStage++;
+			TaskManager.Task_SelftestingStage++;
 			break;
 		}
 		case 5: /* Этап 5 - Доступность карты */
 		{
 			SelfTesting_MapAvailability (BUP_Get_Latitude(), BUP_Get_Longitude());
-			TaskManager.Task_LogerStage++;
+			TaskManager.Task_SelftestingStage++;
 			break;
 		}
 		case 6: /* Этап 6 - Управление индикацией по результам тестов */
 		{
 			SelfTesting_OnlineDiagnostics ();
-			TaskManager.Task_LogerStage++;
+			TaskManager.Task_SelftestingStage++;
 		}
 		default: /* Переход к следующей задаче */
 		{
 			// Сбрасываем этап выполнения текущей задачи и переходим к следующей 
-			TaskManager.Task_LogerStage = 0;
+			TaskManager.Task_SelftestingStage = 0;
 			TaskManager.Task_num ++;
 			break;
 		}

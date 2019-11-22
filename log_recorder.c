@@ -27,9 +27,9 @@ void loger_initmsg (void)
 	printf("***File # %d***\n", LogFs_GetNumCurrentFile());
 	printf("BUP_init..\n");
 	// Выведем загруженное полетное задание
-	printf("TD_Lat: %f;\n", BUP_Get_TouchdownLatitude());
-	printf("TD_Lon: %f;\n", BUP_Get_TouchdownLongitude());
-	printf("TD_Alt: %f;\n", BUP_Get_TouchdownAltitude());
+	printf("TD_Lat: %f\n", BUP_Get_TouchdownLatitude());
+	printf("TD_Lon: %f\n", BUP_Get_TouchdownLongitude());
+	printf("TD_Alt: %f\n", BUP_Get_TouchdownAltitude());
 	printf("BUP is ready!\n");
 }
 /************************************************************************************
@@ -90,13 +90,13 @@ void loger_periodprint (void)
 void loger_exitmsg(void)
 {
 	printf("\nThe flight is over!\n");
-	printf("Model_Lat, deg: %f\n",         BUP_Get_Latitude());
-	printf("Model_Lon, deg: %f\n",         BUP_Get_Longitude());
-	printf("Model_Alt, m: %f\n",           BUP_Get_Altitude());
-	printf("SWS_AbsoluteHeight: %f\n",     BUP_GetSWS_AbsoluteHeight());
+	printf("Fin_Lat, deg: %f\n",         BUP_Get_Latitude());
+	printf("Fin_Lon, deg: %f\n",         BUP_Get_Longitude());
+	printf("Fin_Alt, m: %f\n",           BUP_Get_Altitude());
+	printf("Fin_SWSHeight: %f\n",        BUP_GetSWS_AbsoluteHeight());
 	// Если карта рельефа в текущей позиции доступна, запишем высоту рельефа
 	if (SelfTesting_STATUS(ST_MapAvailability))
-		printf("MAP, m: %d\n",               BUP_Get_ReliefHeight());
+		printf("Fin_MAP, m: %d\n",         BUP_Get_ReliefHeight());
 	else
-		printf("MAP, m: NOT_AVAILABLE\n");
+		printf("Fin_MAP, m: NOT_AVAILABLE\n");
 }

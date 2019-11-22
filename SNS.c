@@ -21,7 +21,7 @@
     SNS_RetargetPins - Функция переопределения UART1 на другие пины, для работы SNS
     Параметры:  NONE
 ***************************************************************************************************************/
-void SNS_RetargetPins (void)
+static void SNS_RetargetPins (void)
 {
 	RST_CLK_PCLKcmd(RST_CLK_PCLK_SNS_PORT , ENABLE);
 	
@@ -38,7 +38,7 @@ void SNS_RetargetPins (void)
     SNS_init - Инициализация UART под SNS
     Параметры:  NONE
 ***************************************************************************************************************/
-void SNS_init (void)
+static void SNS_init (void)
 {
 	UART_InitTypeDef UART_InitStructure;
 	
@@ -66,7 +66,7 @@ void SNS_init (void)
     SNS_deinit - Деинициализация SNS и освобождение UART
     Параметры:  NONE
 ***************************************************************************************************************/
-void SNS_deinit (void)
+static void SNS_deinit (void)
 {
 	// Сброс конфигуряции UART
 	UART_DeInit(SNS_UART);
@@ -82,7 +82,7 @@ void SNS_deinit (void)
                 Command - Код команды, отправляемый СНС
                 (СНС реагирует только на команды перечисленные а протоколе)
 ***************************************************************************************************************/
-SNS_Status SNS_Request(uint8_t Command)
+static SNS_Status SNS_Request(uint8_t Command)
 {
 	SNS_Request_Union     SNS_Req;
 	uint8_t               i;
@@ -151,7 +151,7 @@ SNS_Status SNS_Request(uint8_t Command)
                 0 - Если ошибка проверки кода ответа и контрольной суммы;
                 1 - Если проверка верна.
 ***************************************************************************************************************/
-void SNS_GetData_by_SLIP (uint8_t PacketSize, uint8_t* Buffer)
+static void SNS_GetData_by_SLIP (uint8_t PacketSize, uint8_t* Buffer)
 {
 	uint32_t  timeout = 0;
 	uint8_t   i, temp;

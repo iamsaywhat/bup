@@ -14,6 +14,15 @@ BIM_Response_UnionType Left_BIM;
 
 
 
+
+/**************************************************************************************************************
+    Объявления локальных функций модуля
+***************************************************************************************************************/
+static uint8_t BIM_ReceiveResponse (uint16_t DeviceID);
+
+
+
+
 /**************************************************************************************************************
     BIM_RetargetPins - Функция переопределения CAN на пины и порт, на на к которых сидят БИМЫ
 **************************************************************************************************************/
@@ -163,43 +172,6 @@ uint8_t BIM_SendRequest (uint16_t DeviceID, uint8_t CMD, uint8_t StrapPosition, 
 
 
 /**************************************************************************************************************
-    BIM_ReceiveResponse - Получение ответа от к БИМов
-**************************************************************************************************************/	
-uint8_t BIM_ReceiveResponse (uint16_t DeviceID)
-{
-	uint16_t timeout = 0;
-	CAN_RxMsgTypeDef RxMsg;
-	if(DeviceID == DEVICE_100)		// Принять ответ от БИМа с адресом 100 (Левый)
-	{
-		while (!CAN_GetRxITStatus(BIM_CAN, 0)	 &&  (timeout !=0x3FFF)) {timeout ++;}
-		CAN_GetRawReceivedData (BIM_CAN, 0 , &RxMsg);
-		Left_BIM.Buffer[0] =  RxMsg.Data[0];
-		Left_BIM.Buffer[1] =  RxMsg.Data[1];
-		// Сбрасываем флаг того, что имеется необработаное сообщение
-		CAN_ITClearRxTxPendingBit(BIM_CAN, 0, CAN_STATUS_RX_READY);
-	}
-	else if (DeviceID == DEVICE_101)	// Принять ответ от БИМа с адресом 101 (Правый)
-	{
-		while (!CAN_GetRxITStatus(BIM_CAN, 1)	 &&  (timeout !=0x3FFF)) {timeout ++;}
-		CAN_GetRawReceivedData (BIM_CAN, 1 , &RxMsg);
-		Right_BIM.Buffer[0] =  RxMsg.Data[0];
-		Right_BIM.Buffer[1] =  RxMsg.Data[1];
-	  // Сбрасываем флаг того, что имеется необработаное сообщение
-		CAN_ITClearRxTxPendingBit(BIM_CAN, 1, CAN_STATUS_RX_READY);
-	}
-	// БИМов с другимми адресами нет, возвращаем признак ошибки
-	else 
-		return 0;  
-    // Таймаут, возвращаем признак ошибки	
-	if(timeout == 0x3FFF) 
-		return 0;		
-		
-	return 1;
-}
-
-
-
-/**************************************************************************************************************
     BIM_CheckConnection - Проверка связи с БИМами
 **************************************************************************************************************/
 uint8_t BIM_CheckConnection (uint16_t DeviceID)
@@ -323,3 +295,46 @@ uint8_t BIM_GetStatusFlags (uint16_t DeviceID)
 	return 0;
 }
 
+
+
+/**************************************************************************************************************
+    BIM_ReceiveResponse - Функция приёма ответа на запрос от БИМов 
+
+    Параметры: 
+                BIM_Response  - Структура ответа;
+                DeviceID      - Адрес БИМа на CAN шине, от которого ждем ответ.												
+
+    Возвращает: 0 - Если ошибка при приёме (таймаут или DeviceID не найден)
+                1 - Если отправлено успешно 		
+**************************************************************************************************************/
+static uint8_t BIM_ReceiveResponse (uint16_t DeviceID)
+{
+	uint16_t timeout = 0;
+	CAN_RxMsgTypeDef RxMsg;
+	if(DeviceID == DEVICE_100)		// Принять ответ от БИМа с адресом 100 (Левый)
+	{
+		while (!CAN_GetRxITStatus(BIM_CAN, 0)	 &&  (timeout !=0x3FFF)) {timeout ++;}
+		CAN_GetRawReceivedData (BIM_CAN, 0 , &RxMsg);
+		Left_BIM.Buffer[0] =  RxMsg.Data[0];
+		Left_BIM.Buffer[1] =  RxMsg.Data[1];
+		// Сбрасываем флаг того, что имеется необработаное сообщение
+		CAN_ITClearRxTxPendingBit(BIM_CAN, 0, CAN_STATUS_RX_READY);
+	}
+	else if (DeviceID == DEVICE_101)	// Принять ответ от БИМа с адресом 101 (Правый)
+	{
+		while (!CAN_GetRxITStatus(BIM_CAN, 1)	 &&  (timeout !=0x3FFF)) {timeout ++;}
+		CAN_GetRawReceivedData (BIM_CAN, 1 , &RxMsg);
+		Right_BIM.Buffer[0] =  RxMsg.Data[0];
+		Right_BIM.Buffer[1] =  RxMsg.Data[1];
+	  // Сбрасываем флаг того, что имеется необработаное сообщение
+		CAN_ITClearRxTxPendingBit(BIM_CAN, 1, CAN_STATUS_RX_READY);
+	}
+	// БИМов с другимми адресами нет, возвращаем признак ошибки
+	else 
+		return 0;  
+    // Таймаут, возвращаем признак ошибки	
+	if(timeout == 0x3FFF) 
+		return 0;		
+		
+	return 1;
+}

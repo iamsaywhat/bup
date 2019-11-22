@@ -22,6 +22,11 @@ CAN_TxMsgTypeDef TxMsg_CanPrintf = {
 };
 
 
+/*********************************************************************************
+    Объявления приватных функций модуля
+*********************************************************************************/
+static int sendchar_Log_FS(int ch);
+static int sendchar_CAN(int ch);
 
 
 /*******************************************************************************
@@ -80,7 +85,7 @@ int sendchar(int ch)
         необходимо завершать символом '\n'. По передаче этого символа,
         инициируется передача по CAN
 *******************************************************************************/
-int sendchar_CAN(int ch)
+static int sendchar_CAN(int ch)
 {
 	static unsigned char cnt = 0;
 	static char buff[80];
@@ -165,9 +170,7 @@ int sendchar_CAN(int ch)
 		}
 		cnt = 0; // Сбрасываем счетчик байт, буфер отправлен
 	}
-	
 
-	
 	return 0;
 }
 
@@ -180,7 +183,7 @@ int sendchar_CAN(int ch)
 @retval NONE
 @notes  Необходимо подключить модуль файловой системы
 *******************************************************************************/
-int sendchar_Log_FS(int ch)
+static int sendchar_Log_FS(int ch)
 {
 	uint8_t sym = (uint8_t)ch;
 	LogFs_WriteToCurrentFile(&sym, 1);
@@ -195,7 +198,7 @@ int sendchar_Log_FS(int ch)
 @retval Считаннный символ из потока
 @notes  Ввод не используем, поэтому заглушка
 *******************************************************************************/
-int  getkey(void)
+int getkey(void)
 {
 	return 0;
 }  

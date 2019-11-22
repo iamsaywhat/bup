@@ -32,23 +32,23 @@
     Тип структуры служебных данных БУП    
 *******************************************/
 typedef struct{
-	double TouchdownLatitude;          // Широта точки приземления, градус
-	double TouchdownLongitude;         // Долгота точки приземления, градус
-	double TouchdownAltitude;          // Высота раскрытия посадочного парашюта, метры
-	double Latitude;                   // Текущая широта, градус
-	double Longitude;                  // Текущая долгота, градус
-	double Altitude;                   // Текущая высота над уровнем моря по данным от СНС, метры
-	double HeadingTrue;                // Истинный курс, радианы
-	double HeadingMgn;                 // Магнитный курс, радианы
-	double VelocityLatitude;           // Скорость по широте, м/c
-	double VelocityLongitude;          // Скорость по долготе, м/c
-	double VelocityAltitude;           // Скорость снижения, м/c
-	double Pitch;                      // Тангаж, радианы
-	double Roll;                       // Крен, радианы
-	double Course;                     // Путевой курс, радианы
-	short  ReliefHeight;               // Высота рельефа в текущей точке, метры
-	short  ReliefOnTDP;                // Высота рельефа в точке приземления, метры
-	uint32_t ControlSecond;            // Системное время БУП
+	double   TouchdownLatitude;          // Широта точки приземления, градус
+	double   TouchdownLongitude;         // Долгота точки приземления, градус
+	double   TouchdownAltitude;          // Высота раскрытия посадочного парашюта, метры
+	double   Latitude;                   // Текущая широта, градус
+	double   Longitude;                  // Текущая долгота, градус
+	double   Altitude;                   // Текущая высота над уровнем моря по данным от СНС, метры
+	double   HeadingTrue;                // Истинный курс, радианы
+	double   HeadingMgn;                 // Магнитный курс, радианы
+	double   VelocityLatitude;           // Скорость по широте, м/c
+	double   VelocityLongitude;          // Скорость по долготе, м/c
+	double   VelocityAltitude;           // Скорость снижения, м/c
+	double   Pitch;                      // Тангаж, радианы
+	double   Roll;                       // Крен, радианы
+	double   Course;                     // Путевой курс, радианы
+	short    ReliefHeight;               // Высота рельефа в текущей точке, метры
+	short    ReliefOnTDP;                // Высота рельефа в точке приземления, метры
+	uint32_t ControlSecond;              // Системное время БУП
 }BUP_DATA;
 
 

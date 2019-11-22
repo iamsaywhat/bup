@@ -44,66 +44,66 @@ uint8_t TimeoutCounter = 0;
 *******************************************************************************************************/
 
 /*--------------------------------------------------------------------------------------------Обслуживание простых запросов-----------*/
-uint16_t ZPZ_RequestWithEmptyData(uint16_t CRC); 
+static uint16_t ZPZ_RequestWithEmptyData(uint16_t CRC); 
 /*--------------------------------------------------------------------------------------------Обслуживание команды CHECK_CONNECT-------*/
-uint16_t ZPZ_Request_CHECK_CONNECT (uint16_t CRC);
-void ZPZ_Response_CHECK_CONNECT (uint16_t NumPacket);
+static uint16_t ZPZ_Request_CHECK_CONNECT (uint16_t CRC);
+static void ZPZ_Response_CHECK_CONNECT (uint16_t NumPacket);
 /*--------------------------------------------------------------------------------------------Обслуживание команды START_DOWNLOAD------*/
-uint16_t ZPZ_Request_START_DOWNLOAD (uint16_t CRC);
-void ZPZ_Response_START_DOWNLOAD (uint16_t NumPacket);
+static uint16_t ZPZ_Request_START_DOWNLOAD (uint16_t CRC);
+static void ZPZ_Response_START_DOWNLOAD (uint16_t NumPacket);
 /*--------------------------------------------------------------------------------------------Обслуживание команды MAP_DOWNLOAD--------*/
-uint16_t ZPZ_Request_MAP_DOWNLOAD (uint16_t CRC, uint16_t NumPacket);
-void ZPZ_Response_MAP_DOWNLOAD (uint16_t NumPacket);
+static uint16_t ZPZ_Request_MAP_DOWNLOAD (uint16_t CRC, uint16_t NumPacket);
+static void ZPZ_Response_MAP_DOWNLOAD (uint16_t NumPacket);
 /*--------------------------------------------------------------------------------------------Обслуживание команды START_UPLOAD--------*/
-uint16_t ZPZ_Request_START_UPLOAD (uint16_t CRC);
-void ZPZ_Response_START_UPLOAD (uint16_t NumPacket); 
+static uint16_t ZPZ_Request_START_UPLOAD (uint16_t CRC);
+static void ZPZ_Response_START_UPLOAD (uint16_t NumPacket); 
 /*--------------------------------------------------------------------------------------------Обслуживание команды MAP_UPLOAD----------*/
-uint16_t ZPZ_Request_MAP_UPLOAD (uint16_t CRC);
-void ZPZ_Response_MAP_UPLOAD (uint16_t NumPacket);
+static uint16_t ZPZ_Request_MAP_UPLOAD (uint16_t CRC);
+static void ZPZ_Response_MAP_UPLOAD (uint16_t NumPacket);
 /*--------------------------------------------------------------------------------------------Обслуживание команды BIM_CONTROL---------*/
-uint16_t ZPZ_Request_BIM_CONTROL (uint16_t CRC, ZPZ_RequestControlBIM_Union* BIM_Data);
-void ZPZ_Response_BIM_CONTROL (ZPZ_RequestControlBIM_Union* BIM_Data, uint16_t NumPacket);
+static uint16_t ZPZ_Request_BIM_CONTROL (uint16_t CRC, ZPZ_RequestControlBIM_Union* BIM_Data);
+static void ZPZ_Response_BIM_CONTROL (ZPZ_RequestControlBIM_Union* BIM_Data, uint16_t NumPacket);
 /*--------------------------------------------------------------------------------------------Обслуживание команды BIM_STATUS----------*/
-uint16_t ZPZ_Request_BIM_STATUS (uint16_t CRC, ZPZ_RequestControlBIM_Union* BIMControl);
-void ZPZ_Response_BIM_STATUS(uint8_t Side, uint16_t NumPacket);
+static uint16_t ZPZ_Request_BIM_STATUS (uint16_t CRC, ZPZ_RequestControlBIM_Union* BIMControl);
+static void ZPZ_Response_BIM_STATUS(uint8_t Side, uint16_t NumPacket);
 /*--------------------------------------------------------------------------------------------Обслуживание команды LOG_FORMAT----------*/
-uint16_t ZPZ_Request_LOG_FORMAT (uint16_t CRC, uint8_t* Subcommand);
-void ZPZ_Response_LOG_FORMAT (uint16_t NumPacket, uint8_t Subcommand);
+static uint16_t ZPZ_Request_LOG_FORMAT (uint16_t CRC, uint8_t* Subcommand);
+static void ZPZ_Response_LOG_FORMAT (uint16_t NumPacket, uint8_t Subcommand);
 /*--------------------------------------------------------------------------------------------Обслуживание команды LOG_FILES-----------*/
-uint16_t ZPZ_Request_LOG_FILES (uint16_t CRC);
-void ZPZ_Response_LOG_FILES (uint16_t NumPacket);
+static uint16_t ZPZ_Request_LOG_FILES (uint16_t CRC);
+static void ZPZ_Response_LOG_FILES (uint16_t NumPacket);
 /*--------------------------------------------------------------------------------------------Обслуживание команды LOG_UPLOAD----------*/
-uint16_t ZPZ_Request_LOG_UPLOAD(uint16_t CRC, uint16_t* NUM);
-uint8_t ZPZ_Response_LOG_UPLOAD(uint16_t File_num, uint16_t NumPacket);
+static uint16_t ZPZ_Request_LOG_UPLOAD(uint16_t CRC, uint16_t* NUM);
+static uint8_t ZPZ_Response_LOG_UPLOAD(uint16_t File_num, uint16_t NumPacket);
 /*--------------------------------------------------------------------------------------------Обслуживание команды REQ_SWS-------------*/
-uint16_t ZPZ_Request_REQ_SWS (uint16_t CRC);
-uint8_t ZPZ_Response_REQ_SWS (uint16_t NumPacket);
+static uint16_t ZPZ_Request_REQ_SWS (uint16_t CRC);
+static uint8_t ZPZ_Response_REQ_SWS (uint16_t NumPacket);
 /*--------------------------------------------------------------------------------------------Обслуживание команды REQ_SNS_POS---------*/
-uint16_t ZPZ_Request_REQ_SNS_POS (uint16_t CRC);
-uint8_t ZPZ_Response_REQ_SNS_POS (uint16_t NumPacket);
+static uint16_t ZPZ_Request_REQ_SNS_POS (uint16_t CRC);
+static uint8_t ZPZ_Response_REQ_SNS_POS (uint16_t NumPacket);
 /*--------------------------------------------------------------------------------------------Обслуживание команды REQ_SNS_STATE-------*/
-uint16_t ZPZ_Request_REQ_SNS_STATE (uint16_t CRC);
-uint8_t ZPZ_Response_REQ_SNS_STATE (uint16_t NumPacket);
+static uint16_t ZPZ_Request_REQ_SNS_STATE (uint16_t CRC);
+static uint8_t ZPZ_Response_REQ_SNS_STATE (uint16_t NumPacket);
 /*--------------------------------------------------------------------------------------------Обслуживание команды REQ_SNS_SETTINGS----*/
-uint16_t ZPZ_Request_REQ_SNS_SETTINGS(uint16_t CRC, uint8_t* buffer);
-uint8_t ZPZ_Response_REQ_SNS_SETTINGS (uint8_t* params, uint16_t NumPacket);
+static uint16_t ZPZ_Request_REQ_SNS_SETTINGS(uint16_t CRC, uint8_t* buffer);
+static uint8_t ZPZ_Response_REQ_SNS_SETTINGS (uint8_t* params, uint16_t NumPacket);
 /*--------------------------------------------------------------------------------------------Обслуживание команды PIN_STATE-----------*/
-uint16_t ZPZ_Request_PIN_STATE(uint16_t CRC);
-void ZPZ_Response_PIN_STATE (uint16_t NumPacket);
+static uint16_t ZPZ_Request_PIN_STATE(uint16_t CRC);
+static void ZPZ_Response_PIN_STATE (uint16_t NumPacket);
 /*--------------------------------------------------------------------------------------------Обслуживание команды SYSTEM_STATE--------*/
-uint16_t ZPZ_Request_SYSTEM_STATE (uint16_t CRC);
-void ZPZ_Response_SYSTEM_STATE (uint16_t NumPacket);
+static uint16_t ZPZ_Request_SYSTEM_STATE (uint16_t CRC);
+static void ZPZ_Response_SYSTEM_STATE (uint16_t NumPacket);
 /*--------------------------------------------------------------------------------------------Обслуживание команды CAN_TRANSMIT--------*/
-uint16_t ZPZ_Request_CAN_TRANSMIT (uint16_t CRC, uint8_t* buffer);
-void ZPZ_Response_CAN_TRANSMIT (uint8_t* buffer, uint16_t NumPacket);
+static uint16_t ZPZ_Request_CAN_TRANSMIT (uint16_t CRC, uint8_t* buffer);
+static void ZPZ_Response_CAN_TRANSMIT (uint8_t* buffer, uint16_t NumPacket);
 /*--------------------------------------------------------------------------------------------Обёртка UART функций со SLIP-------------*/
-uint16_t UARTReceiveByte_by_SLIP(MDR_UART_TypeDef* UARTx, uint32_t TimeoutRange);
-int16_t UARTSendByte_by_SLIP (MDR_UART_TypeDef* UARTx, uint32_t TimeoutRange, uint16_t Byte);
-int16_t SendFEND (MDR_UART_TypeDef* UARTx, uint32_t TimeoutRange);
+static uint16_t UARTReceiveByte_by_SLIP(MDR_UART_TypeDef* UARTx, uint32_t TimeoutRange);
+static int16_t UARTSendByte_by_SLIP (MDR_UART_TypeDef* UARTx, uint32_t TimeoutRange, uint16_t Byte);
+static int16_t SendFEND (MDR_UART_TypeDef* UARTx, uint32_t TimeoutRange);
 /*--------------------------------------------------------------------------------------------Режим "ВВПЗ"-----------------------------*/
-void ZPZ_StartHighPriorityTask (void);
-void ZPZ_FinishHighPriorityTask (void);
-void ZPZ_CheckpointHighPriorityTask (void);
+static void ZPZ_StartHighPriorityTask (void);
+static void ZPZ_FinishHighPriorityTask (void);
+static void ZPZ_CheckpointHighPriorityTask (void);
 void Timer2_IRQHandler(void);
 /*-------------------------------------------------------------------------------------------------------------------------------------*/
 
@@ -571,7 +571,7 @@ uint8_t ZPZ_Service (void)
 
 /*--------------------------------------------------------------------------------------------Обёртка UART функций со SLIP-------------*/
 // Отправка FEND разделителя, с таймаутом на время отправки 
-int16_t SendFEND(MDR_UART_TypeDef* UARTx, uint32_t TimeoutRange)
+static int16_t SendFEND(MDR_UART_TypeDef* UARTx, uint32_t TimeoutRange)
 {
 	uint32_t timeout = 0;
 	// Если FIFO передатчика заполнен, то ждем пока освободится
@@ -585,7 +585,7 @@ int16_t SendFEND(MDR_UART_TypeDef* UARTx, uint32_t TimeoutRange)
 }
 
 // Отправка символа по SLIP - протоколу
-int16_t UARTSendByte_by_SLIP (MDR_UART_TypeDef* UARTx, uint32_t TimeoutRange, uint16_t Byte)
+static int16_t UARTSendByte_by_SLIP (MDR_UART_TypeDef* UARTx, uint32_t TimeoutRange, uint16_t Byte)
 {
 	uint32_t timeout = 0;
 	
@@ -644,7 +644,7 @@ int16_t UARTSendByte_by_SLIP (MDR_UART_TypeDef* UARTx, uint32_t TimeoutRange, ui
 }
 
 // Приём и декодирование пакета по SLIP Протоколу 
-uint16_t UARTReceiveByte_by_SLIP(MDR_UART_TypeDef* UARTx, uint32_t TimeoutRange)
+static uint16_t UARTReceiveByte_by_SLIP(MDR_UART_TypeDef* UARTx, uint32_t TimeoutRange)
 {
 	uint16_t Byte = 0;
 	uint32_t timeout = 0;
@@ -688,7 +688,7 @@ uint16_t UARTReceiveByte_by_SLIP(MDR_UART_TypeDef* UARTx, uint32_t TimeoutRange)
 
 
 /*-----------------------------------------Обслуживание простых запросов-------------------------------------------------------------*/
-uint16_t ZPZ_RequestWithEmptyData(uint16_t CRC) 
+static uint16_t ZPZ_RequestWithEmptyData(uint16_t CRC) 
 {
 	uint8_t temp;
 	uint16_t crc;
@@ -704,7 +704,7 @@ uint16_t ZPZ_RequestWithEmptyData(uint16_t CRC)
 
 
 //-----------------------------------------Обслуживание команды CHECK_CONNECT---------------------------------------------------------*/
-uint16_t ZPZ_Request_CHECK_CONNECT (uint16_t CRC)
+static uint16_t ZPZ_Request_CHECK_CONNECT (uint16_t CRC)
 {
 	return ZPZ_RequestWithEmptyData(CRC);
 }
@@ -717,7 +717,7 @@ void ZPZ_Response_CHECK_CONNECT (uint16_t NumPacket)
 
 
 //-----------------------------------------Обслуживание команды START_DOWNLOAD---------------------------------------------------------*/
-uint16_t ZPZ_Request_START_DOWNLOAD (uint16_t CRC) 
+static uint16_t ZPZ_Request_START_DOWNLOAD (uint16_t CRC) 
 {
 	uint16_t crc;
 	uint8_t  temp;
@@ -747,7 +747,7 @@ uint16_t ZPZ_Request_START_DOWNLOAD (uint16_t CRC)
 	return crc;
 }
 
-void ZPZ_Response_START_DOWNLOAD (uint16_t NumPacket)
+static void ZPZ_Response_START_DOWNLOAD (uint16_t NumPacket)
 {
 	ZPZ_ShortResponse(START_DOWNLOAD, NumPacket, SUCCES);
 }
@@ -755,7 +755,7 @@ void ZPZ_Response_START_DOWNLOAD (uint16_t NumPacket)
 
 
 //-----------------------------------------Обслуживание команды MAP_DOWNLOAD---------------------------------------------------------*/
-uint16_t ZPZ_Request_MAP_DOWNLOAD (uint16_t CRC, uint16_t NumPacket)
+static uint16_t ZPZ_Request_MAP_DOWNLOAD (uint16_t CRC, uint16_t NumPacket)
 {
 	uint16_t crc;
 	uint8_t  temp;
@@ -794,7 +794,7 @@ uint16_t ZPZ_Request_MAP_DOWNLOAD (uint16_t CRC, uint16_t NumPacket)
 	return crc;
 }
 
-void ZPZ_Response_MAP_DOWNLOAD (uint16_t NumPacket)
+static void ZPZ_Response_MAP_DOWNLOAD (uint16_t NumPacket)
 {
 	ZPZ_ShortResponse(MAP_DOWNLOAD, NumPacket, SUCCES);
 }
@@ -802,12 +802,12 @@ void ZPZ_Response_MAP_DOWNLOAD (uint16_t NumPacket)
 
 
 //-----------------------------------------Обслуживание команды START_UPLOAD---------------------------------------------------------*/
-uint16_t ZPZ_Request_START_UPLOAD (uint16_t CRC)
+static uint16_t ZPZ_Request_START_UPLOAD (uint16_t CRC)
 {
 	return ZPZ_RequestWithEmptyData(CRC);
 }
 
-void ZPZ_Response_START_UPLOAD (uint16_t NumPacket) 
+static void ZPZ_Response_START_UPLOAD (uint16_t NumPacket) 
 {
 	ZPZ_Response_Union   ZPZ_Response;     // Стандартный ответ к ЗПЗ           
 	uint16_t             i;                // Счетчик циклов
@@ -857,12 +857,12 @@ void ZPZ_Response_START_UPLOAD (uint16_t NumPacket)
 
 
 //-----------------------------------------Обслуживание команды MAP_UPLOAD---------------------------------------------------------*/
-uint16_t ZPZ_Request_MAP_UPLOAD (uint16_t CRC)
+static uint16_t ZPZ_Request_MAP_UPLOAD (uint16_t CRC)
 {
 	return ZPZ_RequestWithEmptyData(CRC);
 }
 
-void ZPZ_Response_MAP_UPLOAD (uint16_t NumPacket)
+static void ZPZ_Response_MAP_UPLOAD (uint16_t NumPacket)
 {
 	ZPZ_Response_Union      ZPZ_Response;       // Стандартный ответ к ЗПЗ
 	uint8_t                 temp;               // Временное хранилище читаемого из SPI Flash 
@@ -915,7 +915,7 @@ void ZPZ_Response_MAP_UPLOAD (uint16_t NumPacket)
 
 
 //-----------------------------------------Обслуживание команды BIM_CONTROL---------------------------------------------------------*/
-uint16_t ZPZ_Request_BIM_CONTROL (uint16_t CRC, ZPZ_RequestControlBIM_Union* BIM_Data)
+static uint16_t ZPZ_Request_BIM_CONTROL (uint16_t CRC, ZPZ_RequestControlBIM_Union* BIM_Data)
 {
 	uint16_t crc;
 
@@ -937,7 +937,7 @@ uint16_t ZPZ_Request_BIM_CONTROL (uint16_t CRC, ZPZ_RequestControlBIM_Union* BIM
 	return crc;
 }
 
-void ZPZ_Response_BIM_CONTROL (ZPZ_RequestControlBIM_Union* BIM_Data, uint16_t NumPacket)
+static void ZPZ_Response_BIM_CONTROL (ZPZ_RequestControlBIM_Union* BIM_Data, uint16_t NumPacket)
 {
 	uint16_t BIM_Side;
 	uint8_t  status = 0;
@@ -986,7 +986,7 @@ void ZPZ_Response_BIM_CONTROL (ZPZ_RequestControlBIM_Union* BIM_Data, uint16_t N
 
 
 //-----------------------------------------Обслуживание команды BIM_STATUS---------------------------------------------------------*/
-uint16_t ZPZ_Request_BIM_STATUS (uint16_t CRC, ZPZ_RequestControlBIM_Union* BIMControl)	
+static uint16_t ZPZ_Request_BIM_STATUS (uint16_t CRC, ZPZ_RequestControlBIM_Union* BIMControl)	
 {
 	uint16_t crc = 0;
 	
@@ -1002,7 +1002,7 @@ uint16_t ZPZ_Request_BIM_STATUS (uint16_t CRC, ZPZ_RequestControlBIM_Union* BIMC
 	return crc;
 }
 
-void ZPZ_Response_BIM_STATUS(uint8_t Side, uint16_t NumPacket)
+static void ZPZ_Response_BIM_STATUS(uint8_t Side, uint16_t NumPacket)
 {
 	ZPZ_ResponseStatusBIM_Union   ZPZ_BIM_Status;      // Структура с информацией от БИМ
 	ZPZ_Response_Union            ZPZ_Response;        // Стандартный ответ к ЗПЗ
@@ -1092,7 +1092,7 @@ void ZPZ_Response_BIM_STATUS(uint8_t Side, uint16_t NumPacket)
 
 
 //-----------------------------------------Обслуживание команды LOG_FORMAT---------------------------------------------------------*/
-uint16_t ZPZ_Request_LOG_FORMAT (uint16_t CRC, uint8_t* Subcommand)
+static uint16_t ZPZ_Request_LOG_FORMAT (uint16_t CRC, uint8_t* Subcommand)
 {
 	uint16_t crc;
 	
@@ -1104,7 +1104,7 @@ uint16_t ZPZ_Request_LOG_FORMAT (uint16_t CRC, uint8_t* Subcommand)
 	return crc;
 }
 
-void ZPZ_Response_LOG_FORMAT (uint16_t NumPacket, uint8_t Subcommand)
+static void ZPZ_Response_LOG_FORMAT (uint16_t NumPacket, uint8_t Subcommand)
 {
 	ZPZ_Response_Union   ZPZ_Response;    // Стандартный ответ к ЗПЗ
 	uint8_t              temp;            // Дополнительный байт статуса
@@ -1177,12 +1177,12 @@ void ZPZ_Response_LOG_FORMAT (uint16_t NumPacket, uint8_t Subcommand)
 
 
 //-----------------------------------------Обслуживание команды LOG_FILES---------------------------------------------------------*/
-uint16_t ZPZ_Request_LOG_FILES (uint16_t CRC)
+static uint16_t ZPZ_Request_LOG_FILES (uint16_t CRC)
 {
 	return ZPZ_RequestWithEmptyData(CRC);
 }
 
-void ZPZ_Response_LOG_FILES (uint16_t NumPacket)
+static void ZPZ_Response_LOG_FILES (uint16_t NumPacket)
 {
 	ZPZ_Response_Union    ZPZ_Response;    // Стандартный ответ к ЗПЗ
 	uint8_t               buffer[4];       // Временное хранилище данных
@@ -1276,7 +1276,7 @@ void ZPZ_Response_LOG_FILES (uint16_t NumPacket)
 
 
 //-----------------------------------------Обслуживание команды LOG_UPLOAD---------------------------------------------------------*/
-uint16_t ZPZ_Request_LOG_UPLOAD(uint16_t CRC, uint16_t* NUM)
+static uint16_t ZPZ_Request_LOG_UPLOAD(uint16_t CRC, uint16_t* NUM)
 {
 	uint8_t temp = 0;       // Временная переменная
 	uint16_t crc = 0;       // Контрольная сумма
@@ -1293,7 +1293,7 @@ uint16_t ZPZ_Request_LOG_UPLOAD(uint16_t CRC, uint16_t* NUM)
 	return crc;
 }
 
-uint8_t ZPZ_Response_LOG_UPLOAD(uint16_t File_num, uint16_t NumPacket)
+static uint8_t ZPZ_Response_LOG_UPLOAD(uint16_t File_num, uint16_t NumPacket)
 {
 	ZPZ_Response_Union    ZPZ_Response;      // Стандартный ответ к ЗПЗ
 	uint8_t               temp[2];           // Временный буфер для чтения и отправки
@@ -1476,12 +1476,12 @@ uint8_t ZPZ_Response_LOG_UPLOAD(uint16_t File_num, uint16_t NumPacket)
 
 
 //-----------------------------------------Обслуживание команды REQ_SWS---------------------------------------------------------*/
-uint16_t ZPZ_Request_REQ_SWS (uint16_t CRC)
+static uint16_t ZPZ_Request_REQ_SWS (uint16_t CRC)
 {
 	return ZPZ_RequestWithEmptyData(CRC);
 }
 
-uint8_t ZPZ_Response_REQ_SWS (uint16_t NumPacket)
+static uint8_t ZPZ_Response_REQ_SWS (uint16_t NumPacket)
 {
 	ZPZ_Response_Union    ZPZ_Response;    // Стандартный ответ к ЗПЗ
 	SWS_Packet_Type_Union SWS_data;        // Структура ответа от СВС
@@ -1551,12 +1551,12 @@ uint8_t ZPZ_Response_REQ_SWS (uint16_t NumPacket)
 
 
 //-----------------------------------------Обслуживание команды REQ_SNS_POS---------------------------------------------------------*/
-uint16_t ZPZ_Request_REQ_SNS_POS (uint16_t CRC)
+static uint16_t ZPZ_Request_REQ_SNS_POS (uint16_t CRC)
 {
 	return ZPZ_RequestWithEmptyData(CRC);
 }
 
-uint8_t ZPZ_Response_REQ_SNS_POS (uint16_t NumPacket)
+static uint8_t ZPZ_Response_REQ_SNS_POS (uint16_t NumPacket)
 {
 	ZPZ_Response_Union    ZPZ_Response;                    // Стандартный ответ к ЗПЗ
 	uint8_t               i;                               // Счетчик циклов
@@ -1623,12 +1623,12 @@ uint8_t ZPZ_Response_REQ_SNS_POS (uint16_t NumPacket)
 
 
 //-----------------------------------------Обслуживание команды REQ_SNS_STATE---------------------------------------------------------*/
-uint16_t ZPZ_Request_REQ_SNS_STATE (uint16_t CRC)
+static uint16_t ZPZ_Request_REQ_SNS_STATE (uint16_t CRC)
 {
 	return ZPZ_RequestWithEmptyData(CRC);
 }
 
-uint8_t ZPZ_Response_REQ_SNS_STATE (uint16_t NumPacket)
+static uint8_t ZPZ_Response_REQ_SNS_STATE (uint16_t NumPacket)
 {
 	ZPZ_Response_Union                     ZPZ_Response;          // Стандартный ответ к ЗПЗ
 	SNS_Device_Information_Response_Union  SNS_DevInfo;           // Информация о СНС
@@ -1707,7 +1707,7 @@ uint8_t ZPZ_Response_REQ_SNS_STATE (uint16_t NumPacket)
 
 
 //-----------------------------------------Обслуживание команды REQ_SNS_SETTINGS---------------------------------------------------------*/
-uint16_t ZPZ_Request_REQ_SNS_SETTINGS(uint16_t CRC, uint8_t* buffer)
+static uint16_t ZPZ_Request_REQ_SNS_SETTINGS(uint16_t CRC, uint8_t* buffer)
 {
 	uint8_t i;
 	uint16_t crc = 0;
@@ -1722,7 +1722,7 @@ uint16_t ZPZ_Request_REQ_SNS_SETTINGS(uint16_t CRC, uint8_t* buffer)
 }
 
 // Реагируем на запрос на изменение настроек СНС
-uint8_t ZPZ_Response_REQ_SNS_SETTINGS (uint8_t* params, uint16_t NumPacket)
+static uint8_t ZPZ_Response_REQ_SNS_SETTINGS (uint8_t* params, uint16_t NumPacket)
 {
 	ZPZ_Response_Union   ZPZ_Response;          // Стандартный ответ к ЗПЗ
 	uint8_t  i;                                 // Счетчик циклов
@@ -1820,12 +1820,12 @@ uint8_t ZPZ_Response_REQ_SNS_SETTINGS (uint8_t* params, uint16_t NumPacket)
 
 
 //-----------------------------------------Обслуживание команды PIN_STATE---------------------------------------------------------*/
-uint16_t ZPZ_Request_PIN_STATE(uint16_t CRC)
+static uint16_t ZPZ_Request_PIN_STATE(uint16_t CRC)
 {
 	return ZPZ_RequestWithEmptyData(CRC);
 }
 
-void ZPZ_Response_PIN_STATE (uint16_t NumPacket)
+static void ZPZ_Response_PIN_STATE (uint16_t NumPacket)
 {
 	ZPZ_BasePacket_Union     ZPZ_BaseResponse;
 	uint8_t  i;
@@ -1869,12 +1869,12 @@ void ZPZ_Response_PIN_STATE (uint16_t NumPacket)
 
 
 //-----------------------------------------Обслуживание команды SYSTEM_STATE---------------------------------------------------------*/
-uint16_t ZPZ_Request_SYSTEM_STATE (uint16_t CRC)
+static uint16_t ZPZ_Request_SYSTEM_STATE (uint16_t CRC)
 {
 	return ZPZ_RequestWithEmptyData(CRC);
 }
 
-void ZPZ_Response_SYSTEM_STATE (uint16_t NumPacket)
+static void ZPZ_Response_SYSTEM_STATE (uint16_t NumPacket)
 {
 	ZPZ_Response_Union       ZPZ_Response;          // Стандартный ответ к ЗПЗ
 	uint8_t                  i;                     // Счетчик циклов
@@ -1917,7 +1917,7 @@ void ZPZ_Response_SYSTEM_STATE (uint16_t NumPacket)
 
 
 //-----------------------------------------Обслуживание команды CAN_TRANSMIT---------------------------------------------------------*/
-uint16_t ZPZ_Request_CAN_TRANSMIT (uint16_t CRC, uint8_t* buffer)
+static uint16_t ZPZ_Request_CAN_TRANSMIT (uint16_t CRC, uint8_t* buffer)
 {
 	// Первые два байта - Адрес
 	// Третий байт - размер
@@ -1935,7 +1935,7 @@ uint16_t ZPZ_Request_CAN_TRANSMIT (uint16_t CRC, uint8_t* buffer)
 
 	return CRC;
 }
-void ZPZ_Response_CAN_TRANSMIT (uint8_t* buffer, uint16_t NumPacket)
+static void ZPZ_Response_CAN_TRANSMIT (uint8_t* buffer, uint16_t NumPacket)
 {
 	ZPZ_Response_Union       ZPZ_Response;          // Стандартный ответ к ЗПЗ
 	CAN_TxMsgTypeDef         CANTxMsg;
@@ -2057,7 +2057,7 @@ void Timer2_IRQHandler(void)
 /****************************************************************** 
     Запуск режима выполнения высокоприоритетной задачи
 ******************************************************************/
-void ZPZ_StartHighPriorityTask (void)
+static void ZPZ_StartHighPriorityTask (void)
 {
 	// Выставляем флаг режима High Priority Task
 	HighPriorityTask = ZPZ_HPT_MODE;
@@ -2073,7 +2073,7 @@ void ZPZ_StartHighPriorityTask (void)
 /****************************************************************** 
     Завершение режима выполнения высокоприоритетной задачи
 ******************************************************************/
-void ZPZ_FinishHighPriorityTask (void)
+static void ZPZ_FinishHighPriorityTask (void)
 {
 	// Отключаем таймер
 	TIMER_Cmd(ZPZ_TIMER, DISABLE);
@@ -2093,7 +2093,7 @@ void ZPZ_FinishHighPriorityTask (void)
     Если данная функция не вызывается некоторое время, то
     данный режим завершается, автоматически.
 ******************************************************************/
-void ZPZ_CheckpointHighPriorityTask (void)
+static void ZPZ_CheckpointHighPriorityTask (void)
 {
 	// При чекпоинте нам просто необходимо сбросить счетчик таймаута
 	// Принцип работы WDT

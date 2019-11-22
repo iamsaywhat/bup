@@ -1,15 +1,11 @@
 /*
- * Academic License - for use in teaching, academic research, and meeting
- * course requirements at degree granting institutions only.  Not for
- * government, commercial, or other organizational use.
- *
  * File: Easy_reg.h
  *
  * Code generated for Simulink model 'Easy_reg'.
  *
- * Model version                  : 1.265
+ * Model version                  : 1.418
  * Simulink Coder version         : 8.14 (R2018a) 06-Feb-2018
- * C/C++ source code generated on : Tue Nov  5 17:10:06 2019
+ * C/C++ source code generated on : Thu Nov 21 16:08:32 2019
  *
  * Target selection: ert.tlc
  * Embedded hardware selection: ARM Compatible->ARM Cortex
@@ -40,8 +36,15 @@
 /* Forward declaration for rtModel */
 typedef struct tag_RTM RT_MODEL;
 
+/* Block signals and states (default storage) for system '<S13>/Bearing' */
+typedef struct {
+  real_T PreviousBearing_DSTATE;       /* '<S16>/PreviousBearing' */
+} DW_Bearing;
+
 /* Block signals and states (default storage) for system '<Root>' */
 typedef struct {
+  DW_Bearing Bearing_e;                /* '<S14>/Bearing' */
+  DW_Bearing Bearing_o;                /* '<S13>/Bearing' */
   real_T TmpSignalConversionAtSFunctio_g[3];/* '<S1>/TaskController' */
   real_T TargetPoint[3];               /* '<S1>/TaskController' */
   real_T Point1[3];                    /* '<S1>/TaskController' */
@@ -50,13 +53,11 @@ typedef struct {
   real_T LDPoint[3];                   /* '<S1>/TaskController' */
   real_T RUPoint[3];                   /* '<S1>/TaskController' */
   real_T RDPoint[3];                   /* '<S1>/TaskController' */
-  real_T SFunction_o8;                 /* '<S1>/TaskController' */
-  real_T SFunction_o9;                 /* '<S1>/TaskController' */
-  real_T SFunction_o10;                /* '<S1>/TaskController' */
-  real_T SFunction_o11;                /* '<S1>/TaskController' */
-  real_T LastPos_1_PreviousInput;      /* '<S8>/LastPos' */
-  real_T LastPos_2_PreviousInput;      /* '<S8>/LastPos' */
-  real_T Memory1_PreviousInput;        /* '<S8>/Memory1' */
+  real_T Course2Target;                /* '<S1>/TaskController' */
+  real_T LastPos_1_DSTATE;             /* '<S14>/LastPos' */
+  real_T LastPos_2_DSTATE;             /* '<S14>/LastPos' */
+  real_T LastPos_3_DSTATE;             /* '<S14>/LastPos' */
+  real_T LastLineState;                /* '<S2>/BimTrigger' */
   uint32_T time;                       /* '<S1>/TaskController' */
   uint32_T timeout;                    /* '<S1>/TaskController' */
   uint8_T TargetEnable;                /* '<S1>/TaskController' */
@@ -64,14 +65,19 @@ typedef struct {
   uint8_T is_active_Timer;             /* '<S1>/TaskController' */
   uint8_T is_Control;                  /* '<S1>/TaskController' */
   uint8_T is_active_Control;           /* '<S1>/TaskController' */
+  uint8_T is_active_TargetCourse;      /* '<S1>/TaskController' */
   uint8_T is_Flight;                   /* '<S1>/TaskController' */
   uint8_T was_Flight;                  /* '<S1>/TaskController' */
   uint8_T is_Box;                      /* '<S1>/TaskController' */
   uint8_T was_Box;                     /* '<S1>/TaskController' */
   uint8_T is_Touchdown;                /* '<S1>/TaskController' */
   uint8_T is_active_Touchdown;         /* '<S1>/TaskController' */
-  uint8_T is_active_EventGen;          /* '<S1>/TaskController' */
+  uint8_T is_active_EventGenerator;    /* '<S1>/TaskController' */
+  uint8_T is_BimSupply;                /* '<S1>/TaskController' */
+  uint8_T is_active_BimSupply;         /* '<S1>/TaskController' */
   uint8_T BoxEntry;                    /* '<S1>/TaskController' */
+  uint8_T is_active_c9_BupSimulinkLibrari;/* '<S2>/BimTrigger' */
+  boolean_T Delay2_DSTATE;             /* '<S1>/Delay2' */
 } DW;
 
 /* External inputs (root inport signals with default storage) */
@@ -121,30 +127,38 @@ extern RT_MODEL *const Easy_reg_M;
 /*-
  * These blocks were eliminated from the model due to optimizations:
  *
- * Block '<S3>/Display' : Unused code path elimination
- * Block '<S3>/Display1' : Unused code path elimination
- * Block '<S8>/Scope8' : Unused code path elimination
- * Block '<S8>/Scope9' : Unused code path elimination
- * Block '<S3>/Scope' : Unused code path elimination
- * Block '<S3>/Scope1' : Unused code path elimination
- * Block '<S3>/Scope2' : Unused code path elimination
- * Block '<S3>/Scope3' : Unused code path elimination
- * Block '<S16>/Gain' : Unused code path elimination
- * Block '<S17>/Gain' : Unused code path elimination
- * Block '<S18>/Gain' : Unused code path elimination
- * Block '<S20>/Scope' : Unused code path elimination
+ * Block '<S4>/Display' : Unused code path elimination
+ * Block '<S4>/Display1' : Unused code path elimination
+ * Block '<S14>/Display' : Unused code path elimination
+ * Block '<S14>/Display1' : Unused code path elimination
+ * Block '<S20>/Gain' : Unused code path elimination
+ * Block '<S21>/Gain' : Unused code path elimination
+ * Block '<S14>/Scope1' : Unused code path elimination
+ * Block '<S14>/Scope8' : Unused code path elimination
+ * Block '<S14>/Scope9' : Unused code path elimination
+ * Block '<S4>/Scope' : Unused code path elimination
  * Block '<S4>/Scope1' : Unused code path elimination
- * Block '<S4>/Scope5' : Unused code path elimination
- * Block '<S4>/Scope6' : Unused code path elimination
- * Block '<S4>/Scope7' : Unused code path elimination
- * Block '<S4>/Scope8' : Unused code path elimination
- * Block '<S3>/CourseSwitch' : Eliminated due to constant selection input
- * Block '<S8>/Manual Switch2' : Eliminated due to constant selection input
- * Block '<S3>/Manual Switch' : Eliminated due to constant selection input
- * Block '<S3>/Manual Switch1' : Eliminated due to constant selection input
+ * Block '<S4>/Scope2' : Unused code path elimination
+ * Block '<S4>/Scope3' : Unused code path elimination
+ * Block '<S1>/Delay3' : Unused code path elimination
+ * Block '<S1>/Scope1' : Unused code path elimination
+ * Block '<S1>/Scope4' : Unused code path elimination
+ * Block '<S35>/Gain' : Unused code path elimination
+ * Block '<S36>/Gain' : Unused code path elimination
+ * Block '<S37>/Gain' : Unused code path elimination
+ * Block '<S39>/Scope' : Unused code path elimination
+ * Block '<S9>/Scope' : Unused code path elimination
+ * Block '<S9>/Scope2' : Unused code path elimination
+ * Block '<S9>/Scope5' : Unused code path elimination
+ * Block '<S9>/Scope6' : Unused code path elimination
+ * Block '<S9>/Scope7' : Unused code path elimination
+ * Block '<S9>/Scope8' : Unused code path elimination
+ * Block '<S4>/CourseSwitch' : Eliminated due to constant selection input
+ * Block '<S14>/Manual Switch2' : Eliminated due to constant selection input
+ * Block '<S4>/Manual Switch' : Eliminated due to constant selection input
+ * Block '<S4>/Manual Switch1' : Eliminated due to constant selection input
  * Block '<S1>/TD_SysSwitch' : Eliminated due to constant selection input
- * Block '<S4>/Base_Gain' : Eliminated nontunable gain of 1
- * Block '<S20>/Manual Switch' : Eliminated due to constant selection input
+ * Block '<S39>/Manual Switch' : Eliminated due to constant selection input
  * Block '<S1>/Constant' : Unused code path elimination
  */
 
@@ -167,36 +181,47 @@ extern RT_MODEL *const Easy_reg_M;
  *
  * '<Root>' : 'BUP_FOR_GUI'
  * '<S1>'   : 'BUP_FOR_GUI/Easy_reg'
- * '<S2>'   : 'BUP_FOR_GUI/Easy_reg/CourseToTarget'
- * '<S3>'   : 'BUP_FOR_GUI/Easy_reg/DataAnalyzer'
- * '<S4>'   : 'BUP_FOR_GUI/Easy_reg/Targeting'
- * '<S5>'   : 'BUP_FOR_GUI/Easy_reg/TaskController'
- * '<S6>'   : 'BUP_FOR_GUI/Easy_reg/CourseToTarget/TargetCourse'
- * '<S7>'   : 'BUP_FOR_GUI/Easy_reg/DataAnalyzer/Course2TDP'
- * '<S8>'   : 'BUP_FOR_GUI/Easy_reg/DataAnalyzer/InternalTrackingCourse'
- * '<S9>'   : 'BUP_FOR_GUI/Easy_reg/DataAnalyzer/InternalTrackingSpeed'
- * '<S10>'  : 'BUP_FOR_GUI/Easy_reg/DataAnalyzer/Course2TDP/TDPCourse'
- * '<S11>'  : 'BUP_FOR_GUI/Easy_reg/DataAnalyzer/InternalTrackingCourse/Azimut'
- * '<S12>'  : 'BUP_FOR_GUI/Easy_reg/DataAnalyzer/InternalTrackingCourse/Heading_true'
- * '<S13>'  : 'BUP_FOR_GUI/Easy_reg/DataAnalyzer/InternalTrackingSpeed/Speed'
- * '<S14>'  : 'BUP_FOR_GUI/Easy_reg/DataAnalyzer/InternalTrackingSpeed/Velocity'
- * '<S15>'  : 'BUP_FOR_GUI/Easy_reg/Targeting/ControlDemode'
- * '<S16>'  : 'BUP_FOR_GUI/Easy_reg/Targeting/Radians to Degrees1'
- * '<S17>'  : 'BUP_FOR_GUI/Easy_reg/Targeting/Radians to Degrees2'
- * '<S18>'  : 'BUP_FOR_GUI/Easy_reg/Targeting/Radians to Degrees3'
- * '<S19>'  : 'BUP_FOR_GUI/Easy_reg/Targeting/Radians to Degrees4'
- * '<S20>'  : 'BUP_FOR_GUI/Easy_reg/Targeting/Roughening'
- * '<S21>'  : 'BUP_FOR_GUI/Easy_reg/Targeting/Roughening/dead-zone'
- * '<S22>'  : 'BUP_FOR_GUI/Easy_reg/TaskController/Simulink.Targeting'
- * '<S23>'  : 'BUP_FOR_GUI/Easy_reg/TaskController/Simulink.TrackingCourse'
- * '<S24>'  : 'BUP_FOR_GUI/Easy_reg/TaskController/Simulink.Targeting/ControlDemode'
- * '<S25>'  : 'BUP_FOR_GUI/Easy_reg/TaskController/Simulink.Targeting/Radians to Degrees2'
- * '<S26>'  : 'BUP_FOR_GUI/Easy_reg/TaskController/Simulink.Targeting/Radians to Degrees3'
- * '<S27>'  : 'BUP_FOR_GUI/Easy_reg/TaskController/Simulink.Targeting/Radians to Degrees4'
- * '<S28>'  : 'BUP_FOR_GUI/Easy_reg/TaskController/Simulink.Targeting/Roughening'
- * '<S29>'  : 'BUP_FOR_GUI/Easy_reg/TaskController/Simulink.Targeting/Roughening/dead-zone'
- * '<S30>'  : 'BUP_FOR_GUI/Easy_reg/TaskController/Simulink.TrackingCourse/Azimut'
- * '<S31>'  : 'BUP_FOR_GUI/Easy_reg/TaskController/Simulink.TrackingCourse/Heading_true'
+ * '<S2>'   : 'BUP_FOR_GUI/Easy_reg/BimTriggers'
+ * '<S3>'   : 'BUP_FOR_GUI/Easy_reg/BimTriggers13'
+ * '<S4>'   : 'BUP_FOR_GUI/Easy_reg/DataAnalyzer'
+ * '<S5>'   : 'BUP_FOR_GUI/Easy_reg/DriftEstimator'
+ * '<S6>'   : 'BUP_FOR_GUI/Easy_reg/InternalTrackingSpeed'
+ * '<S7>'   : 'BUP_FOR_GUI/Easy_reg/PointMoventPlot'
+ * '<S8>'   : 'BUP_FOR_GUI/Easy_reg/PreemptionTDP'
+ * '<S9>'   : 'BUP_FOR_GUI/Easy_reg/Targeting'
+ * '<S10>'  : 'BUP_FOR_GUI/Easy_reg/TaskController'
+ * '<S11>'  : 'BUP_FOR_GUI/Easy_reg/BimTriggers/BimTrigger'
+ * '<S12>'  : 'BUP_FOR_GUI/Easy_reg/BimTriggers13/BimTrigger'
+ * '<S13>'  : 'BUP_FOR_GUI/Easy_reg/DataAnalyzer/Course2TDP'
+ * '<S14>'  : 'BUP_FOR_GUI/Easy_reg/DataAnalyzer/InternalTrackingCourse'
+ * '<S15>'  : 'BUP_FOR_GUI/Easy_reg/DataAnalyzer/InternalTrackingSpeed'
+ * '<S16>'  : 'BUP_FOR_GUI/Easy_reg/DataAnalyzer/Course2TDP/Bearing'
+ * '<S17>'  : 'BUP_FOR_GUI/Easy_reg/DataAnalyzer/Course2TDP/Bearing/Heading_true'
+ * '<S18>'  : 'BUP_FOR_GUI/Easy_reg/DataAnalyzer/InternalTrackingCourse/Azimuth'
+ * '<S19>'  : 'BUP_FOR_GUI/Easy_reg/DataAnalyzer/InternalTrackingCourse/Bearing'
+ * '<S20>'  : 'BUP_FOR_GUI/Easy_reg/DataAnalyzer/InternalTrackingCourse/Radians to Degrees1'
+ * '<S21>'  : 'BUP_FOR_GUI/Easy_reg/DataAnalyzer/InternalTrackingCourse/Radians to Degrees2'
+ * '<S22>'  : 'BUP_FOR_GUI/Easy_reg/DataAnalyzer/InternalTrackingCourse/Azimuth/Azimut'
+ * '<S23>'  : 'BUP_FOR_GUI/Easy_reg/DataAnalyzer/InternalTrackingCourse/Bearing/Heading_true'
+ * '<S24>'  : 'BUP_FOR_GUI/Easy_reg/DataAnalyzer/InternalTrackingSpeed/GPSVelocity'
+ * '<S25>'  : 'BUP_FOR_GUI/Easy_reg/DataAnalyzer/InternalTrackingSpeed/ProjectionSpeed'
+ * '<S26>'  : 'BUP_FOR_GUI/Easy_reg/DataAnalyzer/InternalTrackingSpeed/GPSVelocity/Velocity'
+ * '<S27>'  : 'BUP_FOR_GUI/Easy_reg/DataAnalyzer/InternalTrackingSpeed/ProjectionSpeed/Speed'
+ * '<S28>'  : 'BUP_FOR_GUI/Easy_reg/InternalTrackingSpeed/GPSVelocity'
+ * '<S29>'  : 'BUP_FOR_GUI/Easy_reg/InternalTrackingSpeed/ProjectionSpeed'
+ * '<S30>'  : 'BUP_FOR_GUI/Easy_reg/InternalTrackingSpeed/GPSVelocity/Velocity'
+ * '<S31>'  : 'BUP_FOR_GUI/Easy_reg/InternalTrackingSpeed/ProjectionSpeed/Speed'
+ * '<S32>'  : 'BUP_FOR_GUI/Easy_reg/PointMoventPlot/MATLAB Function'
+ * '<S33>'  : 'BUP_FOR_GUI/Easy_reg/PreemptionTDP/MATLAB Function'
+ * '<S34>'  : 'BUP_FOR_GUI/Easy_reg/Targeting/ControlDemode1'
+ * '<S35>'  : 'BUP_FOR_GUI/Easy_reg/Targeting/Radians to Degrees1'
+ * '<S36>'  : 'BUP_FOR_GUI/Easy_reg/Targeting/Radians to Degrees2'
+ * '<S37>'  : 'BUP_FOR_GUI/Easy_reg/Targeting/Radians to Degrees3'
+ * '<S38>'  : 'BUP_FOR_GUI/Easy_reg/Targeting/Radians to Degrees4'
+ * '<S39>'  : 'BUP_FOR_GUI/Easy_reg/Targeting/Roughening'
+ * '<S40>'  : 'BUP_FOR_GUI/Easy_reg/Targeting/ControlDemode1/ControlDemode'
+ * '<S41>'  : 'BUP_FOR_GUI/Easy_reg/Targeting/Roughening/DeadZone'
+ * '<S42>'  : 'BUP_FOR_GUI/Easy_reg/Targeting/Roughening/DeadZone/DeadZone'
  */
 
 /*-
