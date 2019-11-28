@@ -3,9 +3,9 @@
  *
  * Code generated for Simulink model 'flightRegulatorCFB'.
  *
- * Model version                  : 1.2149
- * Simulink Coder version         : 8.14 (R2018a) 06-Feb-2018
- * C/C++ source code generated on : Mon Nov 11 14:39:05 2019
+ * Model version                  : 1.2308
+ * Simulink Coder version         : 9.0 (R2018b) 24-May-2018
+ * C/C++ source code generated on : Tue Nov 26 18:51:44 2019
  *
  * Target selection: ert.tlc
  * Embedded hardware selection: ARM Compatible->ARM Cortex

@@ -109,16 +109,16 @@ void M_Model_PrepareData (void)
 //  rtU.RightEnginehadWork = 1.0;  
 
 	#else //*************************************************************************** Если выбран Easy_reg
-		Easy_reg_U.TDP_lon         = BUP_Get_TouchdownLongitude();
-		Easy_reg_U.TDP_lat         = BUP_Get_TouchdownLatitude();
-		Easy_reg_U.TDP_alt         = BUP_Get_TouchdownAltitude();
-		Easy_reg_U.Pos_lon         = BUP_Get_Longitude();
-		Easy_reg_U.Pos_lat         = BUP_Get_Latitude();
-		Easy_reg_U.Pos_alt         = BUP_Get_Altitude();
-		Easy_reg_U.ActualCourse    = BUP_Get_Course();
-		Easy_reg_U.Relief          = BUP_Get_ReliefHeight();
-		Easy_reg_U.ReliefOnTDP     = BUP_Get_ReliefHeightOnTDP();
-		Easy_reg_U.ReliefAvailable = SelfTesting_STATUS(ST_MapAvailability);
+		rtU.TDP_lon         = BUP_Get_TouchdownLongitude();
+		rtU.TDP_lat         = BUP_Get_TouchdownLatitude();
+		rtU.TDP_alt         = BUP_Get_TouchdownAltitude();
+		rtU.Pos_lon         = BUP_Get_Longitude();
+		rtU.Pos_lat         = BUP_Get_Latitude();
+		rtU.Pos_alt         = BUP_Get_Altitude();
+		rtU.ActualCourse    = BUP_Get_Course();
+		rtU.Relief          = BUP_Get_ReliefHeight();
+		rtU.ReliefOnTDP     = BUP_Get_ReliefHeightOnTDP();
+		rtU.ReliefAvailable = SelfTesting_STATUS(ST_MapAvailability);
 	#endif //************************************************************************** !flightRegulatorCFB 
 
 	// Данные были обновлены, сообщаем об этом Мат. модели
@@ -144,11 +144,11 @@ void M_Model_Control (void)
 		{
 	#else //*************************************************************************** Если выбран Easy_reg
 		// Команды на посадку не было, поэтому будем управлять стропами
-		if (Easy_reg_Y.TD_CMD == 0)
-			M_Model_Cmd2BIM (Easy_reg_Y.BIM_CMD);
+		if (rtY.TD_CMD == 0)
+			M_Model_Cmd2BIM (rtY.BIM_CMD);
 		
 		// Команда на посадку, завершаем работу
-		else if (Easy_reg_Y.TD_CMD == 1)
+		else if (rtY.TD_CMD == 1)
 		{
 	#endif //************************************************************************** !flightRegulatorCFB 			
 			// Переводим БИМЫ в состояние по умолчанию

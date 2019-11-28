@@ -78,8 +78,8 @@ void loger_periodprint (void)
 		printf("Model_BIM_CMD: %f\n", (double)(rtY.tightenSling*rtY.directionOfRotation));
 		printf("Model_TD_CMD: %d\n",  (uint8_t)rtY.cmdTouchDown);
 	#else //*************************************************************************** Если выбран Easy_reg
-		printf("Model_BIM_CMD: %f\n", (double)Easy_reg_Y.BIM_CMD);
-		printf("Model_TD_CMD: %d\n",  (uint8_t)Easy_reg_Y.TD_CMD);
+		printf("Model_BIM_CMD: %f\n", (double)rtY.BIM_CMD);
+		printf("Model_TD_CMD: %d\n",  (uint8_t)rtY.TD_CMD);
 	#endif //************************************************************************** !flightRegulatorCFB
 }
 

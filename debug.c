@@ -137,10 +137,10 @@ void debug_prepare_data (void)
 		/* Здесь можно добавить 
 			вывод необходимых переменных относящихся к Easy_reg
 		*/   
-		debug_vars.BIM_CMD               = (int16_t)(Easy_reg_Y.BIM_CMD);                // Команда БИМам от Easy_reg
-		debug_vars.DistanceToTDP         = (double) (Easy_reg_Y.DistanceToTDP);          // Дистанция до точки приземления, м
-		debug_vars.TimeToHorTarget       = (double) (Easy_reg_Y.TimeToHorTarget);        // Время полета то точки приземления по прямой, сек
-		debug_vars.TimeToTD              = (double) (Easy_reg_Y.TimeToTD);               // Время до открытия парашюта, сек
+		debug_vars.BIM_CMD               = (int16_t)(rtY.BIM_CMD);                       // Команда БИМам от Easy_reg
+		debug_vars.DistanceToTDP         = (double) (rtY.DistanceToTDP);                 // Дистанция до точки приземления, м
+		debug_vars.TimeToHorTarget       = (double) (rtY.TimeToHorTarget);               // Время полета то точки приземления по прямой, сек
+		debug_vars.TimeToTD              = (double) (rtY.TimeToTD);                      // Время до открытия парашюта, сек
 	#endif  
 		debug_vars.TDP_Lat               = BUP_Get_TouchdownLatitude();                  // Широта точки приземления
 		debug_vars.TDP_Lon               = BUP_Get_TouchdownLongitude();                 // Долгота точки приземления

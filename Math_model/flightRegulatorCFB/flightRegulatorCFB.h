@@ -3,9 +3,9 @@
  *
  * Code generated for Simulink model 'flightRegulatorCFB'.
  *
- * Model version                  : 1.2149
- * Simulink Coder version         : 8.14 (R2018a) 06-Feb-2018
- * C/C++ source code generated on : Mon Nov 11 14:39:05 2019
+ * Model version                  : 1.2308
+ * Simulink Coder version         : 9.0 (R2018b) 24-May-2018
+ * C/C++ source code generated on : Tue Nov 26 18:51:44 2019
  *
  * Target selection: ert.tlc
  * Embedded hardware selection: ARM Compatible->ARM Cortex
@@ -17,8 +17,8 @@
 
 #ifndef RTW_HEADER_flightRegulatorCFB_h_
 #define RTW_HEADER_flightRegulatorCFB_h_
-#include <stddef.h>
 #include "rtwtypes.h"
+#include <stddef.h>
 #include <float.h>
 #include <math.h>
 #ifndef flightRegulatorCFB_COMMON_INCLUDES_
@@ -102,9 +102,8 @@ typedef enum {
   flightControlModeModeType_None = 0,  /* Default value */
   flightControlModeModeType_flightTurning,
   flightControlModeModeType_flightLine,
-  flightControlModeModeType_finishLine,
   flightControlModeModeType_flightBox,
-  flightControlModeModeType_flightSnake
+  flightControlModeModeType_finishLine
 } flightControlModeModeType;
 
 #endif
@@ -123,90 +122,90 @@ typedef enum {
 /* Block signals and states (default storage) for system '<Root>' */
 typedef struct {
   real_T Gain1[8];                     /* '<S2>/Gain1' */
-  real_T TmpSignalConversionAtSFunctionI[3];/* '<S9>/parameter&#x421;alculation' */
-  real_T TmpSignalConversionAtSFunctio_m[3];/* '<S9>/parameter&#x421;alculation' */
-  real_T boxPoints[8];                 /* '<S9>/parameter&#x421;alculation' */
+  real_T TmpSignalConversionAtSFunctionI[3];/* '<S9>/parameterСalculation' */
+  real_T TmpSignalConversionAtSFunctio_m[3];/* '<S9>/parameterСalculation' */
+  real_T boxPoints[8];                 /* '<S9>/parameterСalculation' */
   real_T DataTypeConversion;           /* '<S10>/Data Type Conversion' */
   real_T outAngle;                     /* '<S11>/holdingAngle' */
-  real_T outOrder;                     /* '<S11>/holdingAngle' */
   real_T directionOfRotation;          /* '<S11>/angleRegulator' */
+  real_T diffAngle;                    /* '<S11>/angleRegulator' */
   real_T orderAngle;                   /* '<S11>/angleRegulator' */
   real_T outSetAngle;                  /* '<S11>/angleRegulator' */
   real_T decisionSide;                 /* '<S11>/angleRegulator' */
   real_T timeTurn;                     /* '<S11>/angleRegulator' */
-  real_T outDistanceB;                 /* '<S9>/parameter&#x421;alculation' */
-  real_T azimut;                       /* '<S9>/parameter&#x421;alculation' */
-  real_T outDistanceAB;                /* '<S9>/parameter&#x421;alculation' */
-  real_T outAngle_h;                   /* '<S9>/parameter&#x421;alculation' */
-  real_T isOffFlightTurning;           /* '<S9>/parameter&#x421;alculation' */
-  real_T azimutB;                      /* '<S9>/parameter&#x421;alculation' */
-  real_T phi1;                         /* '<S9>/parameter&#x421;alculation' */
-  real_T phi2;                         /* '<S9>/parameter&#x421;alculation' */
-  real_T la1;                          /* '<S9>/parameter&#x421;alculation' */
-  real_T la2;                          /* '<S9>/parameter&#x421;alculation' */
-  real_T outDistance2;                 /* '<S9>/parameter&#x421;alculation' */
+  real_T outDistanceB;                 /* '<S9>/parameterСalculation' */
+  real_T azimut;                       /* '<S9>/parameterСalculation' */
+  real_T outDistanceAB;                /* '<S9>/parameterСalculation' */
+  real_T outAngle_h;                   /* '<S9>/parameterСalculation' */
+  real_T isOffFlightTurning;           /* '<S9>/parameterСalculation' */
+  real_T azimutB;                      /* '<S9>/parameterСalculation' */
+  real_T phi1;                         /* '<S9>/parameterСalculation' */
+  real_T phi2;                         /* '<S9>/parameterСalculation' */
+  real_T la1;                          /* '<S9>/parameterСalculation' */
+  real_T la2;                          /* '<S9>/parameterСalculation' */
+  real_T outDistance2;                 /* '<S9>/parameterСalculation' */
   real_T memoryInAngle;                /* '<S11>/holdingAngle' */
   real_T angleCorridor;                /* '<S11>/holdingAngle' */
+  real_T timeWaitEngines;              /* '<S11>/angleRegulator' */
   real_T pTightenSling;                /* '<S11>/angleRegulator' */
   real_T pAngleVelocity;               /* '<S11>/angleRegulator' */
-  real_T laC;                          /* '<S9>/parameter&#x421;alculation' */
-  real_T phiC;                         /* '<S9>/parameter&#x421;alculation' */
-  real_T angleCorridor_d;              /* '<S9>/parameter&#x421;alculation' */
-  real_T last_phi2;                    /* '<S9>/parameter&#x421;alculation' */
-  real_T last_la2;                     /* '<S9>/parameter&#x421;alculation' */
-  real_T flatXC;                       /* '<S9>/parameter&#x421;alculation' */
-  real_T flatYC;                       /* '<S9>/parameter&#x421;alculation' */
-  real_T flatX2;                       /* '<S9>/parameter&#x421;alculation' */
-  real_T flatY2;                       /* '<S9>/parameter&#x421;alculation' */
-  real_T flatX1;                       /* '<S9>/parameter&#x421;alculation' */
-  real_T flatY1;                       /* '<S9>/parameter&#x421;alculation' */
-  real_T changePoint;                  /* '<S9>/parameter&#x421;alculation' */
-  real_T laB;                          /* '<S9>/parameter&#x421;alculation' */
-  real_T phiB;                         /* '<S9>/parameter&#x421;alculation' */
-  real_T distanceStartBox;             /* '<S9>/parameter&#x421;alculation' */
-  real_T minimumDistance;              /* '<S9>/parameter&#x421;alculation' */
-  real_T pTimeOrderAngle;              /* '<S9>/parameter&#x421;alculation' */
-  real_T tShoulderSnake;               /* '<S9>/parameter&#x421;alculation' */
-  real_T pAngleSnake;                  /* '<S9>/parameter&#x421;alculation' */
-  real_T pAngleVelocity_d;             /* '<S9>/parameter&#x421;alculation' */
-  real_T periodicOrder;                /* '<S9>/parameter&#x421;alculation' */
-  real_T highTurnVelocity;             /* '<S9>/parameter&#x421;alculation' */
-  real_T nearPoint;                    /* '<S9>/parameter&#x421;alculation' */
-  int32_T sfEvent;                     /* '<S9>/parameter&#x421;alculation' */
+  real_T laC;                          /* '<S9>/parameterСalculation' */
+  real_T phiC;                         /* '<S9>/parameterСalculation' */
+  real_T angleCorridor_d;              /* '<S9>/parameterСalculation' */
+  real_T last_phi2;                    /* '<S9>/parameterСalculation' */
+  real_T last_la2;                     /* '<S9>/parameterСalculation' */
+  real_T flatXC;                       /* '<S9>/parameterСalculation' */
+  real_T flatYC;                       /* '<S9>/parameterСalculation' */
+  real_T flatX2;                       /* '<S9>/parameterСalculation' */
+  real_T flatY2;                       /* '<S9>/parameterСalculation' */
+  real_T flatX1;                       /* '<S9>/parameterСalculation' */
+  real_T flatY1;                       /* '<S9>/parameterСalculation' */
+  real_T changePoint;                  /* '<S9>/parameterСalculation' */
+  real_T laB;                          /* '<S9>/parameterСalculation' */
+  real_T phiB;                         /* '<S9>/parameterСalculation' */
+  real_T minimumDistance;              /* '<S9>/parameterСalculation' */
+  real_T pTimeOrderAngle;              /* '<S9>/parameterСalculation' */
+  real_T tShoulderSnake;               /* '<S9>/parameterСalculation' */
+  real_T pAngleSnake;                  /* '<S9>/parameterСalculation' */
+  real_T pAngleVelocity_c;             /* '<S9>/parameterСalculation' */
+  real_T periodicOrder;                /* '<S9>/parameterСalculation' */
+  real_T highTurnVelocity;             /* '<S9>/parameterСalculation' */
+  real_T nearPoint;                    /* '<S9>/parameterСalculation' */
+  int32_T sfEvent;                     /* '<S9>/parameterСalculation' */
   uint32_T temporalCounter_i1;         /* '<S11>/angleRegulator' */
-  uint32_T temporalCounter_i1_f;       /* '<S9>/parameter&#x421;alculation' */
-  uint32_T temporalCounter_i2;         /* '<S9>/parameter&#x421;alculation' */
-  uint32_T temporalCounter_i3;         /* '<S9>/parameter&#x421;alculation' */
-  pointsModeType pointsMode;           /* '<S9>/parameter&#x421;alculation' */
-  criteriaDefinition1ModeType criteriaDefinition1Mode;/* '<S9>/parameter&#x421;alculation' */
-  flightSnakeModeType flightSnakeMode; /* '<S9>/parameter&#x421;alculation' */
-  flightControlModeModeType flightControlModeMode;/* '<S9>/parameter&#x421;alculation' */
+  uint32_T temporalCounter_i1_f;       /* '<S9>/parameterСalculation' */
+  uint32_T temporalCounter_i2;         /* '<S9>/parameterСalculation' */
+  uint32_T temporalCounter_i3;         /* '<S9>/parameterСalculation' */
+  pointsModeType pointsMode;           /* '<S9>/parameterСalculation' */
+  criteriaDefinition1ModeType criteriaDefinition1Mode;/* '<S9>/parameterСalculation' */
+  flightSnakeModeType flightSnakeMode; /* '<S9>/parameterСalculation' */
+  flightControlModeModeType flightControlModeMode;/* '<S9>/parameterСalculation' */
   TurnModeType TurnMode;               /* '<S11>/angleRegulator' */
   uint8_T is_active_c6_flightRegulatorCFB;/* '<S11>/holdingAngle' */
   uint8_T is_c6_flightRegulatorCFB;    /* '<S11>/holdingAngle' */
   uint8_T is_active_c5_flightRegulatorCFB;/* '<S11>/angleRegulator' */
   uint8_T is_resetOrder;               /* '<S11>/angleRegulator' */
-  uint8_T is_active_c1_flightRegulatorCFB;/* '<S9>/parameter&#x421;alculation' */
-  uint8_T is_calculateDistance1;       /* '<S9>/parameter&#x421;alculation' */
-  uint8_T is_active_calculateDistance1;/* '<S9>/parameter&#x421;alculation' */
-  uint8_T is_updateAngle;              /* '<S9>/parameter&#x421;alculation' */
-  uint8_T is_active_updateAngle;       /* '<S9>/parameter&#x421;alculation' */
-  uint8_T is_changePoint1;             /* '<S9>/parameter&#x421;alculation' */
-  uint8_T is_active_changePoint1;      /* '<S9>/parameter&#x421;alculation' */
-  uint8_T is_updatePlan;               /* '<S9>/parameter&#x421;alculation' */
-  uint8_T is_active_updatePlan;        /* '<S9>/parameter&#x421;alculation' */
-  uint8_T is_active_criteriaDefinition1;/* '<S9>/parameter&#x421;alculation' */
-  uint8_T is_counterOrderAngle;        /* '<S9>/parameter&#x421;alculation' */
-  uint8_T is_active_counterOrderAngle; /* '<S9>/parameter&#x421;alculation' */
-  uint8_T is_azimutInCorridor;         /* '<S9>/parameter&#x421;alculation' */
-  uint8_T is_active_azimutInCorridor;  /* '<S9>/parameter&#x421;alculation' */
-  uint8_T is_active_flightExecuteMode; /* '<S9>/parameter&#x421;alculation' */
-  uint8_T is_active_points;            /* '<S9>/parameter&#x421;alculation' */
-  uint8_T is_active_outControl;        /* '<S9>/parameter&#x421;alculation' */
-  uint8_T is_active_flightControlMode; /* '<S9>/parameter&#x421;alculation' */
-  uint8_T is_mathBox;                  /* '<S9>/parameter&#x421;alculation' */
-  uint8_T is_active_mathBox;           /* '<S9>/parameter&#x421;alculation' */
-  uint8_T temporalCounter_i4;          /* '<S9>/parameter&#x421;alculation' */
+  uint8_T is_active_c1_flightRegulatorCFB;/* '<S9>/parameterСalculation' */
+  uint8_T is_updateAngle;              /* '<S9>/parameterСalculation' */
+  uint8_T is_active_updateAngle;       /* '<S9>/parameterСalculation' */
+  uint8_T is_calculateDistance1;       /* '<S9>/parameterСalculation' */
+  uint8_T is_active_calculateDistance1;/* '<S9>/parameterСalculation' */
+  uint8_T is_changePoint1;             /* '<S9>/parameterСalculation' */
+  uint8_T is_active_changePoint1;      /* '<S9>/parameterСalculation' */
+  uint8_T is_updatePlan;               /* '<S9>/parameterСalculation' */
+  uint8_T is_active_updatePlan;        /* '<S9>/parameterСalculation' */
+  uint8_T is_active_criteriaDefinition1;/* '<S9>/parameterСalculation' */
+  uint8_T is_counterOrderAngle;        /* '<S9>/parameterСalculation' */
+  uint8_T is_active_counterOrderAngle; /* '<S9>/parameterСalculation' */
+  uint8_T is_azimutInCorridor;         /* '<S9>/parameterСalculation' */
+  uint8_T is_active_azimutInCorridor;  /* '<S9>/parameterСalculation' */
+  uint8_T is_active_flightExecuteMode; /* '<S9>/parameterСalculation' */
+  uint8_T is_active_points;            /* '<S9>/parameterСalculation' */
+  uint8_T is_active_outControl;        /* '<S9>/parameterСalculation' */
+  uint8_T is_active_flightControlMode; /* '<S9>/parameterСalculation' */
+  uint8_T is_mathBox;                  /* '<S9>/parameterСalculation' */
+  uint8_T is_active_mathBox;           /* '<S9>/parameterСalculation' */
+  uint8_T temporalCounter_i4;          /* '<S9>/parameterСalculation' */
 } DW;
 
 /* External inputs (root inport signals with default storage) */
@@ -293,7 +292,6 @@ extern RT_MODEL *const rtM;
  * Block '<S18>/Gain' : Unused code path elimination
  * Block '<S19>/Gain' : Unused code path elimination
  * Block '<S20>/Gain' : Unused code path elimination
- * Block '<S9>/Scope1' : Unused code path elimination
  * Block '<S9>/Scope2' : Unused code path elimination
  * Block '<S9>/Scope3' : Unused code path elimination
  * Block '<S9>/Scope4' : Unused code path elimination
@@ -331,23 +329,18 @@ extern RT_MODEL *const rtM;
  * Block '<S1>/number' : Unused code path elimination
  * Block '<S1>/number1' : Unused code path elimination
  * Block '<S1>/number2' : Unused code path elimination
- * Block '<S11>/Constant1' : Unused code path elimination
+ * Block '<S1>/number3' : Unused code path elimination
+ * Block '<S1>/number4' : Unused code path elimination
  * Block '<S41>/Gain' : Unused code path elimination
  * Block '<S42>/Gain' : Unused code path elimination
  * Block '<S43>/Gain' : Unused code path elimination
  * Block '<S44>/Gain' : Unused code path elimination
  * Block '<S45>/Gain' : Unused code path elimination
- * Block '<S46>/Gain' : Unused code path elimination
- * Block '<S47>/Gain' : Unused code path elimination
  * Block '<S11>/Scope' : Unused code path elimination
  * Block '<S11>/Scope1' : Unused code path elimination
  * Block '<S11>/Scope2' : Unused code path elimination
  * Block '<S11>/Scope3' : Unused code path elimination
  * Block '<S11>/Scope4' : Unused code path elimination
- * Block '<S1>/Data Type Conversion10' : Eliminate redundant data type conversion
- * Block '<S1>/Data Type Conversion3' : Eliminate redundant data type conversion
- * Block '<S1>/Data Type Conversion6' : Eliminate redundant data type conversion
- * Block '<S1>/Data Type Conversion7' : Eliminate redundant data type conversion
  * Block '<S22>/minus2' : Eliminated nontunable gain of 1
  * Block '<S22>/minus3' : Eliminated nontunable gain of 1
  * Block '<S22>/plus' : Eliminated nontunable gain of 1
@@ -392,7 +385,7 @@ extern RT_MODEL *const rtM;
  * '<S18>'  : 'maketKinematic27/flightRegulatorCFB/Subsystem/Radians to Degrees5'
  * '<S19>'  : 'maketKinematic27/flightRegulatorCFB/Subsystem/Radians to Degrees6'
  * '<S20>'  : 'maketKinematic27/flightRegulatorCFB/Subsystem/Radians to Degrees7'
- * '<S21>'  : 'maketKinematic27/flightRegulatorCFB/Subsystem/parameter&#x421;alculation'
+ * '<S21>'  : 'maketKinematic27/flightRegulatorCFB/Subsystem/parameterСalculation'
  * '<S22>'  : 'maketKinematic27/flightRegulatorCFB/Subsystem1/BoxPoints'
  * '<S23>'  : 'maketKinematic27/flightRegulatorCFB/Subsystem1/Compare To Constant'
  * '<S24>'  : 'maketKinematic27/flightRegulatorCFB/Subsystem1/Compare To Zero'
@@ -413,15 +406,14 @@ extern RT_MODEL *const rtM;
  * '<S39>'  : 'maketKinematic27/flightRegulatorCFB/Subsystem1/BoxPoints/rightTopCalc'
  * '<S40>'  : 'maketKinematic27/flightRegulatorCFB/regulator/Radians to Degrees'
  * '<S41>'  : 'maketKinematic27/flightRegulatorCFB/regulator/Radians to Degrees1'
- * '<S42>'  : 'maketKinematic27/flightRegulatorCFB/regulator/Radians to Degrees2'
- * '<S43>'  : 'maketKinematic27/flightRegulatorCFB/regulator/Radians to Degrees3'
- * '<S44>'  : 'maketKinematic27/flightRegulatorCFB/regulator/Radians to Degrees4'
- * '<S45>'  : 'maketKinematic27/flightRegulatorCFB/regulator/Radians to Degrees5'
- * '<S46>'  : 'maketKinematic27/flightRegulatorCFB/regulator/Radians to Degrees6'
- * '<S47>'  : 'maketKinematic27/flightRegulatorCFB/regulator/Radians to Degrees7'
- * '<S48>'  : 'maketKinematic27/flightRegulatorCFB/regulator/angleRegulator'
- * '<S49>'  : 'maketKinematic27/flightRegulatorCFB/regulator/holdingAngle'
- * '<S50>'  : 'maketKinematic27/flightRegulatorCFB/touchDown/Compare To Constant2'
+ * '<S42>'  : 'maketKinematic27/flightRegulatorCFB/regulator/Radians to Degrees3'
+ * '<S43>'  : 'maketKinematic27/flightRegulatorCFB/regulator/Radians to Degrees4'
+ * '<S44>'  : 'maketKinematic27/flightRegulatorCFB/regulator/Radians to Degrees5'
+ * '<S45>'  : 'maketKinematic27/flightRegulatorCFB/regulator/Radians to Degrees6'
+ * '<S46>'  : 'maketKinematic27/flightRegulatorCFB/regulator/Radians to Degrees7'
+ * '<S47>'  : 'maketKinematic27/flightRegulatorCFB/regulator/angleRegulator'
+ * '<S48>'  : 'maketKinematic27/flightRegulatorCFB/regulator/holdingAngle'
+ * '<S49>'  : 'maketKinematic27/flightRegulatorCFB/touchDown/Compare To Constant2'
  */
 #endif                                 /* RTW_HEADER_flightRegulatorCFB_h_ */
 
