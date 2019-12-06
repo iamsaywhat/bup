@@ -30,7 +30,7 @@
 /*************************************************
    Версия ПО БУП
 **************************************************/
-#define BupFirmwareVersion  1.28
+#define BupFirmwareVersion  1.29
 
 
 //	double temp = 0;
@@ -73,9 +73,47 @@ int main(void)
 	// Запускаем фул-тест системы
 	SelfTestingFull();
   
+	
+	
+//	BIM_Supply_ON();
+//	SelfTestingOnline ();
 //	while(1)
 //	{
 //		BUP_DataUpdate ();
+//		delay_us(1000000);
+//		
+//		M_Model_Cmd2BIM(-50.0);
+//		delay_us(1000000);
+//		M_Model_Cmd2BIM(-50.0);
+//		delay_us(1000000);
+//		M_Model_Cmd2BIM(-50.0);
+//		delay_us(1000000);
+//		M_Model_Cmd2BIM(-50.0);
+//		delay_us(1000000);
+//		M_Model_Cmd2BIM(-50.0);
+//		delay_us(1000000);
+//		M_Model_Cmd2BIM(-50.0);
+//		delay_us(1000000);
+//		M_Model_Cmd2BIM(-50.0);
+//		delay_us(1000000);
+
+//		M_Model_Cmd2BIM(50.0);
+//		delay_us(1000000);
+//		M_Model_Cmd2BIM(50.0);
+//		delay_us(1000000);
+//		M_Model_Cmd2BIM(50.0);
+//		delay_us(1000000);
+//		M_Model_Cmd2BIM(50.0);
+//		delay_us(1000000);
+//		M_Model_Cmd2BIM(50.0);
+//		delay_us(1000000);
+//		M_Model_Cmd2BIM(50.0);
+//		delay_us(1000000);
+//		M_Model_Cmd2BIM(50.0);
+//		delay_us(1000000);
+//		
+//		
+//		
 //	}
 
 	

@@ -109,16 +109,19 @@ void M_Model_PrepareData (void)
 //  rtU.RightEnginehadWork = 1.0;  
 
 	#else //*************************************************************************** Если выбран Easy_reg
-		rtU.TDP_lon         = BUP_Get_TouchdownLongitude();
-		rtU.TDP_lat         = BUP_Get_TouchdownLatitude();
-		rtU.TDP_alt         = BUP_Get_TouchdownAltitude();
-		rtU.Pos_lon         = BUP_Get_Longitude();
-		rtU.Pos_lat         = BUP_Get_Latitude();
-		rtU.Pos_alt         = BUP_Get_Altitude();
-		rtU.ActualCourse    = BUP_Get_Course();
-		rtU.Relief          = BUP_Get_ReliefHeight();
-		rtU.ReliefOnTDP     = BUP_Get_ReliefHeightOnTDP();
-		rtU.ReliefAvailable = SelfTesting_STATUS(ST_MapAvailability);
+		rtU.TDP_lon            = BUP_Get_TouchdownLongitude();
+		rtU.TDP_lat            = BUP_Get_TouchdownLatitude();
+		rtU.TDP_alt            = BUP_Get_TouchdownAltitude();
+		rtU.Pos_lon            = BUP_Get_Longitude();
+		rtU.Pos_lat            = BUP_Get_Latitude();
+		rtU.Pos_alt            = BUP_Get_Altitude();
+		rtU.ActualCourse       = BUP_Get_Course();
+		rtU.Relief             = BUP_Get_ReliefHeight();
+		rtU.ReliefOnTDP        = BUP_Get_ReliefHeightOnTDP();
+		rtU.ReliefAvailable    = SelfTesting_STATUS(ST_MapAvailability);
+		rtU.LatitudeVelocity   = BUP_Get_VelocityLatitude();
+		rtU.LongitudeVelocity  = BUP_Get_VelocityLongitude();
+		rtU.AltitudeVelocity   = BUP_Get_VelocityAltitude();
 	#endif //************************************************************************** !flightRegulatorCFB 
 
 	// Данные были обновлены, сообщаем об этом Мат. модели
@@ -200,15 +203,28 @@ void M_Model_Cmd2BIM (double Side)
 		// Делаем SIDE положительным и приводим к uint8_t
 		SIDE = (uint8_t)((-1)*SIDE);
 		
-		// Устанавливать новое положение, будем только если оно отличается от старого (защита от щелчков)
-		if(BIM_GetStrapPosition (LEFT_BIM) != SIDE)
-		{ 
-			BIM_SendRequest (LEFT_BIM, BIM_CMD_ON, SIDE, 7, 255, 255);
-		}
-		// Устанавливать новое положение, будем только если оно отличается от старого (защита от щелчков)
+		/* Этот каскад условий необходим, чтобы: 
+		1) Запретить одновременную работу двигателей, принудительным переходом через ноль
+		   (если было: левый 50%, а сейчас пришла команда правый 50%, то сначала левый переводится в ноль,
+		   а только потом, правый переводится в 50%);
+		2) Контролировать текущее (реальное) положение двигателей, чтобы избавиться от шелчков, возникающих
+		   при попытке перевести двигатель в положение в котором он уже находится;		
+		*/
+		
+		// Требуется затянуть левый БИМ, правый при этом должен быть в положении 0 
 		if (BIM_GetStrapPosition (RIGHT_BIM) != 0)
 		{
+            // Правый не в нуле, поэтому пока только переведём его в ноль
 			BIM_SendRequest (RIGHT_BIM, BIM_CMD_ON, 0, 9, 255, 255);
+		}
+		// Правый действительно находится в нуле, можно отдать команду на затяжку левому
+		else
+		{
+			if(BIM_GetStrapPosition (LEFT_BIM) != SIDE)
+			{
+			   // Устанавливать новое положение, будем только если оно отличается от старого (защита от щелчков)
+			   BIM_SendRequest (LEFT_BIM, BIM_CMD_ON, SIDE, 7, 255, 255);
+			}
 		}
 	}
 	// Это значит, что нужно ослабить оба БИМА
@@ -223,21 +239,34 @@ void M_Model_Cmd2BIM (double Side)
 			BIM_SendRequest (RIGHT_BIM, BIM_CMD_ON, 0, 9, 255, 255);
 		}
 	}
-	// Положительное значание означает, что нужно затянуть правый БИМ в положение SIDE, и отпустить левый
+	// Положительное значение означает, что нужно затянуть правый БИМ в положение SIDE, и отпустить левый
 	else if(SIDE > 0)
 	{
 		// SIDE приводим к uint8_t
 		SIDE = (uint8_t)(SIDE);
 		
-		// Устанавливать новое положение, будем только если оно отличается от старого (защита от щелчков)
-		if(BIM_GetStrapPosition (RIGHT_BIM) != SIDE)
-		{ 
-			BIM_SendRequest (RIGHT_BIM, BIM_CMD_ON, SIDE, 9, 255, 255);
-		}
-		// Устанавливать новое положение, будем только если оно отличается от старого (защита от щелчков)
+		/* Этот каскад условий необходим, чтобы: 
+		1) Запретить одновременную работу двигателей, принудительным переходом через ноль
+		   (если было: левый 50%, а сейчас пришла команда правый 50%, то сначала левый переводится в ноль,
+		   а только потом, правый переводится в 50%);
+		2) Контролировать текущее (реальное) положение двигателей, чтобы избавиться от шелчков, возникающих
+		   при попытке перевести двигатель в положение в котором он уже находится;		
+		*/
+		
+		// Требуется затянуть правый БИМ, левый при этом должен быть в положении 0 
 		if(BIM_GetStrapPosition (LEFT_BIM) != 0)
 		{
+            // Левый не в нуле, поэтому пока только переведём его в ноль
 			BIM_SendRequest (LEFT_BIM, BIM_CMD_ON, 0, 7, 255, 255);
+		}
+		// Левый действительно находится в нуле, можно отдать команду на затяжку правому
+		else
+		{
+		   if(BIM_GetStrapPosition (RIGHT_BIM) != SIDE)
+		   {
+			    // Устанавливать новое положение, будем только если оно отличается от старого (защита от щелчков)
+			    BIM_SendRequest (RIGHT_BIM, BIM_CMD_ON, SIDE, 9, 255, 255);
+		   }
 		}
 	}
 	// БИМы не сразу обновляют своё состояние по CAN, поэтому заставляем их 5 раз сообщить своё состояние

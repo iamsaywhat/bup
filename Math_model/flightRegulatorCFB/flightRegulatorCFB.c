@@ -3,9 +3,9 @@
  *
  * Code generated for Simulink model 'flightRegulatorCFB'.
  *
- * Model version                  : 1.2308
+ * Model version                  : 1.2565
  * Simulink Coder version         : 9.0 (R2018b) 24-May-2018
- * C/C++ source code generated on : Tue Nov 26 18:51:44 2019
+ * C/C++ source code generated on : Fri Nov 29 17:24:23 2019
  *
  * Target selection: ert.tlc
  * Embedded hardware selection: ARM Compatible->ARM Cortex
@@ -17,8 +17,14 @@
 
 #include "flightRegulatorCFB.h"
 
-/* Named constants for Chart: '<S9>/parameterСalculation' */
-#define CALL_EVENT_g                   (-1)
+/* Named constants for Chart: '<S25>/calcRelationalParameters.CalcParam_tD' */
+#define IN_Calculation                 ((uint8_T)1U)
+#define IN_NO_ACTIVE_CHILD             ((uint8_T)0U)
+#define IN_beforeCalculation0          ((uint8_T)2U)
+#define IN_stateWait                   ((uint8_T)3U)
+
+/* Named constants for Chart: '<S9>/paramСalculation' */
+#define CALL_EVENT_m                   (-1)
 #define IN_angleUpdate                 ((uint8_T)1U)
 #define IN_inCorridor                  ((uint8_T)1U)
 #define IN_math                        ((uint8_T)1U)
@@ -105,16 +111,27 @@ ExtY rtY;
 /* Real-time model */
 RT_MODEL rtM_;
 RT_MODEL *const rtM = &rtM_;
+
+/* Exported functions */
+extern void CalcParam_tP_during(real_T tP0, real_T *tPdelta0,
+  DW_calcRelationalParametersCalc *localDW, real_T rtp_NumberOfDiscret, real_T
+  rtp_discretsBeforeTheStart);
+extern void CalcParam_tP_enter(DW_calcRelationalParametersCalc *localDW);
+extern void CalcParam_tP_init(DW_calcRelationalParametersCalc *localDW);
+extern void CalcPara_increment_call_counter(DW_calcRelationalParametersCalc
+  *localDW);
 extern real_T rt_atan2d_snf(real_T u0, real_T u1);
 extern real_T rt_remd_snf(real_T u0, real_T u1);
 static void distanceBetween2Points1(const real_T rtu_latLon1[2], real_T
   rtu_latLon2, real_T rtu_latLon2_m, real_T *rty_dist);
 
 /* Forward declaration for local functions */
-static void distanceAndAngleBetween2Points(real_T lat1, real_T lon1, real_T lat2,
-  real_T lon2, real_T *dist, real_T *azi);
 static real_T cutAngle(real_T u);
+static void calculateDistance1(void);
 static void broadcast_flightLine(void);
+static void enter_atomic_flightLine(void);
+static void calcDesicionLowering(real_T kD, real_T heightAboveGround, boolean_T *
+  lowering, real_T *kDexit);
 static void flightBox(void);
 static void flightExecuteMode(void);
 static void enter_atomic_math1(void);
@@ -363,6 +380,65 @@ real32_T rtGetMinusInfF(void)
   return minfF.wordL.wordLreal;
 }
 
+/* Function for Chart: '<S25>/calcRelationalParameters.CalcParam_tD' */
+void CalcParam_tP_during(real_T tP0, real_T *tPdelta0,
+  DW_calcRelationalParametersCalc *localDW, real_T rtp_NumberOfDiscret, real_T
+  rtp_discretsBeforeTheStart)
+{
+  switch (localDW->is_c10_libraryFCB) {
+   case IN_Calculation:
+    localDW->tPprev0 = tP0;
+    localDW->is_c10_libraryFCB = IN_stateWait;
+    localDW->temporalCounter_i1 = 0U;
+    break;
+
+   case IN_beforeCalculation0:
+    if (localDW->temporalCounter_i1 >= (uint32_T)rtp_discretsBeforeTheStart) {
+      localDW->is_c10_libraryFCB = IN_Calculation;
+      *tPdelta0 = (tP0 - localDW->tPprev0) / rtp_NumberOfDiscret;
+    } else {
+      localDW->tPprev0 = tP0;
+    }
+    break;
+
+   default:
+    if (localDW->temporalCounter_i1 >= (uint32_T)rtp_NumberOfDiscret) {
+      localDW->is_c10_libraryFCB = IN_Calculation;
+      *tPdelta0 = (tP0 - localDW->tPprev0) / rtp_NumberOfDiscret;
+    }
+    break;
+  }
+}
+
+/* Function for Chart: '<S25>/calcRelationalParameters.CalcParam_tD' */
+void CalcParam_tP_enter(DW_calcRelationalParametersCalc *localDW)
+{
+  localDW->tPprev0 = 0.0;
+
+  /* Chart: '<S25>/calcRelationalParameters.CalcParam_tD' */
+  localDW->is_c10_libraryFCB = IN_beforeCalculation0;
+  localDW->temporalCounter_i1 = 0U;
+}
+
+/* Function for Chart: '<S25>/calcRelationalParameters.CalcParam_tD' */
+void CalcParam_tP_init(DW_calcRelationalParametersCalc *localDW)
+{
+  localDW->temporalCounter_i1 = 0U;
+  localDW->is_c10_libraryFCB = IN_NO_ACTIVE_CHILD;
+  localDW->tPprev0 = 0.0;
+}
+
+/* Function for Chart: '<S25>/calcRelationalParameters.CalcParam_tD' */
+void CalcPara_increment_call_counter(DW_calcRelationalParametersCalc *localDW)
+{
+  /* Chart: '<S25>/calcRelationalParameters.CalcParam_tD' */
+  if (localDW->temporalCounter_i1 < MAX_uint32_T) {
+    localDW->temporalCounter_i1++;
+  }
+
+  /* End of Chart: '<S25>/calcRelationalParameters.CalcParam_tD' */
+}
+
 /*
  * Output and update for atomic system:
  *    '<S10>/distanceBetween2Points1'
@@ -373,7 +449,7 @@ real32_T rtGetMinusInfF(void)
 static void distanceBetween2Points1(const real_T rtu_latLon1[2], real_T
   rtu_latLon2, real_T rtu_latLon2_m, real_T *rty_dist)
 {
-  /* SignalConversion: '<S32>/TmpSignal ConversionAt SFunction Inport2' */
+  /* SignalConversion: '<S38>/TmpSignal ConversionAt SFunction Inport2' */
   *rty_dist = acos(cos(rtu_latLon1[0]) * cos(rtu_latLon2) * cos(rtu_latLon2_m -
     rtu_latLon1[1]) + sin(rtu_latLon1[0]) * sin(rtu_latLon2)) * 180.0 /
     3.1415926535897931 * 40000.0 / 360.0 * 1000.0;
@@ -435,32 +511,7 @@ real_T rt_remd_snf(real_T u0, real_T u1)
   return y;
 }
 
-/* Function for Chart: '<S9>/parameterСalculation' */
-static void distanceAndAngleBetween2Points(real_T lat1, real_T lon1, real_T lat2,
-  real_T lon2, real_T *dist, real_T *azi)
-{
-  real_T dist_tmp;
-  real_T dist_tmp_0;
-  real_T dist_tmp_1;
-  real_T dist_tmp_2;
-  real_T dist_tmp_3;
-  real_T dist_tmp_4;
-  dist_tmp = lon2 - lon1;
-  dist_tmp_0 = cos(lat1);
-  dist_tmp_1 = sin(lat2);
-  dist_tmp_2 = sin(lat1);
-  dist_tmp_3 = cos(lat2);
-  dist_tmp_4 = cos(dist_tmp);
-  *dist = acos(dist_tmp_0 * dist_tmp_3 * dist_tmp_4 + dist_tmp_2 * dist_tmp_1) *
-    180.0 / 3.1415926535897931 * 40000.0 / 360.0 * 1000.0;
-  *azi = rt_remd_snf(rt_atan2d_snf(sin(dist_tmp) * dist_tmp_0, dist_tmp_0 *
-    dist_tmp_1 - dist_tmp_2 * dist_tmp_3 * dist_tmp_4), 6.2831853071795862);
-  if (*azi < 0.0) {
-    *azi = 6.2831853071795862 - fabs(*azi);
-  }
-}
-
-/* Function for Chart: '<S9>/parameterСalculation' */
+/* Function for Chart: '<S9>/paramСalculation' */
 static real_T cutAngle(real_T u)
 {
   real_T angle;
@@ -472,19 +523,129 @@ static real_T cutAngle(real_T u)
   return angle;
 }
 
-/* Function for Chart: '<S9>/parameterСalculation' */
+/* Function for Chart: '<S9>/paramСalculation' */
+static void calculateDistance1(void)
+{
+  real_T angle0;
+  real_T angle0_tmp;
+  real_T angle0_tmp_0;
+  real_T angle0_tmp_1;
+  real_T angle0_tmp_2;
+  real_T angle0_tmp_3;
+  if (rtDW.is_calculateDistance1 == IN_math) {
+    rtDW.phiC = rtDW.TmpSignalConversionAtSFunctionI[0];
+    rtDW.laC = rtDW.TmpSignalConversionAtSFunctionI[1];
+    rtDW.hC = fabs(rtDW.TmpSignalConversionAtSFunctionI[2]);
+    rtDW.phiB = rtDW.TmpSignalConversionAtSFunctio_i[0];
+    rtDW.laB = rtDW.TmpSignalConversionAtSFunctio_i[1];
+    angle0_tmp = cos(rtDW.phiC);
+    angle0 = rtDW.laB - rtDW.laC;
+    angle0_tmp_0 = cos(rtDW.phiB);
+    angle0_tmp_1 = cos(angle0);
+    angle0_tmp_2 = sin(rtDW.phiC);
+    angle0_tmp_3 = sin(rtDW.phiB);
+    angle0 = rt_remd_snf(rt_atan2d_snf(sin(angle0) * angle0_tmp, angle0_tmp *
+      angle0_tmp_3 - angle0_tmp_2 * angle0_tmp_0 * angle0_tmp_1),
+                         6.2831853071795862);
+    rtDW.outDistanceB = acos(angle0_tmp * angle0_tmp_0 * angle0_tmp_1 +
+      angle0_tmp_2 * angle0_tmp_3) * 180.0 / 3.1415926535897931 * 40000.0 /
+      360.0 * 1000.0;
+    if (angle0 < 0.0) {
+      rtDW.azimutB = 6.2831853071795862 - fabs(angle0);
+    } else {
+      rtDW.azimutB = angle0;
+    }
+
+    /* Inport: '<Root>/angle' */
+    angle0 = cutAngle(rtU.angle - rtDW.outAngle_j);
+    if (fabs(angle0) > 3.1415926535897931) {
+      angle0 = 6.2831853071795862 - angle0;
+    }
+
+    angle0 = trunc(fabs(angle0) * 180.0 / 3.1415926535897931 /
+                   rtDW.pAngleVelocity_f);
+
+    /* Outport: '<Root>/tx' */
+    rtY.tx = fabs(rtDW.outDistanceB / rtDW.velocityHorizontal) + angle0;
+
+    /* Outport: '<Root>/tz' incorporates:
+     *  Inport: '<Root>/highStopUPS'
+     */
+    rtY.tz = fabs(((rtDW.hC - rtU.highStopUPS) - (fabs(rtDW.velocityVertical) +
+      rtDW.highTurnVelocity) * angle0) / 8.0) + angle0;
+
+    /* Outport: '<Root>/tD' incorporates:
+     *  Outport: '<Root>/tx'
+     *  Outport: '<Root>/tz'
+     */
+    rtY.tD = rtY.tz / rtY.tx;
+    if (rtY.tD > 100.0) {
+      rtY.tD = 1.0;
+    }
+
+    /* End of Outport: '<Root>/tD' */
+  }
+}
+
+/* Function for Chart: '<S9>/paramСalculation' */
 static void broadcast_flightLine(void)
 {
   int32_T b_previousEvent;
   b_previousEvent = rtDW.sfEvent;
   rtDW.sfEvent = event_flightLine;
 
-  /* Chart: '<S9>/parameterСalculation' */
+  /* Chart: '<S9>/paramСalculation' */
   c1_flightRegulatorCFB();
   rtDW.sfEvent = b_previousEvent;
 }
 
-/* Function for Chart: '<S9>/parameterСalculation' */
+/* Function for Chart: '<S9>/paramСalculation' */
+static void enter_atomic_flightLine(void)
+{
+  broadcast_flightLine();
+}
+
+/* Function for Chart: '<S9>/paramСalculation' */
+static void calcDesicionLowering(real_T kD, real_T heightAboveGround, boolean_T *
+  lowering, real_T *kDexit)
+{
+  if ((kD >= 1.8) && (heightAboveGround >= 8000.0)) {
+    *lowering = true;
+    *kDexit = 1.6;
+  } else if ((kD >= 1.7) && (heightAboveGround >= 7000.0)) {
+    *lowering = true;
+    *kDexit = 1.5;
+  } else if ((kD >= 1.6) && (heightAboveGround >= 6000.0) && (heightAboveGround <
+              7000.0)) {
+    *lowering = true;
+    *kDexit = 1.4;
+  } else if ((kD >= 1.5) && (heightAboveGround >= 5000.0) && (heightAboveGround <
+              6000.0)) {
+    *lowering = true;
+    *kDexit = 1.3;
+  } else if ((kD >= 1.4) && (heightAboveGround >= 4000.0) && (heightAboveGround <
+              5000.0)) {
+    *lowering = true;
+    *kDexit = 1.2;
+  } else if ((kD >= 1.3) && (heightAboveGround >= 3000.0) && (heightAboveGround <
+              4000.0)) {
+    *lowering = true;
+    *kDexit = 1.1;
+  } else if ((kD >= 1.2) && (heightAboveGround >= 2000.0) && (heightAboveGround <
+              3000.0)) {
+    *lowering = true;
+    *kDexit = 1.1;
+  } else if ((kD >= 1.1) && (heightAboveGround >= 1000.0) && (heightAboveGround <
+              2000.0)) {
+    *lowering = true;
+    *kDexit = 1.08;
+  } else {
+    *lowering = false;
+    *kDexit = 0.0;
+  }
+}
+
+/* Function for Chart: '<S9>/paramСalculation' */
 static void flightBox(void)
 {
   if (rtDW.sfEvent == event_finishLine) {
@@ -525,7 +686,7 @@ static void flightBox(void)
         break;
 
        case pointsModeType_goToPoint1:
-        if ((rtDW.sfEvent == CALL_EVENT_g) && (rtDW.temporalCounter_i3 >= 1U)) {
+        if ((rtDW.sfEvent == CALL_EVENT_m) && (rtDW.temporalCounter_i3 >= 1U)) {
           /* Outport: '<Root>/updateAngle' */
           rtY.updateAngle = 1.0;
           rtDW.pointsMode = pointsModeType_pausePoint1;
@@ -542,7 +703,7 @@ static void flightBox(void)
         break;
 
        case pointsModeType_goToPoint2:
-        if ((rtDW.sfEvent == CALL_EVENT_g) && (rtDW.temporalCounter_i3 >= 1U)) {
+        if ((rtDW.sfEvent == CALL_EVENT_m) && (rtDW.temporalCounter_i3 >= 1U)) {
           /* Outport: '<Root>/updateAngle' */
           rtY.updateAngle = 1.0;
           rtDW.pointsMode = pointsModeType_pausePoint2;
@@ -559,7 +720,7 @@ static void flightBox(void)
         break;
 
        case pointsModeType_goToPoint3:
-        if ((rtDW.sfEvent == CALL_EVENT_g) && (rtDW.temporalCounter_i3 >= 1U)) {
+        if ((rtDW.sfEvent == CALL_EVENT_m) && (rtDW.temporalCounter_i3 >= 1U)) {
           /* Outport: '<Root>/updateAngle' */
           rtY.updateAngle = 1.0;
           rtDW.pointsMode = pointsModeType_pausePoint3;
@@ -576,7 +737,7 @@ static void flightBox(void)
         break;
 
        case pointsModeType_goToPoint4:
-        if ((rtDW.sfEvent == CALL_EVENT_g) && (rtDW.temporalCounter_i3 >= 1U)) {
+        if ((rtDW.sfEvent == CALL_EVENT_m) && (rtDW.temporalCounter_i3 >= 1U)) {
           /* Outport: '<Root>/updateAngle' */
           rtY.updateAngle = 1.0;
           rtDW.pointsMode = pointsModeType_pausePoint4;
@@ -595,12 +756,12 @@ static void flightBox(void)
     }
 
     if (rtDW.is_active_outControl != 0U) {
-      rtDW.outAngle_h = rtDW.azimut;
+      rtDW.outAngle_j = rtDW.azimut;
     }
   }
 }
 
-/* Function for Chart: '<S9>/parameterСalculation' */
+/* Function for Chart: '<S9>/paramСalculation' */
 static void flightExecuteMode(void)
 {
   boolean_T guard1 = false;
@@ -664,7 +825,7 @@ static void flightExecuteMode(void)
     break;
 
    case flightExecuteModeModeType_finishLine:
-    rtDW.outAngle_h = rtDW.azimutB;
+    rtDW.outAngle_j = rtDW.azimutB;
     rtDW.phi2 = rtDW.phiB;
     rtDW.la2 = rtDW.laB;
     rtY.updateAngle = 1.0;
@@ -700,7 +861,7 @@ static void flightExecuteMode(void)
    case flightExecuteModeModeType_flightSnake:
     if ((rtDW.sfEvent == event_flightBox) || (rtDW.sfEvent == event_flightLine) ||
         (rtDW.sfEvent == event_flightTurning)) {
-      rtDW.outAngle_h = rtDW.azimutB;
+      rtDW.outAngle_j = rtDW.azimutB;
       rtY.updateAngle = 1.0;
       if (rtDW.sfEvent == event_flightLine) {
         rtDW.flightSnakeMode = flightSnakeModeType_None;
@@ -733,13 +894,24 @@ static void flightExecuteMode(void)
   if (guard2) {
     switch (rtDW.flightSnakeMode) {
      case flightSnakeModeType_CalculateParameters:
-      rtDW.flightSnakeMode = flightSnakeModeType_leftShoulder;
-      rtDW.temporalCounter_i3 = 0U;
-      rtDW.outAngle_h = cutAngle(rtDW.azimutB - rtDW.pAngleSnake);
+      if (rtDW.leftRightSholder == 0.0) {
+        rtDW.flightSnakeMode = flightSnakeModeType_leftShoulder;
+        rtDW.temporalCounter_i3 = 0U;
+        rtDW.leftRightSholder = 1.0;
+        rtDW.outAngle_j = cutAngle(rtDW.azimutB - rtDW.pAngleSnake);
+      } else {
+        if (rtDW.leftRightSholder == 1.0) {
+          rtY.executeMode = flightExecuteModeModeType_flightSnake;
+          rtDW.flightSnakeMode = flightSnakeModeType_rightShoulder;
+          rtDW.temporalCounter_i3 = 0U;
+          rtDW.leftRightSholder = 0.0;
+          rtDW.outAngle_j = cutAngle(rtDW.azimutB + rtDW.pAngleSnake);
+        }
+      }
       break;
 
      case flightSnakeModeType_leftShoulder:
-      if ((rtDW.sfEvent == CALL_EVENT_g) && (rtDW.temporalCounter_i3 >=
+      if ((rtDW.sfEvent == CALL_EVENT_m) && (rtDW.temporalCounter_i3 >=
            (uint32_T)rtDW.tShoulderSnake)) {
         rtDW.flightSnakeMode = flightSnakeModeType_pauseOrder1;
         rtDW.temporalCounter_i3 = 0U;
@@ -748,15 +920,16 @@ static void flightExecuteMode(void)
       break;
 
      case flightSnakeModeType_pauseOrder1:
-      if ((rtDW.sfEvent == CALL_EVENT_g) && (rtDW.temporalCounter_i3 >= 2U)) {
+      if ((rtDW.sfEvent == CALL_EVENT_m) && (rtDW.temporalCounter_i3 >= 2U)) {
         rtDW.flightSnakeMode = flightSnakeModeType_rightShoulder;
         rtDW.temporalCounter_i3 = 0U;
-        rtDW.outAngle_h = cutAngle(rtDW.azimutB + rtDW.pAngleSnake);
+        rtDW.leftRightSholder = 0.0;
+        rtDW.outAngle_j = cutAngle(rtDW.azimutB + rtDW.pAngleSnake);
       }
       break;
 
      case flightSnakeModeType_rightShoulder:
-      if ((rtDW.sfEvent == CALL_EVENT_g) && (rtDW.temporalCounter_i3 >=
+      if ((rtDW.sfEvent == CALL_EVENT_m) && (rtDW.temporalCounter_i3 >=
            (uint32_T)rtDW.tShoulderSnake)) {
         rtDW.flightSnakeMode = flightSnakeModeType_pauseOrder;
         rtDW.temporalCounter_i3 = 0U;
@@ -765,10 +938,11 @@ static void flightExecuteMode(void)
       break;
 
      case flightSnakeModeType_pauseOrder:
-      if ((rtDW.sfEvent == CALL_EVENT_g) && (rtDW.temporalCounter_i3 >= 2U)) {
+      if ((rtDW.sfEvent == CALL_EVENT_m) && (rtDW.temporalCounter_i3 >= 2U)) {
         rtDW.flightSnakeMode = flightSnakeModeType_leftShoulder;
         rtDW.temporalCounter_i3 = 0U;
-        rtDW.outAngle_h = cutAngle(rtDW.azimutB - rtDW.pAngleSnake);
+        rtDW.leftRightSholder = 1.0;
+        rtDW.outAngle_j = cutAngle(rtDW.azimutB - rtDW.pAngleSnake);
       }
       break;
     }
@@ -778,7 +952,7 @@ static void flightExecuteMode(void)
     if (rtDW.sfEvent == event_finishLine) {
       rtY.executeMode = flightExecuteModeModeType_finishLine;
     } else {
-      rtDW.outAngle_h = rtDW.azimutB;
+      rtDW.outAngle_j = rtDW.azimutB;
       rtDW.phi2 = rtDW.phiB;
       rtDW.la2 = rtDW.laB;
     }
@@ -787,19 +961,19 @@ static void flightExecuteMode(void)
   /* End of Outport: '<Root>/executeMode' */
 }
 
-/* Function for Chart: '<S9>/parameterСalculation' */
+/* Function for Chart: '<S9>/paramСalculation' */
 static void enter_atomic_math1(void)
 {
   int32_T b_previousEvent;
   b_previousEvent = rtDW.sfEvent;
   rtDW.sfEvent = event_eventChangePoint;
 
-  /* Chart: '<S9>/parameterСalculation' */
+  /* Chart: '<S9>/paramСalculation' */
   c1_flightRegulatorCFB();
   rtDW.sfEvent = b_previousEvent;
 }
 
-/* Function for Chart: '<S9>/parameterСalculation' */
+/* Function for Chart: '<S9>/paramСalculation' */
 static real_T distanceFromLine(real_T x0, real_T b_y0, real_T x1, real_T b_y1,
   real_T x2, real_T y2)
 {
@@ -811,17 +985,19 @@ static real_T distanceFromLine(real_T x0, real_T b_y0, real_T x1, real_T b_y1,
     a_tmp + b_a_tmp * b_a_tmp);
 }
 
-/* Function for Chart: '<S9>/parameterСalculation' */
+/* Function for Chart: '<S9>/paramСalculation' */
 static void c1_flightRegulatorCFB(void)
 {
   int32_T b_previousEvent;
-  real_T diffAngle;
+  real_T angle0;
+  real_T angle0_tmp;
+  real_T angle0_tmp_0;
+  real_T angle0_tmp_1;
+  real_T angle0_tmp_2;
+  real_T angle0_tmp_3;
 
-  /* Chart: '<S9>/parameterСalculation' incorporates:
-   *  Constant: '<S1>/Constant3'
-   *  Constant: '<S9>/Constant4'
+  /* Chart: '<S9>/paramСalculation' incorporates:
    *  Inport: '<Root>/angle'
-   *  Inport: '<Root>/highStopUPS'
    *  Outport: '<Root>/tD'
    *  Outport: '<Root>/tx'
    *  Outport: '<Root>/tz'
@@ -836,10 +1012,11 @@ static void c1_flightRegulatorCFB(void)
     rtDW.is_active_calculateDistance1 = 1U;
     rtDW.phiC = rtDW.TmpSignalConversionAtSFunctionI[0];
     rtDW.laC = rtDW.TmpSignalConversionAtSFunctionI[1];
+    rtDW.hC = fabs(rtDW.TmpSignalConversionAtSFunctionI[2]);
     rtDW.phi1 = rtDW.phiC;
     rtDW.la1 = rtDW.laC;
-    rtDW.phiB = rtDW.TmpSignalConversionAtSFunctio_m[0];
-    rtDW.laB = rtDW.TmpSignalConversionAtSFunctio_m[1];
+    rtDW.phiB = rtDW.TmpSignalConversionAtSFunctio_i[0];
+    rtDW.laB = rtDW.TmpSignalConversionAtSFunctio_i[1];
     rtDW.flatX1 = 0.0;
     rtDW.flatY1 = 0.0;
     rtDW.is_calculateDistance1 = IN_math;
@@ -847,7 +1024,7 @@ static void c1_flightRegulatorCFB(void)
     rtDW.is_azimutInCorridor = IN_noCorridor;
     rtDW.is_active_updateAngle = 1U;
     rtDW.is_updateAngle = IN_start;
-    rtDW.temporalCounter_i1_f = 0U;
+    rtDW.temporalCounter_i1_p = 0U;
     rtDW.is_active_flightControlMode = 1U;
     rtDW.flightControlModeMode = flightControlModeModeType_flightTurning;
     rtDW.temporalCounter_i4 = 0U;
@@ -863,8 +1040,8 @@ static void c1_flightRegulatorCFB(void)
     /* Outport: '<Root>/executeMode' */
     rtY.executeMode = flightExecuteModeModeType_flightStart;
     rtDW.is_active_updatePlan = 1U;
-    rtDW.phi2 = rtDW.TmpSignalConversionAtSFunctio_m[0];
-    rtDW.la2 = rtDW.TmpSignalConversionAtSFunctio_m[1];
+    rtDW.phi2 = rtDW.TmpSignalConversionAtSFunctio_i[0];
+    rtDW.la2 = rtDW.TmpSignalConversionAtSFunctio_i[1];
     rtDW.is_updatePlan = IN_math;
     rtDW.is_active_mathBox = 1U;
     rtDW.is_mathBox = IN_math;
@@ -872,6 +1049,11 @@ static void c1_flightRegulatorCFB(void)
     rtDW.is_counterOrderAngle = IN_nullOrderAngle;
     rtDW.is_active_criteriaDefinition1 = 1U;
     rtDW.criteriaDefinition1Mode = criteriaDefinition1ModeType_desicion;
+    rtDW.is_active_calcRelationalParamet = 1U;
+    rtDW.is_active_CalcParam_tD = 1U;
+    CalcParam_tP_enter(&rtDW.sf_calcRelationalParametersCalc);
+    rtDW.is_active_CalcParam_tZ = 1U;
+    CalcParam_tP_enter(&rtDW.sf_calcRelationalParametersCa_j);
   } else {
     if ((rtDW.is_active_changePoint1 != 0U) && (rtDW.is_changePoint1 == IN_math)
         && (rtDW.sfEvent == event_eventChangePoint)) {
@@ -880,41 +1062,20 @@ static void c1_flightRegulatorCFB(void)
       rtDW.la1 = rtDW.laC;
     }
 
-    if ((rtDW.is_active_calculateDistance1 != 0U) && (rtDW.is_calculateDistance1
-         == IN_math)) {
-      rtDW.phiC = rtDW.TmpSignalConversionAtSFunctionI[0];
-      rtDW.laC = rtDW.TmpSignalConversionAtSFunctionI[1];
-      rtDW.phiB = rtDW.TmpSignalConversionAtSFunctio_m[0];
-      rtDW.laB = rtDW.TmpSignalConversionAtSFunctio_m[1];
-      distanceAndAngleBetween2Points(rtDW.phiC, rtDW.laC, rtDW.phiB, rtDW.laB,
-        &rtDW.outDistanceB, &rtDW.azimutB);
-      diffAngle = cutAngle(rtU.angle - rtDW.outAngle_h);
-      if (fabs(diffAngle) > 3.1415926535897931) {
-        diffAngle = 6.2831853071795862 - diffAngle;
-      }
-
-      diffAngle = trunc(fabs(diffAngle) * 180.0 / 3.1415926535897931 /
-                        rtDW.pAngleVelocity_c);
-      rtY.tx = fabs(rtDW.outDistanceB / 20.0) + diffAngle;
-      rtY.tz = fabs(((fabs(rtDW.TmpSignalConversionAtSFunctionI[2]) -
-                      rtU.highStopUPS) - (8.0 + rtDW.highTurnVelocity) *
-                     diffAngle) / 8.0) + diffAngle;
-      rtY.tD = rtY.tz / rtY.tx;
-      if (rtY.tD > 100.0) {
-        rtY.tD = 1.0;
-      }
+    if (rtDW.is_active_calculateDistance1 != 0U) {
+      calculateDistance1();
     }
 
     if (rtDW.is_active_azimutInCorridor != 0U) {
       switch (rtDW.is_azimutInCorridor) {
        case IN_inCorridor:
-        if (fabs(rtU.angle - rtDW.azimutB) > rtDW.angleCorridor_d) {
+        if (fabs(rtU.angle - rtDW.azimutB) > rtDW.angleCorridor_c) {
           rtDW.is_azimutInCorridor = IN_noCorridor;
         }
         break;
 
        case IN_noCorridor:
-        if (fabs(rtU.angle - rtDW.azimutB) < rtDW.angleCorridor_d) {
+        if (fabs(rtU.angle - rtDW.azimutB) < rtDW.angleCorridor_c) {
           rtDW.is_azimutInCorridor = IN_inCorridor;
         }
         break;
@@ -925,21 +1086,21 @@ static void c1_flightRegulatorCFB(void)
       switch (rtDW.is_updateAngle) {
        case IN_angleUpdate:
         rtDW.is_updateAngle = IN_update;
-        rtDW.temporalCounter_i1_f = 0U;
+        rtDW.temporalCounter_i1_p = 0U;
         break;
 
        case IN_start:
-        if ((rtDW.sfEvent == CALL_EVENT_g) && (rtDW.temporalCounter_i1_f >= 15U))
+        if ((rtDW.sfEvent == CALL_EVENT_m) && (rtDW.temporalCounter_i1_p >= 15U))
         {
           rtDW.is_updateAngle = IN_update;
-          rtDW.temporalCounter_i1_f = 0U;
+          rtDW.temporalCounter_i1_p = 0U;
         } else {
           rtY.updateAngle = 1.0;
         }
         break;
 
        case IN_update:
-        if ((rtDW.sfEvent == CALL_EVENT_g) && (rtDW.temporalCounter_i1_f >=
+        if ((rtDW.sfEvent == CALL_EVENT_m) && (rtDW.temporalCounter_i1_p >=
              (uint32_T)rtDW.periodicOrder)) {
           rtDW.is_updateAngle = IN_angleUpdate;
           rtY.updateAngle = 1.0;
@@ -955,36 +1116,38 @@ static void c1_flightRegulatorCFB(void)
     if (rtDW.is_active_flightControlMode != 0U) {
       switch (rtDW.flightControlModeMode) {
        case flightControlModeModeType_flightTurning:
-        if ((rtDW.sfEvent == CALL_EVENT_g) && (rtDW.temporalCounter_i4 >= 2)) {
+        if ((rtDW.sfEvent == CALL_EVENT_m) && (rtDW.temporalCounter_i4 >= 2)) {
           rtDW.isOffFlightTurning = 1.0;
+          rtY.updateAngle = 1.0;
           rtDW.flightControlModeMode = flightControlModeModeType_flightLine;
-          broadcast_flightLine();
+          rtDW.temporalCounter_i4 = 0U;
+          enter_atomic_flightLine();
         }
         break;
 
        case flightControlModeModeType_flightLine:
-        if (rtY.tD > 1.4) {
+        if ((rtDW.sfEvent == CALL_EVENT_m) && (rtDW.temporalCounter_i4 >= 2) &&
+            rtDW.isLowering) {
           rtY.updateAngle = 1.0;
-          rtDW.flightControlModeMode = flightControlModeModeType_flightBox;
+          rtDW.flightControlModeMode = flightControlModeModeType_flightSnake;
+          rtDW.temporalCounter_i4 = 0U;
           b_previousEvent = rtDW.sfEvent;
-          rtDW.sfEvent = event_flightBox;
+          rtDW.sfEvent = event_flightSnake;
           c1_flightRegulatorCFB();
           rtDW.sfEvent = b_previousEvent;
+        } else {
+          calcDesicionLowering(rtY.tD, rtDW.hC, &rtDW.isLowering, &rtDW.kDPrev);
         }
         break;
 
-       case flightControlModeModeType_flightBox:
-        if (rtY.tD <= 1.27) {
+       case flightControlModeModeType_flightSnake:
+        if ((rtDW.sfEvent == CALL_EVENT_m) && (rtDW.temporalCounter_i4 >= 2) &&
+            (rtY.tD <= rtDW.kDPrev)) {
           rtY.updateAngle = 1.0;
-          rtDW.flightControlModeMode = flightControlModeModeType_finishLine;
-          b_previousEvent = rtDW.sfEvent;
-          rtDW.sfEvent = event_finishLine;
-          c1_flightRegulatorCFB();
-          rtDW.sfEvent = b_previousEvent;
+          rtDW.flightControlModeMode = flightControlModeModeType_flightLine;
+          rtDW.temporalCounter_i4 = 0U;
+          enter_atomic_flightLine();
         }
-        break;
-
-       case flightControlModeModeType_finishLine:
         break;
       }
     }
@@ -1003,8 +1166,8 @@ static void c1_flightRegulatorCFB(void)
         {
           rtDW.is_updatePlan = IN_math2;
         } else {
-          rtDW.phi2 = rtDW.TmpSignalConversionAtSFunctio_m[0];
-          rtDW.la2 = rtDW.TmpSignalConversionAtSFunctio_m[1];
+          rtDW.phi2 = rtDW.TmpSignalConversionAtSFunctio_i[0];
+          rtDW.la2 = rtDW.TmpSignalConversionAtSFunctio_i[1];
         }
         break;
 
@@ -1034,7 +1197,7 @@ static void c1_flightRegulatorCFB(void)
     if (rtDW.is_active_counterOrderAngle != 0U) {
       switch (rtDW.is_counterOrderAngle) {
        case IN_notNullOrderAngle:
-        if ((rtDW.sfEvent == CALL_EVENT_g) && (rtDW.temporalCounter_i2 >=
+        if ((rtDW.sfEvent == CALL_EVENT_m) && (rtDW.temporalCounter_i2 >=
              (uint32_T)rtDW.pTimeOrderAngle)) {
           rtY.updateAngle = 0.0;
           rtDW.is_counterOrderAngle = IN_nullOrderAngle;
@@ -1055,12 +1218,39 @@ static void c1_flightRegulatorCFB(void)
     {
       rtDW.outDistanceAB = distanceFromLine(rtDW.flatXC, rtDW.flatYC,
         rtDW.flatX1, rtDW.flatY1, rtDW.flatX2, rtDW.flatY2);
-      distanceAndAngleBetween2Points(rtDW.phiC, rtDW.laC, rtDW.phi2, rtDW.la2,
-        &rtDW.outDistance2, &rtDW.azimut);
+      angle0_tmp = cos(rtDW.phiC);
+      angle0 = rtDW.la2 - rtDW.laC;
+      angle0_tmp_0 = cos(rtDW.phi2);
+      angle0_tmp_1 = cos(angle0);
+      angle0_tmp_2 = sin(rtDW.phiC);
+      angle0_tmp_3 = sin(rtDW.phi2);
+      angle0 = rt_remd_snf(rt_atan2d_snf(sin(angle0) * angle0_tmp, angle0_tmp *
+        angle0_tmp_3 - angle0_tmp_2 * angle0_tmp_0 * angle0_tmp_1),
+                           6.2831853071795862);
+      rtDW.outDistance2 = acos(angle0_tmp * angle0_tmp_0 * angle0_tmp_1 +
+        angle0_tmp_2 * angle0_tmp_3) * 180.0 / 3.1415926535897931 * 40000.0 /
+        360.0 * 1000.0;
+      if (angle0 < 0.0) {
+        rtDW.azimut = 6.2831853071795862 - fabs(angle0);
+      } else {
+        rtDW.azimut = angle0;
+      }
+    }
+
+    if (rtDW.is_active_calcRelationalParamet != 0U) {
+      if (rtDW.is_active_CalcParam_tD != 0U) {
+        CalcParam_tP_during(rtY.tD, &angle0,
+                            &rtDW.sf_calcRelationalParametersCalc, 1.0, 5.0);
+      }
+
+      if (rtDW.is_active_CalcParam_tZ != 0U) {
+        CalcParam_tP_during(rtY.tz, &angle0,
+                            &rtDW.sf_calcRelationalParametersCa_j, 1.0, 5.0);
+      }
     }
   }
 
-  /* End of Chart: '<S9>/parameterСalculation' */
+  /* End of Chart: '<S9>/paramСalculation' */
 }
 
 /* Function for Chart: '<S11>/angleRegulator' */
@@ -1168,9 +1358,9 @@ void flightRegulatorCFB_step(void)
 {
   real_T rtb_Add;
   real_T rtb_Sum;
-  real_T rtb_dist;
+  real_T rtb_dist_j;
   real_T rtb_VectorConcatenate[8];
-  real_T rtb_dist_pp;
+  real_T rtb_dist_d;
   real_T rtb_dist_f;
   real_T rtb_dist_g;
   int32_T yElIdx;
@@ -1181,87 +1371,89 @@ void flightRegulatorCFB_step(void)
   real_T rtb_Gain1_l;
   real_T rtb_Gain1_m[2];
   real_T rtb_PermuteDimensions[8];
+  real_T tDdelta;
+  real_T tmp;
   real_T rtb_dist_e_tmp_tmp;
 
   /* Outputs for Atomic SubSystem: '<Root>/flightRegulatorCFB' */
-  /* Gain: '<S37>/deg2rad' incorporates:
-   *  Gain: '<S28>/Gain1'
-   *  Gain: '<S30>/Gain1'
+  /* Gain: '<S43>/deg2rad' incorporates:
+   *  Gain: '<S34>/Gain1'
+   *  Gain: '<S36>/Gain1'
    *  Inport: '<Root>/xyzPoints'
-   *  Sum: '<S37>/Sum'
+   *  Sum: '<S43>/Sum'
    */
   rtb_Sum = (0.009 + rtU.xyzPoints[0]) * 0.017453292519943295;
 
-  /* Trigonometry: '<S37>/Trigonometric Function2' incorporates:
-   *  Gain: '<S37>/deg2rad'
-   *  Trigonometry: '<S39>/Trigonometric Function2'
+  /* Trigonometry: '<S43>/Trigonometric Function2' incorporates:
+   *  Gain: '<S43>/deg2rad'
+   *  Trigonometry: '<S45>/Trigonometric Function2'
    */
   rtb_dist_g = cos(rtb_Sum);
 
-  /* Sum: '<S37>/Sum1' incorporates:
+  /* Sum: '<S43>/Sum1' incorporates:
    *  Inport: '<Root>/xyzPoints'
-   *  Product: '<S37>/Divide'
-   *  Trigonometry: '<S37>/Trigonometric Function2'
+   *  Product: '<S43>/Divide'
+   *  Trigonometry: '<S43>/Trigonometric Function2'
    */
-  rtb_dist = -0.009 / rtb_dist_g + rtU.xyzPoints[1];
+  rtb_dist_j = -0.009 / rtb_dist_g + rtU.xyzPoints[1];
 
   /* SignalConversion: '<S10>/ConcatBufferAtVector ConcatenateIn1' incorporates:
    *  Inport: '<Root>/xyzPoints'
-   *  Sum: '<S37>/Sum'
+   *  Sum: '<S43>/Sum'
    */
   rtb_VectorConcatenate[0] = 0.009 + rtU.xyzPoints[0];
-  rtb_VectorConcatenate[1] = rtb_dist;
+  rtb_VectorConcatenate[1] = rtb_dist_j;
 
-  /* Gain: '<S36>/deg2rad' incorporates:
-   *  Gain: '<S29>/Gain1'
-   *  Gain: '<S31>/Gain1'
+  /* Gain: '<S42>/deg2rad' incorporates:
+   *  Gain: '<S35>/Gain1'
+   *  Gain: '<S37>/Gain1'
    *  Inport: '<Root>/xyzPoints'
-   *  Sum: '<S36>/Sum'
+   *  Sum: '<S42>/Sum'
    */
   rtb_dist_e_tmp_tmp = (-0.009 + rtU.xyzPoints[0]) * 0.017453292519943295;
 
-  /* Trigonometry: '<S36>/Trigonometric Function2' incorporates:
-   *  Gain: '<S36>/deg2rad'
-   *  Trigonometry: '<S38>/Trigonometric Function2'
+  /* Trigonometry: '<S42>/Trigonometric Function2' incorporates:
+   *  Gain: '<S42>/deg2rad'
+   *  Trigonometry: '<S44>/Trigonometric Function2'
    */
   rtb_dist_f = cos(rtb_dist_e_tmp_tmp);
 
-  /* Sum: '<S36>/Sum1' incorporates:
+  /* Sum: '<S42>/Sum1' incorporates:
    *  Inport: '<Root>/xyzPoints'
-   *  Product: '<S36>/Divide'
-   *  Trigonometry: '<S36>/Trigonometric Function2'
+   *  Product: '<S42>/Divide'
+   *  Trigonometry: '<S42>/Trigonometric Function2'
    */
-  rtb_dist_pp = -0.009 / rtb_dist_f + rtU.xyzPoints[1];
+  rtb_dist_d = -0.009 / rtb_dist_f + rtU.xyzPoints[1];
 
   /* SignalConversion: '<S10>/ConcatBufferAtVector ConcatenateIn2' incorporates:
    *  Inport: '<Root>/xyzPoints'
-   *  Sum: '<S36>/Sum'
+   *  Sum: '<S42>/Sum'
    */
   rtb_VectorConcatenate[2] = -0.009 + rtU.xyzPoints[0];
-  rtb_VectorConcatenate[3] = rtb_dist_pp;
+  rtb_VectorConcatenate[3] = rtb_dist_d;
 
-  /* Sum: '<S38>/Sum1' incorporates:
+  /* Sum: '<S44>/Sum1' incorporates:
    *  Inport: '<Root>/xyzPoints'
-   *  Product: '<S38>/Divide'
+   *  Product: '<S44>/Divide'
    */
   rtb_dist_f = 0.009 / rtb_dist_f + rtU.xyzPoints[1];
 
   /* SignalConversion: '<S10>/ConcatBufferAtVector ConcatenateIn3' incorporates:
    *  Inport: '<Root>/xyzPoints'
-   *  Sum: '<S38>/Sum'
+   *  Sum: '<S44>/Sum'
    */
   rtb_VectorConcatenate[4] = -0.009 + rtU.xyzPoints[0];
   rtb_VectorConcatenate[5] = rtb_dist_f;
 
-  /* Sum: '<S39>/Sum1' incorporates:
+  /* Sum: '<S45>/Sum1' incorporates:
    *  Inport: '<Root>/xyzPoints'
-   *  Product: '<S39>/Divide'
+   *  Product: '<S45>/Divide'
    */
   rtb_dist_g = 0.009 / rtb_dist_g + rtU.xyzPoints[1];
 
   /* SignalConversion: '<S10>/ConcatBufferAtVector ConcatenateIn4' incorporates:
    *  Inport: '<Root>/xyzPoints'
-   *  Sum: '<S39>/Sum'
+   *  Sum: '<S45>/Sum'
    */
   rtb_VectorConcatenate[6] = 0.009 + rtU.xyzPoints[0];
   rtb_VectorConcatenate[7] = rtb_dist_g;
@@ -1299,9 +1491,9 @@ void flightRegulatorCFB_step(void)
    *  Inport: '<Root>/isAvailableDigitalTerrain'
    */
   if (rtU.isAvailableDigitalTerrain > 0.0) {
-    rtb_Add = rtU.HighDigitalTerrain;
+    tmp = rtU.HighDigitalTerrain;
   } else {
-    rtb_Add = 0.0;
+    tmp = 0.0;
   }
 
   /* End of Switch: '<S1>/Switch' */
@@ -1309,7 +1501,19 @@ void flightRegulatorCFB_step(void)
   /* Sum: '<S1>/Add' incorporates:
    *  Inport: '<Root>/XYZi'
    */
-  rtb_Add = rtU.XYZi[2] - rtb_Add;
+  rtb_Add = rtU.XYZi[2] - tmp;
+
+  /* DiscreteTransferFcn: '<S9>/Discrete Transfer Fcn' incorporates:
+   *  Constant: '<S9>/Constant3'
+   */
+  if (rtDW.DiscreteTransferFcn_icLoad != 0) {
+    rtDW.DiscreteTransferFcn_states = 20.0;
+    rtDW.DiscreteTransferFcn_icLoad = 0U;
+  }
+
+  rtDW.velocityHorizontal = 0.6321 * rtDW.DiscreteTransferFcn_states;
+
+  /* End of DiscreteTransferFcn: '<S9>/Discrete Transfer Fcn' */
 
   /* Gain: '<S3>/Gain1' incorporates:
    *  Inport: '<Root>/XYZi'
@@ -1321,28 +1525,40 @@ void flightRegulatorCFB_step(void)
    */
   rtb_Gain1_l = 0.017453292519943295 * rtU.XYZi[1];
 
-  /* Gain: '<S28>/Gain1' */
+  /* DiscreteTransferFcn: '<S9>/Discrete Transfer Fcn1' incorporates:
+   *  Constant: '<S9>/Constant2'
+   */
+  if (rtDW.DiscreteTransferFcn1_icLoad != 0) {
+    rtDW.DiscreteTransferFcn1_states = -8.0;
+    rtDW.DiscreteTransferFcn1_icLoad = 0U;
+  }
+
+  rtDW.velocityVertical = 0.6321 * rtDW.DiscreteTransferFcn1_states;
+
+  /* End of DiscreteTransferFcn: '<S9>/Discrete Transfer Fcn1' */
+
+  /* Gain: '<S34>/Gain1' */
   rtb_Gain1_m[0] = rtb_Sum;
-  rtb_Gain1_m[1] = 0.017453292519943295 * rtb_dist;
+  rtb_Gain1_m[1] = 0.017453292519943295 * rtb_dist_j;
 
   /* MATLAB Function: '<S10>/distanceBetween2Points1' */
-  distanceBetween2Points1(rtb_Gain1_m, rtb_Gain1, rtb_Gain1_l, &rtb_dist);
+  distanceBetween2Points1(rtb_Gain1_m, rtb_Gain1, rtb_Gain1_l, &rtb_dist_j);
 
-  /* Gain: '<S29>/Gain1' */
+  /* Gain: '<S35>/Gain1' */
   rtb_Gain1_m[0] = rtb_dist_e_tmp_tmp;
-  rtb_Gain1_m[1] = 0.017453292519943295 * rtb_dist_pp;
+  rtb_Gain1_m[1] = 0.017453292519943295 * rtb_dist_d;
 
   /* MATLAB Function: '<S10>/distanceBetween2Points2' */
-  distanceBetween2Points1(rtb_Gain1_m, rtb_Gain1, rtb_Gain1_l, &rtb_dist_pp);
+  distanceBetween2Points1(rtb_Gain1_m, rtb_Gain1, rtb_Gain1_l, &rtb_dist_d);
 
-  /* Gain: '<S31>/Gain1' */
+  /* Gain: '<S37>/Gain1' */
   rtb_Gain1_m[0] = rtb_dist_e_tmp_tmp;
   rtb_Gain1_m[1] = 0.017453292519943295 * rtb_dist_f;
 
   /* MATLAB Function: '<S10>/distanceBetween2Points3' */
   distanceBetween2Points1(rtb_Gain1_m, rtb_Gain1, rtb_Gain1_l, &rtb_dist_f);
 
-  /* Gain: '<S30>/Gain1' */
+  /* Gain: '<S36>/Gain1' */
   rtb_Gain1_m[0] = rtb_Sum;
   rtb_Gain1_m[1] = 0.017453292519943295 * rtb_dist_g;
 
@@ -1350,7 +1566,7 @@ void flightRegulatorCFB_step(void)
   distanceBetween2Points1(rtb_Gain1_m, rtb_Gain1, rtb_Gain1_l, &rtb_dist_g);
 
   /* MinMax: '<S10>/MinMax' */
-  rtb_Sum = fmin(fmin(fmin(rtb_dist, rtb_dist_pp), rtb_dist_f), rtb_dist_g);
+  rtb_Sum = fmin(fmin(fmin(rtb_dist_j, rtb_dist_d), rtb_dist_f), rtb_dist_g);
 
   /* DataTypeConversion: '<S10>/Data Type Conversion' incorporates:
    *  Gain: '<S10>/Gain3'
@@ -1363,33 +1579,65 @@ void flightRegulatorCFB_step(void)
    *  Sum: '<S10>/Add1'
    */
   rtDW.DataTypeConversion = (real_T)(uint8_T)((((((uint32_T)((rtb_Sum ==
-    rtb_dist_pp) << 7) << 1) + ((uint32_T)(rtb_Sum == rtb_dist) << 7)) +
+    rtb_dist_d) << 7) << 1) + ((uint32_T)(rtb_Sum == rtb_dist_j) << 7)) +
     ((uint32_T)(rtb_Sum == rtb_dist_f ? 192 : 0) << 1)) + ((uint32_T)((rtb_Sum ==
     rtb_dist_g) << 7) << 2)) >> 2) * 0.03125;
 
-  /* SignalConversion: '<S21>/TmpSignal ConversionAt SFunction Inport2' incorporates:
-   *  Chart: '<S9>/parameterСalculation'
+  /* MATLAB Function: '<S13>/matFuncDistanceAndAngle' incorporates:
+   *  Delay: '<S13>/Delay'
+   */
+  rtb_dist_j = acos(cos(rtDW.Delay_DSTATE[0]) * cos(rtb_Gain1) * cos(rtb_Gain1_l
+    - rtDW.Delay_DSTATE[1]) + sin(rtDW.Delay_DSTATE[0]) * sin(rtb_Gain1)) *
+    180.0 / 3.1415926535897931 * 40000.0 / 360.0 * 1000.0;
+
+  /* Sum: '<S56>/Diff' incorporates:
+   *  SampleTimeMath: '<S56>/TSamp'
+   *  UnitDelay: '<S56>/UD'
+   *
+   * About '<S56>/TSamp':
+   *  y = u * K where K = 1 / ( w * Ts )
+   *  Multiplication by K = weightedTsampQuantized is being
+   *  done implicitly by changing the scaling of the input signal.
+   *  No work needs to be done here.  Downstream blocks may need
+   *  to do work to handle the scaling of the output; this happens
+   *  automatically.
+   *
+   * Block description for '<S56>/Diff':
+   *
+   *  Add in CPU
+   *
+   * Block description for '<S56>/UD':
+   *
+   *  Store in Global RAM
+   */
+  rtb_Sum = rtb_dist_j - rtDW.UD_DSTATE;
+
+  /* SignalConversion: '<S25>/TmpSignal ConversionAt SFunction Inport3' incorporates:
+   *  Chart: '<S9>/paramСalculation'
    */
   rtDW.TmpSignalConversionAtSFunctionI[0] = rtb_Gain1;
   rtDW.TmpSignalConversionAtSFunctionI[1] = rtb_Gain1_l;
   rtDW.TmpSignalConversionAtSFunctionI[2] = rtb_Add;
 
-  /* SignalConversion: '<S21>/TmpSignal ConversionAt SFunction Inport3' incorporates:
-   *  Chart: '<S9>/parameterСalculation'
+  /* SignalConversion: '<S25>/TmpSignal ConversionAt SFunction Inport4' incorporates:
+   *  Chart: '<S9>/paramСalculation'
    *  Gain: '<S5>/Gain1'
    *  Gain: '<S6>/Gain1'
    *  Inport: '<Root>/xyzPoints'
    */
-  rtDW.TmpSignalConversionAtSFunctio_m[0] = 0.017453292519943295 *
+  rtDW.TmpSignalConversionAtSFunctio_i[0] = 0.017453292519943295 *
     rtU.xyzPoints[0];
-  rtDW.TmpSignalConversionAtSFunctio_m[1] = 0.017453292519943295 *
+  rtDW.TmpSignalConversionAtSFunctio_i[1] = 0.017453292519943295 *
     rtU.xyzPoints[1];
-  rtDW.TmpSignalConversionAtSFunctio_m[2] = rtU.xyzPoints[2];
+  rtDW.TmpSignalConversionAtSFunctio_i[2] = rtU.xyzPoints[2];
 
-  /* Chart: '<S9>/parameterСalculation' */
-  rtDW.sfEvent = CALL_EVENT_g;
-  if (rtDW.temporalCounter_i1_f < MAX_uint32_T) {
-    rtDW.temporalCounter_i1_f++;
+  /* Chart: '<S9>/paramСalculation' incorporates:
+   *  Outport: '<Root>/tD'
+   *  Outport: '<Root>/tz'
+   */
+  rtDW.sfEvent = CALL_EVENT_m;
+  if (rtDW.temporalCounter_i1_p < MAX_uint32_T) {
+    rtDW.temporalCounter_i1_p++;
   }
 
   if (rtDW.temporalCounter_i2 < MAX_uint32_T) {
@@ -1404,6 +1652,8 @@ void flightRegulatorCFB_step(void)
     rtDW.temporalCounter_i4++;
   }
 
+  CalcPara_increment_call_counter(&rtDW.sf_calcRelationalParametersCalc);
+  CalcPara_increment_call_counter(&rtDW.sf_calcRelationalParametersCa_j);
   c1_flightRegulatorCFB();
 
   /* Chart: '<S11>/holdingAngle' incorporates:
@@ -1411,36 +1661,36 @@ void flightRegulatorCFB_step(void)
    */
   if (rtDW.is_active_c6_flightRegulatorCFB == 0U) {
     rtDW.is_active_c6_flightRegulatorCFB = 1U;
-    rtDW.outAngle = rtDW.outAngle_h;
+    rtDW.outAngle = rtDW.outAngle_j;
     rtDW.is_c6_flightRegulatorCFB = IN_angleCorrection;
-    rtb_dist = 0.0;
+    tDdelta = 0.0;
   } else {
     switch (rtDW.is_c6_flightRegulatorCFB) {
      case IN_angleCorrection:
-      rtb_dist = 0.0;
+      tDdelta = 0.0;
       if (rtY.updateAngle == 1.0) {
         rtDW.is_c6_flightRegulatorCFB = IN_angleDecision;
       }
       break;
 
      case IN_angleCorrection1:
-      rtb_dist = 1.0;
+      tDdelta = 1.0;
       if (rtY.updateAngle == 0.0) {
         rtDW.is_c6_flightRegulatorCFB = IN_angleCorrection;
-        rtb_dist = 0.0;
+        tDdelta = 0.0;
       }
       break;
 
      default:
-      if ((rtDW.memoryInAngle > rtDW.outAngle_h + rtDW.angleCorridor) ||
-          (rtDW.memoryInAngle < rtDW.outAngle_h - rtDW.angleCorridor)) {
-        rtDW.memoryInAngle = rtDW.outAngle_h;
-        rtDW.outAngle = rtDW.outAngle_h;
+      if ((rtDW.memoryInAngle > rtDW.outAngle_j + rtDW.angleCorridor) ||
+          (rtDW.memoryInAngle < rtDW.outAngle_j - rtDW.angleCorridor)) {
+        rtDW.memoryInAngle = rtDW.outAngle_j;
+        rtDW.outAngle = rtDW.outAngle_j;
         rtDW.is_c6_flightRegulatorCFB = IN_angleCorrection1;
-        rtb_dist = 1.0;
+        tDdelta = 1.0;
       } else {
         rtDW.is_c6_flightRegulatorCFB = IN_angleCorrection;
-        rtb_dist = 0.0;
+        tDdelta = 0.0;
       }
       break;
     }
@@ -1487,10 +1737,10 @@ void flightRegulatorCFB_step(void)
       rtDW.diffAngle = 6.2831853071795862 - rtDW.diffAngle;
     }
 
-    decideSide(rtU.angle, rtDW.outSetAngle, &rtDW.decisionSide, &rtb_dist_pp,
-               &rtb_dist_f);
+    decideSide(rtU.angle, rtDW.outSetAngle, &rtDW.decisionSide, &rtb_dist_f,
+               &rtb_dist_g);
     if (rtDW.is_resetOrder == IN_resetOrderAngle) {
-      if (rtb_dist > 0.0) {
+      if (tDdelta > 0.0) {
         rtDW.is_resetOrder = IN_resetOrderAngle1;
         rtDW.temporalCounter_i1 = 0U;
         rtDW.orderAngle = 1.0;
@@ -1509,9 +1759,197 @@ void flightRegulatorCFB_step(void)
 
   /* End of Chart: '<S11>/angleRegulator' */
 
+  /* Switch: '<S13>/Switch1' incorporates:
+   *  Constant: '<S13>/Constant1'
+   *  Constant: '<S58>/Lower Limit'
+   *  Constant: '<S58>/Upper Limit'
+   *  Logic: '<S58>/AND'
+   *  RelationalOperator: '<S58>/Lower Test'
+   *  RelationalOperator: '<S58>/Upper Test'
+   */
+  if ((!(0.0 <= rtb_Sum)) || (!(rtb_Sum <= 400.0))) {
+    rtb_Sum = 0.0;
+  }
+
+  /* End of Switch: '<S13>/Switch1' */
+
+  /* Switch: '<S9>/Switch' incorporates:
+   *  Constant: '<S15>/Upper Limit'
+   *  Constant: '<S9>/Constant3'
+   *  RelationalOperator: '<S15>/Upper Test'
+   */
+  if (rtb_Sum <= 5.0) {
+    /* Switch: '<S13>/Switch' incorporates:
+     *  Constant: '<S13>/Constant'
+     *  Constant: '<S57>/Lower Limit'
+     *  Constant: '<S57>/Upper Limit'
+     *  Logic: '<S57>/AND'
+     *  RelationalOperator: '<S57>/Lower Test'
+     *  RelationalOperator: '<S57>/Upper Test'
+     *  SampleTimeMath: '<S13>/userSampleTime '
+     *
+     * About '<S13>/userSampleTime ':
+     *  y = u * K where K = 1 / ( w * Ts )
+     *  Multiplication by K = weightedTsampQuantized is being
+     *  done implicitly by changing the scaling of the input signal.
+     *  No work needs to be done here.  Downstream blocks may need
+     *  to do work to handle the scaling of the output; this happens
+     *  automatically.
+     */
+    if ((0.0 <= rtb_dist_j) && (rtb_dist_j <= 400.0)) {
+      tDdelta = rtb_dist_j;
+    } else {
+      tDdelta = 0.0;
+    }
+
+    /* End of Switch: '<S13>/Switch' */
+  } else {
+    tDdelta = 20.0;
+  }
+
+  /* End of Switch: '<S9>/Switch' */
+
+  /* Sum: '<S14>/Add' incorporates:
+   *  Delay: '<S14>/Delay'
+   *  Inport: '<Root>/XYZi'
+   */
+  rtb_dist_d = rtU.XYZi[2] - rtDW.Delay_DSTATE_p;
+
+  /* Sum: '<S60>/Diff' incorporates:
+   *  SampleTimeMath: '<S60>/TSamp'
+   *  UnitDelay: '<S60>/UD'
+   *
+   * About '<S60>/TSamp':
+   *  y = u * K where K = 1 / ( w * Ts )
+   *  Multiplication by K = weightedTsampQuantized is being
+   *  done implicitly by changing the scaling of the input signal.
+   *  No work needs to be done here.  Downstream blocks may need
+   *  to do work to handle the scaling of the output; this happens
+   *  automatically.
+   *
+   * Block description for '<S60>/Diff':
+   *
+   *  Add in CPU
+   *
+   * Block description for '<S60>/UD':
+   *
+   *  Store in Global RAM
+   */
+  rtb_Sum = rtb_dist_d - rtDW.UD_DSTATE_d;
+
+  /* Switch: '<S14>/Switch1' incorporates:
+   *  Constant: '<S14>/Constant1'
+   *  Constant: '<S62>/Lower Limit'
+   *  Constant: '<S62>/Upper Limit'
+   *  Logic: '<S62>/AND'
+   *  RelationalOperator: '<S62>/Lower Test'
+   *  RelationalOperator: '<S62>/Upper Test'
+   */
+  if ((!(-400.0 <= rtb_Sum)) || (!(rtb_Sum <= 400.0))) {
+    rtb_Sum = 0.0;
+  }
+
+  /* End of Switch: '<S14>/Switch1' */
+
+  /* Update for DiscreteTransferFcn: '<S9>/Discrete Transfer Fcn' */
+  rtDW.DiscreteTransferFcn_icLoad = 0U;
+  rtDW.DiscreteTransferFcn_states = tDdelta - -0.3679 *
+    rtDW.DiscreteTransferFcn_states;
+
+  /* Update for DiscreteTransferFcn: '<S9>/Discrete Transfer Fcn1' */
+  rtDW.DiscreteTransferFcn1_icLoad = 0U;
+
+  /* Switch: '<S9>/Switch1' incorporates:
+   *  Constant: '<S16>/Lower Limit'
+   *  Constant: '<S16>/Upper Limit'
+   *  Constant: '<S9>/Constant2'
+   *  Logic: '<S16>/AND'
+   *  RelationalOperator: '<S16>/Lower Test'
+   *  RelationalOperator: '<S16>/Upper Test'
+   */
+  if ((-5.0 <= rtb_Sum) && (rtb_Sum <= 5.0)) {
+    /* Switch: '<S14>/Switch' incorporates:
+     *  Constant: '<S14>/Constant'
+     *  Constant: '<S61>/Lower Limit'
+     *  Constant: '<S61>/Upper Limit'
+     *  Logic: '<S61>/AND'
+     *  RelationalOperator: '<S61>/Lower Test'
+     *  RelationalOperator: '<S61>/Upper Test'
+     *  SampleTimeMath: '<S14>/userSampleTime '
+     *
+     * About '<S14>/userSampleTime ':
+     *  y = u * K where K = 1 / ( w * Ts )
+     *  Multiplication by K = weightedTsampQuantized is being
+     *  done implicitly by changing the scaling of the input signal.
+     *  No work needs to be done here.  Downstream blocks may need
+     *  to do work to handle the scaling of the output; this happens
+     *  automatically.
+     */
+    if ((-400.0 <= rtb_dist_d) && (rtb_dist_d <= 400.0)) {
+      tmp = rtb_dist_d;
+    } else {
+      tmp = 0.0;
+    }
+
+    /* End of Switch: '<S14>/Switch' */
+  } else {
+    tmp = -8.0;
+  }
+
+  /* End of Switch: '<S9>/Switch1' */
+
+  /* Update for DiscreteTransferFcn: '<S9>/Discrete Transfer Fcn1' */
+  rtDW.DiscreteTransferFcn1_states = tmp - -0.3679 *
+    rtDW.DiscreteTransferFcn1_states;
+
+  /* Update for Delay: '<S13>/Delay' incorporates:
+   *  SignalConversion: '<S13>/TmpSignal ConversionAtDelayInport1'
+   */
+  rtDW.Delay_DSTATE[0] = rtb_Gain1;
+  rtDW.Delay_DSTATE[1] = rtb_Gain1_l;
+
+  /* Update for UnitDelay: '<S56>/UD' incorporates:
+   *  SampleTimeMath: '<S56>/TSamp'
+   *
+   * About '<S56>/TSamp':
+   *  y = u * K where K = 1 / ( w * Ts )
+   *  Multiplication by K = weightedTsampQuantized is being
+   *  done implicitly by changing the scaling of the input signal.
+   *  No work needs to be done here.  Downstream blocks may need
+   *  to do work to handle the scaling of the output; this happens
+   *  automatically.
+   *
+   * Block description for '<S56>/UD':
+   *
+   *  Store in Global RAM
+   */
+  rtDW.UD_DSTATE = rtb_dist_j;
+
+  /* Update for Delay: '<S14>/Delay' incorporates:
+   *  Inport: '<Root>/XYZi'
+   */
+  rtDW.Delay_DSTATE_p = rtU.XYZi[2];
+
+  /* Update for UnitDelay: '<S60>/UD' incorporates:
+   *  SampleTimeMath: '<S60>/TSamp'
+   *
+   * About '<S60>/TSamp':
+   *  y = u * K where K = 1 / ( w * Ts )
+   *  Multiplication by K = weightedTsampQuantized is being
+   *  done implicitly by changing the scaling of the input signal.
+   *  No work needs to be done here.  Downstream blocks may need
+   *  to do work to handle the scaling of the output; this happens
+   *  automatically.
+   *
+   * Block description for '<S60>/UD':
+   *
+   *  Store in Global RAM
+   */
+  rtDW.UD_DSTATE_d = rtb_dist_d;
+
   /* Switch: '<S1>/Switch1' incorporates:
-   *  Constant: '<S49>/Constant'
-   *  RelationalOperator: '<S49>/Compare'
+   *  Constant: '<S55>/Constant'
+   *  RelationalOperator: '<S55>/Compare'
    */
   if (rtb_Add <= 400.0) {
     /* Outport: '<Root>/directionOfRotation' incorporates:
@@ -1542,7 +1980,7 @@ void flightRegulatorCFB_step(void)
    *  DataTypeConversion: '<S1>/Data Type Conversion13'
    *  Gain: '<S8>/Gain'
    */
-  rtY.angleAngle = (uint16_T)(57.295779513082323 * rtDW.outAngle_h);
+  rtY.angleAngle = (uint16_T)(57.295779513082323 * rtDW.outAngle_j);
 
   /* Outport: '<Root>/cmdTightenSlings' incorporates:
    *  Constant: '<S1>/Constant1'
@@ -1585,13 +2023,13 @@ void flightRegulatorCFB_step(void)
 
   /* Outport: '<Root>/diffAngle' incorporates:
    *  DataTypeConversion: '<S1>/Data Type Conversion3'
-   *  Gain: '<S46>/Gain'
+   *  Gain: '<S52>/Gain'
    */
   rtY.diffAngle = (int16_T)floor(57.295779513082323 * rtDW.diffAngle);
 
   /* Outport: '<Root>/setAngle' incorporates:
    *  DataTypeConversion: '<S1>/Data Type Conversion5'
-   *  Gain: '<S40>/Gain'
+   *  Gain: '<S46>/Gain'
    */
   rtY.setAngle = (uint16_T)(57.295779513082323 * rtDW.outSetAngle);
 
@@ -1618,22 +2056,22 @@ void flightRegulatorCFB_step(void)
   rtY.changeControl = (uint8_T)rtDW.isOffFlightTurning;
 
   /* Outport: '<Root>/lat1' incorporates:
-   *  Gain: '<S13>/Gain'
+   *  Gain: '<S17>/Gain'
    */
   rtY.lat1 = 57.295779513082323 * rtDW.phi1;
 
   /* Outport: '<Root>/lat2' incorporates:
-   *  Gain: '<S14>/Gain'
+   *  Gain: '<S18>/Gain'
    */
   rtY.lat2 = 57.295779513082323 * rtDW.phi2;
 
   /* Outport: '<Root>/lon1' incorporates:
-   *  Gain: '<S15>/Gain'
+   *  Gain: '<S19>/Gain'
    */
   rtY.lon1 = 57.295779513082323 * rtDW.la1;
 
   /* Outport: '<Root>/lon2' incorporates:
-   *  Gain: '<S16>/Gain'
+   *  Gain: '<S20>/Gain'
    */
   rtY.lon2 = 57.295779513082323 * rtDW.la2;
 
@@ -1661,39 +2099,54 @@ void flightRegulatorCFB_initialize(void)
   /* initialize non-finites */
   rt_InitInfAndNaN(sizeof(real_T));
 
-  /* SystemInitialize for Atomic SubSystem: '<Root>/flightRegulatorCFB' */
-  /* SystemInitialize for Chart: '<S9>/parameterСalculation' */
-  rtDW.sfEvent = CALL_EVENT_g;
-  rtDW.angleCorridor_d = 0.3490658503988659;
-  rtDW.minimumDistance = 300.0;
-  rtDW.pTimeOrderAngle = 2.0;
-  rtDW.tShoulderSnake = 60.0;
-  rtDW.pAngleSnake = 1.0471975511965976;
-  rtDW.pAngleVelocity_c = 7.0;
-  rtDW.periodicOrder = 30.0;
-  rtDW.highTurnVelocity = 4.5;
-  rtDW.pointsMode = pointsModeType_None;
-  rtDW.criteriaDefinition1Mode = criteriaDefinition1ModeType_None;
-  rtDW.flightSnakeMode = flightSnakeModeType_None;
+  {
+    real_T tDdelta;
 
-  /* InitializeConditions for Outport: '<Root>/executeMode' incorporates:
-   *  Chart: '<S9>/parameterСalculation'
-   */
-  rtY.executeMode = flightExecuteModeModeType_None;
+    /* SystemInitialize for Atomic SubSystem: '<Root>/flightRegulatorCFB' */
+    /* InitializeConditions for DiscreteTransferFcn: '<S9>/Discrete Transfer Fcn' */
+    rtDW.DiscreteTransferFcn_icLoad = 1U;
 
-  /* SystemInitialize for Chart: '<S9>/parameterСalculation' */
-  rtDW.flightControlModeMode = flightControlModeModeType_None;
+    /* InitializeConditions for DiscreteTransferFcn: '<S9>/Discrete Transfer Fcn1' */
+    rtDW.DiscreteTransferFcn1_icLoad = 1U;
 
-  /* SystemInitialize for Chart: '<S11>/holdingAngle' */
-  rtDW.angleCorridor = 0.087266462599716474;
+    /* SystemInitialize for Chart: '<S9>/paramСalculation' incorporates:
+     *  Outport: '<Root>/tD'
+     *  Outport: '<Root>/tz'
+     */
+    CalcParam_tP_init(&rtDW.sf_calcRelationalParametersCalc);
+    CalcParam_tP_init(&rtDW.sf_calcRelationalParametersCa_j);
+    rtDW.sfEvent = CALL_EVENT_m;
+    rtDW.angleCorridor_c = 0.3490658503988659;
+    rtDW.minimumDistance = 300.0;
+    rtDW.pTimeOrderAngle = 2.0;
+    rtDW.tShoulderSnake = 40.0;
+    rtDW.pAngleSnake = 1.3962634015954636;
+    rtDW.pAngleVelocity_f = 7.0;
+    rtDW.periodicOrder = 30.0;
+    rtDW.highTurnVelocity = 4.5;
+    rtDW.pointsMode = pointsModeType_None;
+    rtDW.criteriaDefinition1Mode = criteriaDefinition1ModeType_None;
+    rtDW.flightSnakeMode = flightSnakeModeType_None;
 
-  /* SystemInitialize for Chart: '<S11>/angleRegulator' */
-  rtDW.timeWaitEngines = 1.0;
-  rtDW.pTightenSling = 50.0;
-  rtDW.pAngleVelocity = 7.0;
-  rtDW.TurnMode = TurnModeType_None;
+    /* InitializeConditions for Outport: '<Root>/executeMode' incorporates:
+     *  Chart: '<S9>/paramСalculation'
+     */
+    rtY.executeMode = flightExecuteModeModeType_None;
 
-  /* End of SystemInitialize for SubSystem: '<Root>/flightRegulatorCFB' */
+    /* SystemInitialize for Chart: '<S9>/paramСalculation' */
+    rtDW.flightControlModeMode = flightControlModeModeType_None;
+
+    /* SystemInitialize for Chart: '<S11>/holdingAngle' */
+    rtDW.angleCorridor = 0.087266462599716474;
+
+    /* SystemInitialize for Chart: '<S11>/angleRegulator' */
+    rtDW.timeWaitEngines = 1.0;
+    rtDW.pTightenSling = 50.0;
+    rtDW.pAngleVelocity = 7.0;
+    rtDW.TurnMode = TurnModeType_None;
+
+    /* End of SystemInitialize for SubSystem: '<Root>/flightRegulatorCFB' */
+  }
 }
 
 /*
