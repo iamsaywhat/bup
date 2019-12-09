@@ -28,9 +28,9 @@
 #ifndef _M_MODEL_H_
 #define _M_MODEL_H_
 
-#include "../SNS.h"
-#include "../SWS.h"
-#include "stdint.h"
+#include "SNS.h"
+#include "SWS.h"
+#include <stdint.h>
 
 #define MMODEL_TIMER     MDR_TIMER1
 

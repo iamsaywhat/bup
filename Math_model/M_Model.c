@@ -1,9 +1,9 @@
 #include "M_Model.h"
 
-#include "../BIM.h"
-#include "../discrete_io.h"
+#include "BIM.h"
+#include "discrete_io.h"
 #include "../SelfTesting.h"
-#include "../otherlib.h"
+#include "otherlib.h"
 #include "../config.h"
 #include "../bup_data_store.h"
 

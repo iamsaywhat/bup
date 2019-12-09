@@ -1,7 +1,7 @@
 #include <stdint.h>                              // Стандартные типы Keil
 
 #include "config.h"                              // Файл конфигурации проекта
-#include "bup_data_store.h"
+
 #include "SWS.h"                                 // Драйвер работы с СВС
 #include "SNS.h"                                 // Драйвер работы с СНС
 #include "BIM.h"                                 // Драйвер работы с БИМ
@@ -11,7 +11,7 @@
 #include "ZPZ.h"                                 // Драйвер работы c загрузчиком полетного задания
 #include "otherlib.h"                            // Модуль аппаратнозависимых функций общего назначения
 
-
+#include "bup_data_store.h"                      // Хранилище данных
 #include "Log_FS/Log_FS.h"                       // Файловая система для записи логов в "черный ящик"
 #include "Math_model/M_Model.h"                  // Математическая модель системы управления полетом
 #include "SelfTesting.h"                         // Модуль самодиагностики
@@ -32,22 +32,6 @@
 **************************************************/
 #define BupFirmwareVersion  1.29
 
-
-//	double temp = 0;
-//	int16_t temp2 = 0;
-//	uint8_t buff[200];
-//  long long cnt = 0;
-//	
-
-//	char CHM = 0;
-//	double iii = 0;
-//	short pp = 0;
-//	char p1;
-//	char p2;
-
-uint32_t size = 0;
-uint32_t num = 0;
-uint32_t i = 0;
 
 int main(void)
 {	 
@@ -74,122 +58,10 @@ int main(void)
 	SelfTestingFull();
   
 	
-	
-//	BIM_Supply_ON();
-//	SelfTestingOnline ();
 //	while(1)
 //	{
 //		BUP_DataUpdate ();
-//		delay_us(1000000);
-//		
-//		M_Model_Cmd2BIM(-50.0);
-//		delay_us(1000000);
-//		M_Model_Cmd2BIM(-50.0);
-//		delay_us(1000000);
-//		M_Model_Cmd2BIM(-50.0);
-//		delay_us(1000000);
-//		M_Model_Cmd2BIM(-50.0);
-//		delay_us(1000000);
-//		M_Model_Cmd2BIM(-50.0);
-//		delay_us(1000000);
-//		M_Model_Cmd2BIM(-50.0);
-//		delay_us(1000000);
-//		M_Model_Cmd2BIM(-50.0);
-//		delay_us(1000000);
-
-//		M_Model_Cmd2BIM(50.0);
-//		delay_us(1000000);
-//		M_Model_Cmd2BIM(50.0);
-//		delay_us(1000000);
-//		M_Model_Cmd2BIM(50.0);
-//		delay_us(1000000);
-//		M_Model_Cmd2BIM(50.0);
-//		delay_us(1000000);
-//		M_Model_Cmd2BIM(50.0);
-//		delay_us(1000000);
-//		M_Model_Cmd2BIM(50.0);
-//		delay_us(1000000);
-//		M_Model_Cmd2BIM(50.0);
-//		delay_us(1000000);
-//		
-//		
-//		
 //	}
-
-	
-//	Log_Fs_FindFile(FIRST_FILE);
-//  // Узнаем размер открытого файла (команда FILE_SIZE)
-//  size = Log_Fs_GetFileProperties(FILE_SIZE);
-//  // Так же можно узнать порядковый номер открытого файла (команда FILE_NUMBER)
-//  num = Log_Fs_GetFileProperties(FILE_NUMBER);
-//  // И прочитаем файл в буфер
-//  //LogFs_ReadFile(buffer, 0, size);
-//	
-
-//    // Перейдем к следующему файлу (Внимание! Теперь функция с командой NEXT_FILE)
-//    // То есть этой функцией мы можем последовательно от самого старого к самому новому файлу переключаться между ними)
-//    // Так же можно проверять открылся ли файл
-//    while (Log_Fs_FindFile(NEXT_FILE) != FS_ERROR)
-//    {
-//        // Узнаем размер открытого файла (команда FILE_SIZE)
-//        size = Log_Fs_GetFileProperties(FILE_SIZE);
-//        // Продемонстрируем, что функцией LogFs_ReadFile, можно читать файл в за несколько обращений
-//        // Будем читать по байту size раз (размер файла в байтах)
-////        for (i = 0; i < size; i++)
-////        {
-////            //LogFs_ReadFile(&buffer[i], i, 1);
-////        }
-//    }
-//		
-//		while(1);
-	
-
-//	BIM_Supply_ON();
-//	
-//	BUP_DataUpdate ();
-//	// Отправляем данные математической модели
-//	M_Model_PrepareData ();
-//	
-//	M_Model_Init();
-//	printf_switcher(TO_LOG, 0);
-//	while(1)
-//	{
-//		TaskManagerRun();
-//	}
-
-//////////////
-//	BIM_Supply_ON();
-//	
-//	CAN_BufferRelease (MDR_CAN1, 16);
-//	CAN_BufferRelease (MDR_CAN1, 17);
-//	CAN_BufferRelease (MDR_CAN1, 18);
-//	
-//	while(1)
-//	{
-//		//SelfTesting_RIGHT_BIM();
-//		//SelfTesting_LEFT_BIM();
-//		SelfTestingOnline();
-//		delay_us(100000);
-//		debug_can_full_struct();
-//		delay_us(100000);
-//	}
-
-//			SNS_Available_Data_Response_Union  SNS_DataState;
-//			SNS_Device_Information_Response_Union  SNS_DeviceInformation;
-//			
-//while(1){
-//     	while(SNS_GetPositionData(&SNS_Position) != SNS_OK && (timeout != 20)) timeout ++;
-//			timeout = 0;
-//      while(SNS_GetOrientationData(&SNS_Orientation) != SNS_OK && (timeout != 20)) timeout ++;
-//			timeout = 0;
-//			while(SNS_GetDataState(&SNS_DataState) != SNS_OK && (timeout != 20)) timeout ++;
-//			timeout = 0;
-//			while(SNS_GetDeviceInformation(&SNS_DeviceInformation) != SNS_OK && (timeout != 20)) timeout ++;
-//			timeout = 0;
-//			while(SWS_GetPacket (&SWS_Data) && (timeout != 10)) timeout ++;
-//			timeout = 0;
-//}
-
 
 
 	// Проверяем подключение разъема ЗПЗ

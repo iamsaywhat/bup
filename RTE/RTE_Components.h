@@ -4,7 +4,7 @@
  *      *** Do not modify ! ***
  *
  * Project: 'BUP' 
- * Target:  'Target 1' 
+ * Target:  'bupTarget' 
  */
 
 #ifndef RTE_COMPONENTS_H

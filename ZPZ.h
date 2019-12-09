@@ -103,7 +103,7 @@
 #ifndef _ZPZ_H_
 #define _ZPZ_H_
 
-#include "stdint.h"
+#include <stdint.h>
 
 // Конфигурация ZPZ модуля (аппаратная привязка)
 #define ZPZ_RX	                  PORT_Pin_0             // PORTF.0 - UART2_RX

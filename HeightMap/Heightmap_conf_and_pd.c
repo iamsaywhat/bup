@@ -1,6 +1,5 @@
 #include "Heightmap_conf_and_pd.h"
-#include "../1636PP52Y.h"
-#include "MDR32F9Qx_port.h"
+#include "1636PP52Y.h"
 
 
 // Адреса, по которым лежит информация по карте
