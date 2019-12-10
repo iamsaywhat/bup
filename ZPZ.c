@@ -47,63 +47,63 @@ uint8_t TimeoutCounter = 0;
 static uint16_t ZPZ_RequestWithEmptyData(uint16_t CRC); 
 /*--------------------------------------------------------------------------------------------Обслуживание команды CHECK_CONNECT-------*/
 static uint16_t ZPZ_Request_CHECK_CONNECT (uint16_t CRC);
-static void ZPZ_Response_CHECK_CONNECT (uint16_t NumPacket);
+static void     ZPZ_Response_CHECK_CONNECT (uint16_t NumPacket);
 /*--------------------------------------------------------------------------------------------Обслуживание команды START_DOWNLOAD------*/
 static uint16_t ZPZ_Request_START_DOWNLOAD (uint16_t CRC);
-static void ZPZ_Response_START_DOWNLOAD (uint16_t NumPacket);
+static void     ZPZ_Response_START_DOWNLOAD (uint16_t NumPacket);
 /*--------------------------------------------------------------------------------------------Обслуживание команды MAP_DOWNLOAD--------*/
 static uint16_t ZPZ_Request_MAP_DOWNLOAD (uint16_t CRC, uint16_t NumPacket);
-static void ZPZ_Response_MAP_DOWNLOAD (uint16_t NumPacket);
+static void     ZPZ_Response_MAP_DOWNLOAD (uint16_t NumPacket);
 /*--------------------------------------------------------------------------------------------Обслуживание команды START_UPLOAD--------*/
 static uint16_t ZPZ_Request_START_UPLOAD (uint16_t CRC);
-static void ZPZ_Response_START_UPLOAD (uint16_t NumPacket); 
+static void     ZPZ_Response_START_UPLOAD (uint16_t NumPacket); 
 /*--------------------------------------------------------------------------------------------Обслуживание команды MAP_UPLOAD----------*/
 static uint16_t ZPZ_Request_MAP_UPLOAD (uint16_t CRC);
-static void ZPZ_Response_MAP_UPLOAD (uint16_t NumPacket);
+static void     ZPZ_Response_MAP_UPLOAD (uint16_t NumPacket);
 /*--------------------------------------------------------------------------------------------Обслуживание команды BIM_CONTROL---------*/
 static uint16_t ZPZ_Request_BIM_CONTROL (uint16_t CRC, ZPZ_RequestControlBIM_Union* BIM_Data);
-static void ZPZ_Response_BIM_CONTROL (ZPZ_RequestControlBIM_Union* BIM_Data, uint16_t NumPacket);
+static void     ZPZ_Response_BIM_CONTROL (ZPZ_RequestControlBIM_Union* BIM_Data, uint16_t NumPacket);
 /*--------------------------------------------------------------------------------------------Обслуживание команды BIM_STATUS----------*/
 static uint16_t ZPZ_Request_BIM_STATUS (uint16_t CRC, ZPZ_RequestControlBIM_Union* BIMControl);
-static void ZPZ_Response_BIM_STATUS(uint8_t Side, uint16_t NumPacket);
+static void     ZPZ_Response_BIM_STATUS(uint8_t Side, uint16_t NumPacket);
 /*--------------------------------------------------------------------------------------------Обслуживание команды LOG_FORMAT----------*/
 static uint16_t ZPZ_Request_LOG_FORMAT (uint16_t CRC, uint8_t* Subcommand);
-static void ZPZ_Response_LOG_FORMAT (uint16_t NumPacket, uint8_t Subcommand);
+static void     ZPZ_Response_LOG_FORMAT (uint16_t NumPacket, uint8_t Subcommand);
 /*--------------------------------------------------------------------------------------------Обслуживание команды LOG_FILES-----------*/
 static uint16_t ZPZ_Request_LOG_FILES (uint16_t CRC);
-static void ZPZ_Response_LOG_FILES (uint16_t NumPacket);
+static void     ZPZ_Response_LOG_FILES (uint16_t NumPacket);
 /*--------------------------------------------------------------------------------------------Обслуживание команды LOG_UPLOAD----------*/
 static uint16_t ZPZ_Request_LOG_UPLOAD(uint16_t CRC, uint16_t* NUM);
-static uint8_t ZPZ_Response_LOG_UPLOAD(uint16_t File_num, uint16_t NumPacket);
+static uint8_t  ZPZ_Response_LOG_UPLOAD(uint16_t File_num, uint16_t NumPacket);
 /*--------------------------------------------------------------------------------------------Обслуживание команды REQ_SWS-------------*/
 static uint16_t ZPZ_Request_REQ_SWS (uint16_t CRC);
-static uint8_t ZPZ_Response_REQ_SWS (uint16_t NumPacket);
+static uint8_t  ZPZ_Response_REQ_SWS (uint16_t NumPacket);
 /*--------------------------------------------------------------------------------------------Обслуживание команды REQ_SNS_POS---------*/
 static uint16_t ZPZ_Request_REQ_SNS_POS (uint16_t CRC);
-static uint8_t ZPZ_Response_REQ_SNS_POS (uint16_t NumPacket);
+static uint8_t  ZPZ_Response_REQ_SNS_POS (uint16_t NumPacket);
 /*--------------------------------------------------------------------------------------------Обслуживание команды REQ_SNS_STATE-------*/
 static uint16_t ZPZ_Request_REQ_SNS_STATE (uint16_t CRC);
-static uint8_t ZPZ_Response_REQ_SNS_STATE (uint16_t NumPacket);
+static uint8_t  ZPZ_Response_REQ_SNS_STATE (uint16_t NumPacket);
 /*--------------------------------------------------------------------------------------------Обслуживание команды REQ_SNS_SETTINGS----*/
 static uint16_t ZPZ_Request_REQ_SNS_SETTINGS(uint16_t CRC, uint8_t* buffer);
-static uint8_t ZPZ_Response_REQ_SNS_SETTINGS (uint8_t* params, uint16_t NumPacket);
+static uint8_t  ZPZ_Response_REQ_SNS_SETTINGS (uint8_t* params, uint16_t NumPacket);
 /*--------------------------------------------------------------------------------------------Обслуживание команды PIN_STATE-----------*/
 static uint16_t ZPZ_Request_PIN_STATE(uint16_t CRC);
-static void ZPZ_Response_PIN_STATE (uint16_t NumPacket);
+static void     ZPZ_Response_PIN_STATE (uint16_t NumPacket);
 /*--------------------------------------------------------------------------------------------Обслуживание команды SYSTEM_STATE--------*/
 static uint16_t ZPZ_Request_SYSTEM_STATE (uint16_t CRC);
-static void ZPZ_Response_SYSTEM_STATE (uint16_t NumPacket);
+static void     ZPZ_Response_SYSTEM_STATE (uint16_t NumPacket);
 /*--------------------------------------------------------------------------------------------Обслуживание команды CAN_TRANSMIT--------*/
 static uint16_t ZPZ_Request_CAN_TRANSMIT (uint16_t CRC, uint8_t* buffer);
-static void ZPZ_Response_CAN_TRANSMIT (uint8_t* buffer, uint16_t NumPacket);
+static void     ZPZ_Response_CAN_TRANSMIT (uint8_t* buffer, uint16_t NumPacket);
 /*--------------------------------------------------------------------------------------------Обёртка UART функций со SLIP-------------*/
 static uint16_t UARTReceiveByte_by_SLIP(MDR_UART_TypeDef* UARTx, uint32_t TimeoutRange);
-static int16_t UARTSendByte_by_SLIP (MDR_UART_TypeDef* UARTx, uint32_t TimeoutRange, uint16_t Byte);
-static int16_t SendFEND (MDR_UART_TypeDef* UARTx, uint32_t TimeoutRange);
+static int16_t  UARTSendByte_by_SLIP (MDR_UART_TypeDef* UARTx, uint32_t TimeoutRange, uint16_t Byte);
+static int16_t  SendFEND (MDR_UART_TypeDef* UARTx, uint32_t TimeoutRange);
 /*--------------------------------------------------------------------------------------------Режим "ВВПЗ"-----------------------------*/
-static void ZPZ_StartHighPriorityTask (void);
-static void ZPZ_FinishHighPriorityTask (void);
-static void ZPZ_CheckpointHighPriorityTask (void);
+static void     ZPZ_StartHighPriorityTask (void);
+static void     ZPZ_FinishHighPriorityTask (void);
+static void     ZPZ_CheckpointHighPriorityTask (void);
 void Timer2_IRQHandler(void);
 /*-------------------------------------------------------------------------------------------------------------------------------------*/
 
@@ -1878,12 +1878,12 @@ static void ZPZ_Response_SYSTEM_STATE (uint16_t NumPacket)
 {
 	ZPZ_Response_Union       ZPZ_Response;          // Стандартный ответ к ЗПЗ
 	uint8_t                  i;                     // Счетчик циклов
-	uint8_t                  buff[2];               // Буфер - временное хранилище
+	uint8_t                  buff[5];               // Буфер - временное хранилище
 		
 	// Теперь нужно ответить 
 	// Заполняем структуру общей части всех пакетов
 	ZPZ_Response.Struct.Handler    = HANDLER_BU;          // Заголовок BU       
-	ZPZ_Response.Struct.PacketSize = 6;                   // Размер пакета в байтах  
+	ZPZ_Response.Struct.PacketSize = 9;                   // Размер пакета в байтах  
 	ZPZ_Response.Struct.Command    = SYSTEM_STATE;        // Команда: передача по CAN
 	ZPZ_Response.Struct.Count      = NumPacket;	          // Номер пакета повторяем из запроса
 	ZPZ_Response.Struct.Error      = SUCCES;              // Статус: без ошибок
@@ -1893,8 +1893,13 @@ static void ZPZ_Response_SYSTEM_STATE (uint16_t NumPacket)
 	
 	// Кладём состояние системы в буфер
 	*((uint16_t*)buff) = SystemState;
+	// Кладём версию прошивки
+	buff[2] = bupFirmwareVersion.microFirmware;
+	buff[3] = bupFirmwareVersion.minorFirmware;
+	buff[4] = bupFirmwareVersion.majorFirmware;
+	
 	// Теперь посчитаем контрольную сумму с учетом отправляемого
-	ZPZ_Response.Struct.CRC = Crc16(buff, 2, ZPZ_Response.Struct.CRC);
+	ZPZ_Response.Struct.CRC = Crc16(buff, 5, ZPZ_Response.Struct.CRC);
 	
 	// Начнём отправлять сообщение
 	// Сначала отправляем признак-разделитель начала пакета
@@ -1904,7 +1909,7 @@ static void ZPZ_Response_SYSTEM_STATE (uint16_t NumPacket)
 		UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, ZPZ_Response.Buffer[i]);
 	
 	// Отправляем информационную часть посылки
-	for(i = 0; i < 2; i++)
+	for(i = 0; i < 5; i++)
 		UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, buff[i]);
 	
 	// После сверху посылаем контрольную сумму

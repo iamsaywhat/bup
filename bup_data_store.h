@@ -28,6 +28,24 @@
 #include "SNS.h"
 #include "SWS.h"
 
+
+/*******************************************
+    Версия ПО БУП
+		Firmware: 
+		    major.minor.micro
+		Math:
+		    option.major.minor
+*******************************************/
+typedef struct{
+   uint8_t majorFirmware;   // Старшая версия ПО
+   uint8_t minorFirmware;   // Младшая версия ПО
+   uint8_t microFirmware;   // Небольшие изменения
+   uint8_t optionsMath;     // Вариант модели регулятора: (1 - fightRegulatorCFB; 2 - Easy_reg)
+   uint8_t majorMath;       // Старшая версия модели регулятора
+   uint8_t minorMath;       // Младшая версия модели регулятора
+}BupFirmwareVersion;
+
+
 /*******************************************
     Тип структуры служебных данных БУП    
 *******************************************/
@@ -53,8 +71,14 @@ typedef struct{
 
 
 /*******************************************
-       Cлужебные данные БУП               
+       Версия ПО БУП               
 *******************************************/
+extern const BupFirmwareVersion  bupFirmwareVersion;
+
+
+/*******************************************
+       Cлужебные данные БУП               
+*******************************************/                        
 extern BUP_DATA                             BUP_DataStorage;     // Рабочие данные БУПа
 extern SNS_Orientation_Data_Response_Union  SNS_Orientation;     // Данные ориентации от СНС
 extern SNS_Position_Data_Response_Union     SNS_Position;        // Данные местоположения от СНС
@@ -94,7 +118,6 @@ void BUP_UpdateDataFromSNS (void);
     Описание: Обновляет только структуру данных от СВС
 ***************************************************************************************************************/
 void BUP_UpdateDataFromSWS (void);
-
 
 
 /***************************************************************************
