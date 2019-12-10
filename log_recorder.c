@@ -25,12 +25,20 @@ void loger_initmsg (void)
 	printf_switcher(TO_LOG, 0);
 	// В начало файла кладём его порядковый номер
 	printf("***File # %d***\n", LogFs_GetNumCurrentFile());
-	printf("BUP_init..\n");
+	
+	// Версия ПО, включая версию регулятора
+	printf("Firmware Version:");
+	printf("%u.",   bupFirmwareVersion.majorFirmware);
+	printf("%u.",   bupFirmwareVersion.minorFirmware);
+	printf("%u ",   bupFirmwareVersion.microFirmware);
+	printf("(%u.",  bupFirmwareVersion.optionsMath);
+	printf("%u.",   bupFirmwareVersion.majorMath);
+	printf("%u)\n", bupFirmwareVersion.minorMath);
+
 	// Выведем загруженное полетное задание
 	printf("TD_Lat: %f\n", BUP_Get_TouchdownLatitude());
 	printf("TD_Lon: %f\n", BUP_Get_TouchdownLongitude());
 	printf("TD_Alt: %f\n", BUP_Get_TouchdownAltitude());
-	printf("BUP is ready!\n");
 }
 /************************************************************************************
     loger_periodprint - Функция, определяющая формат записи в лог сообщений
