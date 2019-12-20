@@ -282,7 +282,7 @@ typedef __packed struct{
 
 typedef union {    
 	ZPZ_ResponseStatusBIM_Type   Struct;
-	uint8_t                      Buffer[10];
+	uint8_t                      Buffer[7];
 }ZPZ_ResponseStatusBIM_Union;
 /*****************************************************************/
 

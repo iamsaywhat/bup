@@ -1078,7 +1078,7 @@ static void ZPZ_Response_BIM_STATUS(uint8_t Side, uint16_t NumPacket)
 		UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, ZPZ_Response.Buffer[i]);
 	
 	// Отправляем информационную часть пакета
-	for(i = 0; i < 10; i++)
+	for(i = 0; i < 7; i++)
 		UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, ZPZ_BIM_Status.Buffer[i]);
 	
 	// И в конце сверху посылаем контрольную сумму
