@@ -219,7 +219,12 @@ void task_selftesting(void)
 			TaskManager.Task_SelftestingStage++;
 			break;
 		}
-		case 6: /* Этап 6 - Управление индикацией по результам тестов */
+		case 6: /* Этап 6 - Проверка напряжения на АКБ */
+		{
+			SelfTesting_Battery50Volt();
+			TaskManager.Task_SelftestingStage++;
+		}
+		case 7: /* Этап 7 - Управление индикацией по результам тестов */
 		{
 			SelfTesting_OnlineDiagnostics ();
 			TaskManager.Task_SelftestingStage++;

@@ -1,6 +1,7 @@
 #include "SelfTesting.h"
 
 #include "discrete_io.h"
+#include "analog_io.h"
 #include "1636PP52Y.h"
 #include "25Q64FV.h"
 #include "SWS.h"
@@ -53,6 +54,8 @@ void SelfTestingFull (void)
 	SelfTesting_SNS();
 	// Проверка связи с SWS
 	SelfTesting_SWS();
+	// Проверка напряжения на АКБ
+	SelfTesting_Battery50Volt();
 	// Управление индикацией, по результатам тестов периферии
 	SelfTesting_OnlineDiagnostics();
 }
@@ -93,6 +96,8 @@ void SelfTestingOnline (void)
 	SelfTesting_SNS();
 	// Проверка доступности карты
 	SelfTesting_MapAvailability (BUP_Get_Latitude(), BUP_Get_Longitude());
+	// Проверка напряжения на АКБ
+	SelfTesting_Battery50Volt();
 }
 
 
@@ -106,34 +111,35 @@ SelfTesting_STATUS_TYPE SelfTesting_PreflightDiagnostics (void)
 	SelfTesting_STATUS_TYPE status = ST_OK;   // Статус анализа тестов (по-умолчанию OK)
 	
 	// Основная часть тестов, по которым будем судить о неисправности
-	if(    SelfTesting_STATUS(ST_MAP)       == ST_FAULT 
-        || SelfTesting_STATUS(ST_1636PP52Y) == ST_FAULT 
-        || SelfTesting_STATUS(ST_25Q64FV)   == ST_FAULT 
-        || SelfTesting_STATUS(ST_LogFS)     == ST_FAULT
-        || SelfTesting_STATUS(ST_sns)       == ST_FAULT
-    //  || SelfTesting_STATUS(ST_sws)       == ST_FAULT
-        || SelfTesting_STATUS(ST_pin1)      == ST_FAULT 	
-        || SelfTesting_STATUS(ST_pin2)      == ST_FAULT )
-		{
-			// Если хоть один из тестов отрицательный - сбрасываем флаг
-			status = ST_FAULT;
-		}
+	if(SelfTesting_STATUS(ST_MAP)       == ST_FAULT 
+  || SelfTesting_STATUS(ST_1636PP52Y) == ST_FAULT 
+  || SelfTesting_STATUS(ST_25Q64FV)   == ST_FAULT 
+  || SelfTesting_STATUS(ST_LogFS)     == ST_FAULT
+  || SelfTesting_STATUS(ST_sns)       == ST_FAULT
+  || SelfTesting_STATUS(ST_sws)       == ST_FAULT
+  || SelfTesting_STATUS(ST_pin1)      == ST_FAULT 	
+  || SelfTesting_STATUS(ST_pin2)      == ST_FAULT
+  || SelfTesting_STATUS(ST_BATTERY50V)== ST_FAULT)
+	{
+    // Если хоть один из тестов отрицательный - сбрасываем флаг
+    status = ST_FAULT;
+  }
 		
-		// По результатам тестирования принимаем решение о режиме индикации
-		if(status == ST_OK)
-		{
-			// Гасим "Готовность", Зажигаем "Неисправность"
-			LED_READY_ON();
-			LED_FAULT_OFF();
-		}
-		else
-		{
-			// Гасим "Готовность", Зажигаем "Неисправность"
-			LED_READY_OFF();
-			LED_FAULT_ON();
-		}
-		// Так же возвращаем флаг результатов анализа тестов
-		return (SelfTesting_STATUS_TYPE)status;
+  // По результатам тестирования принимаем решение о режиме индикации
+  if(status == ST_OK)
+  {
+     // Гасим "Готовность", Зажигаем "Неисправность"
+     LED_READY_ON();
+     LED_FAULT_OFF();
+  }
+  else
+  {
+    // Гасим "Готовность", Зажигаем "Неисправность"
+    LED_READY_OFF();
+    LED_FAULT_ON();
+  }
+  // Так же возвращаем флаг результатов анализа тестов
+  return (SelfTesting_STATUS_TYPE)status;
 }
 
 
@@ -147,45 +153,45 @@ SelfTesting_STATUS_TYPE SelfTesting_OnlineDiagnostics (void)
 	SelfTesting_STATUS_TYPE status = ST_OK;   // Статус анализа тестов (по-умолчанию OK)
 	
 	// Основная часть тестов, по которым будем судить о неисправности
-	if(    SelfTesting_STATUS(ST_MAP)       == ST_FAULT 
-        || SelfTesting_STATUS(ST_1636PP52Y) == ST_FAULT 
-        || SelfTesting_STATUS(ST_25Q64FV)   == ST_FAULT 
-        || SelfTesting_STATUS(ST_LogFS)     == ST_FAULT
-        || SelfTesting_STATUS(ST_sns)       == ST_FAULT 
-//        || SelfTesting_STATUS(ST_sws)       == ST_FAULT  
-	                                                     )
-		{
-			// Если хоть один из тестов отрицательный - сбрасываем флаг
-			status = ST_FAULT;
-		}
+	if(SelfTesting_STATUS(ST_MAP)       == ST_FAULT 
+  || SelfTesting_STATUS(ST_1636PP52Y) == ST_FAULT 
+  || SelfTesting_STATUS(ST_25Q64FV)   == ST_FAULT 
+  || SelfTesting_STATUS(ST_LogFS)     == ST_FAULT
+  || SelfTesting_STATUS(ST_sns)       == ST_FAULT 
+  || SelfTesting_STATUS(ST_sws)       == ST_FAULT
+  || SelfTesting_STATUS(ST_BATTERY50V)== ST_FAULT)
+  {
+    // Если хоть один из тестов отрицательный - сбрасываем флаг
+    status = ST_FAULT;
+  }
 		
-		// Если БИМы аппаратно запитаны (вынута шпилька1 и включено реле),
-		// То не обходимо проверить связь с ними
-		if(SelfTesting_STATUS(ST_pin1) != ST_OK && SelfTesting_STATUS(ST_POW_BIM) == ST_OK)
-		{
-			// Если хоть один из БИМов неисправен
-			if(SelfTesting_STATUS(ST_Left_BIM) == ST_FAULT || SelfTesting_STATUS(ST_Right_BIM) == ST_FAULT)
-			{
-				// Сбрасывает флаг и признаём неисправность
-				status = ST_FAULT;
-			}
-		}
+  // Если БИМы аппаратно запитаны (вынута шпилька1 и включено реле),
+  // То не обходимо проверить связь с ними
+  if(SelfTesting_STATUS(ST_pin1) != ST_OK && SelfTesting_STATUS(ST_POW_BIM) == ST_OK)
+  {
+    // Если хоть один из БИМов неисправен
+    if(SelfTesting_STATUS(ST_Left_BIM) == ST_FAULT || SelfTesting_STATUS(ST_Right_BIM) == ST_FAULT)
+    {
+      // Сбрасывает флаг и признаём неисправность
+      status = ST_FAULT;
+    }
+  }
 		
-		// По результатам тестирования принимаем решение о режиме индикации
-		if(status == ST_OK)
-		{
-			// Гасим "Готовность", Зажигаем "Неисправность"
-			LED_READY_ON();
-			LED_FAULT_OFF();
-		}
-		else
-		{
-			// Гасим "Готовность", Зажигаем "Неисправность"
-			LED_READY_OFF();
-			LED_FAULT_ON();
-		}
-		// Так же возвращаем флаг результатов анализа тестов
-		return (SelfTesting_STATUS_TYPE)status;
+  // По результатам тестирования принимаем решение о режиме индикации
+  if(status == ST_OK)
+  {
+    // Гасим "Готовность", Зажигаем "Неисправность"
+    LED_READY_ON();
+    LED_FAULT_OFF();
+  }
+  else
+  {
+    // Гасим "Готовность", Зажигаем "Неисправность"
+    LED_READY_OFF();
+    LED_FAULT_ON();
+  }
+  // Так же возвращаем флаг результатов анализа тестов
+  return (SelfTesting_STATUS_TYPE)status;
 }
 
 
@@ -506,6 +512,27 @@ SelfTesting_STATUS_TYPE SelfTesting_MapAvailability (double Lat, double Lon)
 }
 
 
+/************************************************************************************
+    SelfTesting_Battery50Volt - Проверка напряжения на 50 вольтовой секции АКБ
+
+    Параметры:
+                NONE
+								
+    Возвращает: ST_OK - Если напряжение в норме
+                ST_FAULT - Если напряжение ниже порогового
+										
+    Примечание: Функция помимо проверки напряжения, так же заполняет 
+		            соответсвующее поле в хранилище bup_data_store
+************************************************************************************/
+SelfTesting_STATUS_TYPE SelfTesting_Battery50Volt (void)
+{
+  BUP_DataStorage.Battery50V = GetBatteryCharge();
+	if(BUP_DataStorage.Battery50V < 47.0)
+     SelfTesting_SET_FAULT(ST_BATTERY50V);
+	else
+	   SelfTesting_SET_OK(ST_BATTERY50V);
+	return (SelfTesting_STATUS_TYPE)SelfTesting_STATUS(ST_BATTERY50V);
+}
 
 
 

@@ -33,6 +33,8 @@
             11 бит - SWS (Состояние СВС)
             12 бит - Доступность карты рельефа
             13 бит - POW_BIM (Реле питания БИМ)
+						14 бит - BATTERY50V (Секция 50 вольт АКБ)
+						15 бит - Резерв
 					
     Использование:
         Состояние того или иного устройства модуля можно узнать с помощью
@@ -55,7 +57,8 @@
                 ST_sns              - СНС
                 ST_sws              - СВС  				
                 ST_MapAvailability  - Доступность карты рельефа
-                ST_POW_BIM          - Реле питания БИМ и CAN     (ST_OK/ST_FAULT  = Включено/Выключено) 
+                ST_POW_BIM          - Реле питания БИМ и CAN     (ST_OK/ST_FAULT  = Включено/Выключено)
+                ST_BATTERY50V       - Секция 50 вольт АКБ		
 		 
 ************************************************************************************/
 #ifndef _SELF_TESTING_H_
@@ -96,6 +99,7 @@ typedef enum {
 #define ST_sws                     (11)
 #define ST_MapAvailability         (12)
 #define ST_POW_BIM                 (13)
+#define ST_BATTERY50V              (14)
 #define SelfTesting_SET_OK(x)      (SystemState|=(1<<x))          // Результат проверки - ОК
 #define SelfTesting_SET_FAULT(x)   (SystemState&=~(1<<x))         // Результат проверки - FAULT
 #define SelfTesting_STATUS(x)      ((SystemState&(1<<x))>>(x))    // Узнать состояние
@@ -310,5 +314,18 @@ SelfTesting_STATUS_TYPE SelfTesting_POW_BIM (void);
 SelfTesting_STATUS_TYPE SelfTesting_MapAvailability (double Lat, double Lon);
 
 
-#endif
+/************************************************************************************
+    SelfTesting_Battery50Volt - Проверка напряжения на 50 вольтовой секции АКБ
 
+    Параметры:
+                NONE
+								
+    Возвращает: ST_OK - Если напряжение в норме
+                ST_FAULT - Если напряжение ниже порогового
+										
+    Примечание: Функция помимо проверки напряжения, так же заполняет 
+		            соответсвующее поле в хранилище bup_data_store
+************************************************************************************/
+SelfTesting_STATUS_TYPE SelfTesting_Battery50Volt (void);
+
+#endif

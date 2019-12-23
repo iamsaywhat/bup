@@ -611,6 +611,16 @@
               <FileType>1</FileType>
               <FilePath>.\CustomDrivers\SWS.c</FilePath>
             </File>
+            <File>
+              <FileName>analog_io.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\CustomDrivers\analog_io.c</FilePath>
+            </File>
+            <File>
+              <FileName>filters.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\CustomDrivers\filters.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
