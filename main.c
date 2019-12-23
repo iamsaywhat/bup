@@ -33,10 +33,10 @@ int main(void)
 	// Настраиваем тактовую частоту процессора	
 	InitCLK();
 	// Запуск АЦП
-	ADC_init (ADC1, 
-	          Battery50V.Pin   ||
-	          Ch11Reserved.Pin ||
-						Ch12Reserved.Pin);
+//	ADC_init (ADC1, 
+//	          Battery50V.Pin   ||
+//	          Ch11Reserved.Pin ||
+//						Ch12Reserved.Pin);
 	// Конфигурируем дискреты, при этом все реле гарантированно переводятся в состояние по-умолчанию
 	Discrete_RetargetPins();
 	// Запускаем драйвер памяти для полетного задания

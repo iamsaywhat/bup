@@ -526,10 +526,10 @@ SelfTesting_STATUS_TYPE SelfTesting_MapAvailability (double Lat, double Lon)
 ************************************************************************************/
 SelfTesting_STATUS_TYPE SelfTesting_Battery50Volt (void)
 {
-  BUP_DataStorage.Battery50V = GetBatteryCharge();
-	if(BUP_DataStorage.Battery50V < 47.0)
-     SelfTesting_SET_FAULT(ST_BATTERY50V);
-	else
+//  BUP_DataStorage.Battery50V = GetBatteryCharge();
+//	if(BUP_DataStorage.Battery50V < 47.0)
+//     SelfTesting_SET_FAULT(ST_BATTERY50V);
+//	else
 	   SelfTesting_SET_OK(ST_BATTERY50V);
 	return (SelfTesting_STATUS_TYPE)SelfTesting_STATUS(ST_BATTERY50V);
 }
