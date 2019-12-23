@@ -1878,12 +1878,12 @@ static void ZPZ_Response_SYSTEM_STATE (uint16_t NumPacket)
 {
 	ZPZ_Response_Union       ZPZ_Response;          // Стандартный ответ к ЗПЗ
 	uint8_t                  i;                     // Счетчик циклов
-	uint8_t                  buff[5];               // Буфер - временное хранилище
+	uint8_t                  buff[9];               // Буфер - временное хранилище
 		
 	// Теперь нужно ответить 
 	// Заполняем структуру общей части всех пакетов
 	ZPZ_Response.Struct.Handler    = HANDLER_BU;          // Заголовок BU       
-	ZPZ_Response.Struct.PacketSize = 9;                   // Размер пакета в байтах  
+	ZPZ_Response.Struct.PacketSize = 13;                  // Размер пакета в байтах  
 	ZPZ_Response.Struct.Command    = SYSTEM_STATE;        // Команда: передача по CAN
 	ZPZ_Response.Struct.Count      = NumPacket;	          // Номер пакета повторяем из запроса
 	ZPZ_Response.Struct.Error      = SUCCES;              // Статус: без ошибок
@@ -1892,14 +1892,16 @@ static void ZPZ_Response_SYSTEM_STATE (uint16_t NumPacket)
 	ZPZ_Response.Struct.CRC = Crc16(&ZPZ_Response.Buffer[0], 8, CRC16_INITIAL_FFFF);
 	
 	// Кладём состояние системы в буфер
-	*((uint16_t*)buff) = SystemState;
+  *((uint16_t*)buff) = SystemState;
+  // Кладём заряд батареи
+  *((float*)((uint8_t*)buff+2)) = BUP_DataStorage.Battery50V; 
 	// Кладём версию прошивки
-	buff[2] = bupFirmwareVersion.microFirmware;
-	buff[3] = bupFirmwareVersion.minorFirmware;
-	buff[4] = bupFirmwareVersion.majorFirmware;
+  *((uint8_t*)buff+6) = bupFirmwareVersion.microFirmware;
+  *((uint8_t*)buff+7) = bupFirmwareVersion.minorFirmware;
+  *((uint8_t*)buff+8) = bupFirmwareVersion.majorFirmware;
 	
 	// Теперь посчитаем контрольную сумму с учетом отправляемого
-	ZPZ_Response.Struct.CRC = Crc16(buff, 5, ZPZ_Response.Struct.CRC);
+	ZPZ_Response.Struct.CRC = Crc16(buff, 9, ZPZ_Response.Struct.CRC);
 	
 	// Начнём отправлять сообщение
 	// Сначала отправляем признак-разделитель начала пакета
@@ -1909,7 +1911,7 @@ static void ZPZ_Response_SYSTEM_STATE (uint16_t NumPacket)
 		UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, ZPZ_Response.Buffer[i]);
 	
 	// Отправляем информационную часть посылки
-	for(i = 0; i < 5; i++)
+	for(i = 0; i < 9; i++)
 		UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, buff[i]);
 	
 	// После сверху посылаем контрольную сумму
