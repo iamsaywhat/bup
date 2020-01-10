@@ -23,7 +23,7 @@
 ***************************************************************************************************************/
 static void SNS_RetargetPins (void)
 {
-	RST_CLK_PCLKcmd(RST_CLK_PCLK_SNS_PORT , ENABLE);
+	RST_CLK_PCLKcmd(RST_CLK_PCLK_SNS_PORT, ENABLE);
 	
 	// Здесь гарантированно отключаем используемый UART, от других пинов, на которых он может использоваться
 	Pin_Init (MDR_PORTD, PORT_Pin_7, PORT_FUNC_PORT, PORT_OE_OUT);
@@ -70,7 +70,7 @@ static void SNS_deinit (void)
 {
 	// Сброс конфигуряции UART
 	UART_DeInit(SNS_UART);
-	// Включение UART1 - CНС
+	// Выключение UART1 - CНС
 	UART_Cmd(SNS_UART,DISABLE);
 	Pin_Init (SNS_PORT, SNS_RX, PORT_FUNC_PORT, PORT_OE_OUT);
 	Pin_Init (SNS_PORT, SNS_TX, PORT_FUNC_PORT, PORT_OE_OUT);
@@ -93,46 +93,60 @@ static SNS_Status SNS_Request(uint8_t Command)
 	// Вычисляем контрольную сумму пакета:
 	// как в описани протокола обмена только для 1го байта - команды
 	SNS_Req.Struct.CRC = Crc16(&SNS_Req.Buffer[2], 1, CRC16_INITIAL_FFFF);
-	// Начинаем отправку запроса
-	UART_SendData(SNS_UART, FEND);	// Отправляем признак начала пакета
+
 	// Ждем окончания передачи
 	while ((UART_GetFlagStatus (SNS_UART, UART_FLAG_TXFF) == SET) && (timeout != SNS_MAX_TIMEOUT)) timeout++;
 	
 	// Проверяем будет ли это выход по таймауту
 	if(timeout == SNS_MAX_TIMEOUT) 
 		return SNS_TIMEOUT;
+		
 	// Сбросим счетчик таймаута, и продолжаем
 	timeout = 0;
 	
+  /* Начинаем отправку запроса */
+	/* Отправляем признак начала пакета */
+	UART_SendData(SNS_UART, FEND);
+	/* Ожидаем окончания отправки байта */
+	while ((UART_GetFlagStatus (SNS_UART, UART_FLAG_TXFF) == SET) && (timeout != SNS_MAX_TIMEOUT)) timeout++;
+	
 	for(i = 0; i < 3; i++)
 	{
-		// Если FEND не разделитель, а находится внутри пакета
-		// Согласно протоколу обмена заменяем его на два символа
+		/* Если FEND не разделитель, а находится внутри пакета
+		 * Согласно протоколу обмена заменяем его на два символа */
 		if(SNS_Req.Buffer[i] == FEND) 
 		{
 			UART_SendData(SNS_UART, FESC);
+	    /* Ждем окончания передачи байта */
+	    while ((UART_GetFlagStatus (SNS_UART, UART_FLAG_TXFF)== SET) && (timeout != SNS_MAX_TIMEOUT)) timeout++;
 			UART_SendData(SNS_UART, TFEND);
 		}
-		// Если внутри пакета содержится FESC,
-		// Согласно протоколу обмена заменяем его на два символа
+		/* Если внутри пакета содержится FESC,
+		 * Согласно протоколу обмена заменяем его на два символа */
 		else if(SNS_Req.Buffer[i] == FESC) 
 		{
 			UART_SendData(SNS_UART, FESC);
+	    /* Ждем окончания передачи байта */
+	    while ((UART_GetFlagStatus (SNS_UART, UART_FLAG_TXFF)== SET) && (timeout != SNS_MAX_TIMEOUT)) timeout++;
 			UART_SendData(SNS_UART, TFESC);
 		}
-		else UART_SendData(SNS_UART, SNS_Req.Buffer[i]);
-		// Ждем окончания передачи
+		else
+		{
+		  UART_SendData(SNS_UART, SNS_Req.Buffer[i]);
+		}
+		/* Ждем окончания передачи байта */
 		while ((UART_GetFlagStatus (SNS_UART, UART_FLAG_TXFF) == SET) && (timeout != SNS_MAX_TIMEOUT)) timeout++;
 
-		// Проверяем будет ли это выход по таймауту
+		/* Проверяем будет ли это выход по таймауту */
 		if(timeout == SNS_MAX_TIMEOUT) 
 			return SNS_TIMEOUT;
-		// Сбросим счетчик таймаут
+		/* Сбросим счетчик таймаут */
 		timeout = 0;
 		
 	}
-	UART_SendData(SNS_UART, FEND);	// Отправляем признак конца пакета
-	// Ждем окончания передачи
+	/* Отправляем признак конца пакета */
+	UART_SendData(SNS_UART, FEND);
+	/* Ждем окончания передачи байта */
 	while ((UART_GetFlagStatus (SNS_UART, UART_FLAG_TXFF)== SET) && (timeout != SNS_MAX_TIMEOUT)) timeout++;
 	
 	// Проверяем будет ли это выход по таймауту
@@ -151,82 +165,86 @@ static SNS_Status SNS_Request(uint8_t Command)
                 0 - Если ошибка проверки кода ответа и контрольной суммы;
                 1 - Если проверка верна.
 ***************************************************************************************************************/
-static void SNS_GetData_by_SLIP (uint8_t PacketSize, uint8_t* Buffer)
+static SNS_Status SNS_GetData_by_SLIP (uint8_t PacketSize, uint8_t* Buffer)
 {
 	uint32_t  timeout = 0;
-	uint8_t   i, temp;
-	// Ожидаем приход данных (пока буфер приёмника пуст)
+	uint8_t   i;
+	uint8_t   temp1, temp2;
+	
+	/* Ожидаем приход данных (пока буфер приёмника пуст) */
 	while ((UART_GetFlagStatus (SNS_UART, UART_FLAG_RXFE) == SET) && (timeout != SNS_MAX_TIMEOUT)) timeout++;
-	
-	// Проверяем будет ли это выход по таймауту
+	/* Проверяем будет ли это выход по таймауту */
 	if(timeout == SNS_MAX_TIMEOUT) 
-		return;
-	// Сбросим счетчик таймаут
-	timeout = 0;
+		return SNS_TIMEOUT;
 	
-	// Делаем считывание символа - Должен быть разделитель
-	temp = UART_ReceiveData(SNS_UART);
+	/* Сбросим счетчик таймаут */
+	timeout = 0;
+	/* Делаем считывание символа - Должен быть разделитель FEND начала пакета */
+	temp1 = UART_ReceiveData(SNS_UART);
+	
+	/* Переходим к приёму полезной части пакета */
 	for(i = 0; i < PacketSize; i++)
 	{	
-		// Ожидаем приход данных (пока буфер приёмника пуст)
-		while ((UART_GetFlagStatus (SNS_UART, UART_FLAG_RXFE) == SET) && (timeout != SNS_MAX_TIMEOUT)) timeout++;
+		/* Ожидаем приход данных (пока буфер приёмника пуст) */
+		while ((UART_GetFlagStatus (SNS_UART, UART_FLAG_RXFE) == SET) && (timeout != SNS_BYTE_TIMEOUT)) timeout++;
+		/* Проверяем будет ли это выход по таймауту */
+		if(timeout == SNS_BYTE_TIMEOUT) 
+			return SNS_TIMEOUT;
 		
-		// Проверяем будет ли это выход по таймауту
-		if(timeout == SNS_MAX_TIMEOUT) 
-			return;
-		// Сбросим счетчик таймаут
+		/* Сбросим счетчик таймаут */
 		timeout = 0;
+		/* Принимаем символ */
+		temp1 = UART_ReceiveData(SNS_UART);
 		
-		// Принимаем символ
-		temp = UART_ReceiveData(SNS_UART);
-		// Проверяем является ли он FESC
-		if(temp == FESC)
+		/* Проверяем является ли он FESC */
+		if(temp1 == FESC)
 		{
-			// Ожидаем приход данных (пока буфер приёмника пуст)
-			while ((UART_GetFlagStatus (SNS_UART, UART_FLAG_RXFE) == SET) && (timeout != SNS_MAX_TIMEOUT)) timeout++;
-			
-		// Проверяем будет ли это выход по таймауту
-	    if(timeout == SNS_MAX_TIMEOUT) 
-			return;
-	    // Сбросим счетчик таймаут
+		  /* Да, значит это закодированный FEND, значит следующий должен быть либо TFEND, либо TFESC */
+			/* Подождем этот символ */
+			while ((UART_GetFlagStatus (SNS_UART, UART_FLAG_RXFE) == SET) && (timeout != SNS_BYTE_TIMEOUT)) timeout++;
+      /* Проверяем будет ли это выход по таймауту */
+	    if(timeout == SNS_BYTE_TIMEOUT) 
+			  return SNS_TIMEOUT;
+	    
+			/* Сбросим счетчик таймаут */
 	    timeout = 0;
+			/* Принимаем следующий байт */
+			temp2 = UART_ReceiveData(SNS_UART);
 			
-			// Если следующий символ будет TFEND, то это закодированный символ FEND
-			if(UART_ReceiveData(SNS_UART) == TFEND)
+			/* Если этот принятый символ будет TFEND */
+			if(temp2 == TFEND)
 			{
-				Buffer[i] = FEND;
-				continue;
+				Buffer[i] = FEND; /* то вручную записываем в буфер символ FEND (вместо принятых двух) */
+				temp2 = 0;        /* Сбросим временный байт */
+				continue;         /* Сразу прыгаем на следующую итерацию цикла приёма */
 			}
-			// Ожидаем приход данных (пока буфер приёмника пуст)
-			while ((UART_GetFlagStatus (SNS_UART, UART_FLAG_RXFE) == SET) && (timeout != SNS_MAX_TIMEOUT)) timeout++;
-			
-			// Проверяем будет ли это выход по таймауту
-			if(timeout == SNS_MAX_TIMEOUT) 
-				return;
-			// Сбросим счетчик таймаут
-			timeout = 0;
-			
-			// Если следующий символ будет TFESC, то это закодированный символ FESC
-			if(UART_ReceiveData(SNS_UART) == TFESC)
+		  /* Тогда видимо этот байт FESC */
+			else if(temp2 == TFESC)
 			{
-				Buffer[i] = FESC;
-				continue;
+				Buffer[i] = FESC; /* Да, вручную декодируем эти два байта в FESC */
+				temp2 = 0;        /* Сбросим временный байт */
+				continue;         /* Сразу прыгаем на следующую итерацию цикла приёма */
 			}
+			/* Если после FESC пришло и не TFEND, и не TFESC, то пакет испорчен */
+			else
+			  return SNS_CORPACKET;
+
 		}
-		// Если попали сюда, то все условия не выполнились и можем сразу записать символ в буфер
-		Buffer[i] = temp;
+		/* Если попали сюда, значит это обычный байт, его сразу пишем в буфер */
+		Buffer[i] = temp1;
 	}
-	// Ожидаем приход данных (пока буфер приёмника пуст)
-	while ((UART_GetFlagStatus (SNS_UART, UART_FLAG_RXFE) == SET) && (timeout != SNS_MAX_TIMEOUT)) timeout++;
+	/* Ожидаем приход данных (пока буфер приёмника пуст) */
+	while ((UART_GetFlagStatus (SNS_UART, UART_FLAG_RXFE) == SET) && (timeout != SNS_BYTE_TIMEOUT)) timeout++;
+	/* Проверяем будет ли это выход по таймауту */
+	if(timeout == SNS_BYTE_TIMEOUT) 
+		return SNS_TIMEOUT;
 	
-	// Проверяем будет ли это выход по таймауту
-	if(timeout == SNS_MAX_TIMEOUT) 
-		return;
-	// Сбросим счетчик таймаут
+	/* Сбросим счетчик таймаут */
 	timeout = 0;
+	/* Ждем развершения пакета символом FEND */
+	temp1 = UART_ReceiveData(SNS_UART);
 	
-	// Ждем развершения пакета символом FEND
-	temp = UART_ReceiveData(SNS_UART);
+	return SNS_OK;
 }
 
 
@@ -235,11 +253,12 @@ static void SNS_GetData_by_SLIP (uint8_t PacketSize, uint8_t* Buffer)
 /**************************************************************************************************************
     SNS_GetDeviceInformation - Запрос информации о девайсе от СНС
 **************************************************************************************************************/
-uint8_t SNS_GetDeviceInformation(SNS_Device_Information_Response_Union*  SNS_DeviceInformation)
+SNS_Status SNS_GetDeviceInformation(SNS_Device_Information_Response_Union*  SNS_DeviceInformation)
 {
 	SNS_Device_Information_Response_Union  Actual_SNS_DeviceInformation;   // Актуальный ответ от СНС
-	uint32_t timeout = 0;                                                  // Таймаут счетчик
+	uint32_t  timeout = 0;                                                 // Таймаут счетчик
 	uint16_t  crc;                                                         // Расчетная контрольная сумма
+	uint8_t   requestCounter = 0;                                          // Счетчик отправленых запросов
 		
 	//Вычищаем FIFO от мусора перед запросом
 	while ((UART_GetFlagStatus (SNS_UART, UART_FLAG_RXFE) != SET)&& (timeout != SNS_MAX_TIMEOUT)) 
@@ -257,27 +276,44 @@ uint8_t SNS_GetDeviceInformation(SNS_Device_Information_Response_Union*  SNS_Dev
 	
 	// Сбросим счетчик таймаут
 	timeout = 0;
-	
+
 	// Подключаемся к СНС
 	SNS_RetargetPins();
 	SNS_init();
-	// Запрашиваем информацию у СНС
-	SNS_Request(DIR);
-	// Получаем ответ в локальную структуру Actual_SNS_DeviceInformation
-	SNS_GetData_by_SLIP(SizeAnsDIR, &Actual_SNS_DeviceInformation.Buffer[0]);
-	// Отключаемся от СНС
+  /* Так как СНС не спешит с ответом, необходимо спросить его несколько раз,
+	   и надеяться что хоть на какой-то из низ он ответит */
+	for(requestCounter = 0; requestCounter < SNS_REQUESTS_CNT; requestCounter++)
+	{
+	  /* Запрашиваем информацию у СНС */
+	  SNS_Request(DIR);
+	  /* Пытаемся получить в ответ локальную структуру Actual_SNS_DeviceInformation */
+	  if(SNS_GetData_by_SLIP(SizeAnsDIR, &Actual_SNS_DeviceInformation.Buffer[0]) == SNS_OK)
+		{
+		  /* Ответ получили, сразу проверим валидность пакета */
+      /* Вычисляем контрольную сумму пакета (без поля CRC) */
+      crc = Crc16(&Actual_SNS_DeviceInformation.Buffer[2],SizeAnsDIR-2, CRC16_INITIAL_FFFF);
+      /* Проверяем контрольную сумму и код ответа */
+      if((Actual_SNS_DeviceInformation.Struct.Response == DIR)||(Actual_SNS_DeviceInformation.Struct.CRC == crc))
+			  /* Если пакет валидный - выходим, если нет - отправляемся на очередную попытку связаться */
+        break;	
+		}
+	}
+	/* Отключаемся от СНС */
 	SNS_deinit();
 	
-	// Вычисляем контрольную сумму пакета (без поля CRC)
-	crc = Crc16(&Actual_SNS_DeviceInformation.Buffer[2],SizeAnsDIR-2, CRC16_INITIAL_FFFF);
+	/* Проверим количество отправленных запросов, 
+	если больше лимита значит связаться ответ так и не был получен */	
+	if(requestCounter == SNS_REQUESTS_CNT)
+    return SNS_TIMEOUT;
 	
-	// Проверяем контрольную сумму и код ответа, если не совпадают, то возвращаем 0
-	if((Actual_SNS_DeviceInformation.Struct.Response != DIR)||(Actual_SNS_DeviceInformation.Struct.CRC != crc))
-	{
-		//Возвращаем признак неудачи
-		return SNS_WRONG_CRC; 
-	}
-	// Проверки верны, поэтому возвращаем полученные данные
+//	/* Вычисляем контрольную сумму пакета (без поля CRC) */
+//	crc = Crc16(&Actual_SNS_DeviceInformation.Buffer[2],SizeAnsDIR-2, CRC16_INITIAL_FFFF);
+//	
+//	/* Проверяем контрольную сумму и код ответа, если не совпадают, то возвращаем SNS_WRONG_CRC */
+//	if((Actual_SNS_DeviceInformation.Struct.Response != DIR)||(Actual_SNS_DeviceInformation.Struct.CRC != crc))
+//		return SNS_WRONG_CRC;  /* Возвращаем признак неудачи */
+		
+	/* Проверки верны, поэтому возвращаем полученные данные */
 	*SNS_DeviceInformation = Actual_SNS_DeviceInformation;
 	
 	//Возвращаем признак успеха
@@ -292,9 +328,10 @@ uint8_t SNS_GetDeviceInformation(SNS_Device_Information_Response_Union*  SNS_Dev
 SNS_Status SNS_GetDataState(SNS_Available_Data_Response_Union*  SNS_DataState)
 {
 	SNS_Available_Data_Response_Union  Actual_SNS_DataState;               // Актуальный ответ от СНС
-	uint32_t timeout = 0;                                                  // Таймаут счетчик
+	uint32_t  timeout = 0;                                                 // Таймаут счетчик
 	uint16_t  crc;                                                         // Расчетная контрольная сумма
-		
+  uint8_t   requestCounter = 0;                                          // Счетчик отправленых запросов
+	
 	// Вычищаем FIFO от мусора перед запросом
 	while ((UART_GetFlagStatus (SNS_UART, UART_FLAG_RXFE) != SET) && (timeout != SNS_MAX_TIMEOUT))
 	{		
@@ -313,22 +350,41 @@ SNS_Status SNS_GetDataState(SNS_Available_Data_Response_Union*  SNS_DataState)
 	
 	// Подключаемся к СНС
 	SNS_RetargetPins();
-	SNS_init();
-	// Запрашиваем информацию у СНС
-	SNS_Request(DSR);
-	// Получаем ответ
-	SNS_GetData_by_SLIP(SizeAnsDSR, &Actual_SNS_DataState.Buffer[0]);
+	SNS_init();	
+	/* Так как СНС не спешит с ответом, необходимо спросить его несколько раз,
+	   и надеяться что хоть на какой-то из низ он ответит */
+	for(requestCounter = 0; requestCounter < SNS_REQUESTS_CNT; requestCounter++)
+	{
+	  /* Запрашиваем информацию у СНС */
+	  SNS_Request(DSR);
+	  /* Пытаемся получить в ответ локальную структуру Actual_SNS_DeviceInformation */
+	  if(SNS_GetData_by_SLIP(SizeAnsDSR, &Actual_SNS_DataState.Buffer[0]) == SNS_OK)
+		{
+		  /* Ответ получили, сразу проверим валидность пакета */
+      /* Вычисляем контрольную сумму пакета (без поля CRC) */
+	    crc = Crc16(&Actual_SNS_DataState.Buffer[2],SizeAnsDSR-2, CRC16_INITIAL_FFFF);
+	    /* Проверяем контрольную сумму и код ответа */
+	    if((Actual_SNS_DataState.Struct.Response == DSR)||(Actual_SNS_DataState.Struct.CRC == crc))
+        /* Если пакет валидный - выходим, если нет - отправляемся на очередную попытку связаться */
+        break;	
+		}
+	}
 	// Отключаемся от СНС
 	SNS_deinit();
 	
-	// Вычисляем контрольную сумму пакета (без поля CRC)
-	crc = Crc16(&Actual_SNS_DataState.Buffer[2],SizeAnsDSR-2, CRC16_INITIAL_FFFF);
-	// Проверяем контрольную сумму и код ответа, если не совпадают, то возвращаем 0
-	if((Actual_SNS_DataState.Struct.Response != DSR)||(Actual_SNS_DataState.Struct.CRC != crc))
-	{		
-		// Возвращаем признак неудачи
-		return SNS_WRONG_CRC; 
-	}
+	/* Проверим количество отправленных запросов, 
+	если больше лимита значит связаться ответ так и не был получен */	
+	if(requestCounter == SNS_REQUESTS_CNT)
+    return SNS_TIMEOUT;
+	
+//	// Вычисляем контрольную сумму пакета (без поля CRC)
+//	crc = Crc16(&Actual_SNS_DataState.Buffer[2],SizeAnsDSR-2, CRC16_INITIAL_FFFF);
+//	/* Проверяем контрольную сумму и код ответа */
+//	if((Actual_SNS_DataState.Struct.Response != DSR)||(Actual_SNS_DataState.Struct.CRC != crc))
+//	{		
+//		// Возвращаем признак неудачи
+//		return SNS_WRONG_CRC; 
+//	}
 	
 	// Проверки верны, поэтому возвращаем полученные данные
 	*SNS_DataState = Actual_SNS_DataState;
@@ -345,8 +401,9 @@ SNS_Status SNS_GetDataState(SNS_Available_Data_Response_Union*  SNS_DataState)
 SNS_Status SNS_GetPositionData(SNS_Position_Data_Response_Union*  SNS_PositionData)
 {
 	SNS_Position_Data_Response_Union  Actual_SNS_PositionData;             // Актуальный ответ от СНС
-	uint32_t timeout = 0;                                                  // Таймаут счетчик
+	uint32_t  timeout = 0;                                                  // Таймаут счетчик
 	uint16_t  crc;                                                         // Расчетная контрольная сумма
+	uint8_t   requestCounter = 0;                                          // Счетчик отправленых запросов
 	
 	// Вычищаем FIFO от мусора перед запросом
 	while ((UART_GetFlagStatus (SNS_UART, UART_FLAG_RXFE) != SET)&& (timeout != SNS_MAX_TIMEOUT))
@@ -366,22 +423,41 @@ SNS_Status SNS_GetPositionData(SNS_Position_Data_Response_Union*  SNS_PositionDa
 	
 	// Подключаемся к СНС
 	SNS_RetargetPins();
-	SNS_init();
-	// Запрашиваем информацию у СНС
-	SNS_Request(PDR);
-	// Получаем ответ
-	SNS_GetData_by_SLIP(SizeAnsPDR, &Actual_SNS_PositionData.Buffer[0]);
+	SNS_init();	
+	/* Так как СНС не спешит с ответом, необходимо спросить его несколько раз,
+	   и надеяться что хоть на какой-то из низ он ответит */
+	for(requestCounter = 0; requestCounter < SNS_REQUESTS_CNT; requestCounter++)
+	{
+	  /* Запрашиваем информацию у СНС */
+		SNS_Request(PDR);
+	  /* Пытаемся получить в ответ локальную структуру Actual_SNS_DeviceInformation */
+	  if(SNS_GetData_by_SLIP(SizeAnsPDR, &Actual_SNS_PositionData.Buffer[0]) == SNS_OK)
+		{
+		  /* Ответ получили, сразу проверим валидность пакета */
+      /* Вычисляем контрольную сумму пакета (без поля CRC) */
+      crc = Crc16(&Actual_SNS_PositionData.Buffer[2],SizeAnsPDR-2, CRC16_INITIAL_FFFF);
+      /* Проверяем контрольную сумму и код ответа */
+      if((Actual_SNS_PositionData.Struct.Response == PDR)||(Actual_SNS_PositionData.Struct.CRC == crc))
+        /* Если пакет валидный - выходим, если нет - отправляемся на очередную попытку связаться */
+        break;				
+		}
+	}
 	// Отключаемся от СНС
 	SNS_deinit();
 	
-	// Вычисляем контрольную сумму пакета (без поля CRC)
-	crc = Crc16(&Actual_SNS_PositionData.Buffer[2],SizeAnsPDR-2, CRC16_INITIAL_FFFF);
-	// Проверяем контрольную сумму и код ответа, если не совпадают, то возвращаем 0
-	if((Actual_SNS_PositionData.Struct.Response != PDR)||(Actual_SNS_PositionData.Struct.CRC != crc))
-	{
-		// Возвращаем признак неудачи
-		return SNS_WRONG_CRC;  
-	}
+  /* Проверим количество отправленных запросов, 
+	если больше лимита значит связаться ответ так и не был получен */	
+	if(requestCounter == SNS_REQUESTS_CNT)
+    return SNS_TIMEOUT;
+		
+//	// Вычисляем контрольную сумму пакета (без поля CRC)
+//	crc = Crc16(&Actual_SNS_PositionData.Buffer[2],SizeAnsPDR-2, CRC16_INITIAL_FFFF);
+//	// Проверяем контрольную сумму и код ответа, если не совпадают, то возвращаем 0
+//	if((Actual_SNS_PositionData.Struct.Response != PDR)||(Actual_SNS_PositionData.Struct.CRC != crc))
+//	{
+//		// Возвращаем признак неудачи
+//		return SNS_WRONG_CRC;  
+//	}
 	
 	// Проверки верны, поэтому возвращаем полученные данные
 	*SNS_PositionData = Actual_SNS_PositionData;
@@ -397,9 +473,10 @@ SNS_Status SNS_GetPositionData(SNS_Position_Data_Response_Union*  SNS_PositionDa
 **************************************************************************************************************/
 SNS_Status SNS_GetOrientationData(SNS_Orientation_Data_Response_Union*  SNS_OrientationData)
 {
-	SNS_Orientation_Data_Response_Union  Actual_SNS_OrientationData;          // Актуальный ответ от СНС
-	uint32_t timeout = 0;                                                     // Таймаут счетчик
-	uint16_t  crc;                                                            // Расчетная контрольная сумма
+	SNS_Orientation_Data_Response_Union  Actual_SNS_OrientationData;       // Актуальный ответ от СНС
+	uint32_t  timeout = 0;                                                 // Таймаут счетчик
+	uint16_t  crc;                                                         // Расчетная контрольная сумма
+	uint8_t   requestCounter = 0;                                          // Счетчик отправленых запросов
 		
 	//Вычищаем FIFO от мусора перед запросом
 	while ((UART_GetFlagStatus (SNS_UART, UART_FLAG_RXFE) != SET) && (timeout != SNS_MAX_TIMEOUT))
@@ -421,21 +498,40 @@ SNS_Status SNS_GetOrientationData(SNS_Orientation_Data_Response_Union*  SNS_Orie
 	// Подключаемся к СНС
 	SNS_RetargetPins();
 	SNS_init();
-	// Запрашиваем информацию у СНС
-	SNS_Request(ODR);
-	// Получаем ответ
-	SNS_GetData_by_SLIP(SizeAnsODR, &Actual_SNS_OrientationData.Buffer[0]);
+	/* Так как СНС не спешит с ответом, необходимо спросить его несколько раз,
+	   и надеяться что хоть на какой-то из низ он ответит */
+	for(requestCounter = 0; requestCounter < SNS_REQUESTS_CNT; requestCounter++)
+	{
+	  /* Запрашиваем информацию у СНС */
+	  SNS_Request(ODR);
+	  /* Пытаемся получить в ответ локальную структуру Actual_SNS_DeviceInformation */
+	  if(SNS_GetData_by_SLIP(SizeAnsODR, &Actual_SNS_OrientationData.Buffer[0]) == SNS_OK)
+		{
+		  /* Ответ получили, сразу проверим валидность пакета */
+      /* Вычисляем контрольную сумму пакета (без поля CRC) */
+	    crc = Crc16(&Actual_SNS_OrientationData.Buffer[2],SizeAnsODR-2, CRC16_INITIAL_FFFF);
+	    /* Проверяем контрольную сумму и код ответа */
+	    if((Actual_SNS_OrientationData.Struct.Response == ODR)||(Actual_SNS_OrientationData.Struct.CRC == crc))
+        /* Если пакет валидный - выходим, если нет - отправляемся на очередную попытку связаться */
+		    break; 
+		}
+	}
 	// Отключаемся от СНС
 	SNS_deinit();
 	
-	// Вычисляем контрольную сумму пакета (без поля CRC)
-	crc = Crc16(&Actual_SNS_OrientationData.Buffer[2],SizeAnsODR-2, CRC16_INITIAL_FFFF);
-	// Проверяем контрольную сумму и код ответа, если не совпадают, то возвращаем 0
-	if((Actual_SNS_OrientationData.Struct.Response != ODR)||(Actual_SNS_OrientationData.Struct.CRC != crc))
-	{
-		// Возвращаем признак неудачи 
-		return SNS_WRONG_CRC; 
-	}	
+	/* Проверим количество отправленных запросов, 
+	если больше лимита значит связаться ответ так и не был получен */	
+	if(requestCounter == SNS_REQUESTS_CNT)
+    return SNS_TIMEOUT;
+		
+//	// Вычисляем контрольную сумму пакета (без поля CRC)
+//	crc = Crc16(&Actual_SNS_OrientationData.Buffer[2],SizeAnsODR-2, CRC16_INITIAL_FFFF);
+//	// Проверяем контрольную сумму и код ответа, если не совпадают, то возвращаем 0
+//	if((Actual_SNS_OrientationData.Struct.Response != ODR)||(Actual_SNS_OrientationData.Struct.CRC != crc))
+//	{
+//		// Возвращаем признак неудачи 
+//		return SNS_WRONG_CRC; 
+//	}	
 	
 	// Проверки верны, поэтому возвращаем полученные данные
 	*SNS_OrientationData = Actual_SNS_OrientationData;

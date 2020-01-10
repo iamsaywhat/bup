@@ -430,15 +430,12 @@ SelfTesting_STATUS_TYPE SelfTesting_BLIND(void)
 SelfTesting_STATUS_TYPE SelfTesting_SNS(void)
 {
 	SNS_Device_Information_Response_Union   SNS_DeviceInformation;
-	uint8_t timeout = 0;
 	
-	// Связь с СНС работает не очень хорошо, поэтому будем пытаться установить связь 10 раз
-	while (SNS_GetDeviceInformation(&SNS_DeviceInformation) != SNS_OK && timeout != 10) timeout ++;
-	
-	if(timeout != 10)
-		SelfTesting_SET_OK(ST_sns);
+	/* Спросим у СНС состояние */
+	if(SNS_GetDeviceInformation(&SNS_DeviceInformation) == SNS_OK)
+	  SelfTesting_SET_OK(ST_sns);     /* Ответ получен */
 	else
-		SelfTesting_SET_FAULT(ST_sns);
+		SelfTesting_SET_FAULT(ST_sns);  /* Нет ответа */
 
 	return (SelfTesting_STATUS_TYPE)SelfTesting_STATUS(ST_sns);
 }

@@ -13,7 +13,7 @@
 *******************************************************************************************************************/
 const BupFirmwareVersion  bupFirmwareVersion = {0,         // Старшая версия ПО
                                                 30,        // Младшая версия ПО
-                                                4,         // Изменения внутри версии
+                                                5,         // Изменения внутри версии
 #ifdef flightRegulatorCFB // Если выбран flightRegulatorCFB
                                                 1,         // Oпция регулятора - flightRegulatorCFB
                                                 0,         // Старшая версия модели регулятора
@@ -114,15 +114,17 @@ void BUP_UpdateDataFromSWS (void)
 ***************************************************************************************************************/
 void BUP_UpdateDataFromSNS (void)
 {
-	uint8_t timeout1 = 0, timeout2 = 0;  // Таймаут-счетчик
+	SNS_Status statusPosition;
+	SNS_Status statusOrientation;
 
-	// Запрашиваем данные местоположения с контролем таймаута (спрашиваем не более 20 раз подряд)
-	while(SNS_GetPositionData(&SNS_Position) != SNS_OK && (timeout1 != 20)) timeout1 ++;	
-
-	// Запрашиваем данные ориентации с контролем таймаута (спрашиваем не более 20 раз подряд)
-	while(SNS_GetOrientationData(&SNS_Orientation) != SNS_OK && (timeout2 != 20)) timeout2 ++;
-	// Если выход по таймауту, то фиксируем как неисправность
-	if(timeout1 == 20 || timeout2 == 20)
+	/* Запрашиваем данные местоположения */
+	statusPosition = SNS_GetPositionData(&SNS_Position);	
+	
+	/* Запрашиваем данные ориентации */
+	statusOrientation = SNS_GetOrientationData(&SNS_Orientation);
+	
+	/* Проверяем статусы ответов */
+	if(statusPosition != SNS_OK || statusOrientation != SNS_OK)
 		SelfTesting_SET_FAULT(ST_sns);	
 }
 

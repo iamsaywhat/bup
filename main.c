@@ -33,10 +33,10 @@ int main(void)
 	// Настраиваем тактовую частоту процессора	
 	InitCLK();
 	// Запуск АЦП
-	ADC_init (ADC1, 
-	          Battery50V.Pin   ||
-	          Ch11Reserved.Pin ||
-						Ch12Reserved.Pin);
+	ADC_init (ADC1,                  /* Выбираем АЦП1*/
+	          Battery50V.Pin   ||    /* Пин под аккумулятор */
+	          Ch11Reserved.Pin ||    /* Резервный пин */
+						Ch12Reserved.Pin);     /* Резервный пин */
 	// Конфигурируем дискреты, при этом все реле гарантированно переводятся в состояние по-умолчанию
 	Discrete_RetargetPins();
 	// Запускаем драйвер памяти для полетного задания
@@ -57,10 +57,15 @@ int main(void)
 	// Запускаем фул-тест системы
 	SelfTestingFull();
   
+
 //	while(1)
 //	{
-//		BUP_DataUpdate ();
-//		res = GetBatteryCharge();
+//		//BUP_DataUpdate ();
+//		//GetBatteryCharge();
+//		
+//		SelfTesting_SNS();
+//		BUP_UpdateDataFromSNS ();
+//		
 //	}
 
 
