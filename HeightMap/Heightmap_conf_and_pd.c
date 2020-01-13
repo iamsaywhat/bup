@@ -1,25 +1,6 @@
 #include "Heightmap_conf_and_pd.h"
+#include "map_flash_layout.h"
 #include "1636PP52Y.h"
-
-
-// Адреса, по которым лежит информация по карте
-#define Adr_TDP_lat              0          // Адрес, по которому лежит ШИРОТА точки приземления
-#define Adr_TDP_lon              8          // Адрес, по которому лежит ДОЛГОТА точки приземления
-#define Adr_TDP_alt              16         // Адрес, по которому лежит ВЫСОТА РАСКРЫТИЯ ПАРАШЮТА
-#define Adr_PacketNum            18         // Адрес, по которому лежит КОЛИЧЕСТВО ПАКЕТОВ с картой
-#define Adr_LatCount             20         // Адрес, по которому лежит ЧИСЛО ШИРОТ ПАРАШЮТА
-#define Adr_LonCount             22         // Адрес, по которому лежит ЧИСЛО ДОЛГОТ ПАРАШЮТА
-#define Adr_NullPointLat         24         // Адрес, по которому лежит ШИРОТА НУЛЬ ТОЧКИ - Левая нижняя на карте
-#define Adr_NullPointLon         32         // Адрес, по которому лежит ДОЛГОТА НУЛЬ ТОЧКИ - Левая нижняя на карте
-#define Adr_StepLat              40         // Адрес, по которому лежит ШАГ СЕТКИ ПО ШИРОТЕ
-#define Adr_StepLon              48         // Адрес, по которому лежит ШАГ СЕТКИ ПО ДОЛГОТЕ
-#define Adr_CheckMap             320056     // Адрес, по которому лежит ПРИЗНАК ЗАГРУЖЕНОСТИ КАРТЫ
-#define Adr_FirstAlt             56         // Адрес, по которому лежит НАЧАЛО ПЕРВОГО ПАКЕТА с высотами
-
-// Структурные определения информационной части карты
-#define ByteSizeMapPacket        800        // Размер в байтах ПАКЕТА С ВЫСОТАМИ
-#define AltNumINPacket           400        // Количество высот в одном пакете 
-
 
 
 /**********************************************************************************
@@ -60,9 +41,9 @@ char CheckMap(void)
 {	
 	unsigned char buff[4];
 	// Признак загружености карты записан по адресу 320056 (4 байта)
-	ReadMap(Adr_CheckMap, buff, 4);
+	ReadMap(ADDRESS_MAP_TAG, buff, 4);
 	// Проверяем признак
-	if(*((uint32_t*)buff) == 0x4F4F4F4F)
+	if(*((uint32_t*)buff) == MAP_TAG)
 		return 1;
 	else
 		return 0;
@@ -75,7 +56,7 @@ char CheckMap(void)
 double GetTouchDownPointLat(void)
 {
 	unsigned char buff[8];
-	ReadMap(Adr_TDP_lat, buff, 8);
+	ReadMap(ADDRESS_TDP_LAT, buff, 8);
 	return *(double*)buff;
 }
 
@@ -87,7 +68,7 @@ double GetTouchDownPointLat(void)
 double GetTouchDownPointLon(void)
 {
 	unsigned char buff[8];
-	ReadMap(Adr_TDP_lon , buff, 8);
+	ReadMap(ADDRESS_TDP_LON , buff, 8);
 	return *(double*)buff;
 }
 
@@ -98,7 +79,7 @@ double GetTouchDownPointLon(void)
 double GetTouchDownPointAlt(void)
 {
 	unsigned char buff[2];
-	ReadMap(Adr_TDP_alt, buff, 2);
+	ReadMap(ADDRESS_TDP_ALT, buff, 2);
 	return *(short*)buff;
 }
 
@@ -110,7 +91,7 @@ double GetTouchDownPointAlt(void)
 short GetMapProperties_LatCount(void)
 {
 	unsigned char buff[2];
-	ReadMap(Adr_LatCount, buff, 2);
+	ReadMap(ADDRESS_LAT_COUNT, buff, 2);
 	return *(short*)buff;
 }
 
@@ -123,7 +104,7 @@ short GetMapProperties_LonCount(void)
 {
 	unsigned char buff[2];
 	
-	ReadMap(Adr_LonCount, buff, 2);
+	ReadMap(ADDRESS_LON_COUNT, buff, 2);
 	return *(short*)buff;
 }
 
@@ -136,7 +117,7 @@ double GetMapProperties_NullPointLat(void)
 {
 	unsigned char buff[8];
 	
-	ReadMap(Adr_NullPointLat, buff, 8);
+	ReadMap(ADDRESS_NULL_POINT_LAT, buff, 8);
 	return *(double*)buff;
 }
 
@@ -149,7 +130,7 @@ double GetMapProperties_NullPointLon(void)
 {
 	unsigned char buff[8];
 	
-	ReadMap(Adr_NullPointLon, buff, 8);
+	ReadMap(ADDRESS_NULL_POINT_LON, buff, 8);
 	return *(double*)buff;
 }
 
@@ -162,7 +143,7 @@ double GetMapProperties_MapStepLat(void)
 {
 	unsigned char buff[8];
 	
-	ReadMap(Adr_StepLat, buff, 8);
+	ReadMap(ADDRESS_STEP_LAT, buff, 8);
 	// Значение действительно в секундах, то нужно привести к градусам делением на 3600
 	return (*(double*)buff) / 3600.0;
 }
@@ -176,7 +157,7 @@ double GetMapProperties_MapStepLon(void)
 {
 	unsigned char buff[8];
 	
-	ReadMap(Adr_StepLon, buff, 8);
+	ReadMap(ADDRESS_STEP_LON, buff, 8);
 	// Значение действительно в секундах, то нужно привести к градусам делением на 3600
 	return (*(double*)buff) / 3600.0;
 }
@@ -198,7 +179,7 @@ short GetMapProperties_Alt(unsigned int LON_INDEX, unsigned int LAT_INDEX)
 	unsigned char buff[2];
 	unsigned int Address = 0;
 	
-	Address = Adr_FirstAlt + ByteSizeMapPacket * (AltNumINPacket - 1 - LAT_INDEX) + 2 * LON_INDEX;
+	Address = ADDRESS_FIRST_ALT + SIZE_OF_n_PACKET_DATA * (NUMBER_OF_DATA_IN_PACKET - 1 - LAT_INDEX) + 2 * LON_INDEX;
 	ReadMap(Address, buff, 2);
 	
 	return *(short*)buff;

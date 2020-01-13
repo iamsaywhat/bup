@@ -16,6 +16,8 @@
 #include "bup_data_store.h"
 #include "HeightMap/map_flash_layout.h"
 
+#include "string.h"
+
 
 #define BUFFER_SIZE 800
 static uint8_t buffer [BUFFER_SIZE];
@@ -50,56 +52,56 @@ uint8_t TimeoutCounter = 0;
 /*--------------------------------------------------------------------------------------------Обслуживание простых запросов-----------*/
 static uint16_t ZPZ_RequestWithEmptyData(uint16_t CRC); 
 /*--------------------------------------------------------------------------------------------Обслуживание команды CHECK_CONNECT-------*/
-static uint16_t ZPZ_Request_CHECK_CONNECT (uint16_t CRC);
-static void     ZPZ_Response_CHECK_CONNECT (uint16_t NumPacket);
+static uint16_t ZPZ_Request_CHECK_CONNECT(uint16_t CRC);
+static void     ZPZ_Response_CHECK_CONNECT(uint16_t NumPacket);
 /*--------------------------------------------------------------------------------------------Обслуживание команды START_DOWNLOAD------*/
-static uint16_t ZPZ_Request_START_DOWNLOAD (uint16_t CRC);
-static void     ZPZ_Response_START_DOWNLOAD (uint16_t NumPacket);
+static uint16_t ZPZ_Request_START_DOWNLOAD(uint16_t CRC);
+static void     ZPZ_Response_START_DOWNLOAD(uint16_t NumPacket);
 /*--------------------------------------------------------------------------------------------Обслуживание команды MAP_DOWNLOAD--------*/
-static uint16_t ZPZ_Request_MAP_DOWNLOAD (uint16_t CRC, uint16_t NumPacket);
-static void     ZPZ_Response_MAP_DOWNLOAD (uint16_t NumPacket);
+static uint16_t ZPZ_Request_MAP_DOWNLOAD(uint16_t CRC);
+static void     ZPZ_Response_MAP_DOWNLOAD(uint16_t NumPacket);
 /*--------------------------------------------------------------------------------------------Обслуживание команды START_UPLOAD--------*/
-static uint16_t ZPZ_Request_START_UPLOAD (uint16_t CRC);
-static void     ZPZ_Response_START_UPLOAD (uint16_t NumPacket); 
+static uint16_t ZPZ_Request_START_UPLOAD(uint16_t CRC);
+static void     ZPZ_Response_START_UPLOAD(uint16_t NumPacket); 
 /*--------------------------------------------------------------------------------------------Обслуживание команды MAP_UPLOAD----------*/
-static uint16_t ZPZ_Request_MAP_UPLOAD (uint16_t CRC);
-static void     ZPZ_Response_MAP_UPLOAD (uint16_t NumPacket);
+static uint16_t ZPZ_Request_MAP_UPLOAD(uint16_t CRC);
+static void     ZPZ_Response_MAP_UPLOAD(uint16_t NumPacket);
 /*--------------------------------------------------------------------------------------------Обслуживание команды BIM_CONTROL---------*/
-static uint16_t ZPZ_Request_BIM_CONTROL (uint16_t CRC, ZPZ_RequestControlBIM_Union* BIM_Data);
-static void     ZPZ_Response_BIM_CONTROL (ZPZ_RequestControlBIM_Union* BIM_Data, uint16_t NumPacket);
+static uint16_t ZPZ_Request_BIM_CONTROL(uint16_t CRC);
+static void     ZPZ_Response_BIM_CONTROL(uint16_t NumPacket);
 /*--------------------------------------------------------------------------------------------Обслуживание команды BIM_STATUS----------*/
-static uint16_t ZPZ_Request_BIM_STATUS (uint16_t CRC, ZPZ_RequestControlBIM_Union* BIMControl);
-static void     ZPZ_Response_BIM_STATUS(uint8_t Side, uint16_t NumPacket);
+static uint16_t ZPZ_Request_BIM_STATUS(uint16_t CRC);
+static void     ZPZ_Response_BIM_STATUS(uint16_t NumPacket);
 /*--------------------------------------------------------------------------------------------Обслуживание команды LOG_FORMAT----------*/
-static uint16_t ZPZ_Request_LOG_FORMAT (uint16_t CRC, uint8_t* Subcommand);
-static void     ZPZ_Response_LOG_FORMAT (uint16_t NumPacket, uint8_t Subcommand);
+static uint16_t ZPZ_Request_LOG_FORMAT(uint16_t CRC);
+static void     ZPZ_Response_LOG_FORMAT(uint16_t NumPacket);
 /*--------------------------------------------------------------------------------------------Обслуживание команды LOG_FILES-----------*/
-static uint16_t ZPZ_Request_LOG_FILES (uint16_t CRC);
-static void     ZPZ_Response_LOG_FILES (uint16_t NumPacket);
+static uint16_t ZPZ_Request_LOG_FILES(uint16_t CRC);
+static void     ZPZ_Response_LOG_FILES(uint16_t NumPacket);
 /*--------------------------------------------------------------------------------------------Обслуживание команды LOG_UPLOAD----------*/
-static uint16_t ZPZ_Request_LOG_UPLOAD(uint16_t CRC, uint16_t* NUM);
-static uint8_t  ZPZ_Response_LOG_UPLOAD(uint16_t File_num, uint16_t NumPacket);
+static uint16_t ZPZ_Request_LOG_UPLOAD(uint16_t CRC);
+static void     ZPZ_Response_LOG_UPLOAD(uint16_t File_num);
 /*--------------------------------------------------------------------------------------------Обслуживание команды REQ_SWS-------------*/
-static uint16_t ZPZ_Request_REQ_SWS (uint16_t CRC);
-static uint8_t  ZPZ_Response_REQ_SWS (uint16_t NumPacket);
+static uint16_t ZPZ_Request_REQ_SWS(uint16_t CRC);
+static void     ZPZ_Response_REQ_SWS(uint16_t NumPacket);
 /*--------------------------------------------------------------------------------------------Обслуживание команды REQ_SNS_POS---------*/
-static uint16_t ZPZ_Request_REQ_SNS_POS (uint16_t CRC);
-static uint8_t  ZPZ_Response_REQ_SNS_POS (uint16_t NumPacket);
+static uint16_t ZPZ_Request_REQ_SNS_POS(uint16_t CRC);
+static void     ZPZ_Response_REQ_SNS_POS(uint16_t NumPacket);
 /*--------------------------------------------------------------------------------------------Обслуживание команды REQ_SNS_STATE-------*/
 static uint16_t ZPZ_Request_REQ_SNS_STATE (uint16_t CRC);
-static uint8_t  ZPZ_Response_REQ_SNS_STATE (uint16_t NumPacket);
+static void     ZPZ_Response_REQ_SNS_STATE (uint16_t NumPacket);
 /*--------------------------------------------------------------------------------------------Обслуживание команды REQ_SNS_SETTINGS----*/
-static uint16_t ZPZ_Request_REQ_SNS_SETTINGS(uint16_t CRC, uint8_t* buffer);
-static uint8_t  ZPZ_Response_REQ_SNS_SETTINGS (uint8_t* params, uint16_t NumPacket);
+static uint16_t ZPZ_Request_REQ_SNS_SETTINGS(uint16_t CRC);
+static void     ZPZ_Response_REQ_SNS_SETTINGS(uint16_t NumPacket);
 /*--------------------------------------------------------------------------------------------Обслуживание команды PIN_STATE-----------*/
 static uint16_t ZPZ_Request_PIN_STATE(uint16_t CRC);
-static void     ZPZ_Response_PIN_STATE (uint16_t NumPacket);
+static void     ZPZ_Response_PIN_STATE(uint16_t NumPacket);
 /*--------------------------------------------------------------------------------------------Обслуживание команды SYSTEM_STATE--------*/
-static uint16_t ZPZ_Request_SYSTEM_STATE (uint16_t CRC);
-static void     ZPZ_Response_SYSTEM_STATE (uint16_t NumPacket);
+static uint16_t ZPZ_Request_SYSTEM_STATE(uint16_t CRC);
+static void     ZPZ_Response_SYSTEM_STATE(uint16_t NumPacket);
 /*--------------------------------------------------------------------------------------------Обслуживание команды CAN_TRANSMIT--------*/
-static uint16_t ZPZ_Request_CAN_TRANSMIT (uint16_t CRC, uint8_t* buffer);
-static void     ZPZ_Response_CAN_TRANSMIT (uint8_t* buffer, uint16_t NumPacket);
+static uint16_t ZPZ_Request_CAN_TRANSMIT(uint16_t CRC);
+static void     ZPZ_Response_CAN_TRANSMIT(uint16_t NumPacket);
 /*--------------------------------------------------------------------------------------------Обёртка UART функций со SLIP-------------*/
 static uint16_t UARTReceiveByte_by_SLIP(MDR_UART_TypeDef* UARTx, uint32_t TimeoutRange);
 static int16_t  UARTSendByte_by_SLIP (MDR_UART_TypeDef* UARTx, uint32_t TimeoutRange, uint16_t Byte);
@@ -183,8 +185,7 @@ void ZPZ_deinit (void)
 void ZPZ_ShortResponse(uint8_t Command, uint16_t Count, uint8_t Error)
 {
 	ZPZ_Response_Union   ZPZ_Response;
-	uint16_t timeout = 0;
-	uint8_t  i;
+	uint16_t             timeout = 0;
 	
 	//Заполняем сткруктуру ответа
 	ZPZ_Response.Struct.Handler     = HANDLER_BU;   // "UB" - Должно быть "BU", но выдача идём младшим байтом вперед
@@ -200,7 +201,7 @@ void ZPZ_ShortResponse(uint8_t Command, uint16_t Count, uint8_t Error)
 	SendFEND(ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT);
 	
 	// Теперь остальную часть пакета
-	for(i = 0; i < 10; i++)
+	for(uint8_t i = 0; i < 10; i++)
 	{
 		UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, ZPZ_Response.Buffer[i]);
 	}
@@ -293,15 +294,9 @@ uint8_t ZPZ_Service (void)
 {
 	
 	ZPZ_BasePacket_Union          ZPZ_Base_Request;  // Сюда складывается приходящий запрос (кроме полей "данные")
-	ZPZ_RequestControlBIM_Union   BIM_Control;       // Структура для обслуживания команд BIM_CONTROL и BIM_STATUS
 	
 	uint32_t timeout = 0;             // Контроль превышения времени обработки
-	uint16_t crc, i;                  // Контрольная сумма и счетчик циклов
-	uint16_t Log_files = 0;           // Номер запрашиваемого файла (обслуж. команды LOG_UPLOAD)
-	uint8_t  SNS_opt[3];              // Буфер для обслуживания команды REQ_SNS_SETTINGS
-	uint8_t  CAN_buff[11];            // Буфер для обслуживания команды CAN_TRANSMIT
-	uint8_t  LOG_FS_Subcommand = 0;   // Подкоманда для форматирования "черного ящика"
-		
+	uint16_t crc;                     // Контрольная сумма		
 	
 	//Вычищаем FIFO от мусора и ждем пока не появится заголовок
 	// while (UART_GetFlagStatus (ZPZ_UART, UART_FLAG_RXFE) != SET) UART_ReceiveData(ZPZ_UART);	
@@ -324,7 +319,7 @@ uint8_t ZPZ_Service (void)
 		
 	// Заголовок обнаружен, далее приём синхронен
 	ZPZ_Base_Request.Struct.Handler = HANDLER_PC;
-	for(i = 2; i < 7; i++)
+	for(uint16_t i = 2; i < 7; i++)
 	{
 		// Принимаем остальное
 		ZPZ_Base_Request.Buffer[i] = UARTReceiveByte_by_SLIP(ZPZ_UART, ZPZ_RECEIVE_BYTE_TIMEOUT);
@@ -351,7 +346,7 @@ uint8_t ZPZ_Service (void)
 			// Отмечаемся в чекпоинт-функции "ВВПЗ", что мы не повисли
 			ZPZ_CheckpointHighPriorityTask ();
 			// Принимаем данные запроса
-			crc = ZPZ_Request_MAP_DOWNLOAD (crc, ZPZ_Base_Request.Struct.Count);
+			crc = ZPZ_Request_MAP_DOWNLOAD (crc);
 			break;
 		
 		case START_UPLOAD: // Начало выгрузки полетного задания 
@@ -377,17 +372,17 @@ uint8_t ZPZ_Service (void)
 		
 		case BIM_CONTROL:
 			
-			crc = ZPZ_Request_BIM_CONTROL (crc, &BIM_Control);
+			crc = ZPZ_Request_BIM_CONTROL (crc);
 		  break;
 		
 		case BIM_STATUS: 	
 			
-			crc = ZPZ_Request_BIM_STATUS (crc, &BIM_Control);	
+			crc = ZPZ_Request_BIM_STATUS (crc);	
 			break;
 		
 		case LOG_FORMAT:
 			
-			crc = ZPZ_Request_LOG_FORMAT(crc, &LOG_FS_Subcommand);
+			crc = ZPZ_Request_LOG_FORMAT(crc);
 		  break;
 		
 		case LOG_FILES:
@@ -408,7 +403,7 @@ uint8_t ZPZ_Service (void)
 				ZPZ_CheckpointHighPriorityTask ();
 		  
 			// Принимаем данные запроса
-			crc = ZPZ_Request_LOG_UPLOAD(crc, &Log_files);
+			crc = ZPZ_Request_LOG_UPLOAD(crc);
 			break;
 		
 		case REQ_SWS:
@@ -428,7 +423,7 @@ uint8_t ZPZ_Service (void)
 		
 		case REQ_SNS_SETTINGS:
 			
-			crc = ZPZ_Request_REQ_SNS_SETTINGS(crc, SNS_opt);
+			crc = ZPZ_Request_REQ_SNS_SETTINGS(crc);
 			break;
 		
 		case PIN_STATE:
@@ -443,7 +438,7 @@ uint8_t ZPZ_Service (void)
 		
 		case CAN_TRANSMIT:
 			
-			crc = ZPZ_Request_CAN_TRANSMIT (crc, CAN_buff);
+			crc = ZPZ_Request_CAN_TRANSMIT (crc);
 		  break;
 		
 		default:
@@ -454,7 +449,7 @@ uint8_t ZPZ_Service (void)
 	
 	// Обработка данных пакета завершена, все функции возращаются сюда
 	// Принимаем контрольную сумму сообщения
-	for(i = 7; i < 9; i++)
+	for(uint16_t i = 7; i < 9; i++)
 	{
 		ZPZ_Base_Request.Buffer[i] = UARTReceiveByte_by_SLIP(ZPZ_UART, ZPZ_RECEIVE_BYTE_TIMEOUT);
 	}
@@ -516,15 +511,15 @@ uint8_t ZPZ_Service (void)
 			break;
 		
 		case BIM_CONTROL:
-			ZPZ_Response_BIM_CONTROL (&BIM_Control, ZPZ_Base_Request.Struct.Count);
+			ZPZ_Response_BIM_CONTROL (ZPZ_Base_Request.Struct.Count);
 			break;
 		
 		case BIM_STATUS: 
-			ZPZ_Response_BIM_STATUS(BIM_Control.Struct.Side,ZPZ_Base_Request.Struct.Count);
+			ZPZ_Response_BIM_STATUS(ZPZ_Base_Request.Struct.Count);
 			break;
 		
 		case LOG_FORMAT:
-			ZPZ_Response_LOG_FORMAT (ZPZ_Base_Request.Struct.Count, LOG_FS_Subcommand);
+			ZPZ_Response_LOG_FORMAT (ZPZ_Base_Request.Struct.Count);
 			break;
 		
 		case LOG_FILES:
@@ -532,7 +527,7 @@ uint8_t ZPZ_Service (void)
 			break;
 		
 		case LOG_UPLOAD:
-			ZPZ_Response_LOG_UPLOAD(Log_files, ZPZ_Base_Request.Struct.Count);
+			ZPZ_Response_LOG_UPLOAD(ZPZ_Base_Request.Struct.Count);
 			break;
 		
 		case REQ_SWS:
@@ -548,7 +543,7 @@ uint8_t ZPZ_Service (void)
 			break;
 		
 		case REQ_SNS_SETTINGS:
-			ZPZ_Response_REQ_SNS_SETTINGS (SNS_opt, ZPZ_Base_Request.Struct.Count);
+			ZPZ_Response_REQ_SNS_SETTINGS (ZPZ_Base_Request.Struct.Count);
 			break;
 		
 		case PIN_STATE:
@@ -560,7 +555,7 @@ uint8_t ZPZ_Service (void)
 			break;
 		
 		case CAN_TRANSMIT:
-			ZPZ_Response_CAN_TRANSMIT (CAN_buff, ZPZ_Base_Request.Struct.Count);
+			ZPZ_Response_CAN_TRANSMIT (ZPZ_Base_Request.Struct.Count);
 			break;
 		
 		default:
@@ -756,7 +751,7 @@ static void ZPZ_Response_START_DOWNLOAD (uint16_t NumPacket)
 
 
 //-----------------------------------------Обслуживание команды MAP_DOWNLOAD---------------------------------------------------------*/
-static uint16_t ZPZ_Request_MAP_DOWNLOAD (uint16_t CRC, uint16_t NumPacket)
+static uint16_t ZPZ_Request_MAP_DOWNLOAD (uint16_t CRC)
 {
 	uint16_t crc;
 		
@@ -920,32 +915,30 @@ static void ZPZ_Response_MAP_UPLOAD (uint16_t NumPacket)
 
 
 //-----------------------------------------Обслуживание команды BIM_CONTROL---------------------------------------------------------*/
-static uint16_t ZPZ_Request_BIM_CONTROL (uint16_t CRC, ZPZ_RequestControlBIM_Union* BIM_Data)
+static uint16_t ZPZ_Request_BIM_CONTROL (uint16_t CRC)
 {
 	uint16_t crc;
 
-	/* Здесь необходимо принять только 3 байта согласно протоколу:
-	   Side  0x4C ('L') левый БИМ		
-	   0x52 ('R') правый БИМ		
-	   State 0x00 выключить двигатель					
-	         0x01 включить двигатель					
-	   Position 0…255 (0=0%, 255=100%) значение положения стропы */
-	
-	/* Принимаем информационную часть */
-	BIM_Data->Struct.Side     = UARTReceiveByte_by_SLIP(ZPZ_UART,ZPZ_RECEIVE_BYTE_TIMEOUT);
-	BIM_Data->Struct.State    = UARTReceiveByte_by_SLIP(ZPZ_UART,ZPZ_RECEIVE_BYTE_TIMEOUT);
-	BIM_Data->Struct.Position = UARTReceiveByte_by_SLIP(ZPZ_UART,ZPZ_RECEIVE_BYTE_TIMEOUT);
-	
+	/* Должны принять 3 байта, какие пока неважно */
+	for(uint8_t i = 0; i < 3; i++)
+	{
+		buffer[i] = UARTReceiveByte_by_SLIP(ZPZ_UART,ZPZ_RECEIVE_BYTE_TIMEOUT);
+	}
 	/* Считаем контрольную сумму, используя контрольную сумму основной части пакета CRC */
-	crc = Crc16(&BIM_Data->Buffer[0], 3, CRC);
+	crc = Crc16(buffer, 3, CRC);
 	
 	return crc;
 }
 
-static void ZPZ_Response_BIM_CONTROL (ZPZ_RequestControlBIM_Union* BIM_Data, uint16_t NumPacket)
+static void ZPZ_Response_BIM_CONTROL (uint16_t NumPacket)
 {
 	uint16_t BIM_Side;
 	uint8_t  status = 0;
+	ZPZ_RequestControlBIM_Union BIM_Data;
+	
+	/* Разберем буфер */
+	memcpy(&BIM_Data.Buffer, buffer, 3);
+
 	
 	/* Для отправки запроса БИМ необходимо, чтобы БИМ был запитан аппаратно */
 	/* Если шпилька 1 вставлена */
@@ -966,9 +959,9 @@ static void ZPZ_Response_BIM_CONTROL (ZPZ_RequestControlBIM_Union* BIM_Data, uin
 	}
 		
 	/* Определяем правым или левым БИМом будем управлять */
-	if (BIM_Data->Struct.Side == L_BIM) 
+	if (BIM_Data.Struct.Side == L_BIM) 
 		BIM_Side =  DEVICE_101;
-	else if (BIM_Data->Struct.Side == R_BIM) 
+	else if (BIM_Data.Struct.Side == R_BIM) 
 		BIM_Side = DEVICE_100;
 	else 
 	{
@@ -979,7 +972,7 @@ static void ZPZ_Response_BIM_CONTROL (ZPZ_RequestControlBIM_Union* BIM_Data, uin
 	}
 	
 	/* Отправляем запрос на управление с параметрами */
-	status = BIM_SendRequest (BIM_Side, BIM_Data->Struct.State, BIM_Data->Struct.Position, 7, 255, 255);
+	status = BIM_SendRequest (BIM_Side, BIM_Data.Struct.State, BIM_Data.Struct.Position, 7, 255, 255);
 	
 	/* Теперь нужно ответить по ЗПЗ */
 	if(status)
@@ -991,27 +984,25 @@ static void ZPZ_Response_BIM_CONTROL (ZPZ_RequestControlBIM_Union* BIM_Data, uin
 
 
 //-----------------------------------------Обслуживание команды BIM_STATUS---------------------------------------------------------*/
-static uint16_t ZPZ_Request_BIM_STATUS (uint16_t CRC, ZPZ_RequestControlBIM_Union* BIMControl)	
+static uint16_t ZPZ_Request_BIM_STATUS (uint16_t CRC)	
 {
 	uint16_t crc = 0;
 	
-	/* Данные поля просто устанавливаем в ноль, они не используются */
-	BIMControl->Struct.State       = 0; 
-	BIMControl->Struct.Position    = 0;
-	/* Принимаем байт выбора БИМа */
-	BIMControl->Struct.Side        = UARTReceiveByte_by_SLIP(ZPZ_UART, ZPZ_RECEIVE_BYTE_TIMEOUT);
-	/* Подсчитываем контрольную сумму с учетом принятого байта */
-	crc = Crc16(&BIMControl->Struct.Side, 1, CRC);
+	buffer[0] = UARTReceiveByte_by_SLIP(ZPZ_UART, ZPZ_RECEIVE_BYTE_TIMEOUT);
+	crc = Crc16(buffer, 1, CRC);
 	
 	return crc;
 }
 
-static void ZPZ_Response_BIM_STATUS(uint8_t Side, uint16_t NumPacket)
+static void ZPZ_Response_BIM_STATUS(uint16_t NumPacket)
 {
 	ZPZ_ResponseStatusBIM_Union   ZPZ_BIM_Status;      // Структура с информацией от БИМ
 	ZPZ_Response_Union            ZPZ_Response;        // Стандартный ответ к ЗПЗ
 	uint16_t                      BIM_Side, i;         // Выбор левого, правого БИМ; счетчик циклов
 	uint8_t                       status = 0;          // Статус обмена с БИМ
+	
+	/* Разбираем буфер */
+	uint8_t Side = buffer[0];
 	
 	/* Для отправки запроса БИМ необходимо, чтобы БИМ был запитан аппаратно */
 	/* Если шпилька 1 вставлена */
@@ -1096,22 +1087,26 @@ static void ZPZ_Response_BIM_STATUS(uint8_t Side, uint16_t NumPacket)
 
 
 //-----------------------------------------Обслуживание команды LOG_FORMAT---------------------------------------------------------*/
-static uint16_t ZPZ_Request_LOG_FORMAT (uint16_t CRC, uint8_t* Subcommand)
+static uint16_t ZPZ_Request_LOG_FORMAT (uint16_t CRC)
 {
 	uint16_t crc;
 	
 	/* Принимаем байт подкоманды: Запуск форматирования или Статус форматирования */
-	*Subcommand = UARTReceiveByte_by_SLIP(ZPZ_UART, ZPZ_RECEIVE_BYTE_TIMEOUT);
+	buffer[0] = UARTReceiveByte_by_SLIP(ZPZ_UART, ZPZ_RECEIVE_BYTE_TIMEOUT);
 	/* Подсчитываем контрольную сумму */
-	crc = Crc16(Subcommand, 1, CRC);
+	crc = Crc16(buffer, 1, CRC);
 	
 	return crc;
 }
 
-static void ZPZ_Response_LOG_FORMAT (uint16_t NumPacket, uint8_t Subcommand)
+static void ZPZ_Response_LOG_FORMAT (uint16_t NumPacket)
 {
 	ZPZ_Response_Union   ZPZ_Response;    // Стандартный ответ к ЗПЗ
+	uint8_t              Subcommand;      // Код подкоманды
 	
+	/* Берем 0й байт из буфера - это наша подкоманда */
+	Subcommand = buffer[0];
+
 	/* Проверим верная ли пришла подкоманда: */
 	if(Subcommand != 0x02 && Subcommand != 0x01)
 	{
@@ -1277,36 +1272,38 @@ static void ZPZ_Response_LOG_FILES (uint16_t NumPacket)
 
 
 //-----------------------------------------Обслуживание команды LOG_UPLOAD---------------------------------------------------------*/
-static uint16_t ZPZ_Request_LOG_UPLOAD(uint16_t CRC, uint16_t* NUM)
+static uint16_t ZPZ_Request_LOG_UPLOAD(uint16_t CRC)
 {
 	uint16_t crc = 0;
 	
 	/* Допринимаем остальные два байта с номером файла
 	   который просят отправить */
-	buffer[0] = UARTReceiveByte_by_SLIP(ZPZ_UART, ZPZ_RECEIVE_BYTE_TIMEOUT);
-	crc = Crc16(buffer, 1, CRC);
-	*NUM = buffer[0];
-	buffer[0] = UARTReceiveByte_by_SLIP(ZPZ_UART, ZPZ_RECEIVE_BYTE_TIMEOUT);
-	crc = Crc16(buffer, 1, crc);
-	*NUM |= (uint8_t)(buffer[0] << 8);
+	for(uint8_t i = 0; i < 2; i++)
+	  buffer[i] = UARTReceiveByte_by_SLIP(ZPZ_UART, ZPZ_RECEIVE_BYTE_TIMEOUT);
+	/* Подсчитываем crc */
+	crc = Crc16(buffer, 2, CRC);
 	
 	return crc;
 }
 
-static uint8_t ZPZ_Response_LOG_UPLOAD(uint16_t File_num, uint16_t NumPacket)
+static void ZPZ_Response_LOG_UPLOAD(uint16_t NumPacket)
 {
 	ZPZ_Response_Union    ZPZ_Response;      // Стандартный ответ к ЗПЗ
 	uint32_t              filesize;          // Размер файла
 	uint16_t              packet_count = 0;  // Количество пакетов на которые будет разбит файл
 	uint32_t              offset;            // Смещение (в байтах) от начала файла
+	uint16_t              fileNumber;        // Номер запрашиваемого файла
+	
+	/* Заберем из буфера номер запрашиваемого файла */
+	fileNumber = *((uint16_t*)buffer);
 	
 	/* Ищем файл в хранилище по номеру
 	   Если функция не найдет файл, то выдаст ошибку, тогда можно не продолжать */
-	if(Log_Fs_FindFile_ByNum(File_num)!= FS_FINE)
+	if(Log_Fs_FindFile_ByNum(fileNumber)!= FS_FINE)
 	{
 		/* Ответим ошибкой: Файл с таким номером не найден */
 		ZPZ_ShortResponse(LOG_UPLOAD, 0, LOG_FS_FILE_NOT_FIND);
-		return 1;
+		return;
 	}
 
 	/* Узнаем размер файла */
@@ -1322,7 +1319,7 @@ static uint8_t ZPZ_Response_LOG_UPLOAD(uint16_t File_num, uint16_t NumPacket)
 	ZPZ_Response.Struct.PacketSize = 6;
 	
 	/* Если номер пакета нулевой, то запрашивается количество пакетов, 
-	   на которые будет разбит файл с номером File_num */
+	   на которые будет разбит файл с номером fileNumber */
 	if(NumPacket == 0)
 	{
 		/* Узнаем на сколько пакетов по BYTE_FROM_FILE байт разобьётся файл */
@@ -1342,7 +1339,7 @@ static uint8_t ZPZ_Response_LOG_UPLOAD(uint16_t File_num, uint16_t NumPacket)
 			UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, ZPZ_Response.Buffer[i]);
 		
 		/* Отправляем номер файла */
-	  *(uint16_t*)buffer = File_num;
+	  *(uint16_t*)buffer = fileNumber; 
 	  /* Подсчитываем контрольную сумму с учетом этого */
 	  ZPZ_Response.Struct.CRC = Crc16(buffer, 2, ZPZ_Response.Struct.CRC);
 	  /* Отправляем номер файла */
@@ -1373,7 +1370,7 @@ static uint8_t ZPZ_Response_LOG_UPLOAD(uint16_t File_num, uint16_t NumPacket)
 		{
 			/* Ответим ошибкой */
 			ZPZ_ShortResponse(LOG_UPLOAD, NumPacket, LOG_FS_PACKET_NOT_EXIST);
-			return 1;
+			return;
 		}
 		
 		/* Такой пакет определен, готовимся к отправке */
@@ -1398,7 +1395,7 @@ static uint8_t ZPZ_Response_LOG_UPLOAD(uint16_t File_num, uint16_t NumPacket)
 				UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, ZPZ_Response.Buffer[i]);
 			
 			/* Отправляем номер файла */
-			*(uint16_t*)buffer = File_num;
+			*(uint16_t*)buffer = fileNumber;
 			/* Подсчитываем контрольную сумму с учетом этого */
 			ZPZ_Response.Struct.CRC = Crc16(buffer, 2, 	ZPZ_Response.Struct.CRC);
 			/* Отправляем номер файла */
@@ -1436,7 +1433,7 @@ static uint8_t ZPZ_Response_LOG_UPLOAD(uint16_t File_num, uint16_t NumPacket)
 				UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, ZPZ_Response.Buffer[i]);
 			
 			/* Отправляем номер файла */
-			*(uint16_t*)buffer = File_num;
+			*(uint16_t*)buffer = fileNumber;
 			/* Подсчитываем контрольную сумму с учетом этого */
 			ZPZ_Response.Struct.CRC = Crc16(buffer, 2, 	ZPZ_Response.Struct.CRC);
 			/* Отправляем номер файла  */
@@ -1464,8 +1461,6 @@ static uint8_t ZPZ_Response_LOG_UPLOAD(uint16_t File_num, uint16_t NumPacket)
 		
 	/* И в конце опять разделитель */
 	SendFEND(ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT);
-	
-	return ZPZ_OK;
 }
 
 
@@ -1476,7 +1471,7 @@ static uint16_t ZPZ_Request_REQ_SWS (uint16_t CRC)
 	return ZPZ_RequestWithEmptyData(CRC);
 }
 
-static uint8_t ZPZ_Response_REQ_SWS (uint16_t NumPacket)
+static void ZPZ_Response_REQ_SWS (uint16_t NumPacket)
 {
 	ZPZ_Response_Union    ZPZ_Response;    // Стандартный ответ к ЗПЗ
 	SWS_Packet_Type_Union SWS_data;        // Структура ответа от СВС
@@ -1491,7 +1486,7 @@ static uint8_t ZPZ_Response_REQ_SWS (uint16_t NumPacket)
 		// Если да, то нужно ответить ошибкой, так как СВС недоступен
 		ZPZ_ShortResponse(REQ_SWS, 0, SWS_IS_UNAVAILABLE);
 		// И завершиться с ошибкой
-		return ZPZ_TIMEOUT;
+		return;
 	}
 	
 	/* Если данные приняты верно, то надо продолжать */
@@ -1540,7 +1535,7 @@ static uint8_t ZPZ_Response_REQ_SWS (uint16_t NumPacket)
 	/* Если FIFO передатчика заполнен, то ждем пока освободится */
 	SendFEND(ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT);
 	
-	return ZPZ_OK;
+	return;
 }
 
 
@@ -1551,7 +1546,7 @@ static uint16_t ZPZ_Request_REQ_SNS_POS (uint16_t CRC)
 	return ZPZ_RequestWithEmptyData(CRC);
 }
 
-static uint8_t ZPZ_Response_REQ_SNS_POS (uint16_t NumPacket)
+static void ZPZ_Response_REQ_SNS_POS (uint16_t NumPacket)
 {
 	ZPZ_Response_Union    ZPZ_Response;  // Стандартный ответ к ЗПЗ
 	
@@ -1564,7 +1559,7 @@ static uint8_t ZPZ_Response_REQ_SNS_POS (uint16_t NumPacket)
 		/* Если нет, то нужно ответить ошибкой: Не удаётся получить данные от СНС */
 		ZPZ_ShortResponse(REQ_SNS_POS, NumPacket, SNS_IS_UNAVAILABLE);
 		/* И завершиться с ошибкой */
-		return 1;
+		return;
 	}		
 	
 	/* Иначе продолжаем
@@ -1613,7 +1608,7 @@ static uint8_t ZPZ_Response_REQ_SNS_POS (uint16_t NumPacket)
 	/* И в конце опять разделитель */
 	SendFEND(ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT);
 	
-	return 0;
+	return;
 }
 
 
@@ -1624,7 +1619,7 @@ static uint16_t ZPZ_Request_REQ_SNS_STATE (uint16_t CRC)
 	return ZPZ_RequestWithEmptyData(CRC);
 }
 
-static uint8_t ZPZ_Response_REQ_SNS_STATE (uint16_t NumPacket)
+static void ZPZ_Response_REQ_SNS_STATE (uint16_t NumPacket)
 {
 	ZPZ_Response_Union                     ZPZ_Response;          // Стандартный ответ к ЗПЗ
 	SNS_Device_Information_Response_Union  SNS_DevInfo;           // Информация о СНС
@@ -1639,7 +1634,7 @@ static uint8_t ZPZ_Response_REQ_SNS_STATE (uint16_t NumPacket)
 	  /* Если да, то нужно ответить ошибкой */
 		ZPZ_ShortResponse(REQ_SNS_STATE, NumPacket, SNS_IS_UNAVAILABLE);
 		/* И завершиться с ошибкой */
-		return 1;
+		return;
 	}
 	
 	/* Получим информацию о доступных данных */
@@ -1651,7 +1646,7 @@ static uint8_t ZPZ_Response_REQ_SNS_STATE (uint16_t NumPacket)
 	  /* Если да, то нужно ответить ошибкой */
 		ZPZ_ShortResponse(REQ_SNS_STATE, NumPacket, SNS_IS_UNAVAILABLE);
 		/* И завершиться с ошибкой */
-		return 1;
+		return;
 	}
 	
 	/* Иначе продолжаем */
@@ -1698,13 +1693,13 @@ static uint8_t ZPZ_Response_REQ_SNS_STATE (uint16_t NumPacket)
 	/* И в конце опять разделитель */
 	SendFEND(ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT);
 	
-	return 0;	
+	return;	
 }
 
 
 
 //-----------------------------------------Обслуживание команды REQ_SNS_SETTINGS---------------------------------------------------------*/
-static uint16_t ZPZ_Request_REQ_SNS_SETTINGS(uint16_t CRC, uint8_t* buffer)
+static uint16_t ZPZ_Request_REQ_SNS_SETTINGS(uint16_t CRC)
 {
 	uint16_t crc = 0;
 	
@@ -1718,18 +1713,18 @@ static uint16_t ZPZ_Request_REQ_SNS_SETTINGS(uint16_t CRC, uint8_t* buffer)
 }
 
 /* Реагируем на запрос на изменение настроек СНС */
-static uint8_t ZPZ_Response_REQ_SNS_SETTINGS (uint8_t* params, uint16_t NumPacket)
+static void ZPZ_Response_REQ_SNS_SETTINGS (uint16_t NumPacket)
 {
 	ZPZ_Response_Union   ZPZ_Response;          // Стандартный ответ к ЗПЗ
 		
 	/* Анализируем пришедшую команду и выполняем действия */
 	
 	/* Команда включения горизонтальной коррекции */
-	if(params[0]== 0x01)
+	if(buffer[0]== 0x01)
 		SNS_EnableHorizontalCorrection();
 	
 	/* Команда отключения горизонтальной коррекции */
-	else if (params[0] == 0x02) 
+	else if (buffer[0] == 0x02) 
 		SNS_DisableHorizontalCorrection();
 	
 	/* Параметр не опознан */
@@ -1738,15 +1733,15 @@ static uint8_t ZPZ_Response_REQ_SNS_SETTINGS (uint8_t* params, uint16_t NumPacke
 		/* Ответим, что ошибка в параметрах команды */
 		ZPZ_ShortResponse(REQ_SNS_STATE, NumPacket, SNS_SETTINGS_WRONG_PAR);
 		/* И завершаемся с ошибкой */
-		return 1;
+		return;
 	}
 		
 	/* Команда начала калибровки гироскопа */
-	if(params[1]== 0x01) 
+	if(buffer[1]== 0x01) 
 		SNS_StartGyroCalibration();
 	
 	/* Команда сброса калибровки гироскопа */
-	else if (params[1] == 0x02)
+	else if (buffer[1] == 0x02)
 		SNS_ResetGyroCalibration();
 	
 	/* Параметр не опознан */
@@ -1755,15 +1750,15 @@ static uint8_t ZPZ_Response_REQ_SNS_SETTINGS (uint8_t* params, uint16_t NumPacke
 		/* Ответим, что ошибка в параметрах команды */
 		ZPZ_ShortResponse(REQ_SNS_STATE, NumPacket, SNS_SETTINGS_WRONG_PAR);
 		/* И завершаемся с ошибкой */
-		return 1;
+		return;
 	}
 	
 	/* Команда начала калибровки магнитометра */
-	if(params[2]== 0x01)
+	if(buffer[2]== 0x01)
 		SNS_StartMagnetometerCalibration();
 	
 	/* Команда сброса калибровки магнитометра */
-	else if (params[2] == 0x02)
+	else if (buffer[2] == 0x02)
 		SNS_ResetMagnetometerCalibration();
 
 	/* Параметр не опознан */
@@ -1772,7 +1767,7 @@ static uint8_t ZPZ_Response_REQ_SNS_SETTINGS (uint8_t* params, uint16_t NumPacke
 		/* Ответим, что ошибка в параметрах команды */
 		ZPZ_ShortResponse(REQ_SNS_STATE, NumPacket, SNS_SETTINGS_WRONG_PAR);
 		/* И завершаемся с ошибкой */
-		return 1;
+		return;
 	}
 	
 	
@@ -1798,9 +1793,9 @@ static uint8_t ZPZ_Response_REQ_SNS_SETTINGS (uint8_t* params, uint16_t NumPacke
 	for(uint8_t i = 0; i < 3; i++)
 	{
 		/* Побайтово досчитываем контрольную сумму */
-		ZPZ_Response.Struct.CRC = Crc16(params, 3, ZPZ_Response.Struct.CRC);
+		ZPZ_Response.Struct.CRC = Crc16(buffer, 3, ZPZ_Response.Struct.CRC);
 		/* И отправляем */
-		UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT,	params[i]);
+		UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT, buffer[i]);
 	}
 	
 	/* После сверху посылаем контрольную сумму */
@@ -1810,7 +1805,7 @@ static uint8_t ZPZ_Response_REQ_SNS_SETTINGS (uint8_t* params, uint16_t NumPacke
 	/* И в конце опять разделитель */
 	SendFEND(ZPZ_UART, ZPZ_SEND_BYTE_TIMEOUT);
 	
-	return 0;	
+	return;	
 }
 
 
@@ -1918,7 +1913,7 @@ static void ZPZ_Response_SYSTEM_STATE (uint16_t NumPacket)
 
 
 //-----------------------------------------Обслуживание команды CAN_TRANSMIT---------------------------------------------------------*/
-static uint16_t ZPZ_Request_CAN_TRANSMIT (uint16_t CRC, uint8_t* buffer)
+static uint16_t ZPZ_Request_CAN_TRANSMIT (uint16_t CRC)
 {
 	/* Первые два байта - Адрес
 	   Третий байт - размер
@@ -1937,7 +1932,7 @@ static uint16_t ZPZ_Request_CAN_TRANSMIT (uint16_t CRC, uint8_t* buffer)
 	return CRC;
 }
 
-static void ZPZ_Response_CAN_TRANSMIT (uint8_t* buffer, uint16_t NumPacket)
+static void ZPZ_Response_CAN_TRANSMIT (uint16_t NumPacket)
 {
 	ZPZ_Response_Union  ZPZ_Response;  // Стандартный ответ к ЗПЗ
 	CAN_TxMsgTypeDef    CANTxMsg;
@@ -1961,7 +1956,6 @@ static void ZPZ_Response_CAN_TRANSMIT (uint8_t* buffer, uint16_t NumPacket)
 		/* И завершаемся с ошибкой */
 		return;
 	}
-	
 	
 	/* Адрес - первые два байта */
 	CANTxMsg.ID = CAN_STDID_TO_EXTID(*((uint16_t*)(buffer)));
