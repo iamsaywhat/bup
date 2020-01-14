@@ -18,14 +18,14 @@ void SWS_RetargetPins (void)
 	RST_CLK_PCLKcmd(RST_CLK_PCLK_PORTD, ENABLE);
 	
 	// Здесь гарантированно отключаем используемый UART, от других пинов, на которых он может использоваться 
-	Pin_Init (MDR_PORTB, PORT_Pin_6, PORT_FUNC_PORT, PORT_OE_OUT);
-	Pin_Init (MDR_PORTB, PORT_Pin_5, PORT_FUNC_PORT, PORT_OE_OUT);
+	Pin_init (MDR_PORTB, PORT_Pin_6, PORT_FUNC_PORT, PORT_OE_OUT);
+	Pin_init (MDR_PORTB, PORT_Pin_5, PORT_FUNC_PORT, PORT_OE_OUT);
 	
 	// Переназчаем UART1 на порт D для работы SWS
-	Pin_Init (SWS_PORT, SWS_RX, PORT_FUNC_OVERRID,PORT_OE_IN);
-	Pin_Init (SWS_PORT, SWS_TX, PORT_FUNC_OVERRID,PORT_OE_OUT);
+	Pin_init (SWS_PORT, SWS_RX, PORT_FUNC_OVERRID,PORT_OE_IN);
+	Pin_init (SWS_PORT, SWS_TX, PORT_FUNC_OVERRID,PORT_OE_OUT);
 	// Пин активации приёмопередатчика
-	Pin_Init (SWS_PORT, SWS_DE, PORT_FUNC_PORT,PORT_OE_OUT);
+	Pin_init (SWS_PORT, SWS_DE, PORT_FUNC_PORT,PORT_OE_OUT);
 }
 
 
@@ -74,10 +74,10 @@ void SWS_deinit (void)
 	// Устанавливаем в 0 пин DE - Режим приёмника
 	PORT_ResetBits (SWS_PORT,SWS_DE);
 	// Освобождаем пины по
-	Pin_Init (SWS_PORT, SWS_RX, PORT_FUNC_PORT,PORT_OE_OUT);
-	Pin_Init (SWS_PORT, SWS_TX, PORT_FUNC_PORT,PORT_OE_OUT);
+	Pin_init (SWS_PORT, SWS_RX, PORT_FUNC_PORT,PORT_OE_OUT);
+	Pin_init (SWS_PORT, SWS_TX, PORT_FUNC_PORT,PORT_OE_OUT);
 	// Пин активации приёмопередатчика
-	Pin_Init (SWS_PORT, SWS_DE, PORT_FUNC_PORT,PORT_OE_OUT);
+	Pin_init (SWS_PORT, SWS_DE, PORT_FUNC_PORT,PORT_OE_OUT);
 }
 
 /**************************************************************************************************************

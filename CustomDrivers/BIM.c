@@ -31,12 +31,12 @@ void BIM_RetargetPins (void)
 	// Разрешаем тактирование
 	RST_CLK_PCLKcmd(RST_CLK_PCLK_BIM_PORT , ENABLE);
 	// Переназчаем CAN, на котором сидят БИМы, на нужные ножки
-	Pin_Init (BIM_CAN_PORT, BIM_CAN_RX, BIM_CAN_PORT_FUNC, PORT_OE_IN);
-	Pin_Init (BIM_CAN_PORT, BIM_CAN_TX, BIM_CAN_PORT_FUNC, PORT_OE_OUT);
+	Pin_init (BIM_CAN_PORT, BIM_CAN_RX, BIM_CAN_PORT_FUNC, PORT_OE_IN);
+	Pin_init (BIM_CAN_PORT, BIM_CAN_TX, BIM_CAN_PORT_FUNC, PORT_OE_OUT);
 	// Пин активации приёмопередатчика
-	Pin_Init (BIM_CAN_PORT, BIM_CAN_CS1, PORT_FUNC_PORT,PORT_OE_OUT);
+	Pin_init (BIM_CAN_PORT, BIM_CAN_CS1, PORT_FUNC_PORT,PORT_OE_OUT);
 	// Пин подачи питания на БИМы
-	Pin_Init (BIM_SupplyPort, BIM_SupplyPin, PORT_FUNC_PORT,PORT_OE_OUT);
+	Pin_init (BIM_SupplyPort, BIM_SupplyPin, PORT_FUNC_PORT,PORT_OE_OUT);
 	// По-умолчанию питание отключим
 	BIM_Supply_OFF(); 
 }

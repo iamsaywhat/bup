@@ -126,8 +126,8 @@ void ZPZ_RetargetPins (void)
 {
 	RST_CLK_PCLKcmd(RST_CLK_PCLK_ZPZ_PORT , ENABLE);
 	// Переназчаем UART на нужный порт для работы ZPZ
-	Pin_Init (ZPZ_PORT, ZPZ_RX, PORT_FUNC_OVERRID, PORT_OE_IN);
-	Pin_Init (ZPZ_PORT, ZPZ_TX, PORT_FUNC_OVERRID, PORT_OE_OUT);
+	Pin_init (ZPZ_PORT, ZPZ_RX, PORT_FUNC_OVERRID, PORT_OE_IN);
+	Pin_init (ZPZ_PORT, ZPZ_TX, PORT_FUNC_OVERRID, PORT_OE_OUT);
 }
 
 /***************************************************************************************************************
@@ -172,8 +172,8 @@ void ZPZ_deinit (void)
 	UART_DeInit(ZPZ_UART);
 	// Отключение UART
 	UART_Cmd(ZPZ_UART, DISABLE);
-	Pin_Init (ZPZ_PORT, ZPZ_RX, PORT_FUNC_PORT, PORT_OE_OUT);
-	Pin_Init (ZPZ_PORT, ZPZ_TX, PORT_FUNC_PORT, PORT_OE_OUT);
+	Pin_init (ZPZ_PORT, ZPZ_RX, PORT_FUNC_PORT, PORT_OE_OUT);
+	Pin_init (ZPZ_PORT, ZPZ_TX, PORT_FUNC_PORT, PORT_OE_OUT);
 	// Отключаем таймер
 	TIMER_Cmd(ZPZ_TIMER, DISABLE);
 }

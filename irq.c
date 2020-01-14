@@ -67,6 +67,18 @@ void Timer1_IRQHandler(void)
 //****************************************************************/
 //void SysTick_Handler (void)
 //{
+//	static uint8_t i = 0;
+//	
+//	if(i==0)
+//	{
+//		LED_READY_ON();
+//		i=1 ;
+//	}
+//	else 
+//	{
+//		LED_READY_OFF(); 
+//		i = 0;
+//	}
 //	
 //}
 
