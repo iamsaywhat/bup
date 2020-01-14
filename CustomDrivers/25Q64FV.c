@@ -1,6 +1,5 @@
 #include "otherlib.h"
 
-
 #include "MDR32F9Qx_rst_clk.h"
 #include "MDR32F9Qx_ssp.h"
 #include "25Q64FV.h"
@@ -93,16 +92,18 @@ void SPI_25Q64FV_Init (void)
 **************************************************************************************************************/
 void SPI_25Q64FV_WriteEnable (uint32_t CSn)
 {
-	uint32_t timeout = 0;
+	TimeoutType timeout;
 	
 	// Выставим ChipSelect нужной микросхемы
 	CSnReady(CSn);
+	// Устанавливаем таймаут
+	setTimeout (&timeout, TIMEOUT_25Q64FV);
 	// Дождаться полного окончания предыдущих операций
-	while ((SPI_25Q64FV_Module->SR & SSP_FLAG_BSY) && (timeout != TIMEOUT_25Q64FV)) timeout ++;
+	while ((SPI_25Q64FV_Module->SR & SSP_FLAG_BSY) && (timeoutStatus(&timeout) != TIME_IS_UP));
 	// Передать байт
 	SPI_25Q64FV_Module->DR = _25Q64FV_CMD_WriteEnable;
 	// Дождаться полного окончания операции
-	while ((SPI_25Q64FV_Module->SR & SSP_FLAG_BSY) && (timeout != TIMEOUT_25Q64FV)) timeout ++;
+	while ((SPI_25Q64FV_Module->SR & SSP_FLAG_BSY) && (timeoutStatus(&timeout) != TIME_IS_UP));
 	// Хоть результат чтения и не нужен, но прочитать всё равно надо
 	SPI_25Q64FV_Module->DR; 
 	// Деактивируем ChipSelect микросхемы
@@ -114,16 +115,18 @@ void SPI_25Q64FV_WriteEnable (uint32_t CSn)
 **************************************************************************************************************/ 
 void SPI_25Q64FV_WriteDisable (uint32_t CSn)
 {
-	uint32_t timeout = 0;
+	TimeoutType timeout;
 	
 	// Выставим ChipSelect нужной микросхемы
 	CSnReady(CSn);
+	// Устанавливаем таймаут
+	setTimeout (&timeout, TIMEOUT_25Q64FV);
 	// Дождаться полного окончания предыдущих операций
-	while ((SPI_25Q64FV_Module->SR & SSP_FLAG_BSY) && (timeout != TIMEOUT_25Q64FV)) timeout ++;
+	while ((SPI_25Q64FV_Module->SR & SSP_FLAG_BSY) && (timeoutStatus(&timeout) != TIME_IS_UP));
 	// Передать байт
 	SPI_25Q64FV_Module->DR = _25Q64FV_CMD_WriteDisable;
 	// Дождаться полного окончания операции
-	while ((SPI_25Q64FV_Module->SR & SSP_FLAG_BSY) && (timeout != TIMEOUT_25Q64FV)) timeout ++;
+	while ((SPI_25Q64FV_Module->SR & SSP_FLAG_BSY) && (timeoutStatus(&timeout) != TIME_IS_UP));
 	// Хоть результат чтения и не нужен, но прочитать всё равно надо	
 	SPI_25Q64FV_Module->DR; 
 	// Деактивируем ChipSelect микросхемы
@@ -282,7 +285,7 @@ void SPI_25Q64FV_ByteProgram (uint32_t CSn, uint32_t Address, uint8_t Value)
 **************************************************************************************************************/
 uint32_t SPI_25Q64FV_ReadArray (uint32_t CSn, uint32_t Address, uint8_t* Destination, uint32_t Size)
 {
-	uint32_t timeout = 0;
+	TimeoutType timeout;
 	uint8_t src[4];
 	Dword_to_Byte Addr;
 	uint32_t i,count;
@@ -302,9 +305,12 @@ uint32_t SPI_25Q64FV_ReadArray (uint32_t CSn, uint32_t Address, uint8_t* Destina
 	
 	// Выставим ChipSelect нужной микросхемы
 	CSnReady(CSn);
-		
+	
+	// Установим таймаут функции
+	setTimeout (&timeout, TIMEOUT_25Q64FV);
+	
 	// Дождаться полного освобождения SPI
-	while (((SPI_25Q64FV_Module->SR) & SSP_FLAG_BSY) && (timeout != TIMEOUT_25Q64FV)) timeout ++;
+	while (((SPI_25Q64FV_Module->SR) & SSP_FLAG_BSY) && (timeoutStatus(&timeout) != TIME_IS_UP));
 	
 	// Вычитать все данные из входного буфера, так как там может лежать мусор	
 	while ((SPI_25Q64FV_Module->SR & SSP_FLAG_RNE))
@@ -318,7 +324,7 @@ uint32_t SPI_25Q64FV_ReadArray (uint32_t CSn, uint32_t Address, uint8_t* Destina
 	for (i = 0; i < 4; i++)
 	{
 		// Дождаться приема байта
-		while (!(SPI_25Q64FV_Module->SR & SSP_FLAG_RNE) && (timeout != TIMEOUT_25Q64FV)) timeout ++;
+		while (!(SPI_25Q64FV_Module->SR & SSP_FLAG_RNE) && (timeoutStatus(&timeout) != TIME_IS_UP));
 		data = SPI_25Q64FV_Module->DR;
 	}
 	
@@ -326,9 +332,8 @@ uint32_t SPI_25Q64FV_ReadArray (uint32_t CSn, uint32_t Address, uint8_t* Destina
 	for (i = 0, count = 0; i < Size; i++)
 	{
 		// Дождаться появления свободного места в выходном буфере
-		while (!(SPI_25Q64FV_Module->SR & SSP_FLAG_TNF) && (timeout != TIMEOUT_25Q64FV))
+		while (!(SPI_25Q64FV_Module->SR & SSP_FLAG_TNF) && (timeoutStatus(&timeout) != TIME_IS_UP))
 		{
-			timeout ++;
 	    // Читаем байт, полученный от 1636РР52У
 		  if (SPI_25Q64FV_Module->SR & SSP_FLAG_RNE)
 			{
@@ -441,28 +446,30 @@ uint8_t SPI_25Q64FV_TestMemory (uint32_t CSn)
 **************************************************************************************************************/
 static void SPI_25Q64FV_WriteBlock (uint8_t* Source, uint8_t* Destination, uint32_t Size)
 {
-  uint32_t i;
-  uint32_t temp;
-  uint32_t timeout = 0;
+  uint32_t    temp;
+  TimeoutType timeout;
   
+	// Установим таймаут функции
+	setTimeout (&timeout, TIMEOUT_25Q64FV);
+	
   // Дождаемся полного освобождения буфера
-  while ((SPI_25Q64FV_Module->SR & SSP_FLAG_BSY) && (timeout != TIMEOUT_25Q64FV)) timeout ++;
+  while ((SPI_25Q64FV_Module->SR & SSP_FLAG_BSY) && (timeoutStatus(&timeout) != TIME_IS_UP));
 
   // Читаем входной буфер, чтобы его вычистить, так как там может лежать мусор	
   while ((SPI_25Q64FV_Module->SR & SSP_FLAG_RNE))
 	temp = SPI_25Q64FV_Module->DR;
 
-	for (i = 0; i < Size; i++)
+	for(uint32_t i = 0; i < Size; i++)
 	{
 		// Дождаться появления свободного места в буфера передатчика
-		while (!(SPI_25Q64FV_Module->SR & SSP_FLAG_TNF) && (timeout != TIMEOUT_25Q64FV)) timeout ++;
+		while (!(SPI_25Q64FV_Module->SR & SSP_FLAG_TNF) && (timeoutStatus(&timeout) != TIME_IS_UP));
 	  // Передать байт
 		SPI_25Q64FV_Module->DR = *Source++;
 	}
-	for (i = 0; i < Size; i++)
+	for(uint32_t i = 0; i < Size; i++)
 	{
 		// Дождаться приема байта
-		while (!(SPI_25Q64FV_Module->SR & SSP_FLAG_RNE) && (timeout != TIMEOUT_25Q64FV)) timeout ++;
+		while (!(SPI_25Q64FV_Module->SR & SSP_FLAG_RNE) && (timeoutStatus(&timeout) != TIME_IS_UP));
 	  // Читаем байт, полученный от 1636РР52У
 	  *Destination++ = SPI_25Q64FV_Module->DR;		
 	}

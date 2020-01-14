@@ -38,13 +38,13 @@
 // ID микросхемы и производителя
 #define _25Q64FV_ID                        0xEF16 
 
-// Таймаут на чтение по SPI
-#define TIMEOUT_25Q64FV                    0xFF
+// Таймаут на чтение по SPI, мс
+#define TIMEOUT_25Q64FV                    1
 
 // Тайминги при выполнении операций
-#define _25Q64FV_ChipErase_delay_us   25000000           // Время стирания всего чипа (от 20с до 100 с)
-#define _25Q64FV_SectorErase_delay_us 60000              // Время стирания сектора (от 45 мс до 400 мс)
-#define _25Q64FV_ProgramByte_delay_us 50                 // Время записи одного байта сектора (от 20мкс до 50мкс)
+#define _25Q64FV_ChipErase_delay_us        25000000           // Время стирания всего чипа (от 20с до 100 с)
+#define _25Q64FV_SectorErase_delay_us      60000              // Время стирания сектора (от 45 мс до 400 мс)
+#define _25Q64FV_ProgramByte_delay_us      50                 // Время записи одного байта сектора (от 20мкс до 50мкс)
 
 // Список поддерживаемых команд для 25Q64FV
 enum _25Q64FV_CMD

@@ -6,8 +6,8 @@
 /**************************************************************************************************************
     Объявления локальных функций модуля
 ***************************************************************************************************************/
-static int16_t UARTReceiveByte (MDR_UART_TypeDef* UARTx, uint32_t TimeoutRange);
-static uint8_t UARTSendByte (MDR_UART_TypeDef* UARTx, uint32_t TimeoutRange, uint16_t Byte);
+static int16_t UARTReceiveByte (MDR_UART_TypeDef* UARTx);
+static uint8_t UARTSendByte (MDR_UART_TypeDef* UARTx, uint16_t Byte);
 
 
 /**************************************************************************************************************
@@ -83,75 +83,82 @@ void SWS_deinit (void)
 /**************************************************************************************************************
     SWS_GetPacket - Получение структуры пакета от СВС
 ***************************************************************************************************************/
-uint8_t SWS_GetPacket (SWS_Packet_Type_Union* SWS_Pack)
+SWS_Status SWS_GetPacket (SWS_Packet_Type_Union* SWS_Pack)
 {
 	SWS_Packet_Type_Union  Actual_SWS_Pack;      // Актуальные данные от СВС
-	uint32_t timeout = 0;                        // Таймаут счетчик
-	uint32_t crc = 0;                            // Контрольная сумма
-	uint8_t  i;                                  // Счетчик циклов
+	SWS_Status             status;               // Статус выполнения
+	TimeoutType            timeout;              // Таймаут контроль
+	uint32_t               crc = 0;              // Контрольная сумма
 		
-	// Вычищаем FIFO от мусора
-	while ((UART_GetFlagStatus (SWS_UART, UART_FLAG_RXFE) != SET) && (timeout != SWS_MAX_TIMEOUT)) 
-	{
-		timeout++; 
+	/* Вычищаем FIFO от мусора */
+	setTimeout (&timeout, SWS_CLR_TIMEOUT);
+	while ((UART_GetFlagStatus (SWS_UART, UART_FLAG_RXFE) != SET) && (timeoutStatus(&timeout) != TIME_IS_UP)) 
 		UART_ReceiveData(SWS_UART);	
-	}
 	
-	// Подключаемся к СВС
+	/* Подключаемся к СВС */
 	SWS_RetargetPins();
 	SWS_init();
 	
-	// Ожидаем заголовок
-	while(timeout != SWS_MAX_TIMEOUT)
+	/* Будем производить несколько попыток получить данные */
+	for(uint8_t attemptsCount = 0; attemptsCount < 3; attemptsCount++)
 	{
-		timeout ++;
-		// Ловим первый байт заголовка
-		if (UARTReceiveByte(SWS_UART, SWS_MAX_TIMEOUT) != (uint8_t)(SWS_Handler)) continue; 
-		// Если первый байт заголовка не совпал, дальше не ждем, переходим к следующей итерации
-		// Если совпал, ловим следующий байт заголовка
-		if (UARTReceiveByte(SWS_UART, SWS_MAX_TIMEOUT) != (uint8_t)(SWS_Handler >> 8)) continue; 
-		// Если совпал, ловим следующий байт заголовка
-		if (UARTReceiveByte(SWS_UART, SWS_MAX_TIMEOUT) != (uint8_t)(SWS_Handler >> 16)) continue; 
-		// Если совпал, ловим следующий байт заголовка
-		// Если совпадёт и 4й байт, то переходим к приёму остального пакета
-		if (UARTReceiveByte(SWS_UART, SWS_MAX_TIMEOUT) == (uint8_t)(SWS_Handler >> 24)) break;
-	}	
-	
-	// Если был таймаут, связи нет, выходим
-	if(timeout == SWS_MAX_TIMEOUT) 
-	{
-		// Отключаемся от СВС
-		SWS_deinit();
-		// Возврашаем ошибку
-		return 1;
-	}
+		/* Ожидаем заголовок */
+		setTimeout (&timeout, SWS_HANDLER_TIMEOUT);
+		while(timeoutStatus(&timeout) != TIME_IS_UP)
+		{
+			/* Ловим первый байт заголовка */
+			if (UARTReceiveByte(SWS_UART) != (uint8_t)(SWS_Handler)) continue; 
+			/* Если первый байт заголовка не совпал, дальше не ждем, переходим к следующей итерации
+			   Если совпал, ловим следующий байт заголовка */
+			if (UARTReceiveByte(SWS_UART) != (uint8_t)(SWS_Handler >> 8)) continue; 
+			/* Если совпал, ловим следующий байт заголовка */
+			if (UARTReceiveByte(SWS_UART) != (uint8_t)(SWS_Handler >> 16)) continue; 
+			/* Если совпал, ловим следующий байт заголовка
+			   Если совпадёт и 4й байт, то переходим к приёму остального пакета */
+			if (UARTReceiveByte(SWS_UART) == (uint8_t)(SWS_Handler >> 24)) break;
+		}	
+		/* Если был таймаут, связи нет */
+		if(timeout.status == TIME_IS_UP)
+		{
+			/* Фиксируем код ошибки */
+			status = SWS_TIMEOUT;
+			/* Сразу переходим к новой попытке связаться */
+			continue;
+		}
+		/* Если попали сюда, значит связь есть, заголовок совпал, 
+		   поэтому продублируем принятый заголовок в структуру */
+		Actual_SWS_Pack.Struct.Handler = SWS_Handler;
+		/* Принимаем остальную часть пакета */
+		for(uint8_t i = 4; i < 56; i++)
+			Actual_SWS_Pack.Buffer[i] = UARTReceiveByte(SWS_UART);
+			
+		/* Вычисляем контрольную сумму */
+		crc = Calc_Crc32_Array(Actual_SWS_Pack.Buffer, 56);
 		
-	// Если попали сюда, значит связь есть, заголовок совпал, поэтому продублируем принятый заголовок в структуру
-	Actual_SWS_Pack.Struct.Handler = SWS_Handler;
-	// Принимаем остальную часть пакета
-	for(i = 4; i < 56; i++)
-	{
-		Actual_SWS_Pack.Buffer[i] = UARTReceiveByte(SWS_UART, SWS_MAX_TIMEOUT);
+		/* Сверяем контрольную сумму */
+		if(crc == Actual_SWS_Pack.Struct.CRC)
+		{
+		  /* Если сошлись фмксируем кодом успеха
+			   и выходим из цикла */
+      status = SWS_OK;
+			break;
+		}
+		else
+		{
+      /* Если не сошлись фмксируем код ошибки
+			   сразу переходим к новой попытке связаться */
+			status = SWS_WRONG_CRC;
+			continue;
+		}
 	}
-	
-	// Отключаемся от СВС
+	/* Отключаемся от СВС */
 	SWS_deinit();
-		
-	// Вычисляем контрольную сумму 
-	crc = Calc_Crc32_Array(Actual_SWS_Pack.Buffer,56);
+	/* Данные возвращаем, только если они успешно получены */
+	if(status == SWS_OK)
+	  *SWS_Pack = Actual_SWS_Pack;
 	
-	// Сверяем контрольную сумму
-	if(crc != Actual_SWS_Pack.Struct.CRC)
-	{
-		// Если не сошлись возвращаем ошибку
-		return 1;
-	}
-	
-	// Проверки сошлись можно вернуть полученные данные
-	*SWS_Pack = Actual_SWS_Pack;
-	
-	// Иначе возвращаем успех
-	return 0;
+	/* Возвращаем статус выполнения */
+	return status;
 }
 
 
@@ -159,31 +166,37 @@ uint8_t SWS_GetPacket (SWS_Packet_Type_Union* SWS_Pack)
 /**************************************************************************************************************
     UARTReceiveByte - Функция приёма байта данных по UART с контролем таймаутом
 ***************************************************************************************************************/
-static int16_t UARTReceiveByte (MDR_UART_TypeDef* UARTx, uint32_t TimeoutRange)
+static int16_t UARTReceiveByte (MDR_UART_TypeDef* UARTx)
 {
-	uint16_t Byte = 0;
-	uint32_t timeout = 0;
+	TimeoutType timeout;
+	uint16_t    byte = 0;
 	
 	// Ждем прихода информации
-	while ((UART_GetFlagStatus (UARTx, UART_FLAG_RXFE) == SET) && (timeout != TimeoutRange)) timeout++;
+	setTimeout (&timeout, SWS_BYTE_TIMEOUT);
+	while ((UART_GetFlagStatus (UARTx, UART_FLAG_RXFE) == SET) && (timeoutStatus(&timeout) != TIME_IS_UP));
 	// Если выход из ожидания по таймауту - возвращаем ошибку и выходим
-	if(timeout == TimeoutRange) return 0xFF;
+	if(timeout.status == TIME_IS_UP) 
+	  return 0xFF;
+	
 	// Иначе принимаем байт
-	Byte = UART_ReceiveData(UARTx);
-	return Byte;
+	byte = UART_ReceiveData(UARTx);
+	return byte;
 }
 
 /**************************************************************************************************************
     UARTSendByte - Функция отправки байта данных по UART с контролем таймаутом
 ***************************************************************************************************************/
-static uint8_t UARTSendByte (MDR_UART_TypeDef* UARTx, uint32_t TimeoutRange, uint16_t Byte)
+static uint8_t UARTSendByte (MDR_UART_TypeDef* UARTx, uint16_t Byte)
 {
-	uint32_t timeout = 0;
+	TimeoutType timeout;
 	
 	// Если FIFO передатчика заполнен, то ждем пока освободится
-	while ((UART_GetFlagStatus (UARTx, UART_FLAG_TXFF) == SET) && (timeout != TimeoutRange)) timeout++;
+	setTimeout (&timeout, SWS_CLR_TIMEOUT);
+	while ((UART_GetFlagStatus (UARTx, UART_FLAG_TXFF) == SET) && (timeoutStatus(&timeout) != TIME_IS_UP))
 	// Если выход из ожидания по таймауту - возвращаем ошибку и выходим
-	if(timeout == TimeoutRange) return 0xFF;
+	if(timeout.status == TIME_IS_UP)
+	  return 0xFF;
+	
 	// Иначе отправляем исходный символ
 	UART_SendData(UARTx, Byte);
 	

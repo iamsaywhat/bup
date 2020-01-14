@@ -57,8 +57,9 @@ uint64_t getCurrentSystemTime(void)
 ****************************************************************************************/
 void setTimeout (TimeoutType* timeout, uint32_t millisecond)
 {
-	timeout->start = getCurrentSystemTime();
-	timeout->stop  = timeout->start + millisecond;
+	timeout->start  = getCurrentSystemTime();
+	timeout->stop   = timeout->start + millisecond;
+	timeout->status = TIME_IS_NOT_UP;
 }
 
 /****************************************************************************************
@@ -75,12 +76,18 @@ TimeoutStatus timeoutStatus(TimeoutType* timeout)
 	if(timeout->stop > timeout->start)
 	{
 		if(currentTime > timeout->stop)
+		{
+		  timeout->status = TIME_IS_UP;
 			return TIME_IS_UP;
+		}
 	}
 	else
 	{
 		if((currentTime > timeout->stop) && (currentTime < timeout->start))
+		{
+		  timeout->status = TIME_IS_UP;
 			return TIME_IS_UP;
+		}
 	}
 	return TIME_IS_NOT_UP;
 }
@@ -355,7 +362,7 @@ void ADC_init(ADCdev ADCx, uint32_t Pins)
 **************************************************************************************************************/
 uint16_t ADC_GetResult (ADCdev ADCx, uint32_t Channel)
 {
-    uint32_t timeout = 0;    /* Таймаут на преобразование */
+    TimeoutType timeout;     /* Таймаут на преобразование */
     uint16_t result  = 0;    /* Результат преобразований */
 	
     /* Переключаем канал на тот, с котого хотим считать данные */
@@ -368,7 +375,8 @@ uint16_t ADC_GetResult (ADCdev ADCx, uint32_t Channel)
             /* Запускаем преобразование */
             ADC1_Start ();
             /* Ожидаем окончание преобразования */
-            while ((ADC1_GetStatus() & ADC_STATUS_FLG_REG_EOCIF) == 0 && timeout < 0xFFF) timeout++;
+						setTimeout (&timeout, 1);
+            while ((ADC1_GetStatus() & ADC_STATUS_FLG_REG_EOCIF) == 0 && (timeoutStatus(&timeout) != TIME_IS_UP));
             /* Выделяем значащие разряды (до 12 го) и возвращаем значение */
             result = ADC1_GetResult () & 0xFFF;
             break;
@@ -376,7 +384,8 @@ uint16_t ADC_GetResult (ADCdev ADCx, uint32_t Channel)
             /* Запускаем преобразование */
             ADC2_Start ();
             /* Ожидаем окончание преобразования */
-            while ((ADC2_GetStatus() & ADC_STATUS_FLG_REG_EOCIF) == 0 && timeout < 0xFFF) timeout++;
+						setTimeout (&timeout, 1);
+            while ((ADC2_GetStatus() & ADC_STATUS_FLG_REG_EOCIF) == 0 && (timeoutStatus(&timeout) != TIME_IS_UP));
             /* Выделяем значащие разряды (до 12 го) и возвращаем значение */
             result = ADC2_GetResult () & 0xFFF;
             break;

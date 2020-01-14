@@ -1,4 +1,5 @@
 #include "RetargetPrintf.h"
+#include "otherlib.h"
 #include "../Log_FS/Log_FS.h"
 
 
@@ -87,9 +88,9 @@ int sendchar(int ch)
 *******************************************************************************/
 static int sendchar_CAN(int ch)
 {
+  TimeoutType timeout;
 	static unsigned char cnt = 0;
 	static char buff[80];
-	uint16_t per;
 	uint32_t i, Buffer_number;
 	if((ch != '\n') & (cnt < 80)) // Пока не пришло "\n" и буфер не заполнен - заполняем буфер
 	{
@@ -117,7 +118,6 @@ static int sendchar_CAN(int ch)
 			TxMsg_CanPrintf.Data[1]|= (buff[i+5] << 8);
 			TxMsg_CanPrintf.Data[1]|= (buff[i+6] << 16);
 			TxMsg_CanPrintf.Data[1]|= (buff[i+7] << 24);
-			per = 0;
 			
 			// Спросим какой из буферов свободен для использования
 			Buffer_number = CAN_GetDisabledBuffer (PRINTF_CAN);
@@ -125,7 +125,8 @@ static int sendchar_CAN(int ch)
 			// Кладём сообщение в нужный буфер и ждем отправки
 			CAN_Transmit(PRINTF_CAN, Buffer_number, &TxMsg_CanPrintf);
 			// Ожидаем конца передачи, либо превышения времени ожидания
-			while(((CAN_GetBufferStatus(PRINTF_CAN, Buffer_number) & CAN_STATUS_TX_REQ) != RESET) && (per != 0xFFF)) per++;
+			setTimeout (&timeout, 1);
+			while(((CAN_GetBufferStatus(PRINTF_CAN, Buffer_number) & CAN_STATUS_TX_REQ) != RESET) && (timeoutStatus(&timeout) != TIME_IS_UP));
 			// Вне зависимости от того, удалось отправить или нет, освобождаем буфер
 			CAN_BufferRelease (PRINTF_CAN, Buffer_number);
 		}	
@@ -151,7 +152,6 @@ static int sendchar_CAN(int ch)
 			TxMsg_CanPrintf.Data[1]|= (buff[i+5] << 8);
 			TxMsg_CanPrintf.Data[1]|= (buff[i+6] << 16);
 			TxMsg_CanPrintf.Data[1]|= (buff[i+7] << 24);
-			per = 0;
 			
 			// Спросим какой из буферов свободен для использования
 			Buffer_number = CAN_GetDisabledBuffer (PRINTF_CAN);
@@ -159,7 +159,8 @@ static int sendchar_CAN(int ch)
 			// Кладём сообщение в нужный буфер и ждем отправки
 			CAN_Transmit(PRINTF_CAN, Buffer_number, &TxMsg_CanPrintf);
 			// Ожидаем конца передачи, либо превышения времени ожидания
-			while(((CAN_GetBufferStatus(PRINTF_CAN, Buffer_number) & CAN_STATUS_TX_REQ) != RESET) && (per != 0xFFF)) per++;
+			setTimeout (&timeout, 1);
+			while(((CAN_GetBufferStatus(PRINTF_CAN, Buffer_number) & CAN_STATUS_TX_REQ) != RESET) && (timeoutStatus(&timeout) != TIME_IS_UP));
 			// Вне зависимости от того, удалось отправить или нет, освобождаем буфер
 			CAN_BufferRelease (PRINTF_CAN, Buffer_number);
 		}	

@@ -116,8 +116,9 @@
 #define ZPZ_IRQn                  UART2_IRQn             // Идентификатор источника прерывания
 #define ZPZ_CAN                   MDR_CAN1               // Идентификатор CAN модуля, к которому ZPZ имеет доступ
 #define ZPZ_TIMER                 MDR_TIMER2             // Идентификатор таймера, который будет использовать ЗПЗ
-#define ZPZ_SEND_BYTE_TIMEOUT     0xFFF                  // Таймаут на отправку одного байта
-#define ZPZ_RECEIVE_BYTE_TIMEOUT  0xFFF                  // Таймаут на приём одного байта
+#define ZPZ_BYTE_TIMEOUT          1                      // Таймаут на отправку одного байта, мс
+#define ZPZ_RECEIVE_TIMEOUT       1                      // Таймаут на приём одного байта, мс
+#define ZPZ_CLRBUF_TIMEOUT        1                      // Таймаут на очистку буфера, мс
 
 
 // Заголовки - идентификаторы пакетов

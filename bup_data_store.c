@@ -98,13 +98,10 @@ void BUP_DataUpdate (void)
     BUP_UpdateDataFromSWS - Обновление данных СВС.                 
 ***************************************************************************************************************/
 void BUP_UpdateDataFromSWS (void)
-{
-	uint8_t timeout = 0;  // Таймаут-счетчик
-	
-	// Пытаемся получить данные от СВС, не более 10 попыток
-	while(SWS_GetPacket (&SWS_Data) && (timeout != 10)) timeout ++;
-	// Если выход по таймауту, то фиксируем как неисправность
-	if (timeout == 10)
+{	
+	/* Пытаемся получить данные от СВС, 
+	в случае неудача выставляем флаг неисправности */
+	if(SWS_GetPacket (&SWS_Data) != SWS_OK)
 		SelfTesting_SET_FAULT(ST_sws);	
 }
 

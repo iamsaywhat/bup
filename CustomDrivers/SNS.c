@@ -86,7 +86,7 @@ static SNS_Status SNS_Request(uint8_t Command)
 {
 	SNS_Request_Union     SNS_Req;
 	uint8_t               i;
-	uint32_t 							timeout = 0;
+	TimeoutType 				  timeout;
 
 	// Готовим данные для отправки
 	SNS_Req.Struct.Command = Command;
@@ -95,20 +95,20 @@ static SNS_Status SNS_Request(uint8_t Command)
 	SNS_Req.Struct.CRC = Crc16(&SNS_Req.Buffer[2], 1, CRC16_INITIAL_FFFF);
 
 	// Ждем окончания передачи
-	while ((UART_GetFlagStatus (SNS_UART, UART_FLAG_TXFF) == SET) && (timeout != SNS_MAX_TIMEOUT)) timeout++;
+	setTimeout (&timeout, SNS_CLR_TIMEOUT);
+	while ((UART_GetFlagStatus (SNS_UART, UART_FLAG_TXFF) == SET) && (timeoutStatus(&timeout) != TIME_IS_UP));
 	
 	// Проверяем будет ли это выход по таймауту
-	if(timeout == SNS_MAX_TIMEOUT) 
+	if(timeout.status == TIME_IS_UP)
 		return SNS_TIMEOUT;
-		
-	// Сбросим счетчик таймаута, и продолжаем
-	timeout = 0;
 	
   /* Начинаем отправку запроса */
 	/* Отправляем признак начала пакета */
 	UART_SendData(SNS_UART, FEND);
+	
 	/* Ожидаем окончания отправки байта */
-	while ((UART_GetFlagStatus (SNS_UART, UART_FLAG_TXFF) == SET) && (timeout != SNS_MAX_TIMEOUT)) timeout++;
+	setTimeout (&timeout, SNS_BYTE_TIMEOUT);
+	while ((UART_GetFlagStatus (SNS_UART, UART_FLAG_TXFF) == SET) && (timeoutStatus(&timeout) != TIME_IS_UP));
 	
 	for(i = 0; i < 3; i++)
 	{
@@ -118,7 +118,8 @@ static SNS_Status SNS_Request(uint8_t Command)
 		{
 			UART_SendData(SNS_UART, FESC);
 	    /* Ждем окончания передачи байта */
-	    while ((UART_GetFlagStatus (SNS_UART, UART_FLAG_TXFF)== SET) && (timeout != SNS_MAX_TIMEOUT)) timeout++;
+			setTimeout (&timeout, SNS_BYTE_TIMEOUT);
+	    while ((UART_GetFlagStatus (SNS_UART, UART_FLAG_TXFF)== SET) && (timeoutStatus(&timeout) != TIME_IS_UP));
 			UART_SendData(SNS_UART, TFEND);
 		}
 		/* Если внутри пакета содержится FESC,
@@ -127,7 +128,8 @@ static SNS_Status SNS_Request(uint8_t Command)
 		{
 			UART_SendData(SNS_UART, FESC);
 	    /* Ждем окончания передачи байта */
-	    while ((UART_GetFlagStatus (SNS_UART, UART_FLAG_TXFF)== SET) && (timeout != SNS_MAX_TIMEOUT)) timeout++;
+			setTimeout (&timeout, SNS_BYTE_TIMEOUT);
+	    while ((UART_GetFlagStatus (SNS_UART, UART_FLAG_TXFF)== SET) && (timeoutStatus(&timeout) != TIME_IS_UP));
 			UART_SendData(SNS_UART, TFESC);
 		}
 		else
@@ -135,22 +137,21 @@ static SNS_Status SNS_Request(uint8_t Command)
 		  UART_SendData(SNS_UART, SNS_Req.Buffer[i]);
 		}
 		/* Ждем окончания передачи байта */
-		while ((UART_GetFlagStatus (SNS_UART, UART_FLAG_TXFF) == SET) && (timeout != SNS_MAX_TIMEOUT)) timeout++;
+		setTimeout (&timeout, SNS_BYTE_TIMEOUT);
+		while ((UART_GetFlagStatus (SNS_UART, UART_FLAG_TXFF) == SET) && (timeoutStatus(&timeout) != TIME_IS_UP));
 
 		/* Проверяем будет ли это выход по таймауту */
-		if(timeout == SNS_MAX_TIMEOUT) 
+		if(timeout.status == TIME_IS_UP) 
 			return SNS_TIMEOUT;
-		/* Сбросим счетчик таймаут */
-		timeout = 0;
-		
 	}
 	/* Отправляем признак конца пакета */
 	UART_SendData(SNS_UART, FEND);
 	/* Ждем окончания передачи байта */
-	while ((UART_GetFlagStatus (SNS_UART, UART_FLAG_TXFF)== SET) && (timeout != SNS_MAX_TIMEOUT)) timeout++;
+	setTimeout (&timeout, SNS_BYTE_TIMEOUT);
+	while ((UART_GetFlagStatus (SNS_UART, UART_FLAG_TXFF)== SET) && (timeoutStatus(&timeout) != TIME_IS_UP));
 	
 	// Проверяем будет ли это выход по таймауту
-	if(timeout == SNS_MAX_TIMEOUT) 
+	if(timeout.status == TIME_IS_UP) 
 		return SNS_TIMEOUT;
 	
 	return SNS_OK;
@@ -167,18 +168,17 @@ static SNS_Status SNS_Request(uint8_t Command)
 ***************************************************************************************************************/
 static SNS_Status SNS_GetData_by_SLIP (uint8_t PacketSize, uint8_t* Buffer)
 {
-	uint32_t  timeout = 0;
-	uint8_t   i;
-	uint8_t   temp1, temp2;
+	TimeoutType timeout; 
+	uint8_t     i;
+	uint8_t     temp1, temp2;
 	
 	/* Ожидаем приход данных (пока буфер приёмника пуст) */
-	while ((UART_GetFlagStatus (SNS_UART, UART_FLAG_RXFE) == SET) && (timeout != SNS_MAX_TIMEOUT)) timeout++;
+	setTimeout (&timeout, SWS_RESPONSE_TIMEOUT);
+	while ((UART_GetFlagStatus (SNS_UART, UART_FLAG_RXFE) == SET) && (timeoutStatus(&timeout) != TIME_IS_UP));
 	/* Проверяем будет ли это выход по таймауту */
-	if(timeout == SNS_MAX_TIMEOUT) 
+	if(timeout.status == TIME_IS_UP) 
 		return SNS_TIMEOUT;
 	
-	/* Сбросим счетчик таймаут */
-	timeout = 0;
 	/* Делаем считывание символа - Должен быть разделитель FEND начала пакета */
 	temp1 = UART_ReceiveData(SNS_UART);
 	
@@ -186,13 +186,12 @@ static SNS_Status SNS_GetData_by_SLIP (uint8_t PacketSize, uint8_t* Buffer)
 	for(i = 0; i < PacketSize; i++)
 	{	
 		/* Ожидаем приход данных (пока буфер приёмника пуст) */
-		while ((UART_GetFlagStatus (SNS_UART, UART_FLAG_RXFE) == SET) && (timeout != SNS_BYTE_TIMEOUT)) timeout++;
+		setTimeout (&timeout, SNS_BYTE_TIMEOUT);
+		while ((UART_GetFlagStatus (SNS_UART, UART_FLAG_RXFE) == SET) && (timeoutStatus(&timeout) != TIME_IS_UP));
 		/* Проверяем будет ли это выход по таймауту */
-		if(timeout == SNS_BYTE_TIMEOUT) 
+		if(timeout.status == TIME_IS_UP) 
 			return SNS_TIMEOUT;
 		
-		/* Сбросим счетчик таймаут */
-		timeout = 0;
 		/* Принимаем символ */
 		temp1 = UART_ReceiveData(SNS_UART);
 		
@@ -201,13 +200,12 @@ static SNS_Status SNS_GetData_by_SLIP (uint8_t PacketSize, uint8_t* Buffer)
 		{
 		  /* Да, значит это закодированный FEND, значит следующий должен быть либо TFEND, либо TFESC */
 			/* Подождем этот символ */
-			while ((UART_GetFlagStatus (SNS_UART, UART_FLAG_RXFE) == SET) && (timeout != SNS_BYTE_TIMEOUT)) timeout++;
+			setTimeout (&timeout, SNS_BYTE_TIMEOUT);
+			while ((UART_GetFlagStatus (SNS_UART, UART_FLAG_RXFE) == SET) && (timeoutStatus(&timeout) != TIME_IS_UP));
       /* Проверяем будет ли это выход по таймауту */
-	    if(timeout == SNS_BYTE_TIMEOUT) 
+	    if(timeout.status == TIME_IS_UP) 
 			  return SNS_TIMEOUT;
-	    
-			/* Сбросим счетчик таймаут */
-	    timeout = 0;
+
 			/* Принимаем следующий байт */
 			temp2 = UART_ReceiveData(SNS_UART);
 			
@@ -234,13 +232,12 @@ static SNS_Status SNS_GetData_by_SLIP (uint8_t PacketSize, uint8_t* Buffer)
 		Buffer[i] = temp1;
 	}
 	/* Ожидаем приход данных (пока буфер приёмника пуст) */
-	while ((UART_GetFlagStatus (SNS_UART, UART_FLAG_RXFE) == SET) && (timeout != SNS_BYTE_TIMEOUT)) timeout++;
+	setTimeout (&timeout, SNS_BYTE_TIMEOUT);
+	while ((UART_GetFlagStatus (SNS_UART, UART_FLAG_RXFE) == SET) && (timeoutStatus(&timeout) != TIME_IS_UP));
 	/* Проверяем будет ли это выход по таймауту */
-	if(timeout == SNS_BYTE_TIMEOUT) 
+	if(timeout.status == TIME_IS_UP)
 		return SNS_TIMEOUT;
 	
-	/* Сбросим счетчик таймаут */
-	timeout = 0;
 	/* Ждем развершения пакета символом FEND */
 	temp1 = UART_ReceiveData(SNS_UART);
 	
@@ -256,27 +253,20 @@ static SNS_Status SNS_GetData_by_SLIP (uint8_t PacketSize, uint8_t* Buffer)
 SNS_Status SNS_GetDeviceInformation(SNS_Device_Information_Response_Union*  SNS_DeviceInformation)
 {
 	SNS_Device_Information_Response_Union  Actual_SNS_DeviceInformation;   // Актуальный ответ от СНС
-	uint32_t  timeout = 0;                                                 // Таймаут счетчик
-	uint16_t  crc;                                                         // Расчетная контрольная сумма
-	uint8_t   requestCounter = 0;                                          // Счетчик отправленых запросов
+	TimeoutType  timeout;                                                  // Таймаут контроль
+	uint16_t     crc;                                                      // Расчетная контрольная сумма
+	uint8_t      requestCounter = 0;                                       // Счетчик отправленых запросов
 		
-	//Вычищаем FIFO от мусора перед запросом
-	while ((UART_GetFlagStatus (SNS_UART, UART_FLAG_RXFE) != SET)&& (timeout != SNS_MAX_TIMEOUT)) 
-	{
-		timeout++; 
+	// Вычищаем FIFO от мусора перед запросом
+	setTimeout (&timeout, SNS_CLR_TIMEOUT);
+	while ((UART_GetFlagStatus (SNS_UART, UART_FLAG_RXFE) != SET)&& (timeoutStatus(&timeout) != TIME_IS_UP)) 
 		UART_ReceiveData(SNS_UART);
-	}
 	
 	// Проверяем будет ли это выход по таймауту
-	if(timeout == SNS_MAX_TIMEOUT)
-	{	
+	if(timeout.status == TIME_IS_UP)
 		//Возвращаем признак неудачи
 		return SNS_TIMEOUT;
-	}
 	
-	// Сбросим счетчик таймаут
-	timeout = 0;
-
 	// Подключаемся к СНС
 	SNS_RetargetPins();
 	SNS_init();
@@ -328,26 +318,21 @@ SNS_Status SNS_GetDeviceInformation(SNS_Device_Information_Response_Union*  SNS_
 SNS_Status SNS_GetDataState(SNS_Available_Data_Response_Union*  SNS_DataState)
 {
 	SNS_Available_Data_Response_Union  Actual_SNS_DataState;               // Актуальный ответ от СНС
-	uint32_t  timeout = 0;                                                 // Таймаут счетчик
-	uint16_t  crc;                                                         // Расчетная контрольная сумма
-  uint8_t   requestCounter = 0;                                          // Счетчик отправленых запросов
+	TimeoutType  timeout;                                                  // Таймаут контроль
+	uint16_t     crc;                                                      // Расчетная контрольная сумма
+  uint8_t      requestCounter = 0;                                       // Счетчик отправленых запросов
+	
 	
 	// Вычищаем FIFO от мусора перед запросом
-	while ((UART_GetFlagStatus (SNS_UART, UART_FLAG_RXFE) != SET) && (timeout != SNS_MAX_TIMEOUT))
-	{		
-		timeout++; 
+	setTimeout (&timeout, SNS_CLR_TIMEOUT);
+	while ((UART_GetFlagStatus (SNS_UART, UART_FLAG_RXFE) != SET)&& (timeoutStatus(&timeout) != TIME_IS_UP)) 
 	  UART_ReceiveData(SNS_UART);
-	}
 	
 	// Проверяем будет ли это выход по таймауту
-	if(timeout == SNS_MAX_TIMEOUT)
-	{		
+	if(timeout.status == TIME_IS_UP)
 		//Возвращаем признак неудачи
 		return SNS_TIMEOUT;
-	}
-	// Сбросим счетчик таймаута, и продолжаем
-	timeout = 0;
-	
+
 	// Подключаемся к СНС
 	SNS_RetargetPins();
 	SNS_init();	
@@ -401,25 +386,19 @@ SNS_Status SNS_GetDataState(SNS_Available_Data_Response_Union*  SNS_DataState)
 SNS_Status SNS_GetPositionData(SNS_Position_Data_Response_Union*  SNS_PositionData)
 {
 	SNS_Position_Data_Response_Union  Actual_SNS_PositionData;             // Актуальный ответ от СНС
-	uint32_t  timeout = 0;                                                  // Таймаут счетчик
-	uint16_t  crc;                                                         // Расчетная контрольная сумма
-	uint8_t   requestCounter = 0;                                          // Счетчик отправленых запросов
+  TimeoutType  timeout;                                                  // Таймаут контроль
+	uint16_t     crc;                                                      // Расчетная контрольная сумма
+	uint8_t      requestCounter = 0;                                       // Счетчик отправленых запросов
 	
 	// Вычищаем FIFO от мусора перед запросом
-	while ((UART_GetFlagStatus (SNS_UART, UART_FLAG_RXFE) != SET)&& (timeout != SNS_MAX_TIMEOUT))
-	{ 
-		timeout++; 
-		UART_ReceiveData(SNS_UART);
-	}
+	setTimeout (&timeout, SNS_CLR_TIMEOUT);
+	while ((UART_GetFlagStatus (SNS_UART, UART_FLAG_RXFE) != SET)&& (timeoutStatus(&timeout) != TIME_IS_UP)) 
+	  UART_ReceiveData(SNS_UART);
 	
 	// Проверяем будет ли это выход по таймауту
-	if(timeout == SNS_MAX_TIMEOUT) 
-	{
-		// Возвращаем признак неудачи 
+	if(timeout.status == TIME_IS_UP)
+		//Возвращаем признак неудачи
 		return SNS_TIMEOUT;
-	}
-	// Сбросим счетчик таймаута, и продолжаем
-	timeout = 0;
 	
 	// Подключаемся к СНС
 	SNS_RetargetPins();
@@ -474,26 +453,19 @@ SNS_Status SNS_GetPositionData(SNS_Position_Data_Response_Union*  SNS_PositionDa
 SNS_Status SNS_GetOrientationData(SNS_Orientation_Data_Response_Union*  SNS_OrientationData)
 {
 	SNS_Orientation_Data_Response_Union  Actual_SNS_OrientationData;       // Актуальный ответ от СНС
-	uint32_t  timeout = 0;                                                 // Таймаут счетчик
+  TimeoutType  timeout;                                                  // Таймаут контроль
 	uint16_t  crc;                                                         // Расчетная контрольная сумма
 	uint8_t   requestCounter = 0;                                          // Счетчик отправленых запросов
 		
-	//Вычищаем FIFO от мусора перед запросом
-	while ((UART_GetFlagStatus (SNS_UART, UART_FLAG_RXFE) != SET) && (timeout != SNS_MAX_TIMEOUT))
-	{
-		timeout++;
-		UART_ReceiveData(SNS_UART);
-	}
+	// Вычищаем FIFO от мусора перед запросом
+	setTimeout (&timeout, SNS_CLR_TIMEOUT);
+	while ((UART_GetFlagStatus (SNS_UART, UART_FLAG_RXFE) != SET)&& (timeoutStatus(&timeout) != TIME_IS_UP)) 
+	  UART_ReceiveData(SNS_UART);
 	
 	// Проверяем будет ли это выход по таймауту
-	if(timeout == SNS_MAX_TIMEOUT) 
-	{
-		// Возвращаем признак неудачи 
+	if(timeout.status == TIME_IS_UP)
+		//Возвращаем признак неудачи
 		return SNS_TIMEOUT;
-	}
-	
-	// Сбросим счетчик таймаута, и продолжаем
-	timeout = 0;
 	
 	// Подключаемся к СНС
 	SNS_RetargetPins();

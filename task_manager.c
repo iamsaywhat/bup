@@ -145,7 +145,7 @@ void TaskManagerZPZBackgroundRun (void)
 	{
 		case 1: /* Задача № 1 - Обновление данных от СНС и СВС */
 		{
-			//BUP_DataUpdate ();
+			BUP_DataUpdate ();
 			// Переходим на выполнение следующей задачи
 			TaskManager.Task_num ++;
 			break;

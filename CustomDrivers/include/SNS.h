@@ -81,9 +81,10 @@
 #define RST_CLK_PCLK_SNS_PORT     RST_CLK_PCLK_PORTB     
 #define RST_CLK_PCLK_SNS_UART     RST_CLK_PCLK_UART1
 #define BAUDRATE_SNS              115200                    // Бит/с скорость обмена с СНС
-#define SNS_MAX_TIMEOUT           0x3FFF                    // Величина таймаута (максимальное число проходов функции чтения)
-#define SNS_BYTE_TIMEOUT          0x0FFF                    // Величина таймаута на приём/отправку байта
 #define SNS_REQUESTS_CNT          10                        // Количество повторных запросов (при отсутствии ответа)
+#define SNS_BYTE_TIMEOUT          2                         // Величина таймаута на приём байта, мс
+#define SNS_CLR_TIMEOUT           2                         // Величина таймаута на очистку буфера, мс
+#define SWS_RESPONSE_TIMEOUT      20                        // Величина таймаута на ожидание ответа, мс
 
 /************************************************************
     КОМАНДЫ ЗАПРОСОВ ДАННЫХ

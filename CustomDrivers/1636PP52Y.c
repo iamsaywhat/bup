@@ -101,16 +101,18 @@ void SPI_1636PP52Y_Init (void)
 **************************************************************************************************************/
 void SPI_1636PP52Y_WriteEnable (uint32_t CSn)
 {
-	uint32_t timeout = 0;
+	TimeoutType timeout; 
 	
 	// Выставим ChipSelect нужной микросхемы
 	CSnReady(CSn);
+	// Устанавливаем таймаут функции
+	setTimeout (&timeout, TIMEOUT_1636PP52Y);
 	// Дождаться полного окончания предыдущих операций
-	while ((SPI_1636PP52Y_Module->SR & SSP_FLAG_BSY) && (timeout != TIMEOUT_1636PP52Y)) timeout ++;
+	while ((SPI_1636PP52Y_Module->SR & SSP_FLAG_BSY) && (timeoutStatus(&timeout) != TIME_IS_UP));
 	// Передать байт
 	SPI_1636PP52Y_Module->DR = _1636PP52Y_CMD_WriteEnable;
 	// Дождаться полного окончания операции
-	while ((SPI_1636PP52Y_Module->SR & SSP_FLAG_BSY) && (timeout != TIMEOUT_1636PP52Y)) timeout ++;
+	while ((SPI_1636PP52Y_Module->SR & SSP_FLAG_BSY) && (timeoutStatus(&timeout) != TIME_IS_UP));
 	// Хоть результат чтения и не нужен, но прочитать всё равно надо
 	SPI_1636PP52Y_Module->DR; 
 	// Деактивируем ChipSelect микросхемы
@@ -122,16 +124,18 @@ void SPI_1636PP52Y_WriteEnable (uint32_t CSn)
 **************************************************************************************************************/ 
 void SPI_1636PP52Y_WriteDisable (uint32_t CSn)
 {
-	uint32_t timeout = 0;
+	TimeoutType timeout;
 	
 	// Выставим ChipSelect нужной микросхемы
 	CSnReady(CSn);
+	// Устанавливаем таймаут функции
+	setTimeout (&timeout, TIMEOUT_1636PP52Y);
 	// Дождаться полного окончания предыдущих операций
-	while ((SPI_1636PP52Y_Module->SR & SSP_FLAG_BSY) && (timeout != TIMEOUT_1636PP52Y)) timeout ++;
+	while ((SPI_1636PP52Y_Module->SR & SSP_FLAG_BSY) && (timeoutStatus(&timeout) != TIME_IS_UP));
 	// Передать байт
 	SPI_1636PP52Y_Module->DR = _1636PP52Y_CMD_WriteDisable;
 	// Дождаться полного окончания операции
-	while ((SPI_1636PP52Y_Module->SR & SSP_FLAG_BSY) && (timeout != TIMEOUT_1636PP52Y)) timeout ++;
+	while ((SPI_1636PP52Y_Module->SR & SSP_FLAG_BSY) && (timeoutStatus(&timeout) != TIME_IS_UP));
 	// Хоть результат чтения и не нужен, но прочитать всё равно надо	
 	SPI_1636PP52Y_Module->DR; 
 	// Деактивируем ChipSelect микросхемы
@@ -478,12 +482,12 @@ uint32_t SPI_1636PP52Y_ReadWord (uint32_t CSn, uint32_t Address)
 **************************************************************************************************************/
 uint32_t SPI_1636PP52Y_ReadArray15 (uint32_t CSn, uint32_t Address, uint8_t* Destination, uint32_t Size)
 {
-	uint8_t src[4];
-	Dword_to_Byte Addr;
-	uint32_t i,count;
+	uint8_t           src[4];
+	Dword_to_Byte     Addr;
+	uint32_t          i,count;
 	volatile uint32_t data;
-	uint8_t* Dst;
-	uint32_t timeout = 0;
+	uint8_t*          Dst;
+	TimeoutType       timeout;
 	
 	Dst = Destination;
 	Addr.DWord = Address;
@@ -495,9 +499,10 @@ uint32_t SPI_1636PP52Y_ReadArray15 (uint32_t CSn, uint32_t Address, uint8_t* Des
 	
 	// Выставим ChipSelect нужной микросхемы
 	CSnReady(CSn);
-	
+	// Устанавливаем таймаут функции
+	setTimeout (&timeout, TIMEOUT_1636PP52Y);
 	// Дождаться полного освобождения SPI
-	while (((SPI_1636PP52Y_Module->SR) & SSP_FLAG_BSY) && (timeout != TIMEOUT_1636PP52Y)) timeout ++;
+	while (((SPI_1636PP52Y_Module->SR) & SSP_FLAG_BSY) && (timeoutStatus(&timeout) != TIME_IS_UP));
 	// Вычитать все данные из входного буфера, так как там может лежать мусор	
 	while ((SPI_1636PP52Y_Module->SR & SSP_FLAG_RNE))
 		data = SPI_1636PP52Y_Module->DR;	
@@ -508,16 +513,15 @@ uint32_t SPI_1636PP52Y_ReadArray15 (uint32_t CSn, uint32_t Address, uint8_t* Des
 	for (i = 0; i < 4; i++)
 	{
 		// Дождаться приема байта
-		while (!(SPI_1636PP52Y_Module->SR & SSP_FLAG_RNE) && (timeout != TIMEOUT_1636PP52Y)) timeout ++;
+		while (!(SPI_1636PP52Y_Module->SR & SSP_FLAG_RNE) && (timeoutStatus(&timeout) != TIME_IS_UP));
 		data = SPI_1636PP52Y_Module->DR;
 	}
 	// Передаем пустой байт и принимаем ответный
 	for (i = 0, count = 0; i < Size; i++)
 	{
 		// Дождаться появления свободного места в выходном буфере
-		while (!(SPI_1636PP52Y_Module->SR & SSP_FLAG_TNF) && (timeout != TIMEOUT_1636PP52Y))
+		while (!(SPI_1636PP52Y_Module->SR & SSP_FLAG_TNF) && (timeoutStatus(&timeout) != TIME_IS_UP))
 		{
-			timeout ++;
 	    // Читаем байт, полученный от 1636РР52У
 		  if (SPI_1636PP52Y_Module->SR & SSP_FLAG_RNE)
 			{
@@ -556,12 +560,12 @@ uint32_t SPI_1636PP52Y_ReadArray15 (uint32_t CSn, uint32_t Address, uint8_t* Des
 **************************************************************************************************************/
 uint32_t SPI_1636PP52Y_ReadArray (uint32_t CSn, uint32_t Address, uint8_t* Destination, uint32_t Size)
 {
-	uint8_t src[5];
-	Dword_to_Byte Addr;
-	uint32_t i,count;
-	volatile uint32_t data;
-	uint8_t* Dst;
-	uint32_t timeout = 0;
+	uint8_t            src[5];
+	Dword_to_Byte      Addr;
+	uint32_t           i,count;
+	volatile uint32_t  data;
+	uint8_t*           Dst;
+	TimeoutType        timeout;
 	
 	Dst = Destination;
 	Addr.DWord = Address;
@@ -573,10 +577,10 @@ uint32_t SPI_1636PP52Y_ReadArray (uint32_t CSn, uint32_t Address, uint8_t* Desti
 	
 	// Выставим ChipSelect нужной микросхемы
 	CSnReady(CSn);
-	
-	
+	// Устанавливаем таймаут функции
+	setTimeout (&timeout, TIMEOUT_1636PP52Y);
 	// Дождаться полного освобождения SPI
-	while (((SPI_1636PP52Y_Module->SR) & SSP_FLAG_BSY) && (timeout != TIMEOUT_1636PP52Y)) timeout ++;
+	while (((SPI_1636PP52Y_Module->SR) & SSP_FLAG_BSY) && (timeoutStatus(&timeout) != TIME_IS_UP));
 	// Вычитать все данные из входного буфера, так как там может лежать мусор	
 	while ((SPI_1636PP52Y_Module->SR & SSP_FLAG_RNE))
 		data = SPI_1636PP52Y_Module->DR;	
@@ -587,7 +591,7 @@ uint32_t SPI_1636PP52Y_ReadArray (uint32_t CSn, uint32_t Address, uint8_t* Desti
 	for (i = 0; i < 5; i++)
 	{
 		// Дождаться приема байта
-		while (!(SPI_1636PP52Y_Module->SR & SSP_FLAG_RNE) && (timeout != TIMEOUT_1636PP52Y)) timeout ++;
+		while (!(SPI_1636PP52Y_Module->SR & SSP_FLAG_RNE) && (timeoutStatus(&timeout) != TIME_IS_UP));
 		data = SPI_1636PP52Y_Module->DR;
 	}
 	
@@ -595,9 +599,8 @@ uint32_t SPI_1636PP52Y_ReadArray (uint32_t CSn, uint32_t Address, uint8_t* Desti
 	for (i = 0, count = 0; i < Size; i++)
 	{
 		// Дождаться появления свободного места в выходном буфере
-		while (!(SPI_1636PP52Y_Module->SR & SSP_FLAG_TNF) && (timeout != TIMEOUT_1636PP52Y))
+		while (!(SPI_1636PP52Y_Module->SR & SSP_FLAG_TNF) && (timeoutStatus(&timeout) != TIME_IS_UP))
 		{
-			timeout ++;
 	    // Читаем байт, полученный от 1636РР52У
 		  if (SPI_1636PP52Y_Module->SR & SSP_FLAG_RNE)
 			{
@@ -716,12 +719,15 @@ uint8_t SPI_1636PP52Y_TestMemory (uint32_t CSn)
 **************************************************************************************************************/
 static void SPI_1636PP52Y_WriteBlock (uint8_t* Source, uint8_t* Destination, uint32_t Size)
 {
-	uint32_t i;
-	uint32_t temp;
-	uint32_t timeout = 0;
+	uint32_t     i;
+	uint32_t     temp;
+	TimeoutType  timeout;
+	
+	// Устанавливаем таймаут функции
+	setTimeout (&timeout, TIMEOUT_1636PP52Y);
 	
 	// Дождаемся полного освобождения буфера
-	while ((SPI_1636PP52Y_Module->SR & SSP_FLAG_BSY) && (timeout != TIMEOUT_1636PP52Y)) timeout ++;
+	while ((SPI_1636PP52Y_Module->SR & SSP_FLAG_BSY) && (timeoutStatus(&timeout) != TIME_IS_UP));
 
 	// Читаем входной буфер, чтобы его вычистить, так как там может лежать мусор	
 	while ((SPI_1636PP52Y_Module->SR & SSP_FLAG_RNE))
@@ -730,14 +736,14 @@ static void SPI_1636PP52Y_WriteBlock (uint8_t* Source, uint8_t* Destination, uin
 	for (i = 0; i < Size; i++)
 	{
 		// Дождаться появления свободного места в буфера передатчика
-		while (!(SPI_1636PP52Y_Module->SR & SSP_FLAG_TNF) && (timeout != TIMEOUT_1636PP52Y)) timeout ++;
+		while (!(SPI_1636PP52Y_Module->SR & SSP_FLAG_TNF) && (timeoutStatus(&timeout) != TIME_IS_UP));
 		// Передать байт
 		SPI_1636PP52Y_Module->DR = *Source++;
 	}
 	for (i = 0; i < Size; i++)
 	{
 		// Дождаться приема байта
-		while (!(SPI_1636PP52Y_Module->SR & SSP_FLAG_RNE) && (timeout != TIMEOUT_1636PP52Y)) timeout ++;
+		while (!(SPI_1636PP52Y_Module->SR & SSP_FLAG_RNE) && (timeoutStatus(&timeout) != TIME_IS_UP));
 		// Читаем байт, полученный от 1636РР52У
 		*Destination++ = SPI_1636PP52Y_Module->DR;		
 	}

@@ -23,15 +23,18 @@ typedef enum {
 	ADC2 = 2,
 }ADCdev;
 
-typedef struct{
-	uint64_t start;
-	uint64_t stop;
-}TimeoutType;
-
 typedef enum{
 	TIME_IS_UP,
 	TIME_IS_NOT_UP
 }TimeoutStatus;
+
+typedef struct{
+	uint64_t       start;
+	uint64_t       stop;
+	TimeoutStatus  status;
+}TimeoutType;
+
+
 
 
 /****************************************************************************************

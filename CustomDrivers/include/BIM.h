@@ -51,6 +51,8 @@
 #define RST_CLK_PCLK_BIM_CAN      RST_CLK_PCLK_CAN1     // Для включения тактирования нужного CAN-модуля	
 #define BAUDRATE_BIM              125000                // Cкорость обмена по CAN, бит/c
 #define BIM_CAN_PORT_FUNC         PORT_FUNC_MAIN        // Переопределения функции пина порта, чтобы переключать в режим CAN
+#define BIM_SEND_TIMEOUT          2                     // Таймаут на отправку сообщения, мс
+#define BIM_RECEIVE_TIMEOUT       3                     // Таймаут на приём ответа, мс
 
 // Подача питания БИМам управляется через
 #define BIM_SupplyPort            MDR_PORTE             // Порт, к которому подключено реле коммутации питания для БИМ
