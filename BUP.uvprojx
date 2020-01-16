@@ -621,6 +621,11 @@
               <FileType>1</FileType>
               <FilePath>.\CustomDrivers\filters.c</FilePath>
             </File>
+            <File>
+              <FileName>bup_board.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\bup_board.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

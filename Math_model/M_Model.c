@@ -45,7 +45,7 @@ void M_Model_Init(void)
 	#endif //************************************************************************** !flightRegulatorCFB
 	
 	// Запускаем таймер обслуживания мат модели (период дискретизации 1 с)
-	Timer_SetInterruptPeriod (MMODEL_TIMER, SECOND_TICKS);
+	Timer_init (MMODEL_TIMER, SECOND_TICKS);
 }
 
 /***************************************************************************

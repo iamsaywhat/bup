@@ -2069,7 +2069,7 @@ static void ZPZ_StartHighPriorityTask (void)
 	/* Выключаем "Неисправность" */
 	LED_FAULT_OFF();
 	/* Запускаем таймер */
-	Timer_SetInterruptPeriod(ZPZ_TIMER, 0.2*SECOND_TICKS);
+	Timer_init(ZPZ_TIMER, 0.2*SECOND_TICKS);
 }
 
 

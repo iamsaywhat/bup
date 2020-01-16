@@ -167,7 +167,7 @@ void Pin_init(MDR_PORT_TypeDef* PORTx, uint32_t Pin_Num, PORT_FUNC_TypeDef Port_
 /**************************************************************************************************************
     Timer_SetInterruptPeriod - Настройка таймера TIMERx на прерывание каждые ticks тактов.
 **************************************************************************************************************/
-void Timer_SetInterruptPeriod (MDR_TIMER_TypeDef* TIMERx, unsigned long ticks)
+void Timer_init (MDR_TIMER_TypeDef* TIMERx, unsigned long ticks)
 {
 	/* 
 	   Фoрмула расчета частоты прерываний:

@@ -5,6 +5,7 @@
 #include "SelfTesting.h"
 #include "bup_data_store.h"
 #include "config.h"
+#include "otherlib.h"
 
 
 #ifdef flightRegulatorCFB //******************************************************* Если выбран flightRegulatorCFB
@@ -28,7 +29,7 @@ void debug_can(unsigned short id, void* data, unsigned char size)
 	CAN_TxMsgTypeDef     Tx_msg;              // Структура CAN сообщения
 	unsigned int         i = 0;               // Счетчик 
 	unsigned int         Buffer_number;       // Номер свободного буфера
-	unsigned short       per = 0;             // Таймаут-счетчик
+	TimeoutType          timeout;             // Таймаут контроль
 		
 	Tx_msg.ID = CAN_STDID_TO_EXTID(id);
 	Tx_msg.PRIOR_0 = DISABLE;
@@ -39,15 +40,15 @@ void debug_can(unsigned short id, void* data, unsigned char size)
 	
 	// Заполняем сообщение
 	for (i = 0; i < size; i++)
-	{
 		*((unsigned char*)Tx_msg.Data + i) = *((unsigned char*)data + i);
-	}
+		
 	// Спросим какой из буферов свободен для использования
 	Buffer_number = CAN_GetDisabledBuffer (CAN_DEBUG);
 	// Кладём сообщение в нужный буфер и ждем отправки
 	CAN_Transmit(CAN_DEBUG, Buffer_number, &Tx_msg);
 	// Ожидаем конца передачи, либо превышения времени ожидания
-	while(((CAN_GetBufferStatus(CAN_DEBUG, Buffer_number) & CAN_STATUS_TX_REQ) != RESET) && (per != 0xFFF)) per++;
+	setTimeout (&timeout, 1);
+	while(((CAN_GetBufferStatus(CAN_DEBUG, Buffer_number) & CAN_STATUS_TX_REQ) != RESET) && (timeoutStatus(&timeout) != TIME_IS_UP));
 	// Вне зависимости от того, удалось отправить или нет, освобождаем буфер
 	CAN_BufferRelease (CAN_DEBUG, Buffer_number);
 }
