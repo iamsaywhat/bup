@@ -1,7 +1,8 @@
 #include "SWS.h"
 #include "crc32.h"
 #include "otherlib.h"
-
+#include "bupboard.h"
+#include "MDR32F9Qx_uart.h"
 
 /**************************************************************************************************************
     Объявления локальных функций модуля
@@ -9,25 +10,17 @@
 static int16_t UARTReceiveByte (MDR_UART_TypeDef* UARTx);
 static uint8_t UARTSendByte (MDR_UART_TypeDef* UARTx, uint16_t Byte);
 
-
 /**************************************************************************************************************
     SWS_RetargetPins - Функция переопределения UART1 на другие пины, для работы SWS
 ***************************************************************************************************************/
 void SWS_RetargetPins (void)
-{
-	RST_CLK_PCLKcmd(RST_CLK_PCLK_PORTD, ENABLE);
-	
-	// Здесь гарантированно отключаем используемый UART, от других пинов, на которых он может использоваться 
-	Pin_init (MDR_PORTB, PORT_Pin_6, PORT_FUNC_PORT, PORT_OE_OUT);
-	Pin_init (MDR_PORTB, PORT_Pin_5, PORT_FUNC_PORT, PORT_OE_OUT);
-	
+{	
 	// Переназчаем UART1 на порт D для работы SWS
-	Pin_init (SWS_PORT, SWS_RX, PORT_FUNC_OVERRID,PORT_OE_IN);
-	Pin_init (SWS_PORT, SWS_TX, PORT_FUNC_OVERRID,PORT_OE_OUT);
+	Pin_init (SWS_RX);
+	Pin_init (SWS_TX);
 	// Пин активации приёмопередатчика
-	Pin_init (SWS_PORT, SWS_DE, PORT_FUNC_PORT,PORT_OE_OUT);
+	Pin_init (SWS_DE);
 }
-
 
 /**************************************************************************************************************
     SWS_init - Запуск процедуры обмена с SWS
@@ -35,9 +28,7 @@ void SWS_RetargetPins (void)
 void SWS_init (void)
 {
 	UART_InitTypeDef UART_InitStructure;
-
-	// Включаем тактирования модуля UART и порта, пины которого использует СВС
-	RST_CLK_PCLKcmd(RST_CLK_PCLK_SWS_PORT| RST_CLK_PCLK_SWS_UART, ENABLE);
+	
 	// Сброс конфигуряции UART
 	UART_DeInit(SWS_UART);
 	// Заполнение структуры по-умолчанию
@@ -57,9 +48,9 @@ void SWS_init (void)
 	// Включение UART - CВС
 	UART_Cmd(SWS_UART,ENABLE);
 	// Устанавливаем в 0 пин DE - Режим приёмника
-	PORT_ResetBits (SWS_PORT,SWS_DE);
+	Pin_reset(SWS_DE);
 	// Если нужен режим передатчика - устанавливаем в 1;
-	//PORT_SetBits (SWS_PORT,SWS_DE); 
+	//Pin_set(SWS_DE);
 }
 
 /**************************************************************************************************************
@@ -69,15 +60,15 @@ void SWS_deinit (void)
 {
 	// Сброс конфигуряции UART
 	UART_DeInit(SWS_UART);
-	// Включение UART - CВС
+	// Отключение UART - CВС
 	UART_Cmd(SWS_UART,DISABLE);
 	// Устанавливаем в 0 пин DE - Режим приёмника
-	PORT_ResetBits (SWS_PORT,SWS_DE);
+	Pin_reset(SWS_DE);
 	// Освобождаем пины по
-	Pin_init (SWS_PORT, SWS_RX, PORT_FUNC_PORT,PORT_OE_OUT);
-	Pin_init (SWS_PORT, SWS_TX, PORT_FUNC_PORT,PORT_OE_OUT);
+	Pin_default (SWS_RX);
+	Pin_default (SWS_TX);
 	// Пин активации приёмопередатчика
-	Pin_init (SWS_PORT, SWS_DE, PORT_FUNC_PORT,PORT_OE_OUT);
+	Pin_default (SWS_DE);
 }
 
 /**************************************************************************************************************
@@ -160,8 +151,6 @@ SWS_Status SWS_GetPacket (SWS_Packet_Type_Union* SWS_Pack)
 	/* Возвращаем статус выполнения */
 	return status;
 }
-
-
 
 /**************************************************************************************************************
     UARTReceiveByte - Функция приёма байта данных по UART с контролем таймаутом

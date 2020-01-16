@@ -26,8 +26,6 @@
 #define lon 1
 #define alt 2
 
-// Глобальный для этого модуля флаг
-uint8_t M_Model_Need2UpdateFlag = 0;
 
 
 /***************************************************************************
@@ -59,8 +57,6 @@ void M_Model_Step(void)
 		Easy_reg_step();
 	#endif //************************************************************************** !flightRegulatorCFB
 }
-
-
 
 /***************************************************************************
     M_Model_PrepareData - Заполнение входных данных для мат. модели    
@@ -123,12 +119,7 @@ void M_Model_PrepareData (void)
 		rtU.LongitudeVelocity  = BUP_Get_VelocityLongitude();
 		rtU.AltitudeVelocity   = BUP_Get_VelocityAltitude();
 	#endif //************************************************************************** !flightRegulatorCFB 
-
-	// Данные были обновлены, сообщаем об этом Мат. модели
-	M_Model_Need2UpdateReset();
-	
 }
-
 
 /***************************************************************************
     M_Model_Control - Выполнение команд мат. модели    
@@ -174,8 +165,6 @@ void M_Model_Control (void)
 			while(1);
 		}
 }
-
-
 
 /*******************************************************************************
     M_Model_Cmd2BIM -  Функция, предоставляющая мат модели управление БИМами
@@ -276,3 +265,4 @@ void M_Model_Cmd2BIM (double Side)
 		SelfTesting_LEFT_BIM();
 	}
 }
+

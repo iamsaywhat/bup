@@ -1,50 +1,23 @@
+/*****************************************************************************************************************
+
+        25Q64FV - Драйвер для работы с внешней SPI памятью типа 25Q64FV от WINBOND.
+    
+*****************************************************************************************************************/
 #ifndef _25Q64FV_H_
 #define _25Q64FV_H_
 	
-
 #include "stdint.h"
-#include "MDR32F9Qx_port.h"
-
-	
-#define SPI_25Q64FV_Module                 MDR_SSP2
-#define RST_CLK_PCLK_SPI_25Q64FV_Port      RST_CLK_PCLK_PORTF
-#define RST_CLK_PCLK_SPI_25Q64FV_Module    RST_CLK_PCLK_SSP2
-
-// ChipSelect n - выбор микросхемы № n
-#define SPI_25Q64FV_CSn                    PORT_Pin_11 			// ChipSelect - выбор микросхемы
-#define SPI_25Q64FV_CSn_PORT               MDR_PORTF            // Используем порт F под CS
-#define SPI_25Q64FV_CSn_FUNC               PORT_FUNC_PORT		// Функция пинов - просто порт (выход)
-
-// SCLK - последовательный тактовый сигнал шины SPI
-#define SPI_25Q64FV_CLK                    PORT_Pin_13					
-#define SPI_25Q64FV_CLK_PORT               MDR_PORTF			// Используем порт F
-#define SPI_25Q64FV_CLK_FUNC               PORT_FUNC_OVERRID	// Функция пинов - переопр: SSP2_CLK
-
-// MISO - вход для мастера, выход для ведомого
-#define SPI_25Q64FV_RXD                    PORT_Pin_14	
-#define SPI_25Q64FV_RXD_PORT               MDR_PORTF            // Используем порт F
-#define SPI_25Q64FV_RXD_FUNC               PORT_FUNC_OVERRID    // Функция пинов - переопр: SSP2_RXD
-
-
-// MOSI - выход для мастера, вход для ведомого
-#define SPI_25Q64FV_TXD                    PORT_Pin_15					
-#define SPI_25Q64FV_TXD_PORT               MDR_PORTF            // Используем порт F
-#define SPI_25Q64FV_TXD_FUNC               PORT_FUNC_OVERRID    // Функция пинов - переопр: SSP2_ЕXD
+#include "bupboard.h"
 
 // Параметры микросхемы
-#define _25Q64FV_SECTORS_NUM               2048                 // Количество секторов 
-#define _25Q64FV_SECTORS_SIZE              0x1000               // Размер сектора
+#define _25Q64FV_SECTORS_NUM               2048          // Количество секторов 
+#define _25Q64FV_SECTORS_SIZE              0x1000        // Размер сектора
+#define _25Q64FV_ID                        0xEF16        // ID микросхемы и производителя
+#define _25Q64FV_TIMEOUT                   1             // Таймаут на чтение по SPI, мс
+#define _25Q64FV_ChipErase_delay_us        25000000      // Время стирания всего чипа (от 20с до 100 с)
+#define _25Q64FV_SectorErase_delay_us      60000         // Время стирания сектора (от 45 мс до 400 мс)
+#define _25Q64FV_ProgramByte_delay_us      50            // Время записи одного байта сектора (от 20мкс до 50мкс)
 
-// ID микросхемы и производителя
-#define _25Q64FV_ID                        0xEF16 
-
-// Таймаут на чтение по SPI, мс
-#define TIMEOUT_25Q64FV                    1
-
-// Тайминги при выполнении операций
-#define _25Q64FV_ChipErase_delay_us        25000000           // Время стирания всего чипа (от 20с до 100 с)
-#define _25Q64FV_SectorErase_delay_us      60000              // Время стирания сектора (от 45 мс до 400 мс)
-#define _25Q64FV_ProgramByte_delay_us      50                 // Время записи одного байта сектора (от 20мкс до 50мкс)
 
 // Список поддерживаемых команд для 25Q64FV
 enum _25Q64FV_CMD
@@ -64,7 +37,6 @@ enum _25Q64FV_CMD
 };
 
 
- 
 /**************************************************************************************************************
     SPI_25Q64FV_RetargetPins - Назначение пинов для работы с внещней памятью 25Q64FV по SPI       	    
     Параметры:  NONE
@@ -84,7 +56,7 @@ void SPI_25Q64FV_Init (void);
     Параметры:
                 CSn - Выбор микросхемы
 **************************************************************************************************************/
-void SPI_25Q64FV_WriteEnable (uint32_t CSn);
+void SPI_25Q64FV_WriteEnable (PinConfigType CSn);
  
  
 /**************************************************************************************************************
@@ -92,7 +64,7 @@ void SPI_25Q64FV_WriteEnable (uint32_t CSn);
     Параметры:
                 CSn - Выбор микросхемы
 **************************************************************************************************************/
-void SPI_25Q64FV_WriteDisable (uint32_t CSn);
+void SPI_25Q64FV_WriteDisable (PinConfigType CSn);
 
 
 /**************************************************************************************************************
@@ -100,7 +72,7 @@ void SPI_25Q64FV_WriteDisable (uint32_t CSn);
     Параметры:
                 CSn - Выбор микросхемы
 **************************************************************************************************************/
-void SPI_25Q64FV_ChipErase (uint32_t CSn);
+void SPI_25Q64FV_ChipErase (PinConfigType CSn);
 
 
 /**************************************************************************************************************
@@ -108,7 +80,7 @@ void SPI_25Q64FV_ChipErase (uint32_t CSn);
     Параметры:
                 CSn - Выбор микросхемы
 **************************************************************************************************************/
-void SPI_25Q64FV_Reset (uint32_t CSn);
+void SPI_25Q64FV_Reset (PinConfigType CSn);
 
 
 /**************************************************************************************************************
@@ -118,7 +90,7 @@ void SPI_25Q64FV_Reset (uint32_t CSn);
     Возвращает: Два байта, где младший код производителя 0x01,
                 а старший код микросхемы 0xC8
 **************************************************************************************************************/
-uint16_t SPI_25Q64FV_ReadID (uint32_t CSn);
+uint16_t SPI_25Q64FV_ReadID (PinConfigType CSn);
 
 
 /**************************************************************************************************************
@@ -129,7 +101,7 @@ uint16_t SPI_25Q64FV_ReadID (uint32_t CSn);
     Возвращает: 
                 NONE
 **************************************************************************************************************/
-void SPI_25Q64FV_SectorErase (uint32_t CSn, uint32_t Address);
+void SPI_25Q64FV_SectorErase (PinConfigType CSn, uint32_t Address);
 
 
 /**************************************************************************************************************
@@ -141,7 +113,7 @@ void SPI_25Q64FV_SectorErase (uint32_t CSn, uint32_t Address);
     Возвращает:
 	            NONE;
 **************************************************************************************************************/
-void SPI_25Q64FV_ByteProgram (uint32_t CSn, uint32_t Address, uint8_t Value);
+void SPI_25Q64FV_ByteProgram (PinConfigType CSn, uint32_t Address, uint8_t Value);
 
 
 /**************************************************************************************************************
@@ -154,7 +126,7 @@ void SPI_25Q64FV_ByteProgram (uint32_t CSn, uint32_t Address, uint8_t Value);
     Возвращает:
                 Количество считанных байт;
 **************************************************************************************************************/
-uint32_t SPI_25Q64FV_ReadArray (uint32_t CSn, uint32_t Address, uint8_t* Destination, uint32_t Size);
+uint32_t SPI_25Q64FV_ReadArray (PinConfigType CSn, uint32_t Address, uint8_t* Destination, uint32_t Size);
 
 
 /**************************************************************************************************************
@@ -165,7 +137,7 @@ uint32_t SPI_25Q64FV_ReadArray (uint32_t CSn, uint32_t Address, uint8_t* Destina
     Возвращает:
                 Значение регистра статуса микросхемы;
 **************************************************************************************************************/
-uint8_t SPI_25Q64FV_TestMemory (uint32_t CSn); 
+uint8_t SPI_25Q64FV_TestMemory (PinConfigType CSn); 
  
  
 #endif 

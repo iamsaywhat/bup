@@ -1,8 +1,5 @@
 #include "BIM.h"
 #include "otherlib.h"
-
-#include "MDR32F9Qx_port.h"
-#include "MDR32F9Qx_rst_clk.h"
 #include "MDR32F9Qx_can.h"
 
 
@@ -13,14 +10,10 @@ BIM_Response_UnionType Right_BIM;
 BIM_Response_UnionType Left_BIM;
 
 
-
-
 /**************************************************************************************************************
     Объявления локальных функций модуля
 ***************************************************************************************************************/
 static uint8_t BIM_ReceiveResponse (uint16_t DeviceID);
-
-
 
 
 /**************************************************************************************************************
@@ -28,19 +21,16 @@ static uint8_t BIM_ReceiveResponse (uint16_t DeviceID);
 **************************************************************************************************************/
 void BIM_RetargetPins (void)
 {
-	// Разрешаем тактирование
-	RST_CLK_PCLKcmd(RST_CLK_PCLK_BIM_PORT , ENABLE);
 	// Переназчаем CAN, на котором сидят БИМы, на нужные ножки
-	Pin_init (BIM_CAN_PORT, BIM_CAN_RX, BIM_CAN_PORT_FUNC, PORT_OE_IN);
-	Pin_init (BIM_CAN_PORT, BIM_CAN_TX, BIM_CAN_PORT_FUNC, PORT_OE_OUT);
+	Pin_init (BIM_CAN_RX);
+	Pin_init (BIM_CAN_TX);
 	// Пин активации приёмопередатчика
-	Pin_init (BIM_CAN_PORT, BIM_CAN_CS1, PORT_FUNC_PORT,PORT_OE_OUT);
+	Pin_init (BIM_CAN_CS1);
 	// Пин подачи питания на БИМы
-	Pin_init (BIM_SupplyPort, BIM_SupplyPin, PORT_FUNC_PORT,PORT_OE_OUT);
+	Pin_init (RELAY_BIM);
 	// По-умолчанию питание отключим
 	BIM_Supply_OFF(); 
 }
-
 
 
 /**************************************************************************************************************
@@ -57,6 +47,8 @@ void BIM_CAN_init (void)
 	CAN_InitTypeDef        CAN_InitStruct;
 	CAN_FilterInitTypeDef  CAN_FilterInitStruct;
 	
+	// Конфигурируем пины
+	BIM_RetargetPins(); 
 	// Сброс всех настроек
 	CAN_DeInit(BIM_CAN);
 	// Частота работы = HCLK/1
@@ -127,7 +119,7 @@ void BIM_CAN_init (void)
 	CAN_FilterInit (MDR_CAN1, 1, &CAN_FilterInitStruct); 	
 	
 	// Активируем передатчик
-	PORT_SetBits (BIM_CAN_PORT, BIM_CAN_CS1); 
+	Pin_set (BIM_CAN_CS1); 
 }
 
 

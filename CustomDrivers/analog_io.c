@@ -1,17 +1,25 @@
 #include "analog_io.h"
 #include "filters.h"
+#include "bupboard.h"
+#include "MDR32F9Qx_adc.h"
 
+/***************************************************************************
+    Analog_RetargetPins - Инициализация аналоговых входов
+***************************************************************************/
+void Analog_RetargetPins(void)
+{
+  Pin_init(BATTERY_50V);
+	ADC_init (USED_ADC);
+} 
 
-    
+ 
 /************************************************************** Контроль 50 вольтовой секции АКБ **************/
-/* Объявление аналогово входа */
-const AnalogInput Battery50V = {ADC1, PORT_Pin_10, ADC_CH_ADC10};
 /* Макрос для пересчета показаний АЦП в вольтаж на АКБ */
 #define ConvertToVoltage(x) (float)(x*(3.3/4096)*50/3)       
 /* Базовая функция запроса результата преобразования от АЦП */
 static uint16_t GetBatteryChargeFromADC(void)
 {
-    return ADC_GetResult(Battery50V.ADCdev, Battery50V.Channel);
+    return ADC_GetResult(USED_ADC, BATTERY_50V_CH);
 }
 #if defined BAT50V_USE_EMA /* Подключен EMA фильтр */
 static float GetBatteryChargeEMA (void)
@@ -74,10 +82,11 @@ float GetBatteryCharge(void)
 
 
 /************************************************************** Резерв на 11 канале АЦП ***********************/
-const AnalogInput Ch11Reserved = {ADC1, PORT_Pin_11, ADC_CH_ADC11};
+//const AnalogInput Ch11Reserved = {ADC1, PORT_Pin_11, ADC_CH_ADC11};
 /**************************************************************************************************************/
 
 
 /************************************************************** Резерв на 12 канале АЦП ***********************/
-const AnalogInput Ch12Reserved = {ADC1, PORT_Pin_12, ADC_CH_ADC12};
+//const AnalogInput Ch12Reserved = {ADC1, PORT_Pin_12, ADC_CH_ADC12};
 /**************************************************************************************************************/
+

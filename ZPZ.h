@@ -106,16 +106,7 @@
 #include <stdint.h>
 
 // Конфигурация ZPZ модуля (аппаратная привязка)
-#define ZPZ_RX	                  PORT_Pin_0             // PORTF.0 - UART2_RX
-#define ZPZ_TX	                  PORT_Pin_1             // PORTF.1 - UART2_TX
-#define ZPZ_UART                  MDR_UART2              // UART - на котором сидит передатчик
-#define ZPZ_PORT                  MDR_PORTF              // Порт, к которому подключен передатчик 
-#define RST_CLK_PCLK_ZPZ_PORT     RST_CLK_PCLK_PORTF     // Идентификатор Порта, для включения тактирования
-#define RST_CLK_PCLK_ZPZ_UART     RST_CLK_PCLK_UART2     // Идентификатор UART, для включения тактирования
 #define BAUDRATE_ZPZ              115200                 // Бит/с - скорость обмена с ZPZ по UART
-#define ZPZ_IRQn                  UART2_IRQn             // Идентификатор источника прерывания
-#define ZPZ_CAN                   MDR_CAN1               // Идентификатор CAN модуля, к которому ZPZ имеет доступ
-#define ZPZ_TIMER                 MDR_TIMER2             // Идентификатор таймера, который будет использовать ЗПЗ
 #define ZPZ_BYTE_TIMEOUT          1                      // Таймаут на отправку одного байта, мс
 #define ZPZ_RECEIVE_TIMEOUT       1                      // Таймаут на приём одного байта, мс
 #define ZPZ_CLRBUF_TIMEOUT        1                      // Таймаут на очистку буфера, мс
@@ -356,5 +347,9 @@ uint8_t ZPZ_Service (void);
 **************************************************************************************************************/
 uint8_t ZPZ_CheckHighPriorityTask (void);
 
+/**************************************************************************************************************
+    ZPZ_TimerInterruptFunction - Функция, которую необходимо разместить в прерывании используемого таймера
+**************************************************************************************************************/
+void ZPZ_TimerInterruptFunction (void);
 
 #endif

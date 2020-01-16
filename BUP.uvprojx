@@ -622,9 +622,9 @@
               <FilePath>.\CustomDrivers\filters.c</FilePath>
             </File>
             <File>
-              <FileName>bup_board.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\bup_board.h</FilePath>
+              <FileName>bupboard.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\CustomDrivers\bupboard.c</FilePath>
             </File>
           </Files>
         </Group>

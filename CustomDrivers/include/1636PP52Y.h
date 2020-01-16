@@ -3,78 +3,46 @@
         1636PP52Y.c - Драйвер для работы с внешней SPI памятью типа 1636рр52у от Миландр
     
         Особенности работы с драйвером:
-    
         В данном драйвере реализована поддержка 4х микросхем, выбор которых производится 
     
 *****************************************************************************************************************/
 #ifndef _1636PP52Y_H_
 #define _1636PP52Y_H_
-	
-#include "MDR32F9Qx_port.h"	
+
 #include "stdint.h"
-
+#include "bupboard.h"	
 	
-#define SPI_1636PP52Y_Module                 MDR_SSP1
-#define RST_CLK_PCLK_SPI_1636PP52Y_Port      RST_CLK_PCLK_PORTB
-#define RST_CLK_PCLK_SPI_1636PP52Y_Module    RST_CLK_PCLK_SSP1
-
-// ChipSelect n - выбор микросхемы № n
-#define SPI_1636PP52Y_CS1                    PORT_Pin_8          // ChipSelect 1 - выбор микросхемы 1
-#define SPI_1636PP52Y_CS2                    PORT_Pin_9          // ChipSelect 2 - выбор микросхемы 2
-#define SPI_1636PP52Y_CS3                    PORT_Pin_10         // ChipSelect 3 - выбор микросхемы 3
-#define SPI_1636PP52Y_CS4                    PORT_Pin_11         // ChipSelect 4 - выбор микросхемы 4
-#define SPI_1636PP52Y_CSn_PORT               MDR_PORTB           // Используем порт B под CS
-#define SPI_1636PP52Y_CSn_FUNC               PORT_FUNC_PORT      // Функция пинов - просто порт (выход)
-
-// SCLK - последовательный тактовый сигнал шины SPI
-#define SPI_1636PP52Y_CLK                    PORT_Pin_13					
-#define SPI_1636PP52Y_CLK_PORT               MDR_PORTB           // Используем порт B
-#define SPI_1636PP52Y_CLK_FUNC               PORT_FUNC_ALTER     // Функция пинов - альтернативнаая: SSP1_CLK
-
-// MISO - вход для мастера, выход для ведомого
-#define SPI_1636PP52Y_RXD                    PORT_Pin_14	
-#define SPI_1636PP52Y_RXD_PORT               MDR_PORTB           // Используем порт B
-#define SPI_1636PP52Y_RXD_FUNC               PORT_FUNC_ALTER     // Функция пинов - альтернативнаая: SSP1_RXD
-
-// MOSI - выход для мастера, вход для ведомого
-#define SPI_1636PP52Y_TXD                    PORT_Pin_15					
-#define SPI_1636PP52Y_TXD_PORT               MDR_PORTB           // Используем порт B
-#define SPI_1636PP52Y_TXD_FUNC               PORT_FUNC_ALTER     // Функция пинов - альтернативнаая: SSP1_ЕXD
 
 // Адреса, начала каждого из секторов памяти (используеются как идентификатор сектора)
-#define Sector0                    0x0
-#define Sector1                    0x10000
-
-// Последний адрес микросхемы
-#define _1636PP52Y_MAX_ADR       0x1FFFF
-
-// ID микросхемы и производителя
-#define _1636PP52Y_ID            0xC801
-
-// Таймаут на чтение по SPI, мс
-#define TIMEOUT_1636PP52Y        1
+#define Sector0                  0x0
+#define Sector1                  0x10000
+#define _1636PP52Y_MAX_ADR       0x1FFFF   // Последний адрес микросхемы
+#define _1636PP52Y_ID            0xC801    // ID микросхемы и производителя
+#define _1636PP52Y_TIMEOUT       1         // Таймаут на чтение по SPI, мс
 
 // Список поддерживаемых команд для 1636РР52У
-#define _1636PP52Y_CMD_ReadArray                           0x0B    // Чтение массива данных
-#define _1636PP52Y_CMD_SectorErase                         0xD8    // Стирание сектора	
-#define _1636PP52Y_CMD_ChipErase                           0x60    // Стирание всей микросхемы
-#define _1636PP52Y_CMD_ByteProgram                         0x02    // Программирование байта
-#define _1636PP52Y_CMD_WriteEnable                         0x06    // Разрешение записи
-#define _1636PP52Y_CMD_WriteDisable                        0x04    // Запрет записи
-#define _1636PP52Y_CMD_ProtectSector                       0x36    // Включение защиты сектора
-#define _1636PP52Y_CMD_UnprotectSector                     0x39    // Отключение защиты сектора
-#define _1636PP52Y_CMD_ReadSectorProtectionRegister        0x3C    // Чтение регистра защиты сектора 
-#define _1636PP52Y_CMD_ReadStatusRegister                  0x05    // Чтение регистра состояния
-#define _1636PP52Y_CMD_WriteStatusRegister                 0x01    // Запись в регистр состония
-#define _1636PP52Y_CMD_Reset                               0xF0    // Ресет микросхемы
-#define _1636PP52Y_CMD_ReadID                              0x9F    // Чтение ID производителя и микросхемы		
-
+enum _1636PP52Y_CMD
+{
+  _1636PP52Y_CMD_ReadArray                         =  0x0B,    // Чтение массива данных
+  _1636PP52Y_CMD_SectorErase                       =  0xD8,    // Стирание сектора	
+  _1636PP52Y_CMD_ChipErase                         =  0x60,    // Стирание всей микросхемы
+  _1636PP52Y_CMD_ByteProgram                       =  0x02,    // Программирование байта
+  _1636PP52Y_CMD_WriteEnable                       =  0x06,    // Разрешение записи
+  _1636PP52Y_CMD_WriteDisable                      =  0x04,    // Запрет записи
+  _1636PP52Y_CMD_ProtectSector                     =  0x36,    // Включение защиты сектора
+  _1636PP52Y_CMD_UnprotectSector                   =  0x39,    // Отключение защиты сектора
+  _1636PP52Y_CMD_ReadSectorProtectionRegister      =  0x3C,    // Чтение регистра защиты сектора 
+  _1636PP52Y_CMD_ReadStatusRegister                =  0x05,    // Чтение регистра состояния
+  _1636PP52Y_CMD_WriteStatusRegister               =  0x01,    // Запись в регистр состония
+  _1636PP52Y_CMD_Reset                             =  0xF0,    // Ресет микросхемы
+  _1636PP52Y_CMD_ReadID                            =  0x9F,    // Чтение ID производителя и микросхемы
+};
 
  
 // Макросы для выбора микросхемы памяти (0 = выбран, 1 == не выбран)
 // Использовать так: CSnReady(SPI_1636PP52Y_CS1);
-#define CSnReady(x)          PORT_ResetBits (SPI_1636PP52Y_CSn_PORT, x);    // Выбор микросхемы
-#define CSnDisable(x)        PORT_SetBits (SPI_1636PP52Y_CSn_PORT, x);      // Отмена
+#define CSnReady(x)          Pin_reset(x);    // Выбор микросхемы
+#define CSnDisable(x)        Pin_set(x);      // Отмена
  
 /**************************************************************************************************************
     SPI_1636PP52Y_RetargetPins - Назначение пинов для работы с внещней памятью 1636рр52у по SPI
@@ -95,7 +63,7 @@ void SPI_1636PP52Y_Init (void);
     Параметры:
                 CSn - Выбор микросхемы
 **************************************************************************************************************/
-void SPI_1636PP52Y_WriteEnable (uint32_t CSn);
+void SPI_1636PP52Y_WriteEnable (PinConfigType CSn);
  
  
 /**************************************************************************************************************
@@ -103,7 +71,7 @@ void SPI_1636PP52Y_WriteEnable (uint32_t CSn);
     Параметры:
                 CSn - Выбор микросхемы
 **************************************************************************************************************/
-void SPI_1636PP52Y_WriteDisable (uint32_t CSn);
+void SPI_1636PP52Y_WriteDisable (PinConfigType CSn);
 
 
 /**************************************************************************************************************
@@ -111,7 +79,7 @@ void SPI_1636PP52Y_WriteDisable (uint32_t CSn);
     Параметры:
                 CSn - Выбор микросхемы
 **************************************************************************************************************/
-void SPI_1636PP52Y_ChipErase (uint32_t CSn);
+void SPI_1636PP52Y_ChipErase (PinConfigType CSn);
 
 
 /**************************************************************************************************************
@@ -119,7 +87,7 @@ void SPI_1636PP52Y_ChipErase (uint32_t CSn);
     Параметры:
                 CSn - Выбор микросхемы	
 **************************************************************************************************************/
-void SPI_1636PP52Y_Reset (uint32_t CSn);
+void SPI_1636PP52Y_Reset (PinConfigType CSn);
 
 
 /**************************************************************************************************************
@@ -129,7 +97,7 @@ void SPI_1636PP52Y_Reset (uint32_t CSn);
     Возвращает: Два байта, где младший код производителя 0x01,
                 а старший код микросхемы 0xC8	
 **************************************************************************************************************/
-uint16_t SPI_1636PP52Y_ReadID (uint32_t CSn);
+uint16_t SPI_1636PP52Y_ReadID (PinConfigType CSn);
 
 
 /**************************************************************************************************************
@@ -139,7 +107,7 @@ uint16_t SPI_1636PP52Y_ReadID (uint32_t CSn);
                 Address - Адрес, который однозначно принадлежит стираемому сектору;
     Возвращает: NONE
 **************************************************************************************************************/
-void SPI_1636PP52Y_SectorErase (uint32_t CSn, uint32_t Address);
+void SPI_1636PP52Y_SectorErase (PinConfigType CSn, uint32_t Address);
 
 
 /**************************************************************************************************************
@@ -149,7 +117,7 @@ void SPI_1636PP52Y_SectorErase (uint32_t CSn, uint32_t Address);
                 Address - Адрес, который однозначно принадлежит защищаемому сектору;
     Возвращает: NONE
 **************************************************************************************************************/
-void SPI_1636PP52Y_ProtectSector (uint32_t CSn, uint32_t Address);
+void SPI_1636PP52Y_ProtectSector (PinConfigType CSn, uint32_t Address);
 
 
 /**************************************************************************************************************
@@ -159,7 +127,7 @@ void SPI_1636PP52Y_ProtectSector (uint32_t CSn, uint32_t Address);
                 Address - Адрес, который однозначно принадлежит нужному сектору;    
     Возвращает: NONE
 **************************************************************************************************************/
-void SPI_1636PP52Y_UnprotectSector (uint32_t CSn, uint32_t Address);
+void SPI_1636PP52Y_UnprotectSector (PinConfigType CSn, uint32_t Address);
 
 
 /**************************************************************************************************************
@@ -172,7 +140,7 @@ void SPI_1636PP52Y_UnprotectSector (uint32_t CSn, uint32_t Address);
                 00h - Cектор не защищен;
                 FFh - Cектор не защищен;
 **************************************************************************************************************/
-uint32_t SPI_1636PP52Y_ReadSectorProtectionRegister (uint32_t CSn, uint32_t Address);
+uint32_t SPI_1636PP52Y_ReadSectorProtectionRegister (PinConfigType CSn, uint32_t Address);
 
 
 /**************************************************************************************************************
@@ -182,7 +150,7 @@ uint32_t SPI_1636PP52Y_ReadSectorProtectionRegister (uint32_t CSn, uint32_t Addr
     Возвращает:
                 Значение регистра статуса микросхемы;
 **************************************************************************************************************/
-uint32_t SPI_1636PP52Y_ReadStatusRegister (uint32_t CSn);
+uint32_t SPI_1636PP52Y_ReadStatusRegister (PinConfigType CSn);
 
 
 /**************************************************************************************************************
@@ -193,7 +161,7 @@ uint32_t SPI_1636PP52Y_ReadStatusRegister (uint32_t CSn);
     Возвращает:
                 NONE
 **************************************************************************************************************/
-void SPI_1636PP52Y_WriteStatusRegister (uint32_t CSn, uint8_t status);										
+void SPI_1636PP52Y_WriteStatusRegister (PinConfigType CSn, uint8_t status);										
 
 
 /**************************************************************************************************************
@@ -205,7 +173,7 @@ void SPI_1636PP52Y_WriteStatusRegister (uint32_t CSn, uint8_t status);
     Возвращает:
                 NONE;	
 **************************************************************************************************************/
-void SPI_1636PP52Y_ByteProgram (uint32_t CSn, uint32_t Address, uint8_t Value);
+void SPI_1636PP52Y_ByteProgram (PinConfigType CSn, uint32_t Address, uint8_t Value);
 
 
 
@@ -217,7 +185,7 @@ void SPI_1636PP52Y_ByteProgram (uint32_t CSn, uint32_t Address, uint8_t Value);
     Возвращает:
                 Считанный байт информации;	
 **************************************************************************************************************/
-uint32_t SPI_1636PP52Y_ReadWord (uint32_t CSn, uint32_t Address);
+uint32_t SPI_1636PP52Y_ReadWord (PinConfigType CSn, uint32_t Address);
 
 
 /**************************************************************************************************************
@@ -230,7 +198,7 @@ uint32_t SPI_1636PP52Y_ReadWord (uint32_t CSn, uint32_t Address);
     Возвращает:
                 Количество считанных байт;	
 **************************************************************************************************************/
-uint32_t SPI_1636PP52Y_ReadArray15 (uint32_t CSn, uint32_t Address, uint8_t* Destination, uint32_t Size);
+uint32_t SPI_1636PP52Y_ReadArray15 (PinConfigType CSn, uint32_t Address, uint8_t* Destination, uint32_t Size);
 
 
 /**************************************************************************************************************
@@ -243,7 +211,7 @@ uint32_t SPI_1636PP52Y_ReadArray15 (uint32_t CSn, uint32_t Address, uint8_t* Des
     Возвращает:
                 Количество считанных байт;	
 **************************************************************************************************************/
-uint32_t SPI_1636PP52Y_ReadArray (uint32_t CSn, uint32_t Address, uint8_t* Destination, uint32_t Size);
+uint32_t SPI_1636PP52Y_ReadArray (PinConfigType CSn, uint32_t Address, uint8_t* Destination, uint32_t Size);
 
 
 /**************************************************************************************************************
@@ -256,7 +224,7 @@ uint32_t SPI_1636PP52Y_ReadArray (uint32_t CSn, uint32_t Address, uint8_t* Desti
     Возвращает:
                 Количество считанных байт;
 **************************************************************************************************************/
-void SPI_1636PP52Y_BlockProgram (uint32_t CSn, uint32_t Address, uint8_t* Source, uint32_t Size);
+void SPI_1636PP52Y_BlockProgram (PinConfigType CSn, uint32_t Address, uint8_t* Source, uint32_t Size);
 
 
 /**************************************************************************************************************
@@ -267,7 +235,7 @@ void SPI_1636PP52Y_BlockProgram (uint32_t CSn, uint32_t Address, uint8_t* Source
     Возвращает:
                 Значение регистра статуса микросхемы;
 **************************************************************************************************************/
-uint8_t SPI_1636PP52Y_TestMemory (uint32_t CSn); 
+uint8_t SPI_1636PP52Y_TestMemory (PinConfigType CSn); 
  
 #endif 
 	

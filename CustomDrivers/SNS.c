@@ -1,9 +1,7 @@
 #include "SNS.h"
 #include "crc16.h"
 #include "otherlib.h"
-
-#include "MDR32F9Qx_port.h"
-#include "MDR32F9Qx_rst_clk.h"
+#include "bupboard.h"
 #include "MDR32F9Qx_uart.h"
 
 
@@ -23,15 +21,9 @@
 ***************************************************************************************************************/
 static void SNS_RetargetPins (void)
 {
-	RST_CLK_PCLKcmd(RST_CLK_PCLK_SNS_PORT, ENABLE);
-	
-	// Здесь гарантированно отключаем используемый UART, от других пинов, на которых он может использоваться
-	Pin_init (MDR_PORTD, PORT_Pin_7, PORT_FUNC_PORT, PORT_OE_OUT);
-	Pin_init (MDR_PORTD, PORT_Pin_8, PORT_FUNC_PORT, PORT_OE_OUT);
-	
 	// Переназчаем UART1 на порт B для работы SNS
-	Pin_init (SNS_PORT, SNS_RX, PORT_FUNC_ALTER, PORT_OE_IN);
-	Pin_init (SNS_PORT, SNS_TX, PORT_FUNC_ALTER, PORT_OE_OUT);
+	Pin_init (SNS_RX);
+	Pin_init (SNS_TX);
 }
 
 /**************************************************************************************************************
@@ -72,8 +64,8 @@ static void SNS_deinit (void)
 	UART_DeInit(SNS_UART);
 	// Выключение UART1 - CНС
 	UART_Cmd(SNS_UART,DISABLE);
-	Pin_init (SNS_PORT, SNS_RX, PORT_FUNC_PORT, PORT_OE_OUT);
-	Pin_init (SNS_PORT, SNS_TX, PORT_FUNC_PORT, PORT_OE_OUT);
+	Pin_default (SNS_RX);
+	Pin_default (SNS_TX);
 }
 
 /**************************************************************************************************************

@@ -74,12 +74,6 @@
 /************************************************************
     Аппаратно зависимая конфигурация
 ************************************************************/
-#define SNS_RX	                  PORT_Pin_6                // PORTB.6 - UART1_RX
-#define SNS_TX	                  PORT_Pin_5                // PORTB.5 - UART1_TX
-#define SNS_UART                  MDR_UART1                 // UART - на котором сидит передатчик
-#define SNS_PORT                  MDR_PORTB                 // Порт, к которому подключен передатчик 
-#define RST_CLK_PCLK_SNS_PORT     RST_CLK_PCLK_PORTB     
-#define RST_CLK_PCLK_SNS_UART     RST_CLK_PCLK_UART1
 #define BAUDRATE_SNS              115200                    // Бит/с скорость обмена с СНС
 #define SNS_REQUESTS_CNT          10                        // Количество повторных запросов (при отсутствии ответа)
 #define SNS_BYTE_TIMEOUT          2                         // Величина таймаута на приём байта, мс

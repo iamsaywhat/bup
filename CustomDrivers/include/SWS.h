@@ -38,22 +38,11 @@
 #ifndef _SWS_H_
 #define _SWS_H_
 
-#include "MDR32F9Qx_port.h"
-#include "MDR32F9Qx_dma.h"
-#include "MDR32F9Qx_uart.h"
-#include "MDR32F9Qx_rst_clk.h"
-
+#include "stdint.h"
 
 /************************************************************
     Аппаратно зависимая конфигурация
 ************************************************************/
-#define SWS_DE	                  PORT_Pin_6             // PORTD.6 - 485_DE Активация приёмопередатчика
-#define SWS_RX	                  PORT_Pin_7             // PORTD.6 - UART1_RX
-#define SWS_TX	                  PORT_Pin_8             // PORTD.6 - UART1_TX
-#define SWS_UART                  MDR_UART1              // UART - на котором сидит передатчик
-#define SWS_PORT                  MDR_PORTD              // Порт, к которому подключен передатчик 
-#define RST_CLK_PCLK_SWS_PORT     RST_CLK_PCLK_PORTD     
-#define RST_CLK_PCLK_SWS_UART     RST_CLK_PCLK_UART1
 #define BAUDRATE_SWS              115200                 // Бит/с скорость обмена с СВС 
 #define SWS_BYTE_TIMEOUT          2                      // Величина таймаута на приём байта, мс
 #define SWS_CLR_TIMEOUT           2                      // Величина таймаута на очистку буфера, мс

@@ -28,39 +28,7 @@
 #ifndef _M_MODEL_H_
 #define _M_MODEL_H_
 
-#include "SNS.h"
-#include "SWS.h"
 #include <stdint.h>
-
-#define MMODEL_TIMER     MDR_TIMER1
-
-
-extern uint8_t M_Model_Need2UpdateFlag;
-
-
-/***************************************************************************
-    M_Model_Need2UpdateSet - Потребовать обновить данные для Мат.Модели  
-***************************************************************************/
-inline void M_Model_Need2UpdateSet(void) { M_Model_Need2UpdateFlag = 1; }
-
-
-
-/***************************************************************************
-    M_Model_Need2UpdateReset - Данные для Мат.Модели обновлять 
-    не требуется
-***************************************************************************/
-inline void M_Model_Need2UpdateReset(void) { M_Model_Need2UpdateFlag = 1; }
-
-
-
-/***************************************************************************
-    M_Model_Need2UpdateCheck - Проверка необходимости 
-    обновить данные для Мат.Модели
-				
-    Возвращает: 1 - Требуется обновление данных 
-                0 - Обновление данных не требуется
-***************************************************************************/
-inline unsigned char M_Model_Need2UpdateCheck(void) { return M_Model_Need2UpdateFlag; }
 
 
 

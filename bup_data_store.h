@@ -66,8 +66,8 @@ typedef struct{
 	double   Course;                     // Путевой курс, радианы
 	short    ReliefHeight;               // Высота рельефа в текущей точке, метры
 	short    ReliefOnTDP;                // Высота рельефа в точке приземления, метры
-	uint32_t ControlSecond;              // Системное время БУП
 	float    Battery50V;                 // Напряжение на секции 50 Вольт АКБ
+	uint32_t ControlSecond;              // Системное время БУП
 }BUP_DATA;
 
 

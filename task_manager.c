@@ -87,8 +87,6 @@ void TaskManagerRun (void)
 			M_Model_Step();
 			// Выполняем требования матмодели
 			M_Model_Control();
-			// Шаг расчета был выполнен, требуем обновить данные
-			M_Model_Need2UpdateSet();
 			
 			// Переходим на выполнение следующей задачи
 			TaskManager.Task_num ++;

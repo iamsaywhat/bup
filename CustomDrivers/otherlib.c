@@ -3,6 +3,7 @@
 #include "MDR32F9Qx_eeprom.h"
 #include "MDR32F9Qx_rst_clk.h"
 #include "MDR32F9Qx_adc.h"
+
 uint64_t systemTime = 0;
 
 
@@ -14,9 +15,6 @@ uint64_t systemTime = 0;
    ADC_SwitchChannel - Переключение текущего канала ADCx на Channel
 **************************************************************************************************************/
 static void ADC_SwitchChannel (ADCdev ADCx, uint32_t Channel);
-
-
-
 
 
 
@@ -37,6 +35,14 @@ void SysTick_init(void)
 	SysTick->CTRL = SysTick_CTRL_CLKSOURCE_Msk | 
 	                SysTick_CTRL_ENABLE_Msk    |
 									SysTick_CTRL_TICKINT_Msk   ;
+}
+
+/****************************************************************************************
+    SysTick_InterruptFunction - Функция для размещения в функции прерывания SysTick
+****************************************************************************************/
+void SysTick_InterruptFunction(void)
+{
+  systemTime++;
 }
 
 /****************************************************************************************
@@ -132,36 +138,75 @@ void delay_us(uint32_t us)
 	}
 }
 
-/****************************************************************
-SysTick_Handler - Обслуживание прерываний от Системного таймера
-  
-  НЕ ИСПОЛЬЗУЕТСЯ
-****************************************************************/
-void SysTick_Handler (void)
-{
-	systemTime++;
-}
-
 /**************************************************************************************************************
     Pin_init - Функция конфигурации отдельных пинов порта
 **************************************************************************************************************/
-void Pin_init(MDR_PORT_TypeDef* PORTx, uint32_t Pin_Num, PORT_FUNC_TypeDef Port_Func, PORT_OE_TypeDef Port_OE)
+void Pin_init(PinConfigType pin)
 {
 	PORT_InitTypeDef PORT_Struct;
 	
-	PORT_Struct.PORT_Pin = Pin_Num; 
-	PORT_Struct.PORT_OE = Port_OE;
-	PORT_Struct.PORT_FUNC = Port_Func;
-	PORT_Struct.PORT_SPEED = PORT_SPEED_MAXFAST;
-	PORT_Struct.PORT_MODE = PORT_MODE_DIGITAL;
-	PORT_Struct.PORT_PULL_DOWN=PORT_PULL_DOWN_OFF;
-	PORT_Struct.PORT_PULL_UP=PORT_PULL_UP_OFF;
-	PORT_Struct.PORT_GFEN = PORT_GFEN_OFF;
-	PORT_Struct.PORT_PD = PORT_PD_DRIVER;
-	PORT_Struct.PORT_PD_SHM = PORT_PD_SHM_OFF;
+	PORT_Struct.PORT_Pin       = pin.pinNum; 
+	PORT_Struct.PORT_OE        = pin.direction;
+	PORT_Struct.PORT_FUNC      = pin.function;
+	PORT_Struct.PORT_MODE      = pin.mode;
 	
-	PORT_Init(PORTx,&PORT_Struct);
+	PORT_Struct.PORT_SPEED     = PORT_SPEED_MAXFAST;
+	PORT_Struct.PORT_PULL_DOWN = PORT_PULL_DOWN_OFF;
+	PORT_Struct.PORT_PULL_UP   = PORT_PULL_UP_OFF;
+	PORT_Struct.PORT_GFEN      = PORT_GFEN_OFF;
+	PORT_Struct.PORT_PD        = PORT_PD_DRIVER;
+	PORT_Struct.PORT_PD_SHM    = PORT_PD_SHM_OFF;
+	
+	PORT_Init(pin.port, &PORT_Struct);
 }
+
+/**************************************************************************************************************
+    Pin_deinit - Функция конфигурации пина по-умолчанию
+**************************************************************************************************************/
+void Pin_default(PinConfigType pin)
+{
+	PORT_InitTypeDef PORT_Struct;
+	
+	PORT_Struct.PORT_Pin       = pin.pinNum; 
+	PORT_Struct.PORT_OE        = PORT_OE_OUT;
+	PORT_Struct.PORT_FUNC      = PORT_FUNC_PORT;
+	PORT_Struct.PORT_MODE      = PORT_MODE_DIGITAL;
+	
+	PORT_Struct.PORT_SPEED     = PORT_SPEED_MAXFAST;
+	PORT_Struct.PORT_PULL_DOWN = PORT_PULL_DOWN_OFF;
+	PORT_Struct.PORT_PULL_UP   = PORT_PULL_UP_OFF;
+	PORT_Struct.PORT_GFEN      = PORT_GFEN_OFF;
+	PORT_Struct.PORT_PD        = PORT_PD_DRIVER;
+	PORT_Struct.PORT_PD_SHM    = PORT_PD_SHM_OFF;
+	
+	PORT_Init(pin.port, &PORT_Struct);
+}
+
+/**************************************************************************************************************
+    Pin_set - Установить выход пина в 1
+**************************************************************************************************************/
+void Pin_set(PinConfigType pin)
+{
+  PORT_SetBits(pin.port, pin.pinNum); 
+} 
+
+/**************************************************************************************************************
+    Pin_reset - Установить выход пина в 0
+**************************************************************************************************************/
+void Pin_reset(PinConfigType pin)
+{
+  PORT_ResetBits(pin.port, pin.pinNum);
+}
+
+/**************************************************************************************************************
+    Pin_read - Чтение состояния входа пина
+**************************************************************************************************************/
+uint8_t Pin_read(PinConfigType pin)
+{
+	return PORT_ReadInputDataBit(pin.port, pin.pinNum);
+}
+
+
 
 
 /**************************************************************************************************************
@@ -267,11 +312,13 @@ void Clock_init(void){
                      RST_CLK_PCLK_PORTD|
                      RST_CLK_PCLK_PORTF|
                      RST_CLK_PCLK_PORTE|
-                     // RST_CLK_PCLK_TIMER3|
+                     RST_CLK_PCLK_TIMER3|
                      RST_CLK_PCLK_CAN1|
                      RST_CLK_PCLK_CAN2|
                      RST_CLK_PCLK_TIMER2|
-                     RST_CLK_PCLK_TIMER1, 
+                     RST_CLK_PCLK_TIMER1|
+										 RST_CLK_PCLK_SSP1  |
+										 RST_CLK_PCLK_SSP2, 
                      ENABLE); 
     /* Обновим значение тактовой частоты */
     SystemCoreClockUpdate();
@@ -282,14 +329,9 @@ void Clock_init(void){
     ADC_init - Инициализация АЦП
     Параметры:
                 ADCx - Используемый АЦП (ADC1/ADC2)
-                Pins - Пины используемые под АЦП (PORT_Pin_x, где x = 0..15, либо ALL)
-    Примечание: 
-                В Pins можно перечислить несколько пинов, 
-                например PORT_Pin_0 || PORT_Pin_1 ||  PORT_Pin_15
 **************************************************************************************************************/
-void ADC_init(ADCdev ADCx, uint32_t Pins)
+void ADC_init(ADCdev ADCx)
 {
-    PORT_InitTypeDef PORT_Struct;   /* Настройки пинов */
     ADC_InitTypeDef  sADC;          /* Общие настройки АЦП */
     ADCx_InitTypeDef sADCx;         /* Настройки одного из АЦП */
 	
@@ -297,16 +339,6 @@ void ADC_init(ADCdev ADCx, uint32_t Pins)
     RST_CLK_ADCclkSelection(RST_CLK_ADCclkCPU_C1);       /* ADC_C2 тактируется от CPU_C1 */
     RST_CLK_ADCclkPrescaler(RST_CLK_ADCclkDIV1);         /* ADC_C3 = ADC_C2/1 */
     RST_CLK_ADCclkEnable(ENABLE);                        /* Разрешаем тактирование ADC */
-	
-    /* Настройка пинов как аналоговые входы АЦП */
-    PORT_StructInit(&PORT_Struct);                       /* Структура заполняется по-умолчанию */
-    PORT_Struct.PORT_Pin          = Pins;                /* Перечисляем пины используемые под АЦП */
-    PORT_Struct.PORT_FUNC         = PORT_FUNC_PORT;      /* Режим работы: порт ввода/вывода */
-    PORT_Struct.PORT_OE           = PORT_OE_IN;          /* Направление работы портов: вход */
-    PORT_Struct.PORT_MODE         = PORT_MODE_ANALOG;    /* Режим работы: аналоговый */
-    PORT_Struct.PORT_PULL_DOWN    = PORT_PULL_DOWN_ON;   /* Включаем подтяжку к земле */
-  //PORT_Struct.PORT_PULL_UP      = PORT_PULL_UP_ON;     /* Включаем подтяжку к питанию */
-    PORT_Init(MDR_PORTD, &PORT_Struct);                  /* Инициализируем пины */
 
     /* Общие настройки АЦП */
     ADC_DeInit();                                                        /* Сбрасываем настройки АЦП */

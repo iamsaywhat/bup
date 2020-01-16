@@ -1,5 +1,6 @@
 #include "SelfTesting.h"
 
+#include "bupboard.h"
 #include "discrete_io.h"
 #include "analog_io.h"
 #include "1636PP52Y.h"
