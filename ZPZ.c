@@ -1473,12 +1473,11 @@ static uint16_t ZPZ_Request_REQ_SWS (uint16_t CRC)
 static void ZPZ_Response_REQ_SWS (uint16_t NumPacket)
 {
 	ZPZ_Response_Union    ZPZ_Response;    // Стандартный ответ к ЗПЗ
-	SWS_Packet_Type_Union SWS_data;        // Структура ответа от СВС
 	TimeoutType           timeout;         // Таймаут контроль
 
 	/* Принимаем данные */ 
 	setTimeout (&timeout, 40);
-	while(SWS_GetPacket (&SWS_data) && (timeoutStatus(&timeout) != TIME_IS_UP));
+	while(SWS_update () && (timeoutStatus(&timeout) != TIME_IS_UP));
 	/* Проверим был ли это выход по таймауту */
 	if(timeout.status == TIME_IS_UP)
 	{
@@ -1583,9 +1582,9 @@ static void ZPZ_Response_REQ_SNS_POS (uint16_t NumPacket)
 	for(uint8_t i = 4; i < SizeAnsPDR; i++)
 	{
 		/* Побайтово досчитываем контрольную сумму */
-		ZPZ_Response.Struct.CRC = Crc16(&SNS_Orientation.Buffer[i], 1, ZPZ_Response.Struct.CRC);
+		ZPZ_Response.Struct.CRC = Crc16(&SNS_orientation.Buffer[i], 1, ZPZ_Response.Struct.CRC);
 		/* И отправляем */
-		UARTSendByte_by_SLIP (ZPZ_UART, SNS_Position.Buffer[i]);
+		UARTSendByte_by_SLIP (ZPZ_UART, SNS_position.Buffer[i]);
 	}
 	
 	/* Высылаем данные ориентации
@@ -1594,9 +1593,9 @@ static void ZPZ_Response_REQ_SNS_POS (uint16_t NumPacket)
 	for(uint8_t i = 4; i < SizeAnsODR; i++)
 	{
 		/* Побайтово досчитываем контрольную сумму */
-		ZPZ_Response.Struct.CRC = Crc16(&SNS_Orientation.Buffer[i], 1, ZPZ_Response.Struct.CRC);
+		ZPZ_Response.Struct.CRC = Crc16(&SNS_orientation.Buffer[i], 1, ZPZ_Response.Struct.CRC);
 		/* И отправляем */
-		UARTSendByte_by_SLIP (ZPZ_UART, SNS_Orientation.Buffer[i]);
+		UARTSendByte_by_SLIP (ZPZ_UART, SNS_orientation.Buffer[i]);
 	}
 	
 	/* После сверху посылаем контрольную сумму */
@@ -1618,13 +1617,11 @@ static uint16_t ZPZ_Request_REQ_SNS_STATE (uint16_t CRC)
 static void ZPZ_Response_REQ_SNS_STATE (uint16_t NumPacket)
 {
 	ZPZ_Response_Union                     ZPZ_Response;          // Стандартный ответ к ЗПЗ
-	SNS_Device_Information_Response_Union  SNS_DevInfo;           // Информация о СНС
-	SNS_Available_Data_Response_Union      SNS_AvailableData;     // Доступные данные 
 	TimeoutType                            timeout;               // Таймаут-контроль
 	
 	/* Получим данные об устройстве */
 	setTimeout (&timeout, 100);
-	while(SNS_GetDeviceInformation(&SNS_DevInfo) != SNS_OK && (timeoutStatus(&timeout) != TIME_IS_UP));
+	while(SNS_updateDeviceInformation() != SNS_OK && (timeoutStatus(&timeout) != TIME_IS_UP));
 	
 	/* Проверим, вдруг выход был по таймауту, тогда нужно ответить ошибкой и завершиться */
 	if(timeout.status == TIME_IS_UP)
@@ -1637,7 +1634,7 @@ static void ZPZ_Response_REQ_SNS_STATE (uint16_t NumPacket)
 	
 	/* Получим информацию о доступных данных */
 	setTimeout (&timeout, 100);
-	while(SNS_GetDataState(&SNS_AvailableData) != SNS_OK && (timeoutStatus(&timeout) != TIME_IS_UP));
+	while(SNS_updateDataState() != SNS_OK && (timeoutStatus(&timeout) != TIME_IS_UP));
 	/* Проверим, вдруг выход был по таймауту, тогда нужно ответить ошибкой и завершиться */
 	if(timeout.status == TIME_IS_UP)
 	{
@@ -1672,17 +1669,17 @@ static void ZPZ_Response_REQ_SNS_STATE (uint16_t NumPacket)
 	for(uint8_t i = 4; i < SizeAnsDIR; i++)
 	{
 		/* Побайтово досчитываем контрольную сумму */
-		ZPZ_Response.Struct.CRC = Crc16(&SNS_DevInfo.Buffer[i], 1, ZPZ_Response.Struct.CRC);
+		ZPZ_Response.Struct.CRC = Crc16(&SNS_deviceInformation.Buffer[i], 1, ZPZ_Response.Struct.CRC);
 		/* И отправляем */
-		UARTSendByte_by_SLIP (ZPZ_UART, SNS_DevInfo.Buffer[i]);
+		UARTSendByte_by_SLIP (ZPZ_UART, SNS_deviceInformation.Buffer[i]);
 	}
 
 	/* Высылаем инфу о доступных данных 
 	   из полученного пакета с доступными данными от СНС необходимо только поле Data_State
 	   Побайтово досчитываем контрольную сумму */
-	ZPZ_Response.Struct.CRC = Crc16(&SNS_AvailableData.Struct.Data_State, 1, ZPZ_Response.Struct.CRC);
+	ZPZ_Response.Struct.CRC = Crc16(&SNS_availableData.Struct.Data_State, 1, ZPZ_Response.Struct.CRC);
 	/* И отправляем */
-	UARTSendByte_by_SLIP (ZPZ_UART, SNS_AvailableData.Struct.Data_State);
+	UARTSendByte_by_SLIP (ZPZ_UART, SNS_availableData.Struct.Data_State);
 	
 	/* После сверху посылаем контрольную сумму */
 	for(uint8_t i = 8; i < 10; i++)
@@ -1717,11 +1714,11 @@ static void ZPZ_Response_REQ_SNS_SETTINGS (uint16_t NumPacket)
 	
 	/* Команда включения горизонтальной коррекции */
 	if(buffer[0]== 0x01)
-		SNS_EnableHorizontalCorrection();
+		SNS_enableHorizontalCorrection();
 	
 	/* Команда отключения горизонтальной коррекции */
 	else if (buffer[0] == 0x02) 
-		SNS_DisableHorizontalCorrection();
+		SNS_disableHorizontalCorrection();
 	
 	/* Параметр не опознан */
 	else 
@@ -1734,11 +1731,11 @@ static void ZPZ_Response_REQ_SNS_SETTINGS (uint16_t NumPacket)
 		
 	/* Команда начала калибровки гироскопа */
 	if(buffer[1]== 0x01) 
-		SNS_StartGyroCalibration();
+		SNS_startGyroCalibration();
 	
 	/* Команда сброса калибровки гироскопа */
 	else if (buffer[1] == 0x02)
-		SNS_ResetGyroCalibration();
+		SNS_resetGyroCalibration();
 	
 	/* Параметр не опознан */
 	else
@@ -1751,11 +1748,11 @@ static void ZPZ_Response_REQ_SNS_SETTINGS (uint16_t NumPacket)
 	
 	/* Команда начала калибровки магнитометра */
 	if(buffer[2]== 0x01)
-		SNS_StartMagnetometerCalibration();
+		SNS_startMagnetometerCalibration();
 	
 	/* Команда сброса калибровки магнитометра */
 	else if (buffer[2] == 0x02)
-		SNS_ResetMagnetometerCalibration();
+		SNS_resetMagnetometerCalibration();
 
 	/* Параметр не опознан */
 	else

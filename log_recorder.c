@@ -5,6 +5,7 @@
 #include "RetargetPrintf/RetargetPrintf.h"
 #include "SelfTesting.h"
 #include "bup_data_store.h"
+#include "SNS.h"
 #include "BIM.h"
 
 
@@ -47,20 +48,20 @@ void loger_initmsg (void)
 void loger_periodprint (void)
 {
   printf("\nTimestamp, sec: %d\n",       BUP_DataStorage.ControlSecond); // Метку времени в ЛОГ
-  printf("SNS_Lat: %llu\n",              BUP_GetSNS_Latitude());
-  printf("SNS_Lon: %llu\n",              BUP_GetSNS_Longitude());
-  printf("SNS_Alt: %llu\n",              BUP_GetSNS_Altitude());
-  printf("SNS_Vel_lat: %d\n",            BUP_GetSNS_VelocityLatitude());
-  printf("SNS_Vel_lon: %d\n",            BUP_GetSNS_VelocityLongitude());
-  printf("SNS_Vel_alt: %d\n",            BUP_GetSNS_VelocityAltitude());
-  printf("SNS_Course: %d\n",             BUP_GetSNS_Course());
-  printf("SNS_Heading_true: %d\n",       BUP_GetSNS_HeadingTrue());
-  printf("SNS_Heading_mgn: %d\n",        BUP_GetSNS_HeadingMgn());
-  printf("SNS_Pitch: %d\n",              BUP_GetSNS_Pitch());
-  printf("SNS_Roll: %d\n",               BUP_GetSNS_Roll());
-  printf("SWS_TrueSpeed: %f\n",          BUP_GetSWS_TrueSpeed());
-  printf("SWS_InstrumentSpeed: %f\n",    BUP_GetSWS_InstrumentalSpeed());
-  printf("SWS_AbsoluteHeight: %f\n",     BUP_GetSWS_AbsoluteHeight());
+  printf("SNS_Lat: %llu\n",              SNS_position.Struct.Pos_lat);
+  printf("SNS_Lon: %llu\n",              SNS_position.Struct.Pos_lon);
+  printf("SNS_Alt: %llu\n",              SNS_position.Struct.Pos_alt);
+  printf("SNS_Vel_lat: %d\n",            SNS_position.Struct.Vel_lat);
+  printf("SNS_Vel_lon: %d\n",            SNS_position.Struct.Vel_lon);
+  printf("SNS_Vel_alt: %d\n",            SNS_position.Struct.Vel_alt);
+  printf("SNS_Course: %d\n",             SNS_position.Struct.Course);
+  printf("SNS_Heading_true: %d\n",       SNS_orientation.Struct.Heading_true);
+  printf("SNS_Heading_mgn: %d\n",        SNS_orientation.Struct.Heading_mgn);
+  printf("SNS_Pitch: %d\n",              SNS_orientation.Struct.Pitch);
+  printf("SNS_Roll: %d\n",               SNS_orientation.Struct.Roll);
+  printf("SWS_TrueSpeed: %f\n",          SWS_getTrueSpeed());
+  printf("SWS_InstrumentSpeed: %f\n",    SWS_getInstrumentSpeed());
+  printf("SWS_AbsoluteHeight: %f\n",     SWS_getAbsoluteHeight());
   printf("BIML_Pos: %d\n",               (uint8_t)(0.5 + 0.3922*BIM_GetStrapPosition(LEFT_BIM)));   // Перевод к процентной шкале с округлением
   printf("BIMR_Pos: %d\n",               (uint8_t)(0.5 + 0.3922*BIM_GetStrapPosition(RIGHT_BIM)));  // Перевод к процентной шкале с округлением
   printf("SystemState: %x\n",            systemState);
@@ -101,7 +102,7 @@ void loger_exitmsg(void)
   printf("Fin_Lat, deg: %f\n",         BUP_Get_Latitude());
   printf("Fin_Lon, deg: %f\n",         BUP_Get_Longitude());
   printf("Fin_Alt, m: %f\n",           BUP_Get_Altitude());
-  printf("Fin_SWSHeight: %f\n",        BUP_GetSWS_AbsoluteHeight());
+  printf("Fin_SWSHeight: %f\n",        SWS_getAbsoluteHeight());
   // Если карта рельефа в текущей позиции доступна, запишем высоту рельефа
   if (SelfTesting_STATUS(ST_MapAvailability))
     printf("Fin_MAP, m: %d\n",         BUP_Get_ReliefHeight());

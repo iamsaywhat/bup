@@ -4,6 +4,7 @@
 #include "MDR32F9Qx_can.h"
 #include "SelfTesting.h"
 #include "bup_data_store.h"
+#include "SNS.h"
 #include "config.h"
 #include "otherlib.h"
 
@@ -146,7 +147,7 @@ void debug_prepare_data (void)
   debug_vars.TDP_Lat               = BUP_Get_TouchdownLatitude();                  // Широта точки приземления
   debug_vars.TDP_Lon               = BUP_Get_TouchdownLongitude();                 // Долгота точки приземления
   debug_vars.Alt2model             = BUP_Get_Altitude();                           // Высота преобразованная в метры
-  debug_vars.SNSalt                = BUP_GetSNS_Altitude();                        // Высота в том виде в котором принимаем от СНС
+  debug_vars.SNSalt                = SNS_position.Struct.Pos_alt;                  // Высота в том виде в котором принимаем от СНС
   debug_vars.rtU_XYZi_Lat          = BUP_Get_Latitude();                           // Широта преобразованная в градусы
   debug_vars.rtU_XYZi_Lon          = BUP_Get_Longitude();                          // Долгота преобразованная в градусы
   debug_vars.rtU_XYZi_Alt          = BUP_Get_Altitude();                           // Высота преобразованная в метры

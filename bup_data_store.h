@@ -80,10 +80,7 @@ extern const BupFirmwareVersion  bupFirmwareVersion;
 /*******************************************
   Cлужебные данные БУП               
 *******************************************/                        
-extern BUP_DATA                             BUP_DataStorage;     // Рабочие данные БУПа
-extern SNS_Orientation_Data_Response_Union  SNS_Orientation;     // Данные ориентации от СНС
-extern SNS_Position_Data_Response_Union     SNS_Position;        // Данные местоположения от СНС
-extern SWS_Packet_Type_Union                SWS_Data;            // Данные от СВС
+extern BUP_DATA BUP_DataStorage;
 
 
 /************************************************************************************************************** 
@@ -122,34 +119,6 @@ void BUP_UpdateDataFromSWS (void);
 
 
 /***************************************************************************
-  Функции доступа к данным от СНС                                    
-***************************************************************************/
-inline int64_t  BUP_GetSNS_Latitude (void)                   { return SNS_Position.Struct.Pos_lat;}
-inline int64_t  BUP_GetSNS_Longitude (void)                  { return SNS_Position.Struct.Pos_lon;}
-inline int64_t  BUP_GetSNS_Altitude (void)                   { return SNS_Position.Struct.Pos_alt;}
-inline int32_t  BUP_GetSNS_HeadingTrue (void)                { return SNS_Orientation.Struct.Heading_true;}
-inline int32_t  BUP_GetSNS_HeadingMgn (void)                 { return SNS_Orientation.Struct.Heading_mgn;}
-inline int32_t  BUP_GetSNS_Course (void)                     { return SNS_Position.Struct.Course;}
-inline int32_t  BUP_GetSNS_VelocityLatitude (void)           { return SNS_Position.Struct.Vel_lat;}
-inline int32_t  BUP_GetSNS_VelocityLongitude (void)          { return SNS_Position.Struct.Vel_lon;}
-inline int32_t  BUP_GetSNS_VelocityAltitude (void)           { return SNS_Position.Struct.Vel_alt;}
-inline int32_t  BUP_GetSNS_Pitch (void)                      { return SNS_Orientation.Struct.Pitch;}
-inline int32_t  BUP_GetSNS_Roll (void)                       { return SNS_Orientation.Struct.Roll;}
-inline uint64_t BUP_GetSNS_Timestamp (void)                  { return SNS_Position.Struct.Time_stamp;}
-inline uint8_t  BUP_GetSNS_Quality (void)                    { return SNS_Position.Struct.Quality;}
-inline uint8_t  BUP_GetSNS_GLONASS_SatellitesNumber (void)   { return SNS_Position.Struct.Gln_sat_num;}
-inline uint8_t  BUP_GetSNS_GPS_SatellitesNumber (void)       { return SNS_Position.Struct.Gps_sat_num;}
-
-/***************************************************************************
-  Функции доступа к данным от СВС                                   
-***************************************************************************/
-inline float BUP_GetSWS_StaticPressure (void)     { return SWS_Data.Struct.StaticPressure;}
-inline float BUP_GetSWS_DynamicPressure (void)    { return SWS_Data.Struct.DynamicPressure;}
-inline float BUP_GetSWS_AbsoluteHeight (void)     { return SWS_Data.Struct.AbsoluteHeight;}
-inline float BUP_GetSWS_InstrumentalSpeed (void)  { return SWS_Data.Struct.InstrumentSpeed;}
-inline float BUP_GetSWS_TrueSpeed (void)          { return SWS_Data.Struct.TrueSpeed;}
-
-/***************************************************************************
   Функции доступа к данным БУП
 ***************************************************************************/
 inline double   BUP_Get_TouchdownLatitude(void)  { return BUP_DataStorage.TouchdownLatitude;}
@@ -169,37 +138,5 @@ inline double   BUP_Get_Course(void)             { return BUP_DataStorage.Course
 inline short    BUP_Get_ReliefHeight(void)       { return BUP_DataStorage.ReliefHeight;}
 inline short    BUP_Get_ReliefHeightOnTDP(void)  { return BUP_DataStorage.ReliefOnTDP;}
 inline uint32_t BUP_Get_SystemTime (void)        { return BUP_DataStorage.ControlSecond;}
-
-
-/***************************************************************************
-  Rad_12_to_Deg - Преобразование 10E-12 радиан в градусы
-***************************************************************************/
-double Rad_12_to_Deg(int64_t rad);
-
-/***************************************************************************
-  Rad_6_to_Deg - Преобразование 10E-6 радиан в градусы 
-***************************************************************************/
-double Rad_6_to_Deg(int32_t rad);
-
-/**************************************************************************
-  Rad_to_Deg - Преобразование радиан в градусы 
-***************************************************************************/
-double Rad_to_Deg(double rad);
-
-/***************************************************************************
-  Rad_6_to_Rad - Преобразование 10E-6 радиан в радианы
-***************************************************************************/
-double Rad_6_to_Rad(int32_t rad);
-
-/***************************************************************************
-  Meter_12_to_Meter - Преобразование 10E-12 метров в метры
-***************************************************************************/
-double Meter_12_to_Meter (int64_t meter);
-
-/***************************************************************************
-  Ms_6_to_Ms - Преобразование 10E-6 метров\c в метры\с 
-***************************************************************************/
-double Ms_6_to_Ms (int32_t Ms);
-
 
 #endif

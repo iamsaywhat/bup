@@ -433,10 +433,8 @@ SelfTesting_STATUS_TYPE SelfTesting_BLIND(void)
 ************************************************************************************/
 SelfTesting_STATUS_TYPE SelfTesting_SNS(void)
 {
-  SNS_Device_Information_Response_Union   SNS_DeviceInformation;
-	
   /* Спросим у СНС состояние */
-  if(SNS_GetDeviceInformation(&SNS_DeviceInformation) == SNS_OK)
+  if(SNS_updateDeviceInformation() == SNS_OK)
     SelfTesting_SET_OK(ST_sns);     /* Ответ получен */
   else
     SelfTesting_SET_FAULT(ST_sns);  /* Нет ответа */
@@ -453,9 +451,7 @@ SelfTesting_STATUS_TYPE SelfTesting_SNS(void)
 ************************************************************************************/
 SelfTesting_STATUS_TYPE SelfTesting_SWS(void)
 {
-  SWS_Packet_Type_Union SWS_Pack;
-	
-  if(SWS_GetPacket (&SWS_Pack))
+  if(SWS_update())
     SelfTesting_SET_FAULT(ST_sws);
   else
     SelfTesting_SET_OK(ST_sws);

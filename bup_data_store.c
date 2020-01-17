@@ -5,9 +5,6 @@
 #include "config.h"
 
 
-#define pi_const 3.1415927
-
-
 /*******************************************************************************************************************
   Версия ПО БУП               
 *******************************************************************************************************************/
@@ -29,10 +26,7 @@ const BupFirmwareVersion  bupFirmwareVersion = {0,         // Старшая в�
 /*******************************************
   Cлужебные данные БУП               
 *******************************************/      
-BUP_DATA                             BUP_DataStorage;     // Рабочие данные БУПа
-SNS_Orientation_Data_Response_Union  SNS_Orientation;     // Данные ориентации от СНС
-SNS_Position_Data_Response_Union     SNS_Position;        // Данные местоположения от СНС
-SWS_Packet_Type_Union                SWS_Data;            // Данные от СВС
+BUP_DATA BUP_DataStorage;
 
 
 
@@ -59,8 +53,10 @@ void BUP_DataInit (void)
   BUP_DataStorage.ControlSecond = 0;
 	
   // Определим высоту рельефа в точке приземления
-  BUP_DataStorage.ReliefOnTDP = GetHeight_OnThisPoint(BUP_DataStorage.TouchdownLongitude, BUP_DataStorage.TouchdownLatitude, TRIANGULARTION);
-  if (BUP_DataStorage.ReliefOnTDP == MAP_NO_SOLUTION)
+  BUP_DataStorage.ReliefOnTDP = GetHeight_OnThisPoint(BUP_DataStorage.TouchdownLongitude, 
+                                                      BUP_DataStorage.TouchdownLatitude,
+                                                      TRIANGULARTION);
+  if(BUP_DataStorage.ReliefOnTDP == MAP_NO_SOLUTION)
     BUP_DataStorage.ReliefOnTDP = 0;
 }
 
@@ -76,21 +72,22 @@ void BUP_DataUpdate (void)
   BUP_UpdateDataFromSWS ();
 	
   // Далее конвертируем полученные данные и будем хранить их уже в таком виде
-  BUP_DataStorage.Latitude           = Rad_12_to_Deg (SNS_Position.Struct.Pos_lat);
-  BUP_DataStorage.Longitude          = Rad_12_to_Deg (SNS_Position.Struct.Pos_lon);
-  BUP_DataStorage.Altitude           = Meter_12_to_Meter (SNS_Position.Struct.Pos_alt);
-  BUP_DataStorage.HeadingTrue        = Rad_6_to_Rad(SNS_Orientation.Struct.Heading_true); 
-  BUP_DataStorage.HeadingMgn         = Rad_6_to_Rad(SNS_Orientation.Struct.Heading_mgn); 
-  BUP_DataStorage.VelocityLatitude   = Ms_6_to_Ms (SNS_Position.Struct.Vel_lat); 
-  BUP_DataStorage.VelocityLongitude  = Ms_6_to_Ms (SNS_Position.Struct.Vel_lon); 
-  BUP_DataStorage.VelocityAltitude   = Ms_6_to_Ms (SNS_Position.Struct.Vel_alt); 
-  BUP_DataStorage.Pitch              = Rad_6_to_Rad(SNS_Orientation.Struct.Pitch);
-  BUP_DataStorage.Roll               = Rad_6_to_Rad(SNS_Orientation.Struct.Roll);
-  BUP_DataStorage.Course             = Rad_6_to_Rad(SNS_Position.Struct.Course);
+  BUP_DataStorage.Latitude           = SNS_getLatitude();
+  BUP_DataStorage.Longitude          = SNS_getLongitude();
+  BUP_DataStorage.Altitude           = SNS_getAltitude();
+  BUP_DataStorage.HeadingTrue        = SNS_getTrueCourse();
+  BUP_DataStorage.HeadingMgn         = SNS_getMagnetCourse();
+  BUP_DataStorage.VelocityLatitude   = SNS_getLatitudeVelocity();
+  BUP_DataStorage.VelocityLongitude  = SNS_getLongitudeVelocity(); 
+  BUP_DataStorage.VelocityAltitude   = SNS_getAltitudeVelocity(); 
+  BUP_DataStorage.Pitch              = SNS_getPitch();
+  BUP_DataStorage.Roll               = SNS_getRoll();
+  BUP_DataStorage.Course             = SNS_getGroundTrack();
 	
   // Рассчитываем по полученным данным высоту рельефа в точке
-  BUP_DataStorage.ReliefHeight       = GetHeight_OnThisPoint(BUP_DataStorage.Longitude, BUP_DataStorage.Latitude, TRIANGULARTION); 
-	
+  BUP_DataStorage.ReliefHeight       = GetHeight_OnThisPoint(BUP_DataStorage.Longitude, 
+                                                             BUP_DataStorage.Latitude, 
+                                                             TRIANGULARTION); 
 }
 
 /**************************************************************************************************************
@@ -100,7 +97,7 @@ void BUP_UpdateDataFromSWS (void)
 {	
   /* Пытаемся получить данные от СВС, 
     в случае неудача выставляем флаг неисправности */
-  if(SWS_GetPacket (&SWS_Data) != SWS_OK)
+  if(SWS_update() != SWS_OK)
     SelfTesting_SET_FAULT(ST_sws);	
 }
 
@@ -114,74 +111,12 @@ void BUP_UpdateDataFromSNS (void)
   SNS_Status statusOrientation;
 
   /* Запрашиваем данные местоположения */
-  statusPosition = SNS_GetPositionData(&SNS_Position);	
+  statusPosition = SNS_updatePositionData();	
 	
   /* Запрашиваем данные ориентации */
-  statusOrientation = SNS_GetOrientationData(&SNS_Orientation);
+  statusOrientation = SNS_updateOrientationData();
 	
   /* Проверяем статусы ответов */
   if(statusPosition != SNS_OK || statusOrientation != SNS_OK)
     SelfTesting_SET_FAULT(ST_sns);	
-}
-
-
-/***************************************************************************
-  Rad_12_to_Deg - Преобразование 10E-12 радиан в градусы
-***************************************************************************/
-double Rad_12_to_Deg(int64_t rad)
-{
-  double result = 0;
-  result = ((rad/1e12)*180.0)/pi_const; 
-  return result;
-}
-
-/***************************************************************************
-  Rad_6_to_Deg - Преобразование 10E-6 радиан в градусы
-***************************************************************************/
-double Rad_6_to_Deg(int32_t rad)
-{
-  double result = 0;
-  result = ((rad/1e6)*180.0)/pi_const;
-  return result;
-}
-
-/***************************************************************************
-  Rad_to_Deg - Преобразование радиан в градусы
-***************************************************************************/
-double Rad_to_Deg(double rad)
-{
-  double result = 0;
-  result = (rad*180.0)/pi_const;
-  return result;
-}
-
-/***************************************************************************
-  Rad_6_to_Rad - Преобразование 10E-6 радиан в радианы
-***************************************************************************/
-double Rad_6_to_Rad(int32_t rad)
-{
-  double result = 0;
-  result = (rad/1e6);
-  return result;
-}
-
-/***************************************************************************
-  Meter_12_to_Meter - Преобразование 10E-12 метров в метры
-***************************************************************************/
-double Meter_12_to_Meter (int64_t meter)
-{
-  double result = 0;
-  result = ((double)(meter/1e12));
-  return result;
-}
-
-
-/***************************************************************************
-  Ms_6_to_Ms - Преобразование 10E-6 метров\c в метры\с
-***************************************************************************/
-double Ms_6_to_Ms (int32_t Ms)
-{
-  double result = 0;
-  result = ((double)(Ms/1e6));
-  return result;
 }

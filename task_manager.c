@@ -282,72 +282,72 @@ void task_loger (void)
     }
     case 1:
     {
-      printf("SNS_Lat: %llu\n", BUP_GetSNS_Latitude()); 
+      printf("SNS_Lat: %llu\n", SNS_position.Struct.Pos_lat); 
       TaskManager.Task_LogerStage++; break;
     }
     case 2:
     {
-      printf("SNS_Lon: %llu\n", BUP_GetSNS_Longitude()); 
+      printf("SNS_Lon: %llu\n", SNS_position.Struct.Pos_lon); 
       TaskManager.Task_LogerStage++; break;
     }
     case 3:
     {
-      printf("SNS_Alt: %llu\n", BUP_GetSNS_Altitude()); 
+      printf("SNS_Alt: %llu\n", SNS_position.Struct.Pos_alt); 
       TaskManager.Task_LogerStage++; break;
     }
     case 4:
     {
-      printf("SNS_Vel_lat: %d\n", BUP_GetSNS_VelocityLatitude()); 
+      printf("SNS_Vel_lat: %d\n", SNS_position.Struct.Vel_lat); 
       TaskManager.Task_LogerStage++; break;
     }
     case 5:
     {
-      printf("SNS_Vel_lon: %d\n", BUP_GetSNS_VelocityLongitude()); 
+      printf("SNS_Vel_lon: %d\n", SNS_position.Struct.Vel_lon); 
       TaskManager.Task_LogerStage++; break;
     }
     case 6:
     {
-      printf("SNS_Vel_alt: %d\n", BUP_GetSNS_VelocityAltitude()); 
+      printf("SNS_Vel_alt: %d\n", SNS_position.Struct.Vel_alt); 
       TaskManager.Task_LogerStage++; break;
     }
     case 7:
     {
-      printf("SNS_Course: %d\n", BUP_GetSNS_Course()); 
+      printf("SNS_Course: %d\n", SNS_position.Struct.Course); 
       TaskManager.Task_LogerStage++; break;
     }
     case 8:
     {
-      printf("SNS_Heading_true: %d\n", BUP_GetSNS_HeadingTrue()); 
+      printf("SNS_Heading_true: %d\n", SNS_orientation.Struct.Heading_true); 
       TaskManager.Task_LogerStage++; break;
     }
     case 9:
     {
-      printf("SNS_Heading_mgn: %d\n", BUP_GetSNS_HeadingMgn()); 
+      printf("SNS_Heading_mgn: %d\n", SNS_orientation.Struct.Heading_mgn); 
       TaskManager.Task_LogerStage++; break;
     }
     case 10:
     {
-      printf("SNS_Pitch: %d\n", BUP_GetSNS_Pitch()); 
+      printf("SNS_Pitch: %d\n", SNS_orientation.Struct.Pitch); 
       TaskManager.Task_LogerStage++; break;
     }
     case 11:
     {
-      printf("SNS_Roll: %d\n", BUP_GetSNS_Roll()); 
+      printf("SNS_Roll: %d\n", SNS_orientation.Struct.Roll); 
       TaskManager.Task_LogerStage++; break;
     }
     case 12:
     {
-      printf("SWS_TrueSpeed: %f\n", BUP_GetSWS_TrueSpeed()); 
+      printf("SWS_TrueSpeed: %f\n", SWS_getTrueSpeed()); 
       TaskManager.Task_LogerStage++; break;
     }
     case 13:
     {
-      printf("SWS_InstrumentSpeed: %f\n", BUP_GetSWS_InstrumentalSpeed()); 
+      printf("SWS_InstrumentSpeed: %f\n", SWS_getInstrumentSpeed()); 
       TaskManager.Task_LogerStage++; break;
     }
     case 14:
     {
-      printf("SWS_AbsoluteHeight: %f\n", BUP_GetSWS_AbsoluteHeight());
+      printf("SWS_AbsoluteHeight: %f\n", SWS_getAbsoluteHeight());
       TaskManager.Task_LogerStage++; break;
     }
     case 15:
