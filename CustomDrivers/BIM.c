@@ -19,7 +19,7 @@ static uint8_t BIM_ReceiveResponse (uint16_t DeviceID);
 /**************************************************************************************************************
     BIM_RetargetPins - Функция переопределения CAN на пины и порт, на на к которых сидят БИМЫ
 **************************************************************************************************************/
-void BIM_RetargetPins (void)
+static void BIM_RetargetPins (void)
 {
 	// Переназчаем CAN, на котором сидят БИМы, на нужные ножки
 	Pin_init (BIM_CAN_RX);
@@ -40,7 +40,7 @@ void BIM_CAN_init (void)
 {
 	double 	 PSEG, SEG1, SEG2, TQ, BRG; 
 	double   systemCoreClockUser = 80000000;   // MHz
-	double   BaudRate = BAUDRATE_BIM;				   // Бит/cек
+	double   BaudRate = BAUDRATE_BIM;          // Бит/cек
 	uint32_t HCLK_division = CAN_HCLKdiv1;
 	uint8_t	 i = 0;	
 	

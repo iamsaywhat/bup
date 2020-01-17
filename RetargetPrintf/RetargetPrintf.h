@@ -29,8 +29,8 @@ extern "C" {
 
 
 enum PRINTF_TARGET{
-	TO_CAN,
-	TO_LOG
+  TO_CAN,
+  TO_LOG
 };
 	
 

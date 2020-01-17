@@ -4,12 +4,12 @@
 #include "MDR32F9Qx_adc.h"
 
 /***************************************************************************
-    Analog_RetargetPins - Инициализация аналоговых входов
+  Analog_RetargetPins - Инициализация аналоговых входов
 ***************************************************************************/
 void Analog_RetargetPins(void)
 {
   Pin_init(BATTERY_50V);
-	ADC_init (USED_ADC);
+  ADC_init (USED_ADC);
 } 
 
  
@@ -19,64 +19,64 @@ void Analog_RetargetPins(void)
 /* Базовая функция запроса результата преобразования от АЦП */
 static uint16_t GetBatteryChargeFromADC(void)
 {
-    return ADC_GetResult(USED_ADC, BATTERY_50V_CH);
+  return ADC_GetResult(USED_ADC, BATTERY_50V_CH);
 }
 #if defined BAT50V_USE_EMA /* Подключен EMA фильтр */
 static float GetBatteryChargeEMA (void)
 {
-    /* Объявления необходимые для работы фильтра */
-    static double   EMA = 0;
-    static uint8_t  initFlag = 0;
-    const  uint16_t coefficient = BAT50V_EMA_COEFF;
-    /* Запрос показаний делаем через фильтр */
-    EMAFilter (&EMA, &initFlag, coefficient, GetBatteryChargeFromADC);
+  /* Объявления необходимые для работы фильтра */
+  static double   EMA = 0;
+  static uint8_t  initFlag = 0;
+  const  uint16_t coefficient = BAT50V_EMA_COEFF;
+  /* Запрос показаний делаем через фильтр */
+  EMAFilter (&EMA, &initFlag, coefficient, GetBatteryChargeFromADC);
 	 
-    /* Перед возвратом конвертируем в вольты*/
-    return ConvertToVoltage(EMA);
+  /* Перед возвратом конвертируем в вольты*/
+  return ConvertToVoltage(EMA);
 }
 #endif
 #if defined BAT50V_USE_SMA /* Подключен SMA фильтр */
 static float GetBatteryChargeSMA(void)
 {
-    /* Объявления необходимые для работы фильтра */
-    static double   SMA = 0;                      /* Выход фильтра */
-    static uint8_t  initFlag = 0;                 /* Флаг выполнения инициализации */
-    const  uint8_t  samples = BAT50V_SMA_FRAME;   /* Размер выборки */
-    static uint32_t buffer[samples];              /* Буфер для хранения выборки */
-    /* Запрос показаний делаем через фильтр */
-    SMAFilter (buffer, samples, &SMA, &initFlag, GetBatteryChargeFromADC);
+  /* Объявления необходимые для работы фильтра */
+  static double   SMA = 0;                      /* Выход фильтра */
+  static uint8_t  initFlag = 0;                 /* Флаг выполнения инициализации */
+  const  uint8_t  samples = BAT50V_SMA_FRAME;   /* Размер выборки */
+  static uint32_t buffer[samples];              /* Буфер для хранения выборки */
+  /* Запрос показаний делаем через фильтр */
+  SMAFilter (buffer, samples, &SMA, &initFlag, GetBatteryChargeFromADC);
 	
-    return ConvertToVoltage(SMA);
+  return ConvertToVoltage(SMA);
 }
 #endif
 #if defined BAT50V_USE_MED /* Подключен MED фильтр */
 static float GetBatteryChargeMED(void)
 {
-    /* Объявления необходимые для работы фильтра */
-    uint32_t MED = 0; 
-    const  uint8_t  samples = BAT50V_MED_FRAME; /* Размер выборки */
-    /* Запрос показаний делаем через фильтр */
-    MED = medianFilter (samples, GetBatteryChargeFromADC);
+  /* Объявления необходимые для работы фильтра */
+  uint32_t MED = 0; 
+  const  uint8_t  samples = BAT50V_MED_FRAME; /* Размер выборки */
+  /* Запрос показаний делаем через фильтр */
+  MED = medianFilter (samples, GetBatteryChargeFromADC);
 	
-    return ConvertToVoltage(MED);
+  return ConvertToVoltage(MED);
 }
 #endif
 /* Универсальная функция */
 float GetBatteryCharge(void)
 {
-    float result = 0;
+  float result = 0;
 	
-    #if defined BAT50V_USE_EMA && !defined BAT50V_USE_SMA && !defined BAT50V_USE_MED
-        result = GetBatteryChargeEMA();
-    #elif !defined BAT50V_USE_EMA && defined BAT50V_USE_SMA && !defined BAT50V_USE_MED
-        result = GetBatteryChargeSMA();
-    #elif !defined BAT50V_USE_EMA && !defined BAT50V_USE_SMA && defined BAT50V_USE_MED
-        result = GetBatteryChargeMED();
-    #else
-        result = ConvertToVoltage(GetBatteryChargeFromADC());
-    #endif
+  #if defined BAT50V_USE_EMA && !defined BAT50V_USE_SMA && !defined BAT50V_USE_MED
+    result = GetBatteryChargeEMA();
+  #elif !defined BAT50V_USE_EMA && defined BAT50V_USE_SMA && !defined BAT50V_USE_MED
+    result = GetBatteryChargeSMA();
+  #elif !defined BAT50V_USE_EMA && !defined BAT50V_USE_SMA && defined BAT50V_USE_MED
+    result = GetBatteryChargeMED();
+  #else
+    result = ConvertToVoltage(GetBatteryChargeFromADC());
+  #endif
 	
-    return result;
+  return result;
 }
 /**************************************************************************************************************/
 

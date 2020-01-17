@@ -69,11 +69,11 @@
 		 
 double SomeFunction (void)
 {  
-    static double   EMA = 0;
-    static uint8_t  initFlag = 0;
-    uint16_t (*getValue)(void) = GET_VALUE_NAME_FUNCION;
-    ExpMovingAverageFilter (&EMA, &initFlag,10, getValue);
-    return EMA;
+  static double   EMA = 0;
+  static uint8_t  initFlag = 0;
+  uint16_t (*getValue)(void) = GET_VALUE_NAME_FUNCION;
+  ExpMovingAverageFilter (&EMA, &initFlag,10, getValue);
+  return EMA;
 }	
 *******************************************************************/
 void EMAFilter (double* EMA, uint8_t* initFlag,
@@ -103,15 +103,15 @@ void EMAFilter (double* EMA, uint8_t* initFlag,
 		 
 double SomeFunction (void)
 { 
-    static double SMA = 0;           // Выход фильтра
-    static uint8_t  initFlag = 0;    // Флаг выполнения инициализации 
-    const  uint8_t  samples = 50;    // Размер выборки 
-    static uint32_t buffer[samples]; // Буфер для хранения выборки
+  static double SMA = 0;           // Выход фильтра
+  static uint8_t  initFlag = 0;    // Флаг выполнения инициализации 
+  const  uint8_t  samples = 50;    // Размер выборки 
+  static uint32_t buffer[samples]; // Буфер для хранения выборки
 	
-    uint16_t (*getValue)(void) = GET_VALUE_NAME_FUNCION;
+  uint16_t (*getValue)(void) = GET_VALUE_NAME_FUNCION;
 	
-    SimpleMovingAverageFilter (buffer, samples, &SMA, &initFlag, getValue);
-    return SMA;
+  SimpleMovingAverageFilter (buffer, samples, &SMA, &initFlag, getValue);
+  return SMA;
 }	
 *******************************************************************/
 void SMAFilter (uint32_t* buffer, uint8_t bufferSize, 

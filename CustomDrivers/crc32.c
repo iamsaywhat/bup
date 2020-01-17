@@ -37,14 +37,14 @@ const unsigned int Crc32Table[256] = {
 
 
 /**************************************************************************************************************
-    Calc_Crc32_Array - Функция вычисления контрольной суммы
+  Calc_Crc32_Array - Функция вычисления контрольной суммы
 ***************************************************************************************************************/
 unsigned int Calc_Crc32_Array(unsigned char *data, unsigned int data_index)
 {
-	unsigned int crc = 0xFFFFFFFF, i;
-	data_index -= 4; // без учета самой контрольной суммы
-	for (i = 0; i < data_index; i++)
-	crc = (crc >> 8) ^ Crc32Table[( crc ^ data[i] ) & 0xFF];
-	return (crc ^ 0xFFFFFFFF);
+  unsigned int crc = 0xFFFFFFFF, i;
+  data_index -= 4; // без учета самой контрольной суммы
+  for (i = 0; i < data_index; i++)
+  crc = (crc >> 8) ^ Crc32Table[( crc ^ data[i] ) & 0xFF];
+  return (crc ^ 0xFFFFFFFF);
 }
 
