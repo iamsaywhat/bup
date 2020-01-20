@@ -150,7 +150,7 @@ typedef enum {
 #define ZPZ_UART                MDR_UART2      /* UART используемый загрузчиком */
 #define ZPZ_IRQn                UART2_IRQn     /* Используемое загрузчиком прерывание от UART */
 #define ZPZ_CAN                 MDR_CAN1       /* CAN используемый загрузчиком */    
-#define ZPZ_TIMER               MDR_TIMER2     /* Таймер используемый загрузчиком */ 
+#define BLINK_TIMER             MDR_TIMER2     /* Таймер используемый под индикацию */
 #define MMODEL_TIMER            MDR_TIMER1     /* Таймер используемый под обслуживания мат. модели регулятора */
 #define USED_ADC                ADC1           /* Используемый АЦП под аналоговые сигналы */
 #define BATTERY_50V_CH          ADC_CH_ADC10   /* Используемый канал АЦП */

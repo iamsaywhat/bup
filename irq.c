@@ -6,6 +6,7 @@
 #include "task_manager.h"
 #include "ZPZ.h"
 #include "otherlib.h"
+#include "discrete_io.h"
 
 
 /****************************************************************
@@ -43,11 +44,11 @@ void Timer1_IRQHandler(void)
 
 /******************************************************************  
   Timer2_IRQHandler - Обслуживание прерываний от Таймера 2.
-  Используется для обслуживания загрузчика.
+  Используется для режимов индикации.
 ******************************************************************/
 void Timer2_IRQHandler(void)
 {
-  ZPZ_TimerInterruptFunction();
+  interruptIndication();
 }
 
 
