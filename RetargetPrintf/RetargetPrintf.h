@@ -27,12 +27,10 @@
 extern "C" {
 #endif
 
-#define PRINTF_CAN MDR_CAN1
-		
 
 enum PRINTF_TARGET{
-	TO_CAN,
-	TO_LOG
+  TO_CAN,
+  TO_LOG
 };
 	
 
@@ -42,7 +40,7 @@ enum PRINTF_TARGET{
 @retval Считаннный символ из потока
 @notes  Ввод не используем, поэтому заглушка
 *******************************************************************************/
-int  getkey(void);
+int getkey(void);
 
 
 /*******************************************************************************

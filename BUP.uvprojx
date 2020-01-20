@@ -561,6 +561,11 @@
               <FileType>1</FileType>
               <FilePath>.\HeightMap\Heightmap_conf_and_pd.c</FilePath>
             </File>
+            <File>
+              <FileName>map_flash_layout.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\HeightMap\map_flash_layout.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -620,6 +625,11 @@
               <FileName>filters.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\CustomDrivers\filters.c</FilePath>
+            </File>
+            <File>
+              <FileName>bupboard.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\CustomDrivers\bupboard.c</FilePath>
             </File>
           </Files>
         </Group>

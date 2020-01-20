@@ -1,39 +1,61 @@
 #include "discrete_io.h"
 
-#include "otherlib.h"
-#include "MDR32F9Qx_rst_clk.h"
-#include "MDR32F9Qx_port.h"
+PinConfigType blinkPin;
 
 /**************************************************************************************************************
-    Discrete_RetargetPins - Конфигурирование дискретных пинов
+  Discrete_RetargetPins - Конфигурирование дискретных пинов
 **************************************************************************************************************/
 void Discrete_RetargetPins (void)
 {
-	// Разрешаем тактирование портов
-	RST_CLK_PCLKcmd(CLK_DISCR_INPUT_PORT,  ENABLE);
-	RST_CLK_PCLKcmd(CLK_DISCR_OUTPUT_PORT, ENABLE);
-	// Настраиваем пины на вход
-	Pin_Init (DISCRETE_INPUT_PORT, PIN1,        PORT_FUNC_PORT, PORT_OE_IN);
-	Pin_Init (DISCRETE_INPUT_PORT, BLIND,       PORT_FUNC_PORT, PORT_OE_IN);
-	Pin_Init (DISCRETE_INPUT_PORT, PIN2_DIR,    PORT_FUNC_PORT, PORT_OE_IN);
-	Pin_Init (DISCRETE_INPUT_PORT, PIN2_INV,    PORT_FUNC_PORT, PORT_OE_IN);
-	Pin_Init (DISCRETE_INPUT_PORT, RESERVED1,   PORT_FUNC_PORT, PORT_OE_IN);
-	Pin_Init (DISCRETE_INPUT_PORT, RESERVED2,   PORT_FUNC_PORT, PORT_OE_IN);
-	Pin_Init (DISCRETE_INPUT_PORT, CONNECT_ZPZ, PORT_FUNC_PORT, PORT_OE_IN);
-	// Настраиваем пины на выход
-	Pin_Init (DISCRETE_OUTPUT_PORT, RESERVED3, PORT_FUNC_PORT, PORT_OE_OUT);
-	Pin_Init (DISCRETE_OUTPUT_PORT, RESERVED4, PORT_FUNC_PORT, PORT_OE_OUT);
-	Pin_Init (DISCRETE_OUTPUT_PORT, LED_READY, PORT_FUNC_PORT, PORT_OE_OUT);
-	Pin_Init (DISCRETE_OUTPUT_PORT, LED_FAULT, PORT_FUNC_PORT, PORT_OE_OUT);
-	Pin_Init (DISCRETE_OUTPUT_PORT, PYRO,      PORT_FUNC_PORT, PORT_OE_OUT);
-	Pin_Init (DISCRETE_OUTPUT_PORT, BLIND_CTRL,PORT_FUNC_PORT, PORT_OE_OUT);
-	Pin_Init (DISCRETE_OUTPUT_PORT, RESERVED5, PORT_FUNC_PORT, PORT_OE_OUT);
-	// Сбрасываем все выходы в ноль
-	PORT_ResetBits (DISCRETE_OUTPUT_PORT, RESERVED3);
-	PORT_ResetBits (DISCRETE_OUTPUT_PORT, RESERVED4);
-	PORT_ResetBits (DISCRETE_OUTPUT_PORT, LED_READY);
-	PORT_ResetBits (DISCRETE_OUTPUT_PORT, LED_FAULT);
-	PORT_ResetBits (DISCRETE_OUTPUT_PORT, PYRO);
-	PORT_ResetBits (DISCRETE_OUTPUT_PORT, BLIND_CTRL);
-	PORT_ResetBits (DISCRETE_OUTPUT_PORT, RESERVED5);
+  /* Настраиваем пины на вход */
+  Pin_init (PIN1);
+  Pin_init (BLIND);
+  Pin_init (PIN2_DIR);
+  Pin_init (PIN2_INV);
+  Pin_init (CONNECT_ZPZ);
+  /* Настраиваем пины на выход */
+  Pin_init (LED_READY);
+  Pin_init (LED_FAULT);
+  Pin_init (PYRO);
+  Pin_init (BLIND_CTRL);
+  /* Сбрасываем все выходы в ноль */
+  Pin_reset (LED_READY);
+  Pin_reset (LED_FAULT);
+  Pin_reset (PYRO);
+  Pin_reset (BLIND_CTRL);
+}
+
+/**************************************************************************************************************
+  runIndication - Запуск мигающей индикации
+  Параметры:
+            pin    - пин с конфигурацией;
+            period - период следования импульсов
+**************************************************************************************************************/
+void runIndication(PinConfigType* pin, unsigned long period)
+{
+  blinkPin = *pin;                    /* Копируем настройки индикации */
+	Pin_reset(blinkPin);                /* Выключаем индикатор */
+  Timer_init(BLINK_TIMER, period);    /* Запускаем таймер */
+}
+
+/**************************************************************************************************************
+  stopIndication - Остановка мигающей индикации
+**************************************************************************************************************/
+void stopIndication(void)
+{
+  TIMER_Cmd(BLINK_TIMER, DISABLE);   /* Отключаем таймер */
+}
+
+/**************************************************************************************************************
+  interruptIndication - Функция обслуживания прерываний от используемого таймера.
+  Примечание: 
+             Необходимо разместить в базовом обработчике прерывания
+**************************************************************************************************************/
+void interruptIndication(void)
+{
+  TIMER_ClearFlag(BLINK_TIMER, TIMER_STATUS_CNT_ARR);	   /* Сбрасываем флаг прерываний таймера */
+  if (Pin_read(blinkPin))                                /* Сменяем состояние индикатора на противоположное */
+    Pin_reset(blinkPin);
+  else 
+    Pin_set(blinkPin);                            
 }

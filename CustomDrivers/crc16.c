@@ -38,14 +38,14 @@ const unsigned short Crc16Table[256] = {
 
 
 /**************************************************************************************************************
-    Crc16 - Функция вычисления контрольной суммы
+  Crc16 - Функция вычисления контрольной суммы
 ***************************************************************************************************************/
 uint16_t Crc16(uint8_t * pcBlock, uint16_t len, uint16_t InitialValue)
 {
-	uint16_t crc = InitialValue;
+  uint16_t crc = InitialValue;
 	
   while (len--)
-		crc = (crc << 8) ^ Crc16Table[(crc >> 8) ^ *pcBlock++];
+    crc = (crc << 8) ^ Crc16Table[(crc >> 8) ^ *pcBlock++];
 
   return crc;
 }

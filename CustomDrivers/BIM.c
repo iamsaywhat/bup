@@ -1,8 +1,5 @@
 #include "BIM.h"
 #include "otherlib.h"
-
-#include "MDR32F9Qx_port.h"
-#include "MDR32F9Qx_rst_clk.h"
 #include "MDR32F9Qx_can.h"
 
 
@@ -13,34 +10,27 @@ BIM_Response_UnionType Right_BIM;
 BIM_Response_UnionType Left_BIM;
 
 
-
-
 /**************************************************************************************************************
     Объявления локальных функций модуля
 ***************************************************************************************************************/
 static uint8_t BIM_ReceiveResponse (uint16_t DeviceID);
 
 
-
-
 /**************************************************************************************************************
     BIM_RetargetPins - Функция переопределения CAN на пины и порт, на на к которых сидят БИМЫ
 **************************************************************************************************************/
-void BIM_RetargetPins (void)
+static void BIM_RetargetPins (void)
 {
-	// Разрешаем тактирование
-	RST_CLK_PCLKcmd(RST_CLK_PCLK_BIM_PORT , ENABLE);
 	// Переназчаем CAN, на котором сидят БИМы, на нужные ножки
-	Pin_Init (BIM_CAN_PORT, BIM_CAN_RX, BIM_CAN_PORT_FUNC, PORT_OE_IN);
-	Pin_Init (BIM_CAN_PORT, BIM_CAN_TX, BIM_CAN_PORT_FUNC, PORT_OE_OUT);
+	Pin_init (BIM_CAN_RX);
+	Pin_init (BIM_CAN_TX);
 	// Пин активации приёмопередатчика
-	Pin_Init (BIM_CAN_PORT, BIM_CAN_CS1, PORT_FUNC_PORT,PORT_OE_OUT);
+	Pin_init (BIM_CAN_CS1);
 	// Пин подачи питания на БИМы
-	Pin_Init (BIM_SupplyPort, BIM_SupplyPin, PORT_FUNC_PORT,PORT_OE_OUT);
+	Pin_init (RELAY_BIM);
 	// По-умолчанию питание отключим
 	BIM_Supply_OFF(); 
 }
-
 
 
 /**************************************************************************************************************
@@ -50,13 +40,15 @@ void BIM_CAN_init (void)
 {
 	double 	 PSEG, SEG1, SEG2, TQ, BRG; 
 	double   systemCoreClockUser = 80000000;   // MHz
-	double   BaudRate = BAUDRATE_BIM;				   // Бит/cек
+	double   BaudRate = BAUDRATE_BIM;          // Бит/cек
 	uint32_t HCLK_division = CAN_HCLKdiv1;
 	uint8_t	 i = 0;	
 	
 	CAN_InitTypeDef        CAN_InitStruct;
 	CAN_FilterInitTypeDef  CAN_FilterInitStruct;
 	
+	// Конфигурируем пины
+	BIM_RetargetPins(); 
 	// Сброс всех настроек
 	CAN_DeInit(BIM_CAN);
 	// Частота работы = HCLK/1
@@ -127,7 +119,7 @@ void BIM_CAN_init (void)
 	CAN_FilterInit (MDR_CAN1, 1, &CAN_FilterInitStruct); 	
 	
 	// Активируем передатчик
-	PORT_SetBits (BIM_CAN_PORT, BIM_CAN_CS1); 
+	Pin_set (BIM_CAN_CS1); 
 }
 
 
@@ -136,8 +128,9 @@ void BIM_CAN_init (void)
 **************************************************************************************************************/
 uint8_t BIM_SendRequest (uint16_t DeviceID, uint8_t CMD, uint8_t StrapPosition, uint8_t ReqCount, uint8_t SpeedLimit, uint8_t CurrentLimit)
 {
-	uint16_t timeout = 0, Buffer_number;
+	uint16_t         Buffer_number;
 	CAN_TxMsgTypeDef BIM_Request; 
+	TimeoutType      timeout; 
 	
 	BIM_Request.ID = CAN_STDID_TO_EXTID(DeviceID);  // Адрес БИМ
 	BIM_Request.PRIOR_0 = DISABLE;                  // Без приоритета
@@ -156,13 +149,14 @@ uint8_t BIM_SendRequest (uint16_t DeviceID, uint8_t CMD, uint8_t StrapPosition, 
 	// Кладём сообщение в нужный буфер и ждем отправки
 	CAN_Transmit(BIM_CAN, Buffer_number, &BIM_Request);
 	// Ожидаем конца передачи, либо превышения времени ожидания
-	while(((CAN_GetBufferStatus(BIM_CAN, Buffer_number) & CAN_STATUS_TX_REQ) != RESET) && (timeout != 0xFFF)) timeout++;
+	setTimeout (&timeout, BIM_SEND_TIMEOUT);
+	while(((CAN_GetBufferStatus(BIM_CAN, Buffer_number) & CAN_STATUS_TX_REQ) != RESET) && (timeoutStatus(&timeout) != TIME_IS_UP));
 	
 	// Внезависимости от того, удалось отправить или нет, освобождаем буфер
 	CAN_BufferRelease (BIM_CAN, Buffer_number);
 	
 	// Проверяем был ли таймаут, и если да, то выдаём признак неудачи
-	if(timeout == 0xFFF) 
+	if(timeout.status == TIME_IS_UP)
 		return 0;
 	
 	// Если попали сюда, значит передача удалась, вернём результат приёма ответа
@@ -309,11 +303,13 @@ uint8_t BIM_GetStatusFlags (uint16_t DeviceID)
 **************************************************************************************************************/
 static uint8_t BIM_ReceiveResponse (uint16_t DeviceID)
 {
-	uint16_t timeout = 0;
+	TimeoutType      timeout;
 	CAN_RxMsgTypeDef RxMsg;
+	
+	setTimeout (&timeout, BIM_RECEIVE_TIMEOUT);
 	if(DeviceID == DEVICE_100)		// Принять ответ от БИМа с адресом 100 (Левый)
 	{
-		while (!CAN_GetRxITStatus(BIM_CAN, 0)	 &&  (timeout !=0x3FFF)) {timeout ++;}
+		while (!CAN_GetRxITStatus(BIM_CAN, 0)	&& (timeoutStatus(&timeout) != TIME_IS_UP))
 		CAN_GetRawReceivedData (BIM_CAN, 0 , &RxMsg);
 		Left_BIM.Buffer[0] =  RxMsg.Data[0];
 		Left_BIM.Buffer[1] =  RxMsg.Data[1];
@@ -322,7 +318,7 @@ static uint8_t BIM_ReceiveResponse (uint16_t DeviceID)
 	}
 	else if (DeviceID == DEVICE_101)	// Принять ответ от БИМа с адресом 101 (Правый)
 	{
-		while (!CAN_GetRxITStatus(BIM_CAN, 1)	 &&  (timeout !=0x3FFF)) {timeout ++;}
+		while (!CAN_GetRxITStatus(BIM_CAN, 1)	&& (timeoutStatus(&timeout) != TIME_IS_UP))
 		CAN_GetRawReceivedData (BIM_CAN, 1 , &RxMsg);
 		Right_BIM.Buffer[0] =  RxMsg.Data[0];
 		Right_BIM.Buffer[1] =  RxMsg.Data[1];
@@ -333,7 +329,7 @@ static uint8_t BIM_ReceiveResponse (uint16_t DeviceID)
 	else 
 		return 0;  
     // Таймаут, возвращаем признак ошибки	
-	if(timeout == 0x3FFF) 
+	if(timeout.status == TIME_IS_UP)
 		return 0;		
 		
 	return 1;
