@@ -52,6 +52,10 @@ int main(void)
   SelfTestingFull();                             /* Запускаем фул-тест системы */
   stopIndication();                              /* Отключаем мигание */
 	
+//	NVIC_SetPriority(SysTick_IRQn, 0);
+//	NVIC_SetPriority(Timer1_IRQn, 2);
+//	NVIC_SetPriority(Timer2_IRQn, 2);
+//	NVIC_SetPriority(Timer2_IRQn, 2);
 	
 //	while(1)
 //	{
