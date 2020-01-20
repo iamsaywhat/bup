@@ -181,7 +181,7 @@ static SNS_Status SNS_GetData_by_SLIP (uint8_t PacketSize, uint8_t* Buffer)
   uint8_t     temp1, temp2;
 	
   /* Ожидаем приход данных (пока буфер приёмника пуст) */
-  setTimeout (&timeout, SWS_RESPONSE_TIMEOUT);
+  setTimeout (&timeout, SNS_RESPONSE_TIMEOUT);
   while ((UART_GetFlagStatus (SNS_UART, UART_FLAG_RXFE) == SET) && (timeoutStatus(&timeout) != TIME_IS_UP));
   /* Проверяем будет ли это выход по таймауту */
   if(timeout.status == TIME_IS_UP) 
