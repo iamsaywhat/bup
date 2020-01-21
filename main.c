@@ -34,28 +34,21 @@ int main(void)
   SysTick_init();                                /* Запускаем системный таймер */
   Analog_RetargetPins();                         /* Инициализируем аналоговые входы */
   Discrete_RetargetPins();                       /* Конфигурируем дискреты, при этом все реле гарантированно переводятся в состояние по-умолчанию*/
-	
-  /* Необходимо дать СНС 
-	время на запуск */
+  /* Необходимо дать СНС время на запуск */
   TimeoutType timeout;                           /* Таймаут на включение СНС */
   PinConfigType pin = LED_READY;                 /* Мигать будем светодиодом "Готов" */
   runIndication(&pin, 0.2*SECOND_TICKS);	       /* Запускаем индикацию на время инициализации и тестирования */
   setTimeout (&timeout, SNS_TURN_ON_DELAY);      /* Устанавливаем таймаут */ 
-  /* Инициализируем внешнюю периферию 
-	пока СНС включается */
+  /* Инициализируем внешнюю периферию пока СНС включается */
 	SPI_1636PP52Y_Init();                          /* Запускаем драйвер памяти для полетного задания */   
   SPI_25Q64FV_Init();                            /* Запускаем драйвер внешней памяти "Черного ящика" */
   BIM_CAN_init ();                               /* Запускаем драйвер БИМов (который попутно инициализирует CAN1) */
   LogFs_Info();                                  /* Запускаем файловую систему */
   BUP_DataInit();                                /* Инициализируем хранилище данных БУП */
-  while(timeoutStatus(&timeout) != TIME_IS_UP);  /* Дожидаемся запуска СНС*/     
+  while(timeoutStatus(&timeout) != TIME_IS_UP);  /* Дожидаемся запуска СНС */     
   SelfTestingFull();                             /* Запускаем фул-тест системы */
   stopIndication();                              /* Отключаем мигание */
-	
-//	NVIC_SetPriority(SysTick_IRQn, 0);
-//	NVIC_SetPriority(Timer1_IRQn, 2);
-//	NVIC_SetPriority(Timer2_IRQn, 2);
-//	NVIC_SetPriority(Timer2_IRQn, 2);
+
 	
 //	while(1)
 //	{
