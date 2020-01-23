@@ -11,8 +11,8 @@
 
 #ifdef flightRegulatorCFB //******************************************************* Если выбран flightRegulatorCFB
   #include "Math_model/flightRegulatorCFB/flightRegulatorCFB.h"
-#else //*************************************************************************** Если выбран Easy_reg
-  #include "Math_model/EasyReg/Easy_reg.h"
+#else //*************************************************************************** Если выбран flightController
+  #include "Math_model/flightController/flightController.h"
 #endif //************************************************************************** !flightRegulatorCFB 
 
 
@@ -86,7 +86,7 @@ void loger_periodprint (void)
   #ifdef flightRegulatorCFB	//******************************************************* Если выбран flightRegulatorCFB
     printf("Model_BIM_CMD: %f\n", (double)(rtY.tightenSling*rtY.directionOfRotation));
     printf("Model_TD_CMD: %d\n",  (uint8_t)rtY.cmdTouchDown);
-  #else //*************************************************************************** Если выбран Easy_reg
+  #else //*************************************************************************** Если выбран flightController
     printf("Model_BIM_CMD: %f\n", (double)rtY.BIM_CMD);
     printf("Model_TD_CMD: %d\n",  (uint8_t)rtY.TD_CMD);
   #endif //************************************************************************** !flightRegulatorCFB

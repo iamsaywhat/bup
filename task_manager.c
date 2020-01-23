@@ -12,8 +12,8 @@
 
 #ifdef flightRegulatorCFB //******************************************************* Если выбран flightRegulatorCFB
 	#include "Math_model/flightRegulatorCFB/flightRegulatorCFB.h"
-#else //*************************************************************************** Если выбран Easy_reg
-	#include "Math_model/EasyReg/Easy_reg.h"
+#else //*************************************************************************** Если выбран flightController
+	#include "Math_model/flightController/flightController.h"
 #endif //************************************************************************** !flightRegulatorCFB 
 
 

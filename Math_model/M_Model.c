@@ -9,8 +9,8 @@
 
 #ifdef flightRegulatorCFB //******************************************************* Если выбран flightRegulatorCFB
   #include "flightRegulatorCFB/flightRegulatorCFB.h"
-#else //*************************************************************************** Если выбран Easy_reg
-  #include "EasyReg/Easy_reg.h"
+#else //*************************************************************************** Если выбран flightController
+  #include "flightController/flightController.h"
 #endif //************************************************************************** !flightRegulatorCFB 
 
 #ifdef DEBUG_VARS //*************************************************************** Если активна отладка переменных 
@@ -38,8 +38,8 @@ void M_Model_Init(void)
 	
   #ifdef flightRegulatorCFB //******************************************************* Если выбран flightRegulatorCFB
     flightRegulatorCFB_initialize();
-  #else //*************************************************************************** Если выбран Easy_reg
-    Easy_reg_initialize();
+  #else //*************************************************************************** Если выбран flightController
+    flightController_initialize();
   #endif //************************************************************************** !flightRegulatorCFB
 	
   // Запускаем таймер обслуживания мат модели (период дискретизации 1 с)
@@ -53,8 +53,8 @@ void M_Model_Step(void)
 {
   #ifdef flightRegulatorCFB //******************************************************* Если выбран flightRegulatorCFB
     flightRegulatorCFB_step();
-  #else //*************************************************************************** Если выбран Easy_reg
-    Easy_reg_step();
+  #else //*************************************************************************** Если выбран flightController
+    flightController_step();
   #endif //************************************************************************** !flightRegulatorCFB
 }
 
@@ -104,7 +104,7 @@ void M_Model_PrepareData (void)
 //  // Работает ли правый БИМ: "1" - да, "-1" - нет.		
 //  rtU.RightEnginehadWork = 1.0;  
 
-  #else //*************************************************************************** Если выбран Easy_reg
+  #else //*************************************************************************** Если выбран flightController
     rtU.TDP_lon            = BUP_Get_TouchdownLongitude();
     rtU.TDP_lat            = BUP_Get_TouchdownLatitude();
     rtU.TDP_alt            = BUP_Get_TouchdownAltitude();
@@ -136,7 +136,7 @@ void M_Model_Control (void)
     // Это команда на посадку 
     else if (rtY.cmdTouchDown == 1)
     {
-  #else //*************************************************************************** Если выбран Easy_reg
+  #else //*************************************************************************** Если выбран flightController
     // Команды на посадку не было, поэтому будем управлять стропами
     if (rtY.TD_CMD == 0)
       M_Model_Cmd2BIM (rtY.BIM_CMD);

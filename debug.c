@@ -11,8 +11,8 @@
 
 #ifdef flightRegulatorCFB //******************************************************* Если выбран flightRegulatorCFB
 	#include "Math_model/flightRegulatorCFB/flightRegulatorCFB.h"
-#else //*************************************************************************** Если выбран Easy_reg
-	#include "Math_model/EasyReg/Easy_reg.h"
+#else //*************************************************************************** Если выбран flightController
+	#include "Math_model/flightController/flightController.h"
 #endif //************************************************************************** !flightRegulatorCFB 
 
 
@@ -88,7 +88,7 @@ void debug_can_full_struct (void)
   debug_can(0x531, &debug_vars.flightMode, 1);
 #else
   /* Здесь можно добавить 
-  вывод необходимых переменных относящихся к Easy_reg
+  вывод необходимых переменных относящихся к flightController
   */
   debug_can(0x524, &debug_vars.DistanceToTDP, 8);
   debug_can(0x529, &debug_vars.TimeToHorTarget, 8);
@@ -137,9 +137,9 @@ void debug_prepare_data (void)
   debug_vars.flightMode            = (uint8_t)(rtY.executeMode);
 #else
   /* Здесь можно добавить 
-  вывод необходимых переменных относящихся к Easy_reg
+  вывод необходимых переменных относящихся к flightController
   */   
-  debug_vars.BIM_CMD               = (int16_t)(rtY.BIM_CMD);                       // Команда БИМам от Easy_reg
+  debug_vars.BIM_CMD               = (int16_t)(rtY.BIM_CMD);                       // Команда БИМам от flightController
   debug_vars.DistanceToTDP         = (double) (rtY.DistanceToTDP);                 // Дистанция до точки приземления, м
   debug_vars.TimeToHorTarget       = (double) (rtY.TimeToHorTarget);               // Время полета то точки приземления по прямой, сек
   debug_vars.TimeToTD              = (double) (rtY.TimeToTD);                      // Время до открытия парашюта, сек
