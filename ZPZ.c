@@ -286,8 +286,8 @@ uint8_t ZPZ_Service (void)
   static TimeoutType    timeoutHighPriorityTask;  /* Таймаут на удержание в режиме ВПЗ */
 	
 
-//  while (UART_GetFlagStatus (ZPZ_UART, UART_FLAG_RXFE) != SET)     /* Вычищаем FIFO от мусора и ждем пока не появится заголовок */
-//    UART_ReceiveData(ZPZ_UART);	
+  while (UART_GetFlagStatus (ZPZ_UART, UART_FLAG_RXFE) != SET)     /* Вычищаем FIFO от мусора и ждем пока не появится заголовок */
+    UART_ReceiveData(ZPZ_UART);	
 	
   if(timeoutStatus(&timeoutHighPriorityTask) == TIME_IS_UP)         /* Здесь проверяем нужно ли вернуть модуль в режим одиночной команды */
     ZPZ_FinishHighPriorityTask();
@@ -296,117 +296,162 @@ uint8_t ZPZ_Service (void)
   while(timeoutStatus(&timeout) != TIME_IS_UP)
   {
     if (UARTReceiveByte_by_SLIP(ZPZ_UART) != FEND) continue;        /* Сначала ловим FEND по SLIP протоколу. Если первый байт заголовка не совпал, */
-    if (UARTReceiveByte_by_SLIP(ZPZ_UART) != HANDLER_P) continue;   /* дальше не ждем, переходим к следующей итерации. Если второй символ тоже совпал, */
-    if (UARTReceiveByte_by_SLIP(ZPZ_UART) == HANDLER_C) break;      /* значит покидаем данный цикл и переходим к приёму остального пакета */
+    ZPZ_Base_Request.Buffer[0] = UARTReceiveByte_by_SLIP(ZPZ_UART); /* дальше не ждем, переходим к следующей итерации. Если второй символ тоже совпал, */
+    ZPZ_Base_Request.Buffer[1] = UARTReceiveByte_by_SLIP(ZPZ_UART); /* значит покидаем данный цикл и переходим к приёму остального пакета */
+    if(ZPZ_Base_Request.Struct.Handler != HANDLER_PC &&             /* Проверим принадлежит ли handler описанному перечню,*/
+       ZPZ_Base_Request.Struct.Handler != HANDLER_PG &&             /* Иначе в буфер может упасть мусор */
+       ZPZ_Base_Request.Struct.Handler != HANDLER_PW) continue;
+    break;
   }	
   if(timeout.status == TIME_IS_UP)                                  /* Если был таймаут, значит связи нет, можно отключиться */
     return ZPZ_TIMEOUT;
 		
-  ZPZ_Base_Request.Struct.Handler = HANDLER_PC;                     /* Заголовок обнаружен, далее приём синхронен */
+  /* Если оказались тут, значит удалось поймать начало пакета и не поймать таймаут */	
   for(uint16_t i = 2; i < 7; i++)
     ZPZ_Base_Request.Buffer[i] = UARTReceiveByte_by_SLIP(ZPZ_UART); /* Принимаем остальное */
  
   crc = Crc16(&ZPZ_Base_Request.Buffer[0], 7, CRC16_INITIAL_FFFF);  /* Считаем контрольную сумму начала сообщения */
-
-  /* Далее программа ветвится в зависимости от команды, информационная 
-  часть пакета будет обрабатываться разными подфункциями. */
-  /* Сценарии работы при получении всех возможных команд */
-  switch (ZPZ_Base_Request.Struct.Command)
+  
+	
+  /* Далее программа ветвиться в зависимости от типа заголовка и команды, 
+  информационная часть пакета будет обрабатываться разными подфункциями. */
+	
+  /* Сценарии работы при получении всех возможных заголовков и команд */
+  switch (ZPZ_Base_Request.Struct.Handler)
   {
-    case START_DOWNLOAD: /* Начало загрузки полетного задания */
-			
-      ZPZ_StartHighPriorityTask ();                           /* Процесс ресурсоемкий, будем выполнять его в режиме "ВВПЗ" */
-      setTimeout (&timeoutHighPriorityTask, ZPZ_HPT_TIMEOUT); /* Обновляем таймаут контроль */
-      crc = ZPZ_Request_START_DOWNLOAD (crc);                 /* Принимаем данные запроса */
+    case HANDLER_PC: /* Заголовок запроса к БУПу */
+    {
+      switch (ZPZ_Base_Request.Struct.Command)
+      {
+        case START_DOWNLOAD: /* Начало загрузки полетного задания */
+        {
+          ZPZ_StartHighPriorityTask ();                           /* Процесс ресурсоемкий, будем выполнять его в режиме "ВВПЗ" */
+          setTimeout (&timeoutHighPriorityTask, ZPZ_HPT_TIMEOUT); /* Обновляем таймаут контроль */
+          crc = ZPZ_Request_START_DOWNLOAD (crc);                 /* Принимаем данные запроса */
+          break;
+        }
+        case MAP_DOWNLOAD: /* Продолжение загрузки полетного задания */
+        {
+          setTimeout (&timeoutHighPriorityTask, ZPZ_HPT_TIMEOUT); /* Обновляем таймаут контроль */
+          crc = ZPZ_Request_MAP_DOWNLOAD (crc);                   /* Принимаем данные запроса */
+          break;
+        }
+        case START_UPLOAD: /* Начало выгрузки полетного задания */
+        {
+          ZPZ_StartHighPriorityTask ();                           /* Процесс ресурсоемкий, будем выполнять его в режиме "ВВПЗ" */
+          setTimeout (&timeoutHighPriorityTask, ZPZ_HPT_TIMEOUT); /* Обновляем таймаут контроль */
+          crc = ZPZ_Request_START_UPLOAD (crc);                   /* Принимаем данные запроса */
+          break;
+        }
+        case MAP_UPLOAD: /* Продолжение выгрузки полетного задания */
+        {
+          setTimeout (&timeoutHighPriorityTask, ZPZ_HPT_TIMEOUT);  /* Обновляем таймаут контроль */
+          crc = ZPZ_Request_MAP_UPLOAD (crc);                      /* Принимаем данные запроса */
+          break;
+        }
+        case CHECK_CONNECT: /* Проверка связи по протоколу */
+        {
+          crc = ZPZ_Request_CHECK_CONNECT (crc);
+          break;
+        }
+        case BIM_CONTROL: /* Управление БИМ'ами */
+        {
+          crc = ZPZ_Request_BIM_CONTROL (crc);
+          break;
+        }
+        case BIM_STATUS: /* Запрос информации о состоянии БИМ'ов */
+        {
+          crc = ZPZ_Request_BIM_STATUS (crc);	
+          break;
+        }
+        case LOG_FORMAT: /* Команда форматирования черного ящика */
+        {
+          crc = ZPZ_Request_LOG_FORMAT(crc);
+          break;
+        }
+        case LOG_FILES: /* Запрос информации о содержании черного ящика */
+        {
+          crc = ZPZ_Request_LOG_FILES (crc);
+          break;
+        }
+        case LOG_UPLOAD: /* Выгрузка файла лога */
+        {
+          if(ZPZ_Base_Request.Struct.Count == 0)                  /* Процесс ресурсоемкий, будем выполнять его в режиме "ВВПЗ" */
+            ZPZ_StartHighPriorityTask ();                         /* Определять начало процесса выгрузки логов будем по 0-му номеру пакета */
+          setTimeout (&timeoutHighPriorityTask, ZPZ_HPT_TIMEOUT); /* Обновляем таймаут контроль */
+          crc = ZPZ_Request_LOG_UPLOAD(crc);                      /* Принимаем данные запроса */
+          break;
+        }
+        case SYSTEM_STATE: /* Запрос состояния системы */
+        {
+          crc = ZPZ_Request_SYSTEM_STATE (crc);
+          break;
+        }
+        case CAN_TRANSMIT: /* Запрос передачи сообщения в CAN */
+        {
+          crc = ZPZ_Request_CAN_TRANSMIT (crc);
+          break;
+        }
+        default: /* Команда запроса неизвестна */
+        {
+          ZPZ_ShortResponse(ZPZ_Base_Request.Struct.Command,
+                            ZPZ_Base_Request.Struct.Count, 
+                            UNKNOWN_COMMAND);   
+          return ZPZ_UNKNOWN_CMD; 
+        }
+      }
       break;
-		
-    case MAP_DOWNLOAD: /* Продолжение загрузки полетного задания */
-			
-      setTimeout (&timeoutHighPriorityTask, ZPZ_HPT_TIMEOUT); /* Обновляем таймаут контроль */
-      crc = ZPZ_Request_MAP_DOWNLOAD (crc);                   /* Принимаем данные запроса */
+		}
+    case HANDLER_PG: /* Заголовок запроса к СНС */
+    {
+      switch (ZPZ_Base_Request.Struct.Command)
+      {
+        case REQ_SNS_POS: /* Запрос навигационной информации от СНС */
+        {
+          crc = ZPZ_Request_REQ_SNS_POS(crc);
+          break;
+        }
+        case REQ_SNS_STATE: /* Запрос состояние устройства СНС */
+        {
+          crc = ZPZ_Request_REQ_SNS_STATE(crc);
+          break;
+        }
+        case REQ_SNS_SETTINGS: /* Запрос на изменение настроек СНС  */
+        {
+          crc = ZPZ_Request_REQ_SNS_SETTINGS(crc);
+          break;
+        }
+        default: /* Команда запроса неизвестна */
+        {
+          ZPZ_ShortResponse(ZPZ_Base_Request.Struct.Command,
+                            ZPZ_Base_Request.Struct.Count, 
+                            UNKNOWN_COMMAND);   
+          return ZPZ_UNKNOWN_CMD; 
+        }
+      }
       break;
-		
-    case START_UPLOAD: /* Начало выгрузки полетного задания */
-			
-      ZPZ_StartHighPriorityTask ();                           /* Процесс ресурсоемкий, будем выполнять его в режиме "ВВПЗ" */
-      setTimeout (&timeoutHighPriorityTask, ZPZ_HPT_TIMEOUT); /* Обновляем таймаут контроль */
-      crc = ZPZ_Request_START_UPLOAD (crc);                   /* Принимаем данные запроса */
+    }
+    case HANDLER_PW: /* Заголовок запроса к СВС */
+    {
+      switch (ZPZ_Base_Request.Struct.Command)
+      {
+        case REQ_SWS: /* Запрос информации от СВС */
+        {
+          crc = ZPZ_Request_REQ_SWS(crc);
+          break;
+        }
+        default: /* Команда запроса неизвестна */
+        {
+          ZPZ_ShortResponse(ZPZ_Base_Request.Struct.Command,
+                            ZPZ_Base_Request.Struct.Count, 
+                            UNKNOWN_COMMAND);   
+          return ZPZ_UNKNOWN_CMD; 
+        }
+      }
       break;
-		
-    case MAP_UPLOAD: /* Продолжение выгрузки полетного задания */
-			
-      setTimeout (&timeoutHighPriorityTask, ZPZ_HPT_TIMEOUT);  /* Обновляем таймаут контроль */
-      crc = ZPZ_Request_MAP_UPLOAD (crc);                      /* Принимаем данные запроса */
-      break;
-		
-    case CHECK_CONNECT: /* Проверка связи по протоколу */
-			
-      crc = ZPZ_Request_CHECK_CONNECT (crc);
-      break;
-		
-    case BIM_CONTROL: /* Управление БИМ'ами */
-			
-      crc = ZPZ_Request_BIM_CONTROL (crc);
-      break;
-		
-    case BIM_STATUS: /* Запрос информации о состоянии БИМ'ов */
-			
-      crc = ZPZ_Request_BIM_STATUS (crc);	
-      break;
-		
-    case LOG_FORMAT: /* Команда форматирования черного ящика */
-			
-      crc = ZPZ_Request_LOG_FORMAT(crc);
-      break;
-		
-    case LOG_FILES: /* Запрос информации о содержании черного ящика */
-			
-      crc = ZPZ_Request_LOG_FILES (crc);
-      break;
-			
-    case LOG_UPLOAD: /* Выгрузка файла лога */
-		    
-      if(ZPZ_Base_Request.Struct.Count == 0)                  /* Процесс ресурсоемкий, будем выполнять его в режиме "ВВПЗ" */
-        ZPZ_StartHighPriorityTask ();                         /* Определять начало процесса выгрузки логов будем по 0-му номеру пакета */
-			setTimeout (&timeoutHighPriorityTask, ZPZ_HPT_TIMEOUT); /* Обновляем таймаут контроль */
-      crc = ZPZ_Request_LOG_UPLOAD(crc);                      /* Принимаем данные запроса */
-      break;
-		
-    case REQ_SWS: /* Запрос информации от СВС */
-			
-      crc = ZPZ_Request_REQ_SWS(crc);
-      break;
-		
-    case REQ_SNS_POS: /* Запрос навигационной информации от СНС */
-			
-      crc = ZPZ_Request_REQ_SNS_POS(crc);
-      break;
-		
-    case REQ_SNS_STATE: /* Запрос состояние устройства СНС */
-			
-      crc = ZPZ_Request_REQ_SNS_STATE(crc);
-      break;
-		
-    case REQ_SNS_SETTINGS: /* Запрос на изменение настроек СНС  */
-			
-      crc = ZPZ_Request_REQ_SNS_SETTINGS(crc);
-      break;
-		
-    case SYSTEM_STATE: /* Запрос состояния системы */
-			
-      crc = ZPZ_Request_SYSTEM_STATE (crc);
-      break;
-		
-    case CAN_TRANSMIT: /* Запрос передачи сообщения в CAN */
-			
-      crc = ZPZ_Request_CAN_TRANSMIT (crc);
-      break;
-		
-    default:
-      break;
+    }
   }
-	
-	
+ 
 	
   /* Все функции возвращаются сюда, 
   здесь принимаем контрольную сумму
@@ -433,84 +478,118 @@ uint8_t ZPZ_Service (void)
 	
   /* Если оказались здесь - пакет валидный
   нужно ответить нужным типом на запрос 
-	соответствующим образом	*/
-  switch (ZPZ_Base_Request.Struct.Command)
+  соответствующим образом	*/
+  switch (ZPZ_Base_Request.Struct.Handler)
   {
-    case START_DOWNLOAD: /* Начало загрузки полетного задания */
-			
-      ZPZ_Response_START_DOWNLOAD (ZPZ_Base_Request.Struct.Count);
+    case HANDLER_PC: /* Заголовок запроса к БУПу */
+    {
+      switch (ZPZ_Base_Request.Struct.Command)
+      {
+        case START_DOWNLOAD: /* Начало загрузки полетного задания */
+        {
+          ZPZ_Response_START_DOWNLOAD (ZPZ_Base_Request.Struct.Count);
+          break;
+        }
+        case MAP_DOWNLOAD: /* Продолжение загрузки полетного задания */
+        {
+          ZPZ_Response_MAP_DOWNLOAD  (ZPZ_Base_Request.Struct.Count);   /* Формируем ответ */
+          if(ZPZ_Base_Request.Struct.Count == NUMBER_OF_MAP_PACKET)     /* Если это конец загрузки карты и задания (определяем как 400й пакет) */
+            ZPZ_FinishHighPriorityTask ();                              /* Завершаем режим "ВВПЗ" */
+          break;
+        }
+        case START_UPLOAD: /* Начало выгрузки полетного задания */
+        {
+          ZPZ_Response_START_UPLOAD (ZPZ_Base_Request.Struct.Count);
+          break;
+        }
+        case MAP_UPLOAD: /* Продолжение выгрузки полетного задания */
+        {
+          ZPZ_Response_MAP_UPLOAD (ZPZ_Base_Request.Struct.Count);      /* Формируем ответ */
+          if(ZPZ_Base_Request.Struct.Count == NUMBER_OF_MAP_PACKET)     /* Если это конец выгрузки карты и задания (определяем как 400й пакет) */
+            ZPZ_FinishHighPriorityTask ();                              /* Завершаем режим "ВВПЗ" */
+          break;
+        }
+        case CHECK_CONNECT: /* Проверка связи по протоколу */
+        {
+          ZPZ_Response_CHECK_CONNECT (ZPZ_Base_Request.Struct.Count);
+          break;
+        }
+        case BIM_CONTROL: /* Управление БИМ'ами */
+        {
+          ZPZ_Response_BIM_CONTROL (ZPZ_Base_Request.Struct.Count);
+          break;
+        }
+        case BIM_STATUS: /* Запрос информации о состоянии БИМ'ов */
+        {
+          ZPZ_Response_BIM_STATUS(ZPZ_Base_Request.Struct.Count);
+          break;
+        }
+        case LOG_FORMAT: /* Команда форматирования черного ящика */
+        {
+          ZPZ_Response_LOG_FORMAT (ZPZ_Base_Request.Struct.Count);
+          break;
+        }
+        case LOG_FILES: /* Запрос информации о содержании черного ящика */
+        {
+          ZPZ_Response_LOG_FILES (ZPZ_Base_Request.Struct.Count);
+          break;
+        }
+        case LOG_UPLOAD: /* Выгрузка файла лога */
+        {
+          ZPZ_Response_LOG_UPLOAD(ZPZ_Base_Request.Struct.Count);
+          break;
+        }
+        case SYSTEM_STATE:  /* Запрос состояния системы */
+        {
+          ZPZ_Response_SYSTEM_STATE (ZPZ_Base_Request.Struct.Count);
+          break;
+        }
+        case CAN_TRANSMIT: /* Запрос передачи сообщения в CAN */
+        {
+          ZPZ_Response_CAN_TRANSMIT (ZPZ_Base_Request.Struct.Count);
+          break;
+        }
+        default:
+          break;
+      }
       break;
-		
-    case MAP_DOWNLOAD: /* Продолжение загрузки полетного задания */
-		
-      ZPZ_Response_MAP_DOWNLOAD  (ZPZ_Base_Request.Struct.Count);   /* Формируем ответ */
-      if(ZPZ_Base_Request.Struct.Count == NUMBER_OF_MAP_PACKET)     /* Если это конец загрузки карты и задания (определяем как 400й пакет) */
-        ZPZ_FinishHighPriorityTask ();                              /* Завершаем режим "ВВПЗ" */
+		}
+    case HANDLER_PG: /* Заголовок запроса к СНС */
+    {
+      switch (ZPZ_Base_Request.Struct.Command)
+      {
+        case REQ_SNS_POS: /* Запрос навигационной информации от СНС */
+        {
+          ZPZ_Response_REQ_SNS_POS(ZPZ_Base_Request.Struct.Count);
+          break;
+        }
+        case REQ_SNS_STATE: /* Запрос состояние устройства СНС */
+        {
+          ZPZ_Response_REQ_SNS_STATE(ZPZ_Base_Request.Struct.Count);
+          break;
+        }
+        case REQ_SNS_SETTINGS: /* Запрос на изменение настроек СНС  */
+        {
+          ZPZ_Response_REQ_SNS_SETTINGS (ZPZ_Base_Request.Struct.Count);
+          break;
+        }
+      }
       break;
-		
-    case START_UPLOAD: /* Начало выгрузки полетного задания */
-	
-      ZPZ_Response_START_UPLOAD (ZPZ_Base_Request.Struct.Count);
+    }
+    case HANDLER_PW: /* Заголовок запроса к СВС */
+    {
+      switch (ZPZ_Base_Request.Struct.Command)
+      {
+        case REQ_SWS: /* Запрос информации от СВС */
+        {
+          ZPZ_Response_REQ_SWS(ZPZ_Base_Request.Struct.Count);
+          break;
+        }
+      }
       break;
-		
-    case MAP_UPLOAD: /* Продолжение выгрузки полетного задания */
-		
-      ZPZ_Response_MAP_UPLOAD (ZPZ_Base_Request.Struct.Count);      /* Формируем ответ */
-      if(ZPZ_Base_Request.Struct.Count == NUMBER_OF_MAP_PACKET)     /* Если это конец выгрузки карты и задания (определяем как 400й пакет) */
-        ZPZ_FinishHighPriorityTask ();                              /* Завершаем режим "ВВПЗ" */
-      break;
-		
-    case CHECK_CONNECT: /* Проверка связи по протоколу */
-      ZPZ_Response_CHECK_CONNECT (ZPZ_Base_Request.Struct.Count);
-      break;
-		
-    case BIM_CONTROL: /* Управление БИМ'ами */
-      ZPZ_Response_BIM_CONTROL (ZPZ_Base_Request.Struct.Count);
-      break;
-		
-    case BIM_STATUS: /* Запрос информации о состоянии БИМ'ов */
-      ZPZ_Response_BIM_STATUS(ZPZ_Base_Request.Struct.Count);
-      break;
-		
-    case LOG_FORMAT: /* Команда форматирования черного ящика */
-      ZPZ_Response_LOG_FORMAT (ZPZ_Base_Request.Struct.Count);
-      break;
-		
-    case LOG_FILES: /* Запрос информации о содержании черного ящика */
-      ZPZ_Response_LOG_FILES (ZPZ_Base_Request.Struct.Count);
-      break;
-		
-    case LOG_UPLOAD: /* Выгрузка файла лога */
-      ZPZ_Response_LOG_UPLOAD(ZPZ_Base_Request.Struct.Count);
-      break;
-		
-    case REQ_SWS: /* Запрос информации от СВС */
-      ZPZ_Response_REQ_SWS(ZPZ_Base_Request.Struct.Count);
-      break;
-		
-    case REQ_SNS_POS: /* Запрос навигационной информации от СНС */
-      ZPZ_Response_REQ_SNS_POS(ZPZ_Base_Request.Struct.Count);
-      break;
-		
-    case REQ_SNS_STATE: /* Запрос состояние устройства СНС */
-      ZPZ_Response_REQ_SNS_STATE(ZPZ_Base_Request.Struct.Count);
-      break;
-		
-    case REQ_SNS_SETTINGS:  /* Запрос на изменение настроек СНС  */
-      ZPZ_Response_REQ_SNS_SETTINGS (ZPZ_Base_Request.Struct.Count);
-      break;
-		
-    case SYSTEM_STATE:  /* Запрос состояния системы */
-      ZPZ_Response_SYSTEM_STATE (ZPZ_Base_Request.Struct.Count);
-      break;
-		
-    case CAN_TRANSMIT: /* Запрос передачи сообщения в CAN */
-      ZPZ_Response_CAN_TRANSMIT (ZPZ_Base_Request.Struct.Count);
-      break;
-		
-    default:
-      break;
+    }
   }
+
   return ZPZ_OK;
 }
 
@@ -1445,7 +1524,7 @@ static void ZPZ_Response_REQ_SWS (uint16_t NumPacket)
 	
 	/* Если данные приняты верно, то надо продолжать */
 	/* Заполняем структуру общей части всех пакетов */
-	ZPZ_Response.Struct.Handler    = HANDLER_BU;      // Заголовок BU
+	ZPZ_Response.Struct.Handler    = HANDLER_BW;      // Заголовок BU
 	ZPZ_Response.Struct.PacketSize = 28;              // Размер пакета 28 байт
 	ZPZ_Response.Struct.Command    = REQ_SWS;         // Команда-запрос данных от СВС
 	ZPZ_Response.Struct.Count      = NumPacket;       // Номер ответа берём из запроса
@@ -1516,7 +1595,7 @@ static void ZPZ_Response_REQ_SNS_POS (uint16_t NumPacket)
 	
 	/* Иначе продолжаем
 	   Заполняем структуру общей части всех пакетов */
-	ZPZ_Response.Struct.Handler    = HANDLER_BU;          // Заголовок BU
+	ZPZ_Response.Struct.Handler    = HANDLER_BG;          // Заголовок BU
 	ZPZ_Response.Struct.PacketSize = 72;                  // Размер пакета 72 байта
 	ZPZ_Response.Struct.Command    = REQ_SNS_POS;         // Команда-запрос информации об местоположении от СНС
 	ZPZ_Response.Struct.Count      = NumPacket;	          // Повторяем номер из запроса
@@ -1572,8 +1651,8 @@ static uint16_t ZPZ_Request_REQ_SNS_STATE (uint16_t CRC)
 
 static void ZPZ_Response_REQ_SNS_STATE (uint16_t NumPacket)
 {
-	ZPZ_Response_Union                     ZPZ_Response;          // Стандартный ответ к ЗПЗ
-	TimeoutType                            timeout;               // Таймаут-контроль
+	ZPZ_Response_Union ZPZ_Response;          // Стандартный ответ к ЗПЗ
+	TimeoutType        timeout;               // Таймаут-контроль
 	
 	/* Получим данные об устройстве */
 	setTimeout (&timeout, 100);
@@ -1602,7 +1681,7 @@ static void ZPZ_Response_REQ_SNS_STATE (uint16_t NumPacket)
 	
 	/* Иначе продолжаем */
 	/* Заполняем структуру общей части всех пакетов */
-	ZPZ_Response.Struct.Handler    = HANDLER_BU;         // Заголовок BU
+	ZPZ_Response.Struct.Handler    = HANDLER_BG;         // Заголовок BU
 	ZPZ_Response.Struct.PacketSize = 23;                 // Размер пакета 23 байта
 	ZPZ_Response.Struct.Command    = REQ_SNS_STATE;      // Команда-запрос состояния СНС
 	ZPZ_Response.Struct.Count      = NumPacket;	         // Повторяем номер как в запросе
@@ -1722,7 +1801,7 @@ static void ZPZ_Response_REQ_SNS_SETTINGS (uint16_t NumPacket)
 	
 	/* Теперь нужно ответить  */
 	/* Заполняем структуру общей части всех пакетов  */
-	ZPZ_Response.Struct.Handler    = HANDLER_BU;          // Заголовок BU
+	ZPZ_Response.Struct.Handler    = HANDLER_BG;          // Заголовок BU
 	ZPZ_Response.Struct.PacketSize = 7;                   // Размер пакета 7 байт
 	ZPZ_Response.Struct.Command    = REQ_SNS_SETTINGS;    // Команда-запрос Настройки СНС
 	ZPZ_Response.Struct.Count      = NumPacket;	          // Номер пакета повторяем из запроса

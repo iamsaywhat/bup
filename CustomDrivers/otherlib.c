@@ -39,6 +39,8 @@ void SysTick_init(void)
   SysTick->CTRL = SysTick_CTRL_CLKSOURCE_Msk | 
                   SysTick_CTRL_ENABLE_Msk    |
                   SysTick_CTRL_TICKINT_Msk   ;
+	/* Системный таймер имеет наивысший приоритер среди прерываний */
+  NVIC_SetPriority(SysTick_IRQn, 0);
 }
 
 /****************************************************************************************
@@ -271,14 +273,22 @@ void Timer_init (MDR_TIMER_TypeDef* TIMERx, unsigned long ticks)
   TIMER_ITConfig(TIMERx,TIMER_STATUS_CNT_ARR,ENABLE);
 	
   /* Разрешаем прерывания по достижению CNT значения ARR (Period) на уровне NVIC */
+  /* Приоритет у обычных таймеров в системе наивысший после SysTick */
   if(TIMERx == MDR_TIMER1)
+  {
     NVIC_EnableIRQ(Timer1_IRQn);
-
+    NVIC_SetPriority(Timer1_IRQn, 1);
+  }
   else if (TIMERx == MDR_TIMER2)
+  {
     NVIC_EnableIRQ(Timer2_IRQn);
-
+    NVIC_SetPriority(Timer2_IRQn, 1);
+  }
   else if (TIMERx == MDR_TIMER3)
+  {
     NVIC_EnableIRQ(Timer3_IRQn);
+    NVIC_SetPriority(Timer3_IRQn, 1);
+  }
 
   /* Включаем таймер */
   TIMER_Cmd(TIMERx,ENABLE);

@@ -293,7 +293,7 @@ SelfTesting_STATUS_TYPE SelfTesting_LEFT_BIM(void)
   }
   // Питание на БИМ отсутствует, проверить их нельзя, будем считать, что исправны
   else 
-    SelfTesting_SET_FAULT(ST_Left_BIM);
+    SelfTesting_SET_OK(ST_Left_BIM);
 	
   return (SelfTesting_STATUS_TYPE)SelfTesting_STATUS(ST_Left_BIM);
 }
@@ -321,7 +321,7 @@ SelfTesting_STATUS_TYPE SelfTesting_RIGHT_BIM(void)
   }
   // Питание на БИМ отсутствует, проверить их нельзя, будем считать, что исправны
   else
-    SelfTesting_SET_FAULT(ST_Right_BIM);
+    SelfTesting_SET_OK(ST_Right_BIM);
 	
   return (SelfTesting_STATUS_TYPE)SelfTesting_STATUS(ST_Right_BIM);
 }
