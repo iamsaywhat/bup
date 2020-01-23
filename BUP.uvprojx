@@ -542,9 +542,9 @@
               </FileOption>
             </File>
             <File>
-              <FileName>Easy_reg.c</FileName>
+              <FileName>flightController.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\Math_model\EasyReg\Easy_reg.c</FilePath>
+              <FilePath>.\Math_model\flightController\flightController.c</FilePath>
             </File>
           </Files>
         </Group>

@@ -1617,7 +1617,7 @@ static void ZPZ_Response_REQ_SNS_POS (uint16_t NumPacket)
 	for(uint8_t i = 4; i < SizeAnsPDR; i++)
 	{
 		/* Побайтово досчитываем контрольную сумму */
-		ZPZ_Response.Struct.CRC = Crc16(&SNS_orientation.Buffer[i], 1, ZPZ_Response.Struct.CRC);
+		ZPZ_Response.Struct.CRC = Crc16(&SNS_position.Buffer[i], 1, ZPZ_Response.Struct.CRC);
 		/* И отправляем */
 		UARTSendByte_by_SLIP (ZPZ_UART, SNS_position.Buffer[i]);
 	}
