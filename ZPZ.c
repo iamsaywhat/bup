@@ -174,8 +174,8 @@ void ZPZ_ShortResponse(uint8_t Command, uint16_t Count, uint8_t Error)
   TimeoutType          timeout;
 	
   //Заполняем сткруктуру ответа
-  ZPZ_Response.Struct.Handler     = HANDLER_BU;   // "UB" - Должно быть "BU", но выдача идём младшим байтом вперед
-  ZPZ_Response.Struct.PacketSize  = 4;            // В размер входят только команда, счетчик, и ошибка
+  ZPZ_Response.Struct.Handler     = HANDLER_FROM_BUP;   // "UB" - Должно быть "BU", но выдача идём младшим байтом вперед
+  ZPZ_Response.Struct.PacketSize  = 4;                  // В размер входят только команда, счетчик, и ошибка
   ZPZ_Response.Struct.Command     = Command;
   ZPZ_Response.Struct.Count       = Count;
   ZPZ_Response.Struct.Error       = Error;
@@ -298,9 +298,9 @@ uint8_t ZPZ_Service (void)
     if (UARTReceiveByte_by_SLIP(ZPZ_UART) != FEND) continue;        /* Сначала ловим FEND по SLIP протоколу. Если первый байт заголовка не совпал, */
     ZPZ_Base_Request.Buffer[0] = UARTReceiveByte_by_SLIP(ZPZ_UART); /* дальше не ждем, переходим к следующей итерации. Если второй символ тоже совпал, */
     ZPZ_Base_Request.Buffer[1] = UARTReceiveByte_by_SLIP(ZPZ_UART); /* значит покидаем данный цикл и переходим к приёму остального пакета */
-    if(ZPZ_Base_Request.Struct.Handler != HANDLER_PC &&             /* Проверим принадлежит ли handler описанному перечню,*/
-       ZPZ_Base_Request.Struct.Handler != HANDLER_PG &&             /* Иначе в буфер может упасть мусор */
-       ZPZ_Base_Request.Struct.Handler != HANDLER_PW) continue;
+    if(ZPZ_Base_Request.Struct.Handler != HANDLER_TO_BUP &&         /* Проверим принадлежит ли handler описанному перечню,*/
+       ZPZ_Base_Request.Struct.Handler != HANDLER_TO_SNS &&         /* Иначе в буфер может упасть мусор */
+       ZPZ_Base_Request.Struct.Handler != HANDLER_TO_SWS) continue;
     break;
   }	
   if(timeout.status == TIME_IS_UP)                                  /* Если был таймаут, значит связи нет, можно отключиться */
@@ -319,7 +319,7 @@ uint8_t ZPZ_Service (void)
   /* Сценарии работы при получении всех возможных заголовков и команд */
   switch (ZPZ_Base_Request.Struct.Handler)
   {
-    case HANDLER_PC: /* Заголовок запроса к БУПу */
+    case HANDLER_TO_BUP: /* Заголовок запроса к БУПу */
     {
       switch (ZPZ_Base_Request.Struct.Command)
       {
@@ -402,7 +402,7 @@ uint8_t ZPZ_Service (void)
       }
       break;
 		}
-    case HANDLER_PG: /* Заголовок запроса к СНС */
+    case HANDLER_TO_SNS: /* Заголовок запроса к СНС */
     {
       switch (ZPZ_Base_Request.Struct.Command)
       {
@@ -431,7 +431,7 @@ uint8_t ZPZ_Service (void)
       }
       break;
     }
-    case HANDLER_PW: /* Заголовок запроса к СВС */
+    case HANDLER_TO_SWS: /* Заголовок запроса к СВС */
     {
       switch (ZPZ_Base_Request.Struct.Command)
       {
@@ -481,7 +481,7 @@ uint8_t ZPZ_Service (void)
   соответствующим образом	*/
   switch (ZPZ_Base_Request.Struct.Handler)
   {
-    case HANDLER_PC: /* Заголовок запроса к БУПу */
+    case HANDLER_TO_BUP: /* Заголовок запроса к БУПу */
     {
       switch (ZPZ_Base_Request.Struct.Command)
       {
@@ -554,7 +554,7 @@ uint8_t ZPZ_Service (void)
       }
       break;
 		}
-    case HANDLER_PG: /* Заголовок запроса к СНС */
+    case HANDLER_TO_SNS: /* Заголовок запроса к СНС */
     {
       switch (ZPZ_Base_Request.Struct.Command)
       {
@@ -576,7 +576,7 @@ uint8_t ZPZ_Service (void)
       }
       break;
     }
-    case HANDLER_PW: /* Заголовок запроса к СВС */
+    case HANDLER_TO_SWS: /* Заголовок запроса к СВС */
     {
       switch (ZPZ_Base_Request.Struct.Command)
       {
@@ -851,7 +851,7 @@ static void ZPZ_Response_START_UPLOAD (uint16_t NumPacket)
 	ZPZ_Response_Union   ZPZ_Response;     // Стандартный ответ к ЗПЗ           
 	
 	/* Заполняем структуру ответа и сразу начнем считать контрольную сумму */
-	ZPZ_Response.Struct.Handler     = HANDLER_BU;           /* Заголовок BU                        */
+	ZPZ_Response.Struct.Handler     = HANDLER_FROM_BUP;     /* Заголовок BU                        */
 	ZPZ_Response.Struct.PacketSize  = 0x003C;               /* Размер пакета 60 байт               */
 	ZPZ_Response.Struct.Command     = START_UPLOAD;         /* Команда: Инициация выгрузки карты   */
 	ZPZ_Response.Struct.Count       = NumPacket;            /* Номер пакета берем из запроса       */
@@ -905,7 +905,7 @@ static void ZPZ_Response_MAP_UPLOAD (uint16_t NumPacket)
 	uint32_t                Address;            // Адрес чтения из SPI Flash
 	
 	/* Заполняем структуру ответа и сразу начнем считать контрольную сумму */
-	ZPZ_Response.Struct.Handler     = HANDLER_BU;       // Заголовок BU
+	ZPZ_Response.Struct.Handler     = HANDLER_FROM_BUP; // Заголовок BU
 	ZPZ_Response.Struct.PacketSize  = 0x0324;           // Размер пакета 804 байта
 	ZPZ_Response.Struct.Command     = MAP_UPLOAD;       // Команда-запрос: Выгрузка карты
 	ZPZ_Response.Struct.Count       = NumPacket;        // Номер пакета повторяем из запроса
@@ -1089,7 +1089,7 @@ static void ZPZ_Response_BIM_STATUS(uint16_t NumPacket)
 	
 	
 	/* Заполняем структуру базовых полей всех пакетов */
-	ZPZ_Response.Struct.Handler    = HANDLER_BU;        // Заголовок BU
+	ZPZ_Response.Struct.Handler    = HANDLER_FROM_BUP;  // Заголовок BU
 	ZPZ_Response.Struct.PacketSize = 11;                // Размер пакета 11 байт
 	ZPZ_Response.Struct.Command    = BIM_STATUS;        // Команда-запрос информации от БИМов
 	ZPZ_Response.Struct.Count      = NumPacket;         // Номер пакета повторяем из запроса
@@ -1150,11 +1150,11 @@ static void ZPZ_Response_LOG_FORMAT (uint16_t NumPacket)
 	}
 	
 	/* Заполняем структуру ответа */
-	ZPZ_Response.Struct.Handler    = HANDLER_BU;    // Заголовок BU
-	ZPZ_Response.Struct.PacketSize = 0x05;          // Размер пакета 5 байт
-	ZPZ_Response.Struct.Command    = LOG_FORMAT;    // Команда форматирования черного ящика
-	ZPZ_Response.Struct.Count      = NumPacket;     // Номер пакета берем из запроса
-	ZPZ_Response.Struct.Error      = SUCCES;        // Статус выполнения: Без ошибок
+	ZPZ_Response.Struct.Handler    = HANDLER_FROM_BUP;    // Заголовок BU
+	ZPZ_Response.Struct.PacketSize = 0x05;                // Размер пакета 5 байт
+	ZPZ_Response.Struct.Command    = LOG_FORMAT;          // Команда форматирования черного ящика
+	ZPZ_Response.Struct.Count      = NumPacket;           // Номер пакета берем из запроса
+	ZPZ_Response.Struct.Error      = SUCCES;              // Статус выполнения: Без ошибок
 		
 	/* Подсчитываем контрольную сумму основной части пакета */
 	ZPZ_Response.Struct.CRC = Crc16(&ZPZ_Response.Buffer[0], 8, CRC16_INITIAL_FFFF);
@@ -1228,10 +1228,10 @@ static void ZPZ_Response_LOG_FILES (uint16_t NumPacket)
 	}
 	
 	/* Заполняем структуру общей части всех пакетов */
-	ZPZ_Response.Struct.Handler    = HANDLER_BU;     // Заголовок BU
-	ZPZ_Response.Struct.Command    = LOG_FILES;      // Команда: Запрос информации о содержимом
-	ZPZ_Response.Struct.Count      = NumPacket;      // Номер пакета берем из запроса
-	ZPZ_Response.Struct.Error      = SUCCES;         // Статус выполнения: Без ошибок
+	ZPZ_Response.Struct.Handler    = HANDLER_FROM_BUP;     // Заголовок BU
+	ZPZ_Response.Struct.Command    = LOG_FILES;            // Команда: Запрос информации о содержимом
+	ZPZ_Response.Struct.Count      = NumPacket;            // Номер пакета берем из запроса
+	ZPZ_Response.Struct.Error      = SUCCES;               // Статус выполнения: Без ошибок
 		
 	/* Минимально возможное число байт пакета: 
 	   Команда (1б) + Номер пакета (2б) + Error (1б) + Кол-во файлов (2б) = 6 байт
@@ -1344,7 +1344,7 @@ static void ZPZ_Response_LOG_UPLOAD(uint16_t NumPacket)
   filesize = Log_Fs_GetFileProperties(FILE_SIZE);
 
 	/* Заполняем структуру общей части всех пакетов */
-	ZPZ_Response.Struct.Handler    = HANDLER_BU;       // Заголовок BU
+	ZPZ_Response.Struct.Handler    = HANDLER_FROM_BUP; // Заголовок BU
 	ZPZ_Response.Struct.Command    = LOG_UPLOAD;       // Команда: выгрузка файла
 	ZPZ_Response.Struct.Count      = NumPacket;        // Номер пакета при разбиении файла
 	ZPZ_Response.Struct.Error      = SUCCES;           // Статус выполнения: Без ошибок
@@ -1524,7 +1524,7 @@ static void ZPZ_Response_REQ_SWS (uint16_t NumPacket)
 	
 	/* Если данные приняты верно, то надо продолжать */
 	/* Заполняем структуру общей части всех пакетов */
-	ZPZ_Response.Struct.Handler    = HANDLER_BW;      // Заголовок BU
+	ZPZ_Response.Struct.Handler    = HANDLER_FROM_SWS;// Заголовок BU
 	ZPZ_Response.Struct.PacketSize = 28;              // Размер пакета 28 байт
 	ZPZ_Response.Struct.Command    = REQ_SWS;         // Команда-запрос данных от СВС
 	ZPZ_Response.Struct.Count      = NumPacket;       // Номер ответа берём из запроса
@@ -1595,7 +1595,7 @@ static void ZPZ_Response_REQ_SNS_POS (uint16_t NumPacket)
 	
 	/* Иначе продолжаем
 	   Заполняем структуру общей части всех пакетов */
-	ZPZ_Response.Struct.Handler    = HANDLER_BG;          // Заголовок BU
+	ZPZ_Response.Struct.Handler    = HANDLER_FROM_SNS;    // Заголовок BU
 	ZPZ_Response.Struct.PacketSize = 72;                  // Размер пакета 72 байта
 	ZPZ_Response.Struct.Command    = REQ_SNS_POS;         // Команда-запрос информации об местоположении от СНС
 	ZPZ_Response.Struct.Count      = NumPacket;	          // Повторяем номер из запроса
@@ -1681,7 +1681,7 @@ static void ZPZ_Response_REQ_SNS_STATE (uint16_t NumPacket)
 	
 	/* Иначе продолжаем */
 	/* Заполняем структуру общей части всех пакетов */
-	ZPZ_Response.Struct.Handler    = HANDLER_BG;         // Заголовок BU
+	ZPZ_Response.Struct.Handler    = HANDLER_FROM_SNS;   // Заголовок BU
 	ZPZ_Response.Struct.PacketSize = 23;                 // Размер пакета 23 байта
 	ZPZ_Response.Struct.Command    = REQ_SNS_STATE;      // Команда-запрос состояния СНС
 	ZPZ_Response.Struct.Count      = NumPacket;	         // Повторяем номер как в запросе
@@ -1801,7 +1801,7 @@ static void ZPZ_Response_REQ_SNS_SETTINGS (uint16_t NumPacket)
 	
 	/* Теперь нужно ответить  */
 	/* Заполняем структуру общей части всех пакетов  */
-	ZPZ_Response.Struct.Handler    = HANDLER_BG;          // Заголовок BU
+	ZPZ_Response.Struct.Handler    = HANDLER_FROM_SNS;    // Заголовок BU
 	ZPZ_Response.Struct.PacketSize = 7;                   // Размер пакета 7 байт
 	ZPZ_Response.Struct.Command    = REQ_SNS_SETTINGS;    // Команда-запрос Настройки СНС
 	ZPZ_Response.Struct.Count      = NumPacket;	          // Номер пакета повторяем из запроса
@@ -1847,7 +1847,7 @@ static void ZPZ_Response_SYSTEM_STATE (uint16_t NumPacket)
 		
 	/* Теперь нужно ответить  */
 	/* Заполняем структуру общей части всех пакетов */
-	ZPZ_Response.Struct.Handler    = HANDLER_BU;          // Заголовок BU       
+	ZPZ_Response.Struct.Handler    = HANDLER_FROM_BUP;    // Заголовок BU       
 	ZPZ_Response.Struct.PacketSize = 13;                  // Размер пакета в байтах  
 	ZPZ_Response.Struct.Command    = SYSTEM_STATE;        // Команда: передача по CAN
 	ZPZ_Response.Struct.Count      = NumPacket;	          // Номер пакета повторяем из запроса
@@ -1969,7 +1969,7 @@ static void ZPZ_Response_CAN_TRANSMIT (uint16_t NumPacket)
 
 	/* Теперь нужно ответить */
 	/* Заполняем структуру общей части всех пакетов */
-	ZPZ_Response.Struct.Handler    = HANDLER_BU;          // Заголовок BU
+	ZPZ_Response.Struct.Handler    = HANDLER_FROM_BUP;    // Заголовок BU
 	/* 6 Байт обязательны + Длина сообщения  */ 
 	ZPZ_Response.Struct.PacketSize = 6 + CANTxMsg.DLC;    // Размер пакета в байтах  
 	ZPZ_Response.Struct.Command    = CAN_TRANSMIT;        // Команда: передача по CAN
