@@ -1,6 +1,6 @@
 #include "mathmodelapi.h"
 
-#include "actuator.h"
+#include "bims.h"
 #include "discreteio.h"
 #include "../SelfTesting.h"
 #include "otherlib.h"
@@ -160,7 +160,7 @@ void MathModel_control (void)
     // Отключаем реле створки замка (нельзя удерживать дольше 10 секунд)
     BLIND_CTRL_OFF();
     // Отключаем БИМы
-    BIM_Supply_OFF();
+    BIM_disableSupply();
     // Повисаем в ожидании перезапуска
     while(1);
   }

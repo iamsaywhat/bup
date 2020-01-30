@@ -6,7 +6,7 @@
 #include "SelfTesting.h"
 #include "bup_data_store.h"
 #include "kmonshelf.h"
-#include "actuator.h"
+#include "bims.h"
 
 
 #ifdef flightRegulatorCFB //******************************************************* Если выбран flightRegulatorCFB

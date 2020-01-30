@@ -1,4 +1,4 @@
-#include "actuator.h"
+#include "bims.h"
 #include "otherlib.h"
 #include "MDR32F9Qx_can.h"
 
@@ -29,7 +29,7 @@ static void BIM_RetargetPins (void)
 	// Пин подачи питания на БИМы
 	Pin_init (RELAY_BIM);
 	// По-умолчанию питание отключим
-	BIM_Supply_OFF(); 
+	BIM_disableSupply(); 
 }
 
 

@@ -1,4 +1,4 @@
-#include "25Q64FV.h"
+#include "25q64fv.h"
 
 #include "MDR32F9Qx_rst_clk.h"
 #include "MDR32F9Qx_ssp.h"
@@ -25,7 +25,7 @@ typedef volatile union
 /**************************************************************************************************************
   Объявления локальных функций модуля
 ***************************************************************************************************************/
-static void  SPI_25Q64FV_WriteBlock (uint8_t* Source, uint8_t* Destination, uint32_t Size);
+static void  SPI_25Q64FV_writeBlock (uint8_t* Source, uint8_t* Destination, uint32_t Size);
  
  
 /**************************************************************************************************************
@@ -47,9 +47,9 @@ static void SPI_25Q64FV_RetargetPins (void)
 
 
 /**************************************************************************************************************
-  SPI_25Q64FV_Init - Инициализация SSP в режиме SPI для работы с внешней памятью 25Q64FV
+  SPI_25Q64FV_initialize - Инициализация SSP в режиме SPI для работы с внешней памятью 25Q64FV
 **************************************************************************************************************/
-void SPI_25Q64FV_Init (void)
+void SPI_25Q64FV_initialize (void)
 {
   SSP_InitTypeDef SSPInitStructure; 
 	
@@ -86,9 +86,9 @@ void SPI_25Q64FV_Init (void)
 
 
 /**************************************************************************************************************
-  SPI_25Q64FV_WriteEnable - Отправить запрос на разрешение записи во внешнюю SPI-память 
+  SPI_25Q64FV_enableWrite - Отправить запрос на разрешение записи во внешнюю SPI-память 
 **************************************************************************************************************/
-void SPI_25Q64FV_WriteEnable (PinConfigType CSn)
+void SPI_25Q64FV_enableWrite (PinConfigType CSn)
 {
   TimeoutType timeout;
 	
@@ -109,9 +109,9 @@ void SPI_25Q64FV_WriteEnable (PinConfigType CSn)
 }
 
 /**************************************************************************************************************
-  SPI_25Q64FV_WriteDisable - Отправить запрос на запрет записи во внешнюю SPI-память 
+  SPI_25Q64FV_disableWrite - Отправить запрос на запрет записи во внешнюю SPI-память 
 **************************************************************************************************************/ 
-void SPI_25Q64FV_WriteDisable (PinConfigType CSn)
+void SPI_25Q64FV_disableWrite (PinConfigType CSn)
 {
   TimeoutType timeout;
 	
@@ -132,14 +132,14 @@ void SPI_25Q64FV_WriteDisable (PinConfigType CSn)
 }
 
 /**************************************************************************************************************
-  SPI_25Q64FV_ChipErase - Очистка всей микросхемы внешней SPI-памяти   
+  SPI_25Q64FV_eraseChip - Очистка всей микросхемы внешней SPI-памяти   
 **************************************************************************************************************/
-void SPI_25Q64FV_ChipErase (PinConfigType CSn)
+void SPI_25Q64FV_eraseChip (PinConfigType CSn)
 {
   uint8_t src, dst;
 	
   // Разрешаем запись
-  SPI_25Q64FV_WriteEnable (CSn);
+  SPI_25Q64FV_enableWrite (CSn);
 	
   // Берем команду на стирание
   src = _25Q64FV_CMD_ChipErase;
@@ -147,7 +147,7 @@ void SPI_25Q64FV_ChipErase (PinConfigType CSn)
   // Выставим ChipSelect нужной микросхемы
   CSnReady(CSn);
   // Передать блок данных
-  SPI_25Q64FV_WriteBlock (&src, &dst, 1);
+  SPI_25Q64FV_writeBlock (&src, &dst, 1);
   // Деактивируем ChipSelect микросхемы
   CSnDisable(CSn);
 	
@@ -159,9 +159,9 @@ void SPI_25Q64FV_ChipErase (PinConfigType CSn)
 
 
 /**************************************************************************************************************
-  SPI_25Q64FV_Reset - Перезапуск микросхемы внешней SPI-памяти
+  SPI_25Q64FV_reset - Перезапуск микросхемы внешней SPI-памяти
 **************************************************************************************************************/
-void SPI_25Q64FV_Reset (PinConfigType CSn)
+void SPI_25Q64FV_reset (PinConfigType CSn)
 {
   uint8_t src[2], dst[2];
 	
@@ -172,16 +172,16 @@ void SPI_25Q64FV_Reset (PinConfigType CSn)
   // Выставим ChipSelect нужной микросхемы
   CSnReady(CSn);
   // Передать блок данных
-  SPI_25Q64FV_WriteBlock (src, dst, 2);
+  SPI_25Q64FV_writeBlock (src, dst, 2);
   // Деактивируем ChipSelect микросхемы
   CSnDisable(CSn);
 }	
 
 
 /**************************************************************************************************************
-  SPI_1636PP52Y_ReadID - Запрос ID микросхемы и производителя внешней SPI-памяти
+  SPI_25Q64FV_readID - Запрос ID микросхемы и производителя внешней SPI-памяти
 **************************************************************************************************************/
-uint16_t SPI_25Q64FV_ReadID (PinConfigType CSn)
+uint16_t SPI_25Q64FV_readID (PinConfigType CSn)
 {
   Dword_to_Byte result;
   uint8_t src[6], dst[6];
@@ -199,7 +199,7 @@ uint16_t SPI_25Q64FV_ReadID (PinConfigType CSn)
   // Выставим ChipSelect нужной микросхемы
   CSnReady(CSn);
   // Передаём блок данных
-  SPI_25Q64FV_WriteBlock (src, dst, 6);
+  SPI_25Q64FV_writeBlock (src, dst, 6);
   // Деактивируем ChipSelect микросхемы
   CSnDisable(CSn);
   // Формируем результат
@@ -211,9 +211,9 @@ uint16_t SPI_25Q64FV_ReadID (PinConfigType CSn)
 }
 
 /**************************************************************************************************************
-  SPI_25Q64FV_SectorErase - Стирание сектора внешней SPI-памяти (4кб)
+  SPI_25Q64FV_eraseSector - Стирание сектора внешней SPI-памяти (4кб)
 **************************************************************************************************************/
-void SPI_25Q64FV_SectorErase (PinConfigType CSn, uint32_t Address)
+void SPI_25Q64FV_eraseSector (PinConfigType CSn, uint32_t Address)
 {
   Dword_to_Byte Addr;
   uint8_t src[4], dst[4];  // Посылаем всего 4 байта
@@ -227,12 +227,12 @@ void SPI_25Q64FV_SectorErase (PinConfigType CSn, uint32_t Address)
   src[3] = Addr.Byte[0];
   
   // Разрешить запись
-  SPI_25Q64FV_WriteEnable (CSn);	
+  SPI_25Q64FV_enableWrite (CSn);	
   
   // Выставим ChipSelect нужной микросхемы 
   CSnReady(CSn);
   // Передать блок данных
-  SPI_25Q64FV_WriteBlock (src, dst, 4);
+  SPI_25Q64FV_writeBlock (src, dst, 4);
   // Деактивируем ChipSelect микросхемы
   CSnDisable(CSn);
   
@@ -243,9 +243,9 @@ void SPI_25Q64FV_SectorErase (PinConfigType CSn, uint32_t Address)
 
 
 /**************************************************************************************************************
-  SPI_25Q64FV_ByteProgram - Запись байта во внешнюю память
+  SPI_25Q64FV_writeByte - Запись байта во внешнюю память
 **************************************************************************************************************/
-void SPI_25Q64FV_ByteProgram (PinConfigType CSn, uint32_t Address, uint8_t Value)
+void SPI_25Q64FV_writeByte (PinConfigType CSn, uint32_t Address, uint8_t Value)
 {
   uint8_t src[5], dst[5];
   Dword_to_Byte Addr;
@@ -258,12 +258,12 @@ void SPI_25Q64FV_ByteProgram (PinConfigType CSn, uint32_t Address, uint8_t Value
   src[4] = Value;
 		
   // Разрешить запись
-  SPI_25Q64FV_WriteEnable (CSn);	
+  SPI_25Q64FV_enableWrite (CSn);	
 	
   // Выставим ChipSelect нужной микросхемы
   CSnReady(CSn);
   // Передать блок данных
-  SPI_25Q64FV_WriteBlock (src, dst, 5);
+  SPI_25Q64FV_writeBlock (src, dst, 5);
   // Деактивируем ChipSelect микросхемы
   CSnDisable(CSn);
 	
@@ -277,9 +277,9 @@ void SPI_25Q64FV_ByteProgram (PinConfigType CSn, uint32_t Address, uint8_t Value
 
 
 /**************************************************************************************************************
-  SPI_25Q64FV_ReadArray - Чтение массива данных из внешней SPI-памяти
+  SPI_25Q64FV_readArray - Чтение массива данных из внешней SPI-памяти
 **************************************************************************************************************/
-uint32_t SPI_25Q64FV_ReadArray (PinConfigType CSn, uint32_t Address, uint8_t* Destination, uint32_t Size)
+uint32_t SPI_25Q64FV_readArray (PinConfigType CSn, uint32_t Address, uint8_t* Destination, uint32_t Size)
 {
   TimeoutType timeout;
   uint8_t src[4];
@@ -366,10 +366,10 @@ uint32_t SPI_25Q64FV_ReadArray (PinConfigType CSn, uint32_t Address, uint8_t* De
 
 
 /**************************************************************************************************************
-  SPI_1636PP52Y_TestMemory - Функция тестирования микросхемы памяти. Проиводит запись и чтение 
+  SPI_25Q64FV_memoryTest - Функция тестирования микросхемы памяти. Проиводит запись и чтение 
   по всем доступным адресам                                                
 **************************************************************************************************************/
-uint8_t SPI_25Q64FV_TestMemory (PinConfigType CSn)
+uint8_t SPI_25Q64FV_memoryTest (PinConfigType CSn)
 {
   uint8_t  buffer[4];
   uint8_t  dest[4];
@@ -379,17 +379,17 @@ uint8_t SPI_25Q64FV_TestMemory (PinConfigType CSn)
 	
   *(uint32_t*)buffer = 0x557799AA;
 	
-  SPI_25Q64FV_Reset (CSn);
+  SPI_25Q64FV_reset (CSn);
   // Проверка ID
-  if(SPI_25Q64FV_ReadID(CSn) != _25Q64FV_ID) 
+  if(SPI_25Q64FV_readID(CSn) != _25Q64FV_ID) 
     return 1;
   // Очищаем память перед тестом
-  SPI_25Q64FV_ChipErase (CSn);
+  SPI_25Q64FV_eraseChip (CSn);
   // Проверка на стирание и запись
   for(i = 0; i < _25Q64FV_SECTORS_NUM+5; i++)
   {
     address = i*_25Q64FV_SECTORS_SIZE;
-    SPI_25Q64FV_ReadArray (CSn, address , &temp, 1);
+    SPI_25Q64FV_readArray (CSn, address , &temp, 1);
     if(temp != 0xFF) 
       return 1;
   
@@ -398,18 +398,18 @@ uint8_t SPI_25Q64FV_TestMemory (PinConfigType CSn)
   for(i = 1; i < _25Q64FV_SECTORS_NUM; i++)
   {
     address = i*_25Q64FV_SECTORS_SIZE;
-    SPI_25Q64FV_ByteProgram (CSn, address, buffer[0]);
+    SPI_25Q64FV_writeByte (CSn, address, buffer[0]);
     address = i*_25Q64FV_SECTORS_SIZE + 1;
-    SPI_25Q64FV_ByteProgram (CSn, address, buffer[1]);
+    SPI_25Q64FV_writeByte (CSn, address, buffer[1]);
     address = (i + 1)*_25Q64FV_SECTORS_SIZE  - 2;
-    SPI_25Q64FV_ByteProgram (CSn, address, buffer[2]);
+    SPI_25Q64FV_writeByte (CSn, address, buffer[2]);
     address = (i + 1)*_25Q64FV_SECTORS_SIZE - 1;
-    SPI_25Q64FV_ByteProgram (CSn, address, buffer[3]);
+    SPI_25Q64FV_writeByte (CSn, address, buffer[3]);
   
     address = i*_25Q64FV_SECTORS_SIZE;
-    SPI_25Q64FV_ReadArray (CSn, address, dest, 2);
+    SPI_25Q64FV_readArray (CSn, address, dest, 2);
     address = (i + 1)*_25Q64FV_SECTORS_SIZE - 2;
-    SPI_25Q64FV_ReadArray (CSn, address, &dest[2], 2);
+    SPI_25Q64FV_readArray (CSn, address, &dest[2], 2);
   
     if(*(uint32_t*)buffer != *(uint32_t*)dest) 
       return 1;
@@ -422,9 +422,9 @@ uint8_t SPI_25Q64FV_TestMemory (PinConfigType CSn)
     *(uint32_t*)buffer = address;
     for(j=0; j< 4; j++)
     {
-      SPI_25Q64FV_ByteProgram (CSn, address+j, buffer[j]);
+      SPI_25Q64FV_writeByte (CSn, address+j, buffer[j]);
     }	
-    SPI_25Q64FV_ReadArray (CSn, address, dest, 4);
+    SPI_25Q64FV_readArray (CSn, address, dest, 4);
     if(*(uint32_t*)buffer != *(uint32_t*)dest) 
       return 1;
     *(uint32_t*)dest = 0;
@@ -433,14 +433,14 @@ uint8_t SPI_25Q64FV_TestMemory (PinConfigType CSn)
 }
 
 /**************************************************************************************************************
-  SPI_25Q64FV_WriteBlock - Внутреняя функция отправки сообщений по SPI
+  SPI_25Q64FV_writeBlock - Внутреняя функция отправки сообщений по SPI
   Параметры:
             Source      - Указатель на буфер источника;
             Destination - Указатель на буфер места назначения;
             Size        - Размер передаваемомой посылки в байтах
   Возвращает: NONE
 **************************************************************************************************************/
-static void SPI_25Q64FV_WriteBlock (uint8_t* Source, uint8_t* Destination, uint32_t Size)
+static void SPI_25Q64FV_writeBlock (uint8_t* Source, uint8_t* Destination, uint32_t Size)
 {
   uint32_t    temp;
   TimeoutType timeout;

@@ -7,7 +7,7 @@
 #include "25q64fv.h"
 #include "SWS.h"
 #include "kmonshelf.h"
-#include "actuator.h"
+#include "bims.h"
 #include "Log_FS/Log_FS.h"
 #include "HeightMap/Heightmap_conf_and_pd.h"
 #include "HeightMap/Heightmap.h"
@@ -206,13 +206,13 @@ SelfTesting_STATUS_TYPE SelfTesting_1636PP52Y(void)
 {
   // Проверяем просто по ID микросхемы (если ID не совпадёт - это признак неисправности)
   SelfTesting_SET_OK(ST_1636PP52Y);
-  if(SPI_1636PP52Y_ReadID (SPI_1636PP52Y_CS1) != _1636PP52Y_ID)
+  if(SPI_1636PP52Y_readID (SPI_1636PP52Y_CS1) != _1636PP52Y_ID)
     SelfTesting_SET_FAULT(ST_1636PP52Y); 
-  if(SPI_1636PP52Y_ReadID (SPI_1636PP52Y_CS2) != _1636PP52Y_ID)
+  if(SPI_1636PP52Y_readID (SPI_1636PP52Y_CS2) != _1636PP52Y_ID)
     SelfTesting_SET_FAULT(ST_1636PP52Y); 	
-  if(SPI_1636PP52Y_ReadID (SPI_1636PP52Y_CS3) != _1636PP52Y_ID)
+  if(SPI_1636PP52Y_readID (SPI_1636PP52Y_CS3) != _1636PP52Y_ID)
     SelfTesting_SET_FAULT(ST_1636PP52Y); 
-  if(SPI_1636PP52Y_ReadID (SPI_1636PP52Y_CS4) != _1636PP52Y_ID)
+  if(SPI_1636PP52Y_readID (SPI_1636PP52Y_CS4) != _1636PP52Y_ID)
     SelfTesting_SET_FAULT(ST_1636PP52Y); 
 	
   return (SelfTesting_STATUS_TYPE)SelfTesting_STATUS(ST_1636PP52Y); 
@@ -229,7 +229,7 @@ SelfTesting_STATUS_TYPE SelfTesting_25Q64FV(void)
 {
   // Проверяем просто по ID микросхемы (если ID не совпадёт - это признак неисправности)
   SelfTesting_SET_FAULT(ST_25Q64FV); 
-  if(SPI_25Q64FV_ReadID (SPI_25Q64FV_CSn) == _25Q64FV_ID)
+  if(SPI_25Q64FV_readID (SPI_25Q64FV_CSn) == _25Q64FV_ID)
     SelfTesting_SET_OK(ST_25Q64FV);
 	
   return (SelfTesting_STATUS_TYPE)SelfTesting_STATUS(ST_25Q64FV);
@@ -350,9 +350,9 @@ void SelfTesting_BIMS_TRY_CONNECT(void)
     setTimeout(&timeout, 10000);
     /* Изменим состояние реле питания БИМ на противоположное */
     if(SelfTesting_STATUS(ST_POW_BIM)) 
-      BIM_Supply_OFF();
+      BIM_disableSupply();
     else 
-      BIM_Supply_ON();
+      BIM_enableSupply();
   }
 }
 

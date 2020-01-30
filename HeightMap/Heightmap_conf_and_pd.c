@@ -17,16 +17,16 @@ void ReadMap(uint32_t Address, uint8_t* Destination, uint32_t Size)
   while(Bytecount < Size)
   {
     if(((Address + Bytecount) < 0x20000))
-      SPI_1636PP52Y_ReadArray (SPI_1636PP52Y_CS1, Address + Bytecount, Destination++, 1);
+      SPI_1636PP52Y_readArray (SPI_1636PP52Y_CS1, Address + Bytecount, Destination++, 1);
 			
     else if (((Address + Bytecount) >= 0x20000)  &&  ((Address + Bytecount) < 0x40000))
-      SPI_1636PP52Y_ReadArray (SPI_1636PP52Y_CS2, Address + Bytecount, Destination++, 1);
+      SPI_1636PP52Y_readArray (SPI_1636PP52Y_CS2, Address + Bytecount, Destination++, 1);
 				
     else if (((Address + Bytecount) >= 0x40000)  &&  ((Address + Bytecount) < 0x60000))
-      SPI_1636PP52Y_ReadArray (SPI_1636PP52Y_CS3, Address + Bytecount, Destination++, 1);
+      SPI_1636PP52Y_readArray (SPI_1636PP52Y_CS3, Address + Bytecount, Destination++, 1);
 			
     else if (((Address + Bytecount) >= 0x60000)  &&  ((Address + Bytecount) < 0x80000))
-      SPI_1636PP52Y_ReadArray (SPI_1636PP52Y_CS4, Address + Bytecount, Destination++, 1);
+      SPI_1636PP52Y_readArray (SPI_1636PP52Y_CS4, Address + Bytecount, Destination++, 1);
 
     Bytecount ++;
 	}
@@ -174,7 +174,9 @@ short GetMapProperties_Alt(unsigned int LON_INDEX, unsigned int LAT_INDEX)
   unsigned char buff[2];
   unsigned int Address = 0;
 	
-  Address = ADDRESS_FIRST_ALT + SIZE_OF_n_PACKET_DATA * (NUMBER_OF_DATA_IN_PACKET - 1 - LAT_INDEX) + 2 * LON_INDEX;
+  Address = ADDRESS_FIRST_ALT + 
+            SIZE_OF_n_PACKET_DATA * (NUMBER_OF_DATA_IN_PACKET - 1 - LAT_INDEX) + 
+            2 * LON_INDEX;
   ReadMap(Address, buff, 2);
 	
   return *(short*)buff;

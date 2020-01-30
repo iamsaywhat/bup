@@ -129,7 +129,7 @@ SWS_Status SWS_update(void)
       Actual_SWS_Pack.Buffer[i] = UARTReceiveByte(SWS_UART);
 			
     /* Вычисляем контрольную сумму */
-    crc = Calc_Crc32_Array(Actual_SWS_Pack.Buffer, 56);
+    crc = CRC32_calculate(Actual_SWS_Pack.Buffer, 56);
 		
     /* Сверяем контрольную сумму */
     if(crc == Actual_SWS_Pack.Struct.CRC)

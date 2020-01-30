@@ -448,6 +448,11 @@
               <FileType>1</FileType>
               <FilePath>.\zpz.c</FilePath>
             </File>
+            <File>
+              <FileName>config.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\config.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -602,11 +607,6 @@
               <FilePath>.\CustomDrivers\1636pp52y.c</FilePath>
             </File>
             <File>
-              <FileName>actuator.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\CustomDrivers\actuator.c</FilePath>
-            </File>
-            <File>
               <FileName>analogio.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\CustomDrivers\analogio.c</FilePath>
@@ -625,6 +625,11 @@
               <FileName>sws.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\CustomDrivers\sws.c</FilePath>
+            </File>
+            <File>
+              <FileName>bims.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\CustomDrivers\bims.c</FilePath>
             </File>
           </Files>
         </Group>

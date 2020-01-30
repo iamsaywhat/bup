@@ -39,7 +39,7 @@ void Timer1_IRQHandler(void)
   /* Выполняем требования матмодели */
   MathModel_control();
   /* Сбрасываем цикл пассивных задач */
-  TaskManagerGo2Task (TaskTest, 0);
+  TaskManager_gotoTask (TaskTest, 0);
 }
 
 /******************************************************************  

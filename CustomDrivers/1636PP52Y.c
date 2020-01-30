@@ -22,7 +22,7 @@ typedef volatile union
  /**************************************************************************************************************
     Объявления локальных функций модуля
 ***************************************************************************************************************/
-void static SPI_1636PP52Y_WriteBlock (uint8_t* Source, uint8_t* Destination, uint32_t Size);
+void static SPI_1636PP52Y_writeBlock (uint8_t* Source, uint8_t* Destination, uint32_t Size);
 
 
  
@@ -56,9 +56,9 @@ static void SPI_1636PP52Y_RetargetPins (void)
 
 
 /**************************************************************************************************************
-    SPI_1636PP52Y_Init - Инициализация SSP в режиме SPI для работы с внешней памятью 1636рр52у 
+    SPI_1636PP52Y_initialize - Инициализация SSP в режиме SPI для работы с внешней памятью 1636рр52у 
 **************************************************************************************************************/
-void SPI_1636PP52Y_Init (void)
+void SPI_1636PP52Y_initialize (void)
 {
 	SSP_InitTypeDef SSPInitStructure; 
 	
@@ -94,9 +94,9 @@ void SPI_1636PP52Y_Init (void)
 
 
 /**************************************************************************************************************
-    SPI_1636PP52Y_WriteEnable - Отправить запрос на разрешение записи во внешнюю SPI-память    
+    SPI_1636PP52Y_enableWrite - Отправить запрос на разрешение записи во внешнюю SPI-память    
 **************************************************************************************************************/
-void SPI_1636PP52Y_WriteEnable (PinConfigType CSn)
+void SPI_1636PP52Y_enableWrite (PinConfigType CSn)
 {
 	TimeoutType timeout; 
 	
@@ -117,9 +117,9 @@ void SPI_1636PP52Y_WriteEnable (PinConfigType CSn)
 }
 
 /**************************************************************************************************************
-    SPI_1636PP52Y_WriteDisable - Отправить запрос на запрет записи во внешнюю SPI-память    
+    SPI_1636PP52Y_disableWrite - Отправить запрос на запрет записи во внешнюю SPI-память    
 **************************************************************************************************************/ 
-void SPI_1636PP52Y_WriteDisable (PinConfigType CSn)
+void SPI_1636PP52Y_disableWrite (PinConfigType CSn)
 {
 	TimeoutType timeout;
 	
@@ -141,24 +141,24 @@ void SPI_1636PP52Y_WriteDisable (PinConfigType CSn)
 }
 
 /**************************************************************************************************************
-    SPI_1636PP52Y_ChipErase - Очистка всей микросхемы внешней SPI-памяти    
+    SPI_1636PP52Y_eraseChip - Очистка всей микросхемы внешней SPI-памяти    
 **************************************************************************************************************/
-void SPI_1636PP52Y_ChipErase (PinConfigType CSn)
+void SPI_1636PP52Y_eraseChip (PinConfigType CSn)
 {
 	uint8_t src, dst;
 	
 	// Снимаем защиту с обоих секторов
-	SPI_1636PP52Y_UnprotectSector (CSn,Sector0);
-	SPI_1636PP52Y_UnprotectSector (CSn,Sector1);
+	SPI_1636PP52Y_unprotectSector (CSn,Sector0);
+	SPI_1636PP52Y_unprotectSector (CSn,Sector1);
 	// Разрешаем запись
-	SPI_1636PP52Y_WriteEnable (CSn);
+	SPI_1636PP52Y_enableWrite (CSn);
 	
 	src = _1636PP52Y_CMD_ChipErase;
 	
 	// Выставим ChipSelect нужной микросхемы
 	CSnReady(CSn);
 	// Передать блок данных
-	SPI_1636PP52Y_WriteBlock (&src, &dst, 1);
+	SPI_1636PP52Y_writeBlock (&src, &dst, 1);
 	// Деактивируем ChipSelect микросхемы
 	CSnDisable(CSn);
 	
@@ -167,16 +167,16 @@ void SPI_1636PP52Y_ChipErase (PinConfigType CSn)
 	delay_us (110000);
 	
 	// Включаем защиту с обоих секторов
-	SPI_1636PP52Y_ProtectSector (CSn,Sector0);
-	SPI_1636PP52Y_ProtectSector (CSn,Sector1);
+	SPI_1636PP52Y_protectSector (CSn,Sector0);
+	SPI_1636PP52Y_protectSector (CSn,Sector1);
 }
 
 
 
 /**************************************************************************************************************
-    SPI_1636PP52Y_Reset - Перезапуск микросхемы внешней SPI-памяти    
+    SPI_1636PP52Y_reset - Перезапуск микросхемы внешней SPI-памяти    
 **************************************************************************************************************/
-void SPI_1636PP52Y_Reset (PinConfigType CSn)
+void SPI_1636PP52Y_reset (PinConfigType CSn)
 {
 	uint8_t src[2], dst[2];
 	
@@ -186,16 +186,16 @@ void SPI_1636PP52Y_Reset (PinConfigType CSn)
 	// Выставим ChipSelect нужной микросхемы
 	CSnReady(CSn);
 	// Передать блок данных
-	SPI_1636PP52Y_WriteBlock (src, dst, 2);
+	SPI_1636PP52Y_writeBlock (src, dst, 2);
 	// Деактивируем ChipSelect микросхемы
 	CSnDisable(CSn);
 }	
 
 
 /**************************************************************************************************************
-    SPI_1636PP52Y_ReadID - Запрос ID микросхемы и производителя внешней SPI-памяти    
+    SPI_1636PP52Y_readID - Запрос ID микросхемы и производителя внешней SPI-памяти    
 **************************************************************************************************************/
-uint16_t SPI_1636PP52Y_ReadID (PinConfigType CSn)
+uint16_t SPI_1636PP52Y_readID (PinConfigType CSn)
 {
 	Dword_to_Byte result;
 	uint8_t src[3], dst[3];
@@ -207,7 +207,7 @@ uint16_t SPI_1636PP52Y_ReadID (PinConfigType CSn)
 	// Выставим ChipSelect нужной микросхемы
 	CSnReady(CSn);
 	// Передаём блок данных
-	SPI_1636PP52Y_WriteBlock (src, dst, 3);
+	SPI_1636PP52Y_writeBlock (src, dst, 3);
 	// Деактивируем ChipSelect микросхемы
 	CSnDisable(CSn);
 	
@@ -223,7 +223,7 @@ uint16_t SPI_1636PP52Y_ReadID (PinConfigType CSn)
 /**************************************************************************************************************
     SPI_1636PP52Y_SectorErase - Стирание сектора внешней SPI-памяти (всего их 2)    
 **************************************************************************************************************/
-void SPI_1636PP52Y_SectorErase (PinConfigType CSn, uint32_t Address)
+void SPI_1636PP52Y_eraseSector (PinConfigType CSn, uint32_t Address)
 {
 	Dword_to_Byte Addr;
 	uint8_t src[4], dst[4];   // Посылаем всего 4 байта
@@ -235,15 +235,15 @@ void SPI_1636PP52Y_SectorErase (PinConfigType CSn, uint32_t Address)
 	src[3] = Addr.Byte[0];
 	
 	// Снимаем защиту сектора
-	SPI_1636PP52Y_UnprotectSector (CSn,Address);
+	SPI_1636PP52Y_unprotectSector (CSn,Address);
 	
 	// Разрешить запись
-	SPI_1636PP52Y_WriteEnable (CSn);	
+	SPI_1636PP52Y_enableWrite (CSn);	
 	
 	// Выставим ChipSelect нужной микросхемы
 	CSnReady(CSn);
 	// Передать блок данных
-	SPI_1636PP52Y_WriteBlock (src, dst, 4);
+	SPI_1636PP52Y_writeBlock (src, dst, 4);
 	// Деактивируем ChipSelect микросхемы
 	CSnDisable(CSn);
 	
@@ -252,15 +252,15 @@ void SPI_1636PP52Y_SectorErase (PinConfigType CSn, uint32_t Address)
 	delay_us(55000);
 	
 	// Включаем защиту сектора
-	SPI_1636PP52Y_UnprotectSector (CSn,Address);
+	SPI_1636PP52Y_unprotectSector (CSn,Address);
 }
 
 
 
 /**************************************************************************************************************
-    SPI_1636PP52Y_ProtectSector - Включение защиты сектора внешней SPI-памяти (всего их 2)    
+    SPI_1636PP52Y_protectSector - Включение защиты сектора внешней SPI-памяти (всего их 2)    
 **************************************************************************************************************/
-void SPI_1636PP52Y_ProtectSector (PinConfigType CSn, uint32_t Address)
+void SPI_1636PP52Y_protectSector (PinConfigType CSn, uint32_t Address)
 {
 	uint8_t src[4], dst[4];
 	Dword_to_Byte Addr;
@@ -271,12 +271,12 @@ void SPI_1636PP52Y_ProtectSector (PinConfigType CSn, uint32_t Address)
 	src[2] = Addr.Byte[1];
 	src[3] = Addr.Byte[0];
 	// Разрешить запись
-	SPI_1636PP52Y_WriteEnable (CSn);
+	SPI_1636PP52Y_enableWrite (CSn);
 
 	// Выставим ChipSelect нужной микросхемы
 	CSnReady(CSn);
 	// Передать блок данных
-	SPI_1636PP52Y_WriteBlock (src, dst, 4);
+	SPI_1636PP52Y_writeBlock (src, dst, 4);
 	// Деактивируем ChipSelect микросхемы
 	CSnDisable(CSn);
 }
@@ -284,9 +284,9 @@ void SPI_1636PP52Y_ProtectSector (PinConfigType CSn, uint32_t Address)
 
 
 /**************************************************************************************************************
-    SPI_1636PP52Y_UnprotectSector - Отключение защиты сектора внешней SPI-памяти (всего их 2)    
+    SPI_1636PP52Y_unprotectSector - Отключение защиты сектора внешней SPI-памяти (всего их 2)    
 **************************************************************************************************************/
-void SPI_1636PP52Y_UnprotectSector (PinConfigType CSn, uint32_t Address)
+void SPI_1636PP52Y_unprotectSector (PinConfigType CSn, uint32_t Address)
 {
 	uint8_t src[4], dst[4];
 	Dword_to_Byte Addr;
@@ -298,21 +298,21 @@ void SPI_1636PP52Y_UnprotectSector (PinConfigType CSn, uint32_t Address)
 	src[3] = Addr.Byte[0];
 	
 	// Разрешить запись
-	SPI_1636PP52Y_WriteEnable (CSn);	
+	SPI_1636PP52Y_enableWrite (CSn);	
 
 	// Выставим ChipSelect нужной микросхемы
 	CSnReady(CSn);	
 	// Передать блок данных
-	SPI_1636PP52Y_WriteBlock (src, dst, 4);
+	SPI_1636PP52Y_writeBlock (src, dst, 4);
 	// Деактивируем ChipSelect микросхемы
 	CSnDisable(CSn);
 }
 
 
 /**************************************************************************************************************
-    SPI_1636PP52Y_ReadSectorProtectionRegister - Функция для определения включена ли защита сектора    
+    SPI_1636PP52Y_readSectorProtectionRegister - Функция для определения включена ли защита сектора    
 **************************************************************************************************************/
-uint32_t SPI_1636PP52Y_ReadSectorProtectionRegister (PinConfigType CSn, uint32_t Address)
+uint32_t SPI_1636PP52Y_readSectorProtectionRegister (PinConfigType CSn, uint32_t Address)
 {
 	Dword_to_Byte result;
 	uint8_t src[5], dst[5];
@@ -328,7 +328,7 @@ uint32_t SPI_1636PP52Y_ReadSectorProtectionRegister (PinConfigType CSn, uint32_t
 	// Выставим ChipSelect нужной микросхемы
 	CSnReady(CSn);
 	// Передать блок данных
-	SPI_1636PP52Y_WriteBlock (src, dst, 5);
+	SPI_1636PP52Y_writeBlock (src, dst, 5);
 	// Деактивируем ChipSelect микросхемы
 	CSnDisable(CSn);
 	// Формирование результатов
@@ -339,9 +339,9 @@ uint32_t SPI_1636PP52Y_ReadSectorProtectionRegister (PinConfigType CSn, uint32_t
 }
 
 /**************************************************************************************************************
-    SPI_1636PP52Y_ReadStatusRegister - Функция чтения регистра статуса
+    SPI_1636PP52Y_readStatusRegister - Функция чтения регистра статуса
 **************************************************************************************************************/
-uint32_t SPI_1636PP52Y_ReadStatusRegister (PinConfigType CSn)
+uint32_t SPI_1636PP52Y_readStatusRegister (PinConfigType CSn)
 {
 	Dword_to_Byte result;
 	uint8_t src[2], dst[2];
@@ -351,7 +351,7 @@ uint32_t SPI_1636PP52Y_ReadStatusRegister (PinConfigType CSn)
 	// Выставим ChipSelect нужной микросхемы
 	CSnReady(CSn);
 	// Передать блок данных
-	SPI_1636PP52Y_WriteBlock (src, dst, 2);
+	SPI_1636PP52Y_writeBlock (src, dst, 2);
 	// Деактивируем ChipSelect микросхемы
 	CSnDisable(CSn);
 	// Формирование результата
@@ -362,21 +362,21 @@ uint32_t SPI_1636PP52Y_ReadStatusRegister (PinConfigType CSn)
 }
 
 /**************************************************************************************************************
-    SPI_1636PP52Y_WriteStatusRegister - Функция записи в регистр статуса
+    SPI_1636PP52Y_writeStatusRegister - Функция записи в регистр статуса
 **************************************************************************************************************/
-void SPI_1636PP52Y_WriteStatusRegister (PinConfigType CSn, uint8_t status)
+void SPI_1636PP52Y_writeStatusRegister (PinConfigType CSn, uint8_t status)
 {
 	uint8_t src[2], dst[2];
 	
 	src[0] = _1636PP52Y_CMD_WriteStatusRegister;
 	src[1] = status & 0xC0; // Можно устанавливать только два старших бита
 	// Разрешить запись
-	SPI_1636PP52Y_WriteEnable (CSn);		
+	SPI_1636PP52Y_enableWrite (CSn);		
 	
 	// Выставим ChipSelect нужной микросхемы
 	CSnReady(CSn);
 	// Передать блок данных
-	SPI_1636PP52Y_WriteBlock (src, dst, 2);
+	SPI_1636PP52Y_writeBlock (src, dst, 2);
 	// Деактивируем ChipSelect микросхемы
 	CSnDisable(CSn);
 }
@@ -384,9 +384,9 @@ void SPI_1636PP52Y_WriteStatusRegister (PinConfigType CSn, uint8_t status)
 
 
 /**************************************************************************************************************
-    SPI_1636PP52Y_Byte_Program - Запись байта во внешнюю память
+    SPI_1636PP52Y_writeByte - Запись байта во внешнюю память
 **************************************************************************************************************/
-void SPI_1636PP52Y_ByteProgram (PinConfigType CSn, uint32_t Address, uint8_t Value)
+void SPI_1636PP52Y_writeByte (PinConfigType CSn, uint32_t Address, uint8_t Value)
 {
 	uint8_t src[5], dst[5];
 	Dword_to_Byte Addr;
@@ -399,15 +399,15 @@ void SPI_1636PP52Y_ByteProgram (PinConfigType CSn, uint32_t Address, uint8_t Val
 	src[4] = Value;
 	
 	// Снимаем защиту сектора
-	SPI_1636PP52Y_UnprotectSector (CSn,Address);
+	SPI_1636PP52Y_unprotectSector (CSn,Address);
 	
 	// Разрешить запись
-	SPI_1636PP52Y_WriteEnable (CSn);	
+	SPI_1636PP52Y_enableWrite (CSn);	
 	
 	// Выставим ChipSelect нужной микросхемы
 	CSnReady(CSn);
 	// Передать блок данных
-	SPI_1636PP52Y_WriteBlock (src, dst, 5);
+	SPI_1636PP52Y_writeBlock (src, dst, 5);
 	// Деактивируем ChipSelect микросхемы
 	CSnDisable(CSn);
 	
@@ -416,14 +416,14 @@ void SPI_1636PP52Y_ByteProgram (PinConfigType CSn, uint32_t Address, uint8_t Val
 	delay_us (45);
 	
 	// Включаем защиту сектора
-	SPI_1636PP52Y_ProtectSector (CSn,Address);
+	SPI_1636PP52Y_protectSector (CSn,Address);
 }
 
 
 /**************************************************************************************************************
-    SPI_1636PP52Y_ReadWord - Чтение 32 разрядного слова из внешней SPI-памяти
+    SPI_1636PP52Y_readWord - Чтение 32 разрядного слова из внешней SPI-памяти
 **************************************************************************************************************/
-uint32_t SPI_1636PP52Y_ReadWord (PinConfigType CSn, uint32_t Address)
+uint32_t SPI_1636PP52Y_readWord (PinConfigType CSn, uint32_t Address)
 {
 	Dword_to_Byte result;
 	Dword_to_Byte Addr;
@@ -475,9 +475,9 @@ uint32_t SPI_1636PP52Y_ReadWord (PinConfigType CSn, uint32_t Address)
 }
 
 /**************************************************************************************************************
-    SPI_1636PP52Y_ReadArray15 - Чтение массива данных из внешней SPI-памяти	(частота до 15 MHz)
+    SPI_1636PP52Y_readArray15 - Чтение массива данных из внешней SPI-памяти	(частота до 15 MHz)
 **************************************************************************************************************/
-uint32_t SPI_1636PP52Y_ReadArray15 (PinConfigType CSn, uint32_t Address, uint8_t* Destination, uint32_t Size)
+uint32_t SPI_1636PP52Y_readArray15 (PinConfigType CSn, uint32_t Address, uint8_t* Destination, uint32_t Size)
 {
 	uint8_t           src[4];
 	Dword_to_Byte     Addr;
@@ -553,9 +553,9 @@ uint32_t SPI_1636PP52Y_ReadArray15 (PinConfigType CSn, uint32_t Address, uint8_t
 
 
 /**************************************************************************************************************
-    SPI_1636PP52Y_ReadArray - Чтение массива данных из внешней SPI-памяти	(частота до 100 MHz)
+    SPI_1636PP52Y_readArray - Чтение массива данных из внешней SPI-памяти	(частота до 100 MHz)
 **************************************************************************************************************/
-uint32_t SPI_1636PP52Y_ReadArray (PinConfigType CSn, uint32_t Address, uint8_t* Destination, uint32_t Size)
+uint32_t SPI_1636PP52Y_readArray (PinConfigType CSn, uint32_t Address, uint8_t* Destination, uint32_t Size)
 {
 	uint8_t            src[5];
 	Dword_to_Byte      Addr;
@@ -633,9 +633,9 @@ uint32_t SPI_1636PP52Y_ReadArray (PinConfigType CSn, uint32_t Address, uint8_t* 
 
 
 /**************************************************************************************************************
-    SPI_1636PP52Y_BlockProgram - Запись массива данных во внешнюю SPI-память
+    SPI_1636PP52Y_writeArray - Запись массива данных во внешнюю SPI-память
 **************************************************************************************************************/
-void SPI_1636PP52Y_BlockProgram (PinConfigType CSn, uint32_t Address, uint8_t* Source, uint32_t Size)
+void SPI_1636PP52Y_writeArray (PinConfigType CSn, uint32_t Address, uint8_t* Source, uint32_t Size)
 {
 	uint8_t src[5], dst[5];
 	Dword_to_Byte Addr;
@@ -645,8 +645,8 @@ void SPI_1636PP52Y_BlockProgram (PinConfigType CSn, uint32_t Address, uint8_t* S
 	src[0] = _1636PP52Y_CMD_ByteProgram;
 	
 	// Снимаем защиту с обоих секторов
-	SPI_1636PP52Y_UnprotectSector (CSn,Sector0);
-	SPI_1636PP52Y_UnprotectSector (CSn,Sector1);
+	SPI_1636PP52Y_unprotectSector (CSn,Sector0);
+	SPI_1636PP52Y_unprotectSector (CSn,Sector1);
 	
 	// Записать все байты блока
 	for (i = 0; i < Size; i++, Addr.DWord++)
@@ -657,12 +657,12 @@ void SPI_1636PP52Y_BlockProgram (PinConfigType CSn, uint32_t Address, uint8_t* S
 		src[4] = Source[i];
 		
 		// Разрешить запись
-		SPI_1636PP52Y_WriteEnable (CSn);	
+		SPI_1636PP52Y_enableWrite (CSn);	
 		
 		// Выставим ChipSelect нужной микросхемы
 		CSnReady(CSn);
 		// Передать блок данных
-		SPI_1636PP52Y_WriteBlock (src, dst, 5);
+		SPI_1636PP52Y_writeBlock (src, dst, 5);
 		// Деактивируем ChipSelect микросхемы
 		CSnDisable(CSn);
 		
@@ -670,35 +670,35 @@ void SPI_1636PP52Y_BlockProgram (PinConfigType CSn, uint32_t Address, uint8_t* S
 		delay_us(50);
 	}
 	// Включаем защиту с обоих секторов
-	SPI_1636PP52Y_ProtectSector (CSn,Sector0);
-	SPI_1636PP52Y_ProtectSector (CSn,Sector1);
+	SPI_1636PP52Y_protectSector (CSn,Sector0);
+	SPI_1636PP52Y_protectSector (CSn,Sector1);
 }
 
 /**************************************************************************************************************
-    SPI_1636PP52Y_TestMemory - Функция тестирования микросхемы памяти. Проиводит запись и чтение
+    SPI_1636PP52Y_memoryTest - Функция тестирования микросхемы памяти. Проиводит запись и чтение
                                по всем доступным адресам
 **************************************************************************************************************/
-uint8_t SPI_1636PP52Y_TestMemory (PinConfigType CSn)
+uint8_t SPI_1636PP52Y_memoryTest (PinConfigType CSn)
 {
 	uint8_t  temp[2];
 	uint32_t i;
 	
-	SPI_1636PP52Y_Reset (CSn);
+	SPI_1636PP52Y_reset (CSn);
 	// Проверка ID
-	if(SPI_1636PP52Y_ReadID(CSn) != _1636PP52Y_ID) return 0;
+	if(SPI_1636PP52Y_readID(CSn) != _1636PP52Y_ID) return 0;
 	// Очищаем память перед тестом
-	SPI_1636PP52Y_ChipErase (CSn);
+	SPI_1636PP52Y_eraseChip (CSn);
 	// Проверка на стирание и запись
 	for(i = 0; i < 0x20000; i++)
 	{
 		// Читаеи i-й адрес на предмет чистой ячейки
-		SPI_1636PP52Y_ReadArray (CSn, i, temp, 1);
+		SPI_1636PP52Y_readArray (CSn, i, temp, 1);
 		if(temp[0] != 0xFF) return 0;
 		// Записываем номер ячейки в ячейку
 		temp[0] = (uint8_t)i;
-		SPI_1636PP52Y_BlockProgram (CSn, i, temp, 1);
+		SPI_1636PP52Y_writeArray (CSn, i, temp, 1);
 		// Проверяем на соответствие записанного
-		SPI_1636PP52Y_ReadArray (CSn, i, temp, 1);
+		SPI_1636PP52Y_readArray (CSn, i, temp, 1);
 		if(temp[0] != (uint8_t)i) 
 			return 0;
 	}
@@ -707,14 +707,14 @@ uint8_t SPI_1636PP52Y_TestMemory (PinConfigType CSn)
 
 
 /**************************************************************************************************************
-    SPI_1636PP52Y_WriteBlock - Внутреняя функция отправки сообщений по SPI
+    SPI_1636PP52Y_writeBlock - Внутреняя функция отправки сообщений по SPI
     Параметры:
                 Source      - Указатель на буфер источника;
                 Destination - Указатель на буфер места назначения;
                 Size		- Размер передаваемомой посылки в байтах
     Возвращает: NONE	
 **************************************************************************************************************/
-static void SPI_1636PP52Y_WriteBlock (uint8_t* Source, uint8_t* Destination, uint32_t Size)
+static void SPI_1636PP52Y_writeBlock (uint8_t* Source, uint8_t* Destination, uint32_t Size)
 {
 	uint32_t     i;
 	uint32_t     temp;

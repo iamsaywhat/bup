@@ -3,7 +3,7 @@
 #include "config.h"
 #include "SelfTesting.h"
 #include "bup_data_store.h"
-#include "actuator.h"
+#include "bims.h"
 #include "Math_model/mathmodelapi.h"
 #include "Log_FS/Log_FS.h"
 #include "RetargetPrintf/RetargetPrintf.h"
@@ -43,9 +43,9 @@ static void task_can_debug(void);
 
 
 /*********************************************************************************************************
-  TaskManager_RestartCycle - Перезапуск цикла задач планировщика
+  TaskManager_restartCycle - Перезапуск цикла задач планировщика
 **********************************************************************************************************/
-void TaskManager_RestartCycle(void)
+void TaskManager_restartCycle(void)
 {
   TaskManager.Task_num = 0;
   TaskManager.Task_SelftestingStage = 0;
@@ -54,12 +54,12 @@ void TaskManager_RestartCycle(void)
 }
 
 /*********************************************************************************************************
-  TaskManagerGo2Task - Переход к задаче номер Code, на этап Stage
+  TaskManager_gotoTask - Переход к задаче номер Code, на этап Stage
 **********************************************************************************************************/
-void TaskManagerGo2Task (TaskManagerCode Code, uint8_t Stage)
+void TaskManager_gotoTask (TaskManagerCode Code, uint8_t Stage)
 {
   // Сбрасываем планировщик
-  TaskManager_RestartCycle();
+  TaskManager_restartCycle();
 	
   // Присваиваем номер задачи
   TaskManager.Task_num = Code;
@@ -75,9 +75,9 @@ void TaskManagerGo2Task (TaskManagerCode Code, uint8_t Stage)
 
 
 /*********************************************************************************************************
-  TaskManagerRun - Запуск планировщика задач на выполнение цикла задач
+  TaskManager_run - Запуск планировщика задач на выполнение цикла задач
 **********************************************************************************************************/
-void TaskManagerRun (void)
+void TaskManager_run (void)
 {
   switch (TaskManager.Task_num)
   {
@@ -135,9 +135,9 @@ void TaskManagerRun (void)
 }
 
 /*********************************************************************************************************
-  TaskManagerZPZBackgroundRun - Запуск планировщика фоновых процессов в режиме ЗПЗ
+  TaskManager_runZpzBackgroundMode - Запуск планировщика фоновых процессов в режиме ЗПЗ
 **********************************************************************************************************/
-void TaskManagerZPZBackgroundRun (void)
+void TaskManager_runZpzBackgroundMode (void)
 {
   switch (TaskManager.Task_num)	
   {
@@ -156,9 +156,9 @@ void TaskManagerZPZBackgroundRun (void)
     default: /* Цикл задач завершен */
     {
       // Сбрасываем цикл задач
-      TaskManager_RestartCycle();
+      TaskManager_restartCycle();
       // И указываем Задачу 1, как стартовую в новом цикле
-      TaskManagerGo2Task (TaskUpdate, 0);
+      TaskManager_gotoTask (TaskUpdate, 0);
       break;
     }
   }
