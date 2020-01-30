@@ -7,11 +7,11 @@
 #include "bims.h"
 #include "Log_FS/Log_FS.h"
 #include "kmonshelf.h"
-#include "SWS.h"
+#include "sws.h"
 #include "discreteio.h"
 #include "otherlib.h"
 #include "SelfTesting.h"   
-#include "bup_data_store.h"
+#include "bupdatastorage.h"
 #include "HeightMap/map_flash_layout.h"
 #include "string.h"
 
@@ -112,8 +112,8 @@ static void     ZPZ_finishHighPriorityTask (void);
 static void ZPZ_RetargetPins (void)
 {
   // Переназчаем UART на нужный порт для работы ZPZ
-  Pin_init (ZPZ_RX);
-  Pin_init (ZPZ_TX);
+  Pin_initialize (ZPZ_RX);
+  Pin_initialize (ZPZ_TX);
 }
 
 /***************************************************************************************************************
@@ -1582,7 +1582,7 @@ static void ZPZ_Response_REQ_SNS_POS (uint16_t NumPacket)
 	ZPZ_Response_Union    ZPZ_Response;  // Стандартный ответ к ЗПЗ
 	
 	/* Обновляем данные СНС */
-	BUP_UpdateDataFromSNS ();
+	Bup_updateData();
 	
 	/* Проверим исправен ли СНС (функция выше должна обновить состояние) */
 	if (SelfTesting_STATUS(ST_sns) == ST_FAULT)
@@ -1859,7 +1859,7 @@ static void ZPZ_Response_SYSTEM_STATE (uint16_t NumPacket)
 	/* Кладём состояние системы в буфер */
   *((uint16_t*)buffer)            = systemState;
   /* Кладём заряд батареи */
-  *((float*)((uint8_t*)buffer+2)) = BUP_DataStorage.Battery50V; 
+  *((float*)((uint8_t*)buffer+2)) = bupDataStorage.battery50V; 
 	/* Кладём версию прошивки */
   *((uint8_t*)buffer+6)           = bupFirmwareVersion.microFirmware;
   *((uint8_t*)buffer+7)           = bupFirmwareVersion.minorFirmware;

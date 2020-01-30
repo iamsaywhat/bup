@@ -34,19 +34,19 @@ void static SPI_1636PP52Y_writeBlock (uint8_t* Source, uint8_t* Destination, uin
 static void SPI_1636PP52Y_RetargetPins (void)
 {
 	// Конфигурация SCLK
-	Pin_init (SPI_1636PP52Y_CLK);
+	Pin_initialize (SPI_1636PP52Y_CLK);
 	// Конфигурация MISO
-	Pin_init (SPI_1636PP52Y_RXD);
+	Pin_initialize (SPI_1636PP52Y_RXD);
 	// Конфигурация MOSI
-	Pin_init (SPI_1636PP52Y_TXD);
+	Pin_initialize (SPI_1636PP52Y_TXD);
 	// Конфигурация CS1
-	Pin_init (SPI_1636PP52Y_CS1);
+	Pin_initialize (SPI_1636PP52Y_CS1);
 	// Конфигурация CS2
-	Pin_init (SPI_1636PP52Y_CS2);
+	Pin_initialize (SPI_1636PP52Y_CS2);
 	// Конфигурация CS3
-	Pin_init (SPI_1636PP52Y_CS3);
+	Pin_initialize (SPI_1636PP52Y_CS3);
 	// Конфигурация CS4
-	Pin_init (SPI_1636PP52Y_CS4);
+	Pin_initialize (SPI_1636PP52Y_CS4);
 	// Сбросим все CSn
 	CSnDisable(SPI_1636PP52Y_CS1);
 	CSnDisable(SPI_1636PP52Y_CS2);

@@ -5,7 +5,7 @@
 #include "../SelfTesting.h"
 #include "otherlib.h"
 #include "../config.h"
-#include "../bup_data_store.h"
+#include "../bupdatastorage.h"
 
 #ifdef flightRegulatorCFB //******************************************************* Если выбран flightRegulatorCFB
   #include "flightRegulatorCFB/flightRegulatorCFB.h"
@@ -43,7 +43,7 @@ void MathModel_initialize(void)
   #endif //************************************************************************** !flightRegulatorCFB
 	
   // Запускаем таймер обслуживания мат модели (период дискретизации 1 с)
-  Timer_init (MMODEL_TIMER, SECOND_TICKS);
+  Timer_initialize (MMODEL_TIMER, SECOND_TICKS);
 }
 
 /***************************************************************************
@@ -65,20 +65,20 @@ void MathModel_prepareData (void)
 {
   #ifdef flightRegulatorCFB //******************************************************* Если выбран flightRegulatorCFB
     // Координаты точки приземления (подгружаем из памяти)
-    rtU.xyzPoints[lat] = BUP_Get_TouchdownLatitude();
-    rtU.xyzPoints[lon] = BUP_Get_TouchdownLongitude();
+    rtU.xyzPoints[lat] = Bup_getTouchdownLatitude();
+    rtU.xyzPoints[lon] = Bup_getTouchdownLongitude();
     rtU.xyzPoints[alt] = 0;
     // Текущие координаты:
-    rtU.XYZi[lat] = BUP_Get_Latitude();
-    rtU.XYZi[lon] = BUP_Get_Longitude();
-    rtU.XYZi[alt] = BUP_Get_Altitude();
+    rtU.XYZi[lat] = Bup_getLatitude();
+    rtU.XYZi[lon] = Bup_getLongitude();
+    rtU.XYZi[alt] = Bup_getAltitude();
     // Путевой курс
-    rtU.angle = BUP_Get_Course();
+    rtU.angle = Bup_getCourse();
     // Статус навигационного решения от СНС
     rtU.isVeracityGns = 1; //SNS_PosData.Quality;
     // Подставляем статус доступности карты
     rtU.isAvailableDigitalTerrain = SelfTesting_STATUS(ST_MapAvailability);
-    rtU.HighDigitalTerrain = BUP_Get_ReliefHeight();
+    rtU.HighDigitalTerrain = Bup_getReliefHeight();
     rtU.highStopUPS = 300.0;
 	
 //  // Высота над рельефом
@@ -105,19 +105,19 @@ void MathModel_prepareData (void)
 //  rtU.RightEnginehadWork = 1.0;  
 
   #else //*************************************************************************** Если выбран flightController
-    rtU.TDP_lon            = BUP_Get_TouchdownLongitude();
-    rtU.TDP_lat            = BUP_Get_TouchdownLatitude();
-    rtU.TDP_alt            = BUP_Get_TouchdownAltitude();
-    rtU.Pos_lon            = BUP_Get_Longitude();
-    rtU.Pos_lat            = BUP_Get_Latitude();
-    rtU.Pos_alt            = BUP_Get_Altitude();
-    rtU.ActualCourse       = BUP_Get_Course();
-    rtU.Relief             = BUP_Get_ReliefHeight();
-    rtU.ReliefOnTDP        = BUP_Get_ReliefHeightOnTDP();
+    rtU.TDP_lon            = Bup_getTouchdownLongitude();
+    rtU.TDP_lat            = Bup_getTouchdownLatitude();
+    rtU.TDP_alt            = Bup_getTouchdownAltitude();
+    rtU.Pos_lon            = Bup_getLongitude();
+    rtU.Pos_lat            = Bup_getLatitude();
+    rtU.Pos_alt            = Bup_getAltitude();
+    rtU.ActualCourse       = Bup_getCourse();
+    rtU.Relief             = Bup_getReliefHeight();
+    rtU.ReliefOnTDP        = Bup_getReliefHeightOnTDP();
     rtU.ReliefAvailable    = SelfTesting_STATUS(ST_MapAvailability);
-    rtU.LatitudeVelocity   = BUP_Get_VelocityLatitude();
-    rtU.LongitudeVelocity  = BUP_Get_VelocityLongitude();
-    rtU.AltitudeVelocity   = BUP_Get_VelocityAltitude();
+    rtU.LatitudeVelocity   = Bup_getVelocityLatitude();
+    rtU.LongitudeVelocity  = Bup_getVelocityLongitude();
+    rtU.AltitudeVelocity   = Bup_getVelocityAltitude();
   #endif //************************************************************************** !flightRegulatorCFB 
 }
 

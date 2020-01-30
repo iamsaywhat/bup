@@ -34,13 +34,13 @@ static void  SPI_25Q64FV_writeBlock (uint8_t* Source, uint8_t* Destination, uint
 static void SPI_25Q64FV_RetargetPins (void)
 {
 	// Конфигурация SCLK
-	Pin_init (SPI_25Q64FV_CLK);
+	Pin_initialize (SPI_25Q64FV_CLK);
 	// Конфигурация MISO
-	Pin_init (SPI_25Q64FV_RXD);
+	Pin_initialize (SPI_25Q64FV_RXD);
 	// Конфигурация MOSI
-	Pin_init (SPI_25Q64FV_TXD);
+	Pin_initialize (SPI_25Q64FV_TXD);
 	// Конфигурация CS
-	Pin_init (SPI_25Q64FV_CSn);
+	Pin_initialize (SPI_25Q64FV_CSn);
 	// Сбросим чипселект CSn
 	CSnDisable(SPI_25Q64FV_CSn);
 }

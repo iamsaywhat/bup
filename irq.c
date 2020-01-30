@@ -2,7 +2,7 @@
 
 #include "MDR32F9Qx_timer.h"
 #include "Math_model/mathmodelapi.h"
-#include "bup_data_store.h"
+#include "bupdatastorage.h"
 #include "taskmanager.h"
 #include "ZPZ.h"
 #include "otherlib.h"
@@ -29,9 +29,9 @@ void Timer1_IRQHandler(void)
   /* Сбрасываем флаг прерывания */
   TIMER_ClearFlag(MDR_TIMER1,TIMER_STATUS_CNT_ARR);
   /* Делаем инкремент количества секунд с момента начала управления */
-  BUP_DataStorage.ControlSecond ++;
+  bupDataStorage.controlSecond++;
   /* Запускаем обновление данных */
-  BUP_DataUpdate ();
+  Bup_updateData();
   /* Отправляем данные математической модели */
   MathModel_prepareData ();
   /* Запускаем шаг расчета модели */	

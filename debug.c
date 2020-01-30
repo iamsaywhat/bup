@@ -3,7 +3,7 @@
 #include "MDR32F9Qx_port.h"
 #include "MDR32F9Qx_can.h"
 #include "SelfTesting.h"
-#include "bup_data_store.h"
+#include "bupdatastorage.h"
 #include "kmonshelf.h"
 #include "config.h"
 #include "otherlib.h"
@@ -144,14 +144,14 @@ void debug_prepare_data (void)
   debug_vars.TimeToHorTarget       = (double) (rtY.TimeToHorTarget);               // Время полета то точки приземления по прямой, сек
   debug_vars.TimeToTD              = (double) (rtY.TimeToTD);                      // Время до открытия парашюта, сек
 #endif  
-  debug_vars.TDP_Lat               = BUP_Get_TouchdownLatitude();                  // Широта точки приземления
-  debug_vars.TDP_Lon               = BUP_Get_TouchdownLongitude();                 // Долгота точки приземления
-  debug_vars.Alt2model             = BUP_Get_Altitude();                           // Высота преобразованная в метры
+  debug_vars.TDP_Lat               = Bup_getTouchdownLatitude();                   // Широта точки приземления
+  debug_vars.TDP_Lon               = Bup_getTouchdownLongitude();                  // Долгота точки приземления
+  debug_vars.Alt2model             = Bup_getAltitude();                            // Высота преобразованная в метры
   debug_vars.SNSalt                = SNS_position.Struct.Pos_alt;                  // Высота в том виде в котором принимаем от СНС
-  debug_vars.rtU_XYZi_Lat          = BUP_Get_Latitude();                           // Широта преобразованная в градусы
-  debug_vars.rtU_XYZi_Lon          = BUP_Get_Longitude();                          // Долгота преобразованная в градусы
-  debug_vars.rtU_XYZi_Alt          = BUP_Get_Altitude();                           // Высота преобразованная в метры
-  debug_vars.Relief_height         = BUP_Get_ReliefHeight();                       // Высота рельефа под нами в метрах
+  debug_vars.rtU_XYZi_Lat          = Bup_getLatitude();                            // Широта преобразованная в градусы
+  debug_vars.rtU_XYZi_Lon          = Bup_getLongitude();                           // Долгота преобразованная в градусы
+  debug_vars.rtU_XYZi_Alt          = Bup_getAltitude();                            // Высота преобразованная в метры
+  debug_vars.Relief_height         = Bup_getReliefHeight();                        // Высота рельефа под нами в метрах
   debug_vars.SysState              = systemState;                                  // Состояние системы (из SelfTesing)
 }
 

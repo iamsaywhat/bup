@@ -21,10 +21,10 @@ static uint8_t UARTSendByte (MDR_UART_TypeDef* UARTx, uint16_t Byte);
 static void SWS_RetargetPins (void)
 {	
   // Переназчаем UART1 на порт D для работы SWS
-  Pin_init (SWS_RX);
-  Pin_init (SWS_TX);
+  Pin_initialize (SWS_RX);
+  Pin_initialize (SWS_TX);
   // Пин активации приёмопередатчика
-  Pin_init (SWS_DE);
+  Pin_initialize (SWS_DE);
 }
 
 /**************************************************************************************************************

@@ -8,8 +8,8 @@
 ***************************************************************************/
 void Analog_initialize(void)
 {
-  Pin_init(BATTERY_50V);
-  ADC_init (USED_ADC);
+  Pin_initialize(BATTERY_50V);
+  ADC_initialize (USED_ADC);
 } 
 
  
@@ -19,7 +19,7 @@ void Analog_initialize(void)
 /* Базовая функция запроса результата преобразования от АЦП */
 static uint16_t getBatteryChargeFromADC(void)
 {
-  return ADC_GetResult(USED_ADC, BATTERY_50V_CH);
+  return ADC_getResult(USED_ADC, BATTERY_50V_CH);
 }
 #if defined BAT50V_USE_EMA /* Подключен EMA фильтр */
 static float getBatteryChargeEMA (void)

@@ -2,7 +2,7 @@
 
 #include "config.h"
 #include "SelfTesting.h"
-#include "bup_data_store.h"
+#include "bupdatastorage.h"
 #include "bims.h"
 #include "Math_model/mathmodelapi.h"
 #include "Log_FS/Log_FS.h"
@@ -95,7 +95,7 @@ void TaskManager_run (void)
     case TaskUpdate: /* Задача № 1 - Подготовка данных для следующего шага */
     {
       // Запускаем обновление данных
-      BUP_DataUpdate ();
+      Bup_updateData ();
       // Отправляем данные математической модели
       MathModel_prepareData ();
 			
@@ -143,7 +143,7 @@ void TaskManager_runZpzBackgroundMode (void)
   {
     case 1: /* Задача № 1 - Обновление данных от СНС и СВС */
     {
-      BUP_DataUpdate ();
+      Bup_updateData ();
       // Переходим на выполнение следующей задачи
       TaskManager.Task_num ++;
       break;			
@@ -212,7 +212,7 @@ void task_selftesting(void)
     }
     case 5: /* Этап 5 - Доступность карты */
     {
-      SelfTesting_MapAvailability (BUP_Get_Latitude(), BUP_Get_Longitude());
+      SelfTesting_MapAvailability (Bup_getLatitude(), Bup_getLongitude());
       TaskManager.Task_SelftestingStage++;
       break;
     }
@@ -277,7 +277,7 @@ void task_loger (void)
   {
     case 0:
     {
-      printf("\nTimestamp, sec: %d\n", BUP_DataStorage.ControlSecond); 
+      printf("\nTimestamp, sec: %d\n", bupDataStorage.controlSecond); 
       TaskManager.Task_LogerStage++; break;
     }
     case 1:
@@ -367,64 +367,64 @@ void task_loger (void)
     }
     case 18:
     {
-      printf("Model_Lat, deg: %f\n", BUP_Get_Latitude()); 
+      printf("Model_Lat, deg: %f\n", Bup_getLatitude()); 
       TaskManager.Task_LogerStage++; break;
     }
     case 19:
     {
-      printf("Model_Lon, deg: %f\n", BUP_Get_Longitude()); 
+      printf("Model_Lon, deg: %f\n", Bup_getLongitude()); 
       TaskManager.Task_LogerStage++; break;
     }
     case 20:
     {
-      printf("Model_Alt, m: %f\n", BUP_Get_Altitude()); 
+      printf("Model_Alt, m: %f\n", Bup_getAltitude()); 
       TaskManager.Task_LogerStage++; break;
     }
     case 21:
     {
-      printf("Model_VelocityLat, m/s: %f\n", BUP_Get_VelocityLatitude()); 
+      printf("Model_VelocityLat, m/s: %f\n", Bup_getVelocityLatitude()); 
       TaskManager.Task_LogerStage++; break;
     }
     case 22:
     {
-      printf("Model_VelocityLon, m/s: %f\n", BUP_Get_VelocityLongitude()); 
+      printf("Model_VelocityLon, m/s: %f\n", Bup_getVelocityLongitude()); 
       TaskManager.Task_LogerStage++; break;
     }
     case 23:
     {
-      printf("Model_VelocityAlt, m/s: %f\n", BUP_Get_VelocityAltitude()); 
+      printf("Model_VelocityAlt, m/s: %f\n", Bup_getVelocityAltitude()); 
       TaskManager.Task_LogerStage++; break;
     }
     case 24:
     {
-      printf("Model_HeadingTrue, rad: %f\n", BUP_Get_HeadingTrue()); 
+      printf("Model_HeadingTrue, rad: %f\n", Bup_getHeadingTrue()); 
       TaskManager.Task_LogerStage++; break;
     }
     case 25:
     {
-      printf("Model_HeadingMgn, rad: %f\n", BUP_Get_HeadingMgn()); 
+      printf("Model_HeadingMgn, rad: %f\n", Bup_getHeadingMgn()); 
       TaskManager.Task_LogerStage++; break;
     }
     case 26:
     {
-      printf("Model_Course, rad: %f\n", BUP_Get_Course()); 
+      printf("Model_Course, rad: %f\n", Bup_getCourse()); 
       TaskManager.Task_LogerStage++; break;
     }
     case 27:
     {
-      printf("Model_Pitch, rad: %f\n", BUP_Get_Pitch()); 
+      printf("Model_Pitch, rad: %f\n", Bup_getPitch()); 
       TaskManager.Task_LogerStage++; break;
     }
     case 28:
     {
-      printf("Model_Roll, rad: %f\n", BUP_Get_Roll()); 
+      printf("Model_Roll, rad: %f\n", Bup_getRoll()); 
       TaskManager.Task_LogerStage++; break;
     }
     case 29:
     {
       // Если карта рельефа в текущей позиции доступна, запишем высоту рельефа
       if (SelfTesting_STATUS(ST_MapAvailability))
-        printf("MAP, m: %d\n", BUP_Get_ReliefHeight());
+        printf("MAP, m: %d\n", Bup_getReliefHeight());
       else
         printf("MAP, m: NOT_AVAILABLE\n");
 			

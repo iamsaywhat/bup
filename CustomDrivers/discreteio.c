@@ -8,16 +8,16 @@ PinConfigType blinkPin;
 void Discrete_initialize (void)
 {
   /* Настраиваем пины на вход */
-  Pin_init (PIN1);
-  Pin_init (BLIND);
-  Pin_init (PIN2_DIR);
-  Pin_init (PIN2_INV);
-  Pin_init (CONNECT_ZPZ);
+  Pin_initialize (PIN1);
+  Pin_initialize (BLIND);
+  Pin_initialize (PIN2_DIR);
+  Pin_initialize (PIN2_INV);
+  Pin_initialize (CONNECT_ZPZ);
   /* Настраиваем пины на выход */
-  Pin_init (LED_READY);
-  Pin_init (LED_FAULT);
-  Pin_init (PYRO);
-  Pin_init (BLIND_CTRL);
+  Pin_initialize (LED_READY);
+  Pin_initialize (LED_FAULT);
+  Pin_initialize (PYRO);
+  Pin_initialize (BLIND_CTRL);
   /* Сбрасываем все выходы в ноль */
   Pin_reset (LED_READY);
   Pin_reset (LED_FAULT);
@@ -35,7 +35,7 @@ void runIndication(PinConfigType* pin, unsigned long period)
 {
   blinkPin = *pin;                    /* Копируем настройки индикации */
 	Pin_reset(blinkPin);                /* Выключаем индикатор */
-  Timer_init(BLINK_TIMER, period);    /* Запускаем таймер */
+  Timer_initialize(BLINK_TIMER, period);    /* Запускаем таймер */
 }
 
 /**************************************************************************************************************

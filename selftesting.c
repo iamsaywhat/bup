@@ -12,7 +12,7 @@
 #include "HeightMap/Heightmap_conf_and_pd.h"
 #include "HeightMap/Heightmap.h"
 #include "RetargetPrintf/RetargetPrintf.h"
-#include "bup_data_store.h"
+#include "bupdatastorage.h"
 
 
 /***************************************
@@ -96,7 +96,7 @@ void SelfTestingOnline (void)
   // Проверка связи с СНС
   SelfTesting_SNS();
   // Проверка доступности карты
-  SelfTesting_MapAvailability (BUP_Get_Latitude(), BUP_Get_Longitude());
+  SelfTesting_MapAvailability (Bup_getLatitude(), Bup_getLongitude());
   // Проверка напряжения на АКБ
   SelfTesting_Battery50Volt();
 }
@@ -523,8 +523,8 @@ SelfTesting_STATUS_TYPE SelfTesting_MapAvailability (double Lat, double Lon)
 ************************************************************************************/
 SelfTesting_STATUS_TYPE SelfTesting_Battery50Volt (void)
 {
-  BUP_DataStorage.Battery50V = getBatteryCharge();
-  if(BUP_DataStorage.Battery50V < 47.0)
+  bupDataStorage.battery50V = getBatteryCharge();
+  if(bupDataStorage.battery50V < 47.0)
     SelfTesting_SET_FAULT(ST_BATTERY50V);
   else
     SelfTesting_SET_OK(ST_BATTERY50V);

@@ -45,8 +45,8 @@ static double     Ms_6_to_Ms        (int32_t Ms);
 static void SNS_RetargetPins (void)
 {
   /* Переназчаем UART1 на порт B для работы SNS */
-  Pin_init (SNS_RX);
-  Pin_init (SNS_TX);
+  Pin_initialize (SNS_RX);
+  Pin_initialize (SNS_TX);
 }
 
 /**************************************************************************************************************

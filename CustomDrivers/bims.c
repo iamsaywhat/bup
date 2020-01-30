@@ -22,12 +22,12 @@ static uint8_t BIM_ReceiveResponse (uint16_t DeviceID);
 static void BIM_RetargetPins (void)
 {
 	// Переназчаем CAN, на котором сидят БИМы, на нужные ножки
-	Pin_init (BIM_CAN_RX);
-	Pin_init (BIM_CAN_TX);
+	Pin_initialize (BIM_CAN_RX);
+	Pin_initialize (BIM_CAN_TX);
 	// Пин активации приёмопередатчика
-	Pin_init (BIM_CAN_CS1);
+	Pin_initialize (BIM_CAN_CS1);
 	// Пин подачи питания на БИМы
-	Pin_init (RELAY_BIM);
+	Pin_initialize (RELAY_BIM);
 	// По-умолчанию питание отключим
 	BIM_disableSupply(); 
 }

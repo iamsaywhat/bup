@@ -424,11 +424,6 @@
               <FilePath>.\debug.c</FilePath>
             </File>
             <File>
-              <FileName>bup_data_store.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\bup_data_store.c</FilePath>
-            </File>
-            <File>
               <FileName>loger.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\loger.c</FilePath>
@@ -452,6 +447,11 @@
               <FileName>config.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\config.h</FilePath>
+            </File>
+            <File>
+              <FileName>bupdatastorage.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\bupdatastorage.c</FilePath>
             </File>
           </Files>
         </Group>
