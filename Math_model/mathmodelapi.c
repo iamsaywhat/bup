@@ -1,5 +1,5 @@
 #include "mathmodelapi.h"
-
+#include "string.h"
 #include "actuator.h"
 #include "discreteio.h"
 #include "../SelfTesting.h"
@@ -38,6 +38,13 @@ void MathModel_initialize(void)
 	
   #ifdef flightRegulatorCFB //******************************************************* Если выбран flightRegulatorCFB
     flightRegulatorCFB_initialize();
+		const double arrayManeuvers []     = {-1,1,2,0,0,0,0,0,0,0};
+		const double arrayTightenSlings [] = {50,25,50,0,0,0,0,0,0,0};
+		const double arrayTimes []         = {51,102,30,0,0,0,0,0,0,0};
+		memcpy(&rtU.arrayLeftRightManeuvers, arrayManeuvers, 10);
+		memcpy(&rtU.arrayTightenSlings, arrayTightenSlings, 10);
+		memcpy(&rtU.arrayTimes, arrayTimes, 10);
+		rtU.pauseTimeBetweenManeuvers = 10;
   #else //*************************************************************************** Если выбран flightController
     flightController_initialize();
   #endif //************************************************************************** !flightRegulatorCFB
@@ -80,6 +87,7 @@ void MathModel_prepareData (void)
     rtU.isAvailableDigitalTerrain = SelfTesting_STATUS(ST_MapAvailability);
     rtU.HighDigitalTerrain = BUP_Get_ReliefHeight();
     rtU.highStopUPS = 300.0;
+	
 	
 //  // Высота над рельефом
 //  rtU.HighAboveTheGround = 0; 
