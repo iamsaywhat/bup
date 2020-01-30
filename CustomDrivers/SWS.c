@@ -1,4 +1,4 @@
-#include "SWS.h"
+#include "sws.h"
 #include "crc32.h"
 #include "otherlib.h"
 #include "bupboard.h"
@@ -28,9 +28,9 @@ static void SWS_RetargetPins (void)
 }
 
 /**************************************************************************************************************
-  SWS_init - Запуск процедуры обмена с SWS
+  SWS_initialize - Запуск процедуры обмена с SWS
 ***************************************************************************************************************/
-void SWS_init (void)
+void SWS_initialize (void)
 {
   UART_InitTypeDef UART_InitStructure;
 	
@@ -59,9 +59,9 @@ void SWS_init (void)
 }
 
 /**************************************************************************************************************
-  SWS_deinit - Деинициализация СВС
+  SWS_deinitialize - Деинициализация СВС
 ***************************************************************************************************************/
-void SWS_deinit (void)
+void SWS_deinitialize (void)
 {
   // Сброс конфигуряции UART
   UART_DeInit(SWS_UART);
@@ -93,7 +93,7 @@ SWS_Status SWS_update(void)
 	
   /* Подключаемся к СВС */
   SWS_RetargetPins();
-  SWS_init();
+  SWS_initialize();
 	
   /* Будем производить несколько попыток получить данные */
   for(uint8_t attemptsCount = 0; attemptsCount < 3; attemptsCount++)
@@ -148,7 +148,7 @@ SWS_Status SWS_update(void)
     }
   }
   /* Отключаемся от СВС */
-  SWS_deinit();
+  SWS_deinitialize();
   /* Данные возвращаем, только если они успешно получены */
   if(status == SWS_OK)
     SWS_data = Actual_SWS_Pack;

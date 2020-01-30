@@ -1,13 +1,13 @@
 #include "SelfTesting.h"
 
 #include "bupboard.h"
-#include "discrete_io.h"
-#include "analog_io.h"
-#include "1636PP52Y.h"
-#include "25Q64FV.h"
+#include "discreteio.h"
+#include "analogio.h"
+#include "1636pp52y.h"
+#include "25q64fv.h"
 #include "SWS.h"
-#include "SNS.h"
-#include "BIM.h"
+#include "kmonshelf.h"
+#include "actuator.h"
 #include "Log_FS/Log_FS.h"
 #include "HeightMap/Heightmap_conf_and_pd.h"
 #include "HeightMap/Heightmap.h"
@@ -286,7 +286,7 @@ SelfTesting_STATUS_TYPE SelfTesting_LEFT_BIM(void)
   // Если шпилька не вставлена и питание БИМОВ включено
   if(SelfTesting_PIN1() != ST_OK  &&  SelfTesting_POW_BIM() == ST_OK)
   {
-    if(BIM_CheckConnection (LEFT_BIM))
+    if(BIM_checkConnection (LEFT_BIM))
       SelfTesting_SET_OK(ST_Left_BIM);
     else 
     SelfTesting_SET_FAULT(ST_Left_BIM);
@@ -314,7 +314,7 @@ SelfTesting_STATUS_TYPE SelfTesting_RIGHT_BIM(void)
   if(SelfTesting_PIN1() != ST_OK  &&  SelfTesting_POW_BIM() == ST_OK)
   {
     // Можно проверить связь
-    if(BIM_CheckConnection (RIGHT_BIM))
+    if(BIM_checkConnection (RIGHT_BIM))
       SelfTesting_SET_OK(ST_Right_BIM);
     else 
       SelfTesting_SET_FAULT(ST_Right_BIM);
@@ -523,7 +523,7 @@ SelfTesting_STATUS_TYPE SelfTesting_MapAvailability (double Lat, double Lon)
 ************************************************************************************/
 SelfTesting_STATUS_TYPE SelfTesting_Battery50Volt (void)
 {
-  BUP_DataStorage.Battery50V = GetBatteryCharge();
+  BUP_DataStorage.Battery50V = getBatteryCharge();
   if(BUP_DataStorage.Battery50V < 47.0)
     SelfTesting_SET_FAULT(ST_BATTERY50V);
   else

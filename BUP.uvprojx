@@ -424,34 +424,29 @@
               <FilePath>.\debug.c</FilePath>
             </File>
             <File>
-              <FileName>SelfTesting.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\SelfTesting.c</FilePath>
-            </File>
-            <File>
               <FileName>bup_data_store.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\bup_data_store.c</FilePath>
             </File>
             <File>
-              <FileName>log_recorder.c</FileName>
+              <FileName>loger.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\log_recorder.c</FilePath>
+              <FilePath>.\loger.c</FilePath>
             </File>
             <File>
-              <FileName>task_manager.c</FileName>
+              <FileName>selftesting.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\task_manager.c</FilePath>
+              <FilePath>.\selftesting.c</FilePath>
             </File>
             <File>
-              <FileName>ZPZ.c</FileName>
+              <FileName>taskmanager.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\ZPZ.c</FilePath>
+              <FilePath>.\taskmanager.c</FilePath>
             </File>
             <File>
-              <FileName>config.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\config.h</FilePath>
+              <FileName>zpz.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\zpz.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -488,11 +483,6 @@
         <Group>
           <GroupName>Math_model</GroupName>
           <Files>
-            <File>
-              <FileName>M_Model.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Math_model\M_Model.c</FilePath>
-            </File>
             <File>
               <FileName>flightRegulatorCFB.c</FileName>
               <FileType>1</FileType>
@@ -546,6 +536,11 @@
               <FileType>1</FileType>
               <FilePath>.\Math_model\flightController\flightController.c</FilePath>
             </File>
+            <File>
+              <FileName>mathmodelapi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Math_model\mathmodelapi.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -572,21 +567,6 @@
           <GroupName>CustomDrivers</GroupName>
           <Files>
             <File>
-              <FileName>25Q64FV.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\CustomDrivers\25Q64FV.c</FilePath>
-            </File>
-            <File>
-              <FileName>1636PP52Y.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\CustomDrivers\1636PP52Y.c</FilePath>
-            </File>
-            <File>
-              <FileName>BIM.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\CustomDrivers\BIM.c</FilePath>
-            </File>
-            <File>
               <FileName>crc16.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\CustomDrivers\crc16.c</FilePath>
@@ -597,29 +577,9 @@
               <FilePath>.\CustomDrivers\crc32.c</FilePath>
             </File>
             <File>
-              <FileName>discrete_io.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\CustomDrivers\discrete_io.c</FilePath>
-            </File>
-            <File>
               <FileName>otherlib.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\CustomDrivers\otherlib.c</FilePath>
-            </File>
-            <File>
-              <FileName>SNS.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\CustomDrivers\SNS.c</FilePath>
-            </File>
-            <File>
-              <FileName>SWS.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\CustomDrivers\SWS.c</FilePath>
-            </File>
-            <File>
-              <FileName>analog_io.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\CustomDrivers\analog_io.c</FilePath>
             </File>
             <File>
               <FileName>filters.c</FileName>
@@ -630,6 +590,41 @@
               <FileName>bupboard.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\CustomDrivers\bupboard.c</FilePath>
+            </File>
+            <File>
+              <FileName>25q64fv.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\CustomDrivers\25q64fv.c</FilePath>
+            </File>
+            <File>
+              <FileName>1636pp52y.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\CustomDrivers\1636pp52y.c</FilePath>
+            </File>
+            <File>
+              <FileName>actuator.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\CustomDrivers\actuator.c</FilePath>
+            </File>
+            <File>
+              <FileName>analogio.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\CustomDrivers\analogio.c</FilePath>
+            </File>
+            <File>
+              <FileName>discreteio.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\CustomDrivers\discreteio.c</FilePath>
+            </File>
+            <File>
+              <FileName>kmonshelf.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\CustomDrivers\kmonshelf.c</FilePath>
+            </File>
+            <File>
+              <FileName>sws.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\CustomDrivers\sws.c</FilePath>
             </File>
           </Files>
         </Group>

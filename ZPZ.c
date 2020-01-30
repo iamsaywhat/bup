@@ -4,11 +4,11 @@
 #include "MDR32F9Qx_can.h"
 #include "1636PP52Y.h"
 #include "crc16.h"
-#include "BIM.h"
+#include "actuator.h"
 #include "Log_FS/Log_FS.h"
-#include "SNS.h"
+#include "kmonshelf.h"
 #include "SWS.h"
-#include "discrete_io.h"
+#include "discreteio.h"
 #include "otherlib.h"
 #include "SelfTesting.h"   
 #include "bup_data_store.h"
@@ -1006,7 +1006,7 @@ static void ZPZ_Response_BIM_CONTROL (uint16_t NumPacket)
 	}
 	
 	/* Отправляем запрос на управление с параметрами */
-	status = BIM_SendRequest (BIM_Side, BIM_Data.Struct.State, BIM_Data.Struct.Position, 7, 255, 255);
+	status = BIM_sendRequest (BIM_Side, BIM_Data.Struct.State, BIM_Data.Struct.Position, 7, 255, 255);
 	
 	/* Теперь нужно ответить по ЗПЗ */
 	if(status)
@@ -1071,7 +1071,7 @@ static void ZPZ_Response_BIM_STATUS(uint16_t NumPacket)
 	}
 	
 	/* Спросим состояние БИМов */
-	status = BIM_SendRequest(BIM_Side, BIM_CMD_REQ, 0, 0, 0, 0);
+	status = BIM_sendRequest(BIM_Side, BIM_CMD_REQ, 0, 0, 0, 0);
 	/* Проверим состоялся ли обмен, и если нет, то ответим ошибкой */
 	if(!status)
 	{	
@@ -1081,11 +1081,11 @@ static void ZPZ_Response_BIM_STATUS(uint16_t NumPacket)
 	
 	/* Заполняем информационные поля информацией от БИМ */
 	ZPZ_BIM_Status.Struct.Side          = Side;
-	ZPZ_BIM_Status.Struct.StatusFlags   = BIM_GetStatusFlags(BIM_Side);
-	ZPZ_BIM_Status.Struct.Position      = BIM_GetStrapPosition (BIM_Side);
-	ZPZ_BIM_Status.Struct.Voltage       = BIM_GetVoltage (BIM_Side);
-	ZPZ_BIM_Status.Struct.Current       = BIM_GetCurrent (BIM_Side);
-	ZPZ_BIM_Status.Struct.Speed         = BIM_GetSpeed (BIM_Side);
+	ZPZ_BIM_Status.Struct.StatusFlags   = BIM_getStatusFlags(BIM_Side);
+	ZPZ_BIM_Status.Struct.Position      = BIM_getStrapPosition (BIM_Side);
+	ZPZ_BIM_Status.Struct.Voltage       = BIM_getVoltage (BIM_Side);
+	ZPZ_BIM_Status.Struct.Current       = BIM_getCurrent (BIM_Side);
+	ZPZ_BIM_Status.Struct.Speed         = BIM_getSpeed (BIM_Side);
 	
 	
 	/* Заполняем структуру базовых полей всех пакетов */
