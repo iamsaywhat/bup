@@ -139,7 +139,7 @@ void MathModel_control (void)
     if(rtY.cmdTouchDown == 0)
     {
       // Управление БИМами по выходу модели
-      MathModel_sendBimCommand ((uint8_t)(rtY.directionOfRotation + 0.5), 
+      MathModel_sendBimCommand ((int8_t)(rtY.directionOfRotation), 
                                 (uint8_t)(rtY.tightenSling + 0.5));
     }
     // Это команда на посадку 
@@ -186,10 +186,10 @@ void MathModel_sendBimCommand (int8_t side, uint8_t forcePersent)
   if(SelfTesting_STATUS(ST_pin1) == ST_OK || SelfTesting_STATUS(ST_POW_BIM) != ST_OK)
     return;
 
-	if(forcePersent > 100)                  // Если процент затяжки больше 100, чего быть не должно,
+  if(forcePersent > 100)                  // Если процент затяжки больше 100, чего быть не должно,
     force = 255;                          // то ограничиваем сверху
-	else                                    // Если диапазон процентов соответствует
-    force = (int16_t)(2.55*forcePersent); // то переводим в шкалу [0...255]
+  else                                    // Если диапазон процентов соответствует
+    force = (uint8_t)(2.55*forcePersent); // то переводим в шкалу [0...255]
 	
   switch (side)
   {
@@ -205,7 +205,7 @@ void MathModel_sendBimCommand (int8_t side, uint8_t forcePersent)
       if (BIM_getStrapPosition (RIGHT_BIM) != 0)                    // Требуется затянуть левый БИМ, правый при этом должен быть в положении 0 
         BIM_sendRequest (RIGHT_BIM, BIM_CMD_ON, 0, 9, 255, 255);    // Правый не в нуле, поэтому пока только переведём его в ноль
     
-      else    // Правый действительно находится в нуле, можно отдать команду на затяжку левому
+      else  // Правый действительно находится в нуле, можно отдать команду на затяжку левому
       {
         if(BIM_getStrapPosition (LEFT_BIM) != force)
           BIM_sendRequest (LEFT_BIM, BIM_CMD_ON, force, 7, 255, 255);    // Устанавливать новое положение, будем только если оно отличается от старого (защита от щелчков)
@@ -243,10 +243,10 @@ void MathModel_sendBimCommand (int8_t side, uint8_t forcePersent)
 		}
     case 2:  // Затягиваем обе стропы
     {
-      if(BIM_getStrapPosition (LEFT_BIM) != 0)
+      if(BIM_getStrapPosition (LEFT_BIM) != force)
         BIM_sendRequest (LEFT_BIM, BIM_CMD_ON, force, 7, 255, 255);
 			
-      if(BIM_getStrapPosition (RIGHT_BIM) != 0)
+      if(BIM_getStrapPosition (RIGHT_BIM) != force)
         BIM_sendRequest (RIGHT_BIM, BIM_CMD_ON, force, 9, 255, 255);
 				
       break;
@@ -256,7 +256,7 @@ void MathModel_sendBimCommand (int8_t side, uint8_t forcePersent)
   }
   // БИМы не сразу обновляют своё состояние по CAN, 
   // поэтому заставляем их 5 раз сообщить своё состояние
-  for(int16_t i = 0; i < 5; i++)
+  for(uint8_t i = 0; i < 5; i++)
   {
     SelfTesting_RIGHT_BIM();
     SelfTesting_LEFT_BIM();

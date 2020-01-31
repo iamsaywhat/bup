@@ -60,6 +60,7 @@ int main(void)
 //		//MathModel_initialize();
 //		SelfTestingOnline ();
 //		
+//		////////////////////////////////////////////////////////////////
 //		setTimeout (&timeoutBIM, 1000);
 //		while(timeoutStatus(&timeoutBIM) != TIME_IS_UP)
 //		{
@@ -67,8 +68,14 @@ int main(void)
 //      SelfTesting_LEFT_BIM();
 //		}
 //		MathModel_sendBimCommand(-1, 50);
+//		setTimeout (&timeoutBIM, 1000);
+//		while(timeoutStatus(&timeoutBIM) != TIME_IS_UP)
+//		{
+//      SelfTesting_RIGHT_BIM();
+//      SelfTesting_LEFT_BIM();
+//		}
 //		MathModel_sendBimCommand(-1, 50);
-//		
+//		/////////////////////////////////////////////////////////////////
 //		setTimeout (&timeoutBIM, 1000);
 //		while(timeoutStatus(&timeoutBIM) != TIME_IS_UP)
 //		{
@@ -76,8 +83,14 @@ int main(void)
 //      SelfTesting_LEFT_BIM();
 //		}
 //	  MathModel_sendBimCommand(1, 30);
-//		MathModel_sendBimCommand(1, 30);
-//		
+//		setTimeout (&timeoutBIM, 1000);
+//		while(timeoutStatus(&timeoutBIM) != TIME_IS_UP)
+//		{
+//      SelfTesting_RIGHT_BIM();
+//      SelfTesting_LEFT_BIM();
+//		}
+//	  MathModel_sendBimCommand(1, 30);
+//		/////////////////////////////////////////////////////////////////////
 //		setTimeout (&timeoutBIM, 1000);
 //		while(timeoutStatus(&timeoutBIM) != TIME_IS_UP)
 //		{
@@ -85,8 +98,14 @@ int main(void)
 //      SelfTesting_LEFT_BIM();
 //		}
 //	  MathModel_sendBimCommand(0, 0);
-//		MathModel_sendBimCommand(0, 0);
-//		
+//		setTimeout (&timeoutBIM, 1000);
+//		while(timeoutStatus(&timeoutBIM) != TIME_IS_UP)
+//		{
+//      SelfTesting_RIGHT_BIM();
+//      SelfTesting_LEFT_BIM();
+//		}
+//	  MathModel_sendBimCommand(0, 0);
+//		/////////////////////////////////////////////////////////////////////
 //		setTimeout (&timeoutBIM, 1000);
 //		while(timeoutStatus(&timeoutBIM) != TIME_IS_UP)
 //		{
@@ -94,8 +113,14 @@ int main(void)
 //      SelfTesting_LEFT_BIM();
 //		}
 //		MathModel_sendBimCommand(0, 20);
+//		setTimeout (&timeoutBIM, 1000);
+//		while(timeoutStatus(&timeoutBIM) != TIME_IS_UP)
+//		{
+//      SelfTesting_RIGHT_BIM();
+//      SelfTesting_LEFT_BIM();
+//		}
 //		MathModel_sendBimCommand(0, 20);
-//	  
+//	  //////////////////////////////////////////////////////////////////////////
 //		setTimeout (&timeoutBIM, 1000);
 //		while(timeoutStatus(&timeoutBIM) != TIME_IS_UP)
 //		{
@@ -103,8 +128,14 @@ int main(void)
 //      SelfTesting_LEFT_BIM();
 //		}
 //		MathModel_sendBimCommand(0, 0);
+//		setTimeout (&timeoutBIM, 1000);
+//		while(timeoutStatus(&timeoutBIM) != TIME_IS_UP)
+//		{
+//      SelfTesting_RIGHT_BIM();
+//      SelfTesting_LEFT_BIM();
+//		}
 //		MathModel_sendBimCommand(0, 0);
-//		
+//		////////////////////////////////////////////////////////////////////////////
 //		setTimeout (&timeoutBIM, 1000);
 //		while(timeoutStatus(&timeoutBIM) != TIME_IS_UP)
 //		{
@@ -112,7 +143,14 @@ int main(void)
 //      SelfTesting_LEFT_BIM();
 //		}
 //		MathModel_sendBimCommand(2, 70);
+//		setTimeout (&timeoutBIM, 1000);
+//		while(timeoutStatus(&timeoutBIM) != TIME_IS_UP)
+//		{
+//      SelfTesting_RIGHT_BIM();
+//      SelfTesting_LEFT_BIM();
+//		}
 //		MathModel_sendBimCommand(2, 70);
+//		///////////////////////////////////////////////////////////////////////////
 //	}
 
   if(!CONNECT_ZPZ_CHECK)                             /* Проверяем подключение разъема ЗПЗ */
