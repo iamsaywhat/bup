@@ -12,7 +12,7 @@
 #include "otherlib.h"
 #include "SelfTesting.h"   
 #include "bupdatastorage.h"
-#include "HeightMap/map_flash_layout.h"
+#include "HeightMap/mapflashlayout.h"
 #include "string.h"
 
 

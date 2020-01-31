@@ -9,8 +9,8 @@
 #include "kmonshelf.h"
 #include "bims.h"
 #include "Log_FS/Log_FS.h"
-#include "HeightMap/Heightmap_conf_and_pd.h"
-#include "HeightMap/Heightmap.h"
+#include "HeightMap/heightmap.platformdepend.h"
+#include "HeightMap/heightmap.h"
 #include "RetargetPrintf/RetargetPrintf.h"
 #include "bupdatastorage.h"
 
@@ -244,7 +244,7 @@ SelfTesting_STATUS_TYPE SelfTesting_25Q64FV(void)
 ************************************************************************************/
 SelfTesting_STATUS_TYPE SelfTesting_MapNtask(void)
 {
-  if(CheckMap())
+  if(checkMap())
     SelfTesting_SET_OK(ST_MAP);
   else 
     SelfTesting_SET_FAULT(ST_MAP);
@@ -494,7 +494,7 @@ SelfTesting_STATUS_TYPE SelfTesting_POW_BIM (void)
 SelfTesting_STATUS_TYPE SelfTesting_MapAvailability (double Lat, double Lon)
 {
   // Если в точке (Lat, Lon) карта недоступна,
-  if(GetAvailabilityStatus(Lon, Lat) == MAP_NOT_AVAILABLE)
+  if(getAvailabilityStatus(Lon, Lat) == MAP_NOT_AVAILABLE)
   {
     // То сбрасываем бит доступности
     SelfTesting_SET_FAULT(ST_MapAvailability);

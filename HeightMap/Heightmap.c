@@ -1,37 +1,37 @@
-#include "Heightmap.h"
-#include "Heightmap_conf_and_pd.h"
-#include <math.h>
+﻿#include <math.h>
+#include "heightmap.h"
+#include "heightmap.platformdepend.h"
 
 
 /********************************************************************
     Приватные функции модуля
 ********************************************************************/
-static void nav_transform(point* p);
-static double area(point a, point b, point c);
-static short MapHeight(point left_lower, point left_upper, point right_lower, point right_upper, point location);
-static void HeightFromPlane(point a, point b, point c, point* loc);
-static char TrianglePos(point a, point b, point c, point loc);
+static void   nav_transform  (point* p);
+static double area           (point a, point b, point c);
+static short  MapHeight      (point left_lower, point left_upper, point right_lower, point right_upper, point location);
+static void   HeightFromPlane(point a, point b, point c, point* loc);
+static char   TrianglePos    (point a, point b, point c, point loc);
 
 
 /*********************************************************************************************************************************************
-	GetAvailabilityStatus - Получить статус доступности карты в точке (lat,lon)
+	getAvailabilityStatus - Получить статус доступности карты в точке (lat,lon)
 *********************************************************************************************************************************************/
-Heightmap_STATUS GetAvailabilityStatus(double lon, double lat)
+Heightmap_STATUS getAvailabilityStatus(double lon, double lat)
 {
-	point ThisPoint = { lon, lat, 0 };      // Текущая геолокация
-	point NullPoint;                        // Нуль точка на карте (координаты левого нижнего угла карты)
-	double MapStepLat, MapStepLon;          // Шаг сетки по широте и долготе
-	double LonCount, LatCount;              // Количество узловых точек
+	point  ThisPoint = { lon, lat, 0 };      // Текущая геолокация
+	point  NullPoint;                        // Нуль точка на карте (координаты левого нижнего угла карты)
+	double MapStepLat, MapStepLon;           // Шаг сетки по широте и долготе
+	double LonCount, LatCount;               // Количество узловых точек
 
 	// Узнаем нуль-точку (левая нижняя точка отсчета при построению карты местности)
-	NullPoint.lon = GetMapProperties_NullPointLon();
-	NullPoint.lat = GetMapProperties_NullPointLat();
+	NullPoint.lon = getBottomLeftLongitude();
+	NullPoint.lat = getBottomLeftLatitude();
 	// Считаем масштабы
-	MapStepLon = GetMapProperties_MapStepLon();
-	MapStepLat = GetMapProperties_MapStepLat();
+	MapStepLon = getLongitudeGridStep();
+	MapStepLat = getLatitudeGridStep();
 	// Узнаем количество узловых точек по долготе и широте
-	LonCount = GetMapProperties_LonCount();
-	LatCount = GetMapProperties_LatCount();
+	LonCount = getNumberOfLongitude();
+	LatCount = getNumberOfLatitude();
 
 	// Сделаем перенос координат в положительную полуплоскость для удобного сравнения
 	nav_transform(&NullPoint); // Нуль точку
@@ -52,12 +52,12 @@ Heightmap_STATUS GetAvailabilityStatus(double lon, double lat)
 
 
 /********************************************************************************************************************
-	GetHeight_OnThisPoint - Узнать высоту рельефа в данной точке
+	getHeightOnThisPoint - Узнать высоту рельефа в данной точке
 *********************************************************************************************************************/
-short GetHeight_OnThisPoint(double lon, double lat, MAP_MODE mode)
+short getHeightOnThisPoint(double lon, double lat, MAP_MODE mode)
 {
-	unsigned short i, j;                   // Индексы навигации по узлам карты
-	point ThisPoint = { lon, lat, 0 };      // Текущая геолокация
+	unsigned short i, j;                  // Индексы навигации по узлам карты
+	point ThisPoint = { lon, lat, 0 };    // Текущая геолокация
 	point NullPoint;                      // Нуль точка на карте (координаты левого нижнего угла карты)
 	unsigned short LonCount;              // Количество узловых точек по долготе
 	unsigned short LatCount;              // Количество узловых точек по долготе
@@ -75,17 +75,17 @@ short GetHeight_OnThisPoint(double lon, double lat, MAP_MODE mode)
 
 
 	// Считаем масштабы
-	MapStepLon = GetMapProperties_MapStepLon();
-	MapStepLat = GetMapProperties_MapStepLat();
+	MapStepLon = getLongitudeGridStep();
+	MapStepLat = getLatitudeGridStep();
 	// Узнаем нуль-точку (левая нижняя точка отсчета при построению карты местности)
-	NullPoint.lon = GetMapProperties_NullPointLon();
-	NullPoint.lat = GetMapProperties_NullPointLat();
+	NullPoint.lon = getBottomLeftLongitude();
+	NullPoint.lat = getBottomLeftLatitude();
 	// Сделаем перенос координат в положительную полуплоскость для удобного сравнения
 	nav_transform(&NullPoint); // Нуль точку
 	nav_transform(&ThisPoint); // Текущая геолокация
 	// Узнаем количество узловых точек по долготе и широте
-	LonCount = GetMapProperties_LonCount();
-	LatCount = GetMapProperties_LatCount();
+	LonCount = getNumberOfLongitude();
+	LatCount = getNumberOfLatitude();
 
 
 	/* Для случая нахождения карты прямо на нулевом меридиане ************************************************************************
@@ -187,10 +187,10 @@ short GetHeight_OnThisPoint(double lon, double lat, MAP_MODE mode)
 		B.lat = NullPoint.lat + MapStepLat;
 
 		// Теперь необходимо узнать высоты, зная индексы точек, можно это сделать
-		C.alt = (double)GetMapProperties_Alt(i, j);
-		A.alt = (double)GetMapProperties_Alt(i, j + 1);
-		B.alt = (double)GetMapProperties_Alt(i + 1, j + 1);
-		D.alt = (double)GetMapProperties_Alt(i + 1, j);
+		C.alt = (double)getAltitudeOnJunctionPoint(i, j);
+		A.alt = (double)getAltitudeOnJunctionPoint(i, j + 1);
+		B.alt = (double)getAltitudeOnJunctionPoint(i + 1, j + 1);
+		D.alt = (double)getAltitudeOnJunctionPoint(i + 1, j);
 
 		// Данные подготовлены, теперь узнаем высоту в точке нашей геолокациии методом триангуляции, и сразу же вернём значение
 		return  MapHeight(C, A, D, B, ThisPoint);
@@ -244,7 +244,7 @@ short GetHeight_OnThisPoint(double lon, double lat, MAP_MODE mode)
 		if (mode == AVERAGE)
 		{
 			// Берем среднее арифметическое из высот всех вершин квадрата и округляем до ближайшего целого
-			_ThisPoint.alt = (unsigned short)((GetMapProperties_Alt(i, j) + GetMapProperties_Alt(i + 1, j) + GetMapProperties_Alt(i, j + 1) + GetMapProperties_Alt(i + 1, j + 1)) / 4 + 0.5);
+			_ThisPoint.alt = (unsigned short)((getAltitudeOnJunctionPoint(i, j) + getAltitudeOnJunctionPoint(i + 1, j) + getAltitudeOnJunctionPoint(i, j + 1) + getAltitudeOnJunctionPoint(i + 1, j + 1)) / 4 + 0.5);
 			return _ThisPoint.alt;
 		}
 		// Третий метод - супремум, высота в квадрате определяется как максимальная среди вершин
@@ -252,16 +252,16 @@ short GetHeight_OnThisPoint(double lon, double lat, MAP_MODE mode)
 		{
 			// Поиск максимума методом всплывающего пузырька
 			// Берем значение высоты первой вершины
-			_ThisPoint.alt = GetMapProperties_Alt(i, j);
+			_ThisPoint.alt = getAltitudeOnJunctionPoint(i, j);
 			// Если в следующей вершине высота больше, берем ее, если нет - то не берем.
-			if (_ThisPoint.alt < GetMapProperties_Alt(i + 1, j))
-				_ThisPoint.alt = GetMapProperties_Alt(i + 1, j);
+			if (_ThisPoint.alt < getAltitudeOnJunctionPoint(i + 1, j))
+				_ThisPoint.alt = getAltitudeOnJunctionPoint(i + 1, j);
 			// Если в следующей вершине высота больше, берем ее, если нет - то не берем.
-			if (_ThisPoint.alt < GetMapProperties_Alt(i, j + 1))
-				_ThisPoint.alt = GetMapProperties_Alt(i, j + 1);
+			if (_ThisPoint.alt < getAltitudeOnJunctionPoint(i, j + 1))
+				_ThisPoint.alt = getAltitudeOnJunctionPoint(i, j + 1);
 			// Если в следующей вершине высота больше, берем ее, если нет - то не берем.
-			if (_ThisPoint.alt < GetMapProperties_Alt(i + 1, j + 1))
-				_ThisPoint.alt = GetMapProperties_Alt(i + 1, j + 1);
+			if (_ThisPoint.alt < getAltitudeOnJunctionPoint(i + 1, j + 1))
+				_ThisPoint.alt = getAltitudeOnJunctionPoint(i + 1, j + 1);
 
 			return _ThisPoint.alt;
 		}

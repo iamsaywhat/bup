@@ -467,7 +467,7 @@
 
   <Group>
     <GroupName>Math_model</GroupName>
-    <tvExp>1</tvExp>
+    <tvExp>0</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -514,7 +514,7 @@
 
   <Group>
     <GroupName>HeightMap</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -526,8 +526,8 @@
       <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>.\HeightMap\Heightmap.c</PathWithFileName>
-      <FilenameWithoutPath>Heightmap.c</FilenameWithoutPath>
+      <PathWithFileName>.\HeightMap\heightmap.c</PathWithFileName>
+      <FilenameWithoutPath>heightmap.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
@@ -535,12 +535,12 @@
       <GroupNumber>5</GroupNumber>
       <FileNumber>18</FileNumber>
       <FileType>1</FileType>
-      <tvExp>0</tvExp>
+      <tvExp>1</tvExp>
       <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>.\HeightMap\Heightmap_conf_and_pd.c</PathWithFileName>
-      <FilenameWithoutPath>Heightmap_conf_and_pd.c</FilenameWithoutPath>
+      <PathWithFileName>.\HeightMap\heightmap.platformdepend.c</PathWithFileName>
+      <FilenameWithoutPath>heightmap.platformdepend.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
@@ -552,8 +552,8 @@
       <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>.\HeightMap\map_flash_layout.h</PathWithFileName>
-      <FilenameWithoutPath>map_flash_layout.h</FilenameWithoutPath>
+      <PathWithFileName>.\HeightMap\mapflashlayout.h</PathWithFileName>
+      <FilenameWithoutPath>mapflashlayout.h</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
@@ -561,7 +561,7 @@
 
   <Group>
     <GroupName>CustomDrivers</GroupName>
-    <tvExp>1</tvExp>
+    <tvExp>0</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>

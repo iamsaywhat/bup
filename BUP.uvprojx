@@ -552,19 +552,19 @@
           <GroupName>HeightMap</GroupName>
           <Files>
             <File>
-              <FileName>Heightmap.c</FileName>
+              <FileName>heightmap.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\HeightMap\Heightmap.c</FilePath>
+              <FilePath>.\HeightMap\heightmap.c</FilePath>
             </File>
             <File>
-              <FileName>Heightmap_conf_and_pd.c</FileName>
+              <FileName>heightmap.platformdepend.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\HeightMap\Heightmap_conf_and_pd.c</FilePath>
+              <FilePath>.\HeightMap\heightmap.platformdepend.c</FilePath>
             </File>
             <File>
-              <FileName>map_flash_layout.h</FileName>
+              <FileName>mapflashlayout.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\HeightMap\map_flash_layout.h</FilePath>
+              <FilePath>.\HeightMap\mapflashlayout.h</FilePath>
             </File>
           </Files>
         </Group>

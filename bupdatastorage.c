@@ -1,6 +1,6 @@
 #include "bupdatastorage.h"
-#include "HeightMap/Heightmap_conf_and_pd.h"
-#include "HeightMap/Heightmap.h"
+#include "HeightMap/heightmap.platformdepend.h"
+#include "HeightMap/heightmap.h"
 #include "selftesting.h"
 #include "config.h"
 
@@ -35,9 +35,9 @@ BupDataStorage bupDataStorage;
 ***************************************************************************************************************/
 void Bup_initialize (void)
 {
-  bupDataStorage.touchdownLatitude  = GetTouchDownPointLat();  // Подгружаем из памяти
-  bupDataStorage.touchdownLongitude = GetTouchDownPointLon();  // Подгружаем из памяти
-  bupDataStorage.touchdownAltitude  = GetTouchDownPointAlt();  // Подгружаем из памяти
+  bupDataStorage.touchdownLatitude  = getTouchdownLatitude();  // Подгружаем из памяти
+  bupDataStorage.touchdownLongitude = getTouchdownLongitude(); // Подгружаем из памяти
+  bupDataStorage.touchdownAltitude  = getTouchdownAltitude();  // Подгружаем из памяти
   bupDataStorage.latitude = 0;
   bupDataStorage.longitude = 0;
   bupDataStorage.altitude = 0;
@@ -53,7 +53,7 @@ void Bup_initialize (void)
   bupDataStorage.controlSecond = 0;
 	
   // Определим высоту рельефа в точке приземления
-  bupDataStorage.reliefOnTDP = GetHeight_OnThisPoint(bupDataStorage.touchdownLongitude, 
+  bupDataStorage.reliefOnTDP = getHeightOnThisPoint(bupDataStorage.touchdownLongitude, 
                                                      bupDataStorage.touchdownLatitude,
                                                      TRIANGULARTION);
   if(bupDataStorage.reliefOnTDP == MAP_NO_SOLUTION)
@@ -85,9 +85,9 @@ void Bup_updateData (void)
   bupDataStorage.course             = SNS_getGroundTrack();
 	
   // Рассчитываем по полученным данным высоту рельефа в точке
-  bupDataStorage.reliefHeight       = GetHeight_OnThisPoint(bupDataStorage.longitude, 
-                                                            bupDataStorage.latitude, 
-                                                            TRIANGULARTION); 
+  bupDataStorage.reliefHeight       = getHeightOnThisPoint(bupDataStorage.longitude, 
+                                                           bupDataStorage.latitude, 
+                                                           TRIANGULARTION); 
 }
 
 /**************************************************************************************************************
