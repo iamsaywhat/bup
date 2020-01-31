@@ -41,9 +41,9 @@ void MathModel_initialize(void)
 		const double arrayManeuvers []     = {-1,1,2,0,0,0,0,0,0,0};
 		const double arrayTightenSlings [] = {50,25,50,0,0,0,0,0,0,0};
 		const double arrayTimes []         = {51,102,30,0,0,0,0,0,0,0};
-		memcpy(&rtU.arrayLeftRightManeuvers, arrayManeuvers, 10);
-		memcpy(&rtU.arrayTightenSlings, arrayTightenSlings, 10);
-		memcpy(&rtU.arrayTimes, arrayTimes, 10);
+		memcpy(&rtU.arrayLeftRightManeuvers, arrayManeuvers, 80);
+		memcpy(&rtU.arrayTightenSlings, arrayTightenSlings, 80);
+		memcpy(&rtU.arrayTimes, arrayTimes, 80);
 		rtU.pauseTimeBetweenManeuvers = 10;
   #else //*************************************************************************** Если выбран flightController
     flightController_initialize();
@@ -175,7 +175,7 @@ void MathModel_control (void)
 }
 
 /*******************************************************************************
-    MathModel_sendBimCommand -  Функция, предоставляющая мат модели управление БИМами
+    MathModel_sendBimCommand - Функция, предоставляющая мат модели управление БИМами
 *******************************************************************************/
 void MathModel_sendBimCommand (double Side)
 {

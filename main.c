@@ -54,10 +54,9 @@ int main(void)
 //	{
 //		//BUP_DataUpdate ();
 //		//GetBatteryCharge();
-//		
 //		SelfTesting_SNS();
 //		BUP_UpdateDataFromSNS ();
-//		
+//		MathModel_initialize();
 //	}
 
   if(!CONNECT_ZPZ_CHECK)                             /* Проверяем подключение разъема ЗПЗ */

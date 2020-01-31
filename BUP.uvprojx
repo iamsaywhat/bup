@@ -448,6 +448,11 @@
               <FileType>1</FileType>
               <FilePath>.\zpz.c</FilePath>
             </File>
+            <File>
+              <FileName>config.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\config.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -487,6 +492,11 @@
               <FileName>flightRegulatorCFB.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Math_model\flightRegulatorCFB\flightRegulatorCFB.c</FilePath>
+            </File>
+            <File>
+              <FileName>flightController.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Math_model\flightController\flightController.c</FilePath>
               <FileOption>
                 <CommonProperty>
                   <UseCPPCompiler>2</UseCPPCompiler>
@@ -530,11 +540,6 @@
                   </Cads>
                 </FileArmAds>
               </FileOption>
-            </File>
-            <File>
-              <FileName>flightController.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Math_model\flightController\flightController.c</FilePath>
             </File>
             <File>
               <FileName>mathmodelapi.c</FileName>
