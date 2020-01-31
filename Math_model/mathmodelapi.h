@@ -64,11 +64,11 @@ void MathModel_control (void);
   MathModel_sendBimCommand - Функция, предоставляющая мат модели 
   управление БИМами;
   Параметры:
-          Side - Управляющий сигнал в процентах от (-100% до 100%)
-                где отрицательная область - сигнал для левого БИМа,
-                положительная - сигнал для правого БИМа, а 0 слабления всех
-                строп.
+          side         - Выбор стропы (-1, 0, 1, 2) = (левая в forcePersent, 
+                         обе в ноль, правая в forcePersent, обе в в forcePersent
+          forcePersent - Управляющий сигнал в процентах от (0..100%) 
+                         на затяжку строп;
 *******************************************************************************/
-void MathModel_sendBimCommand (double Side);
+void MathModel_sendBimCommand (int8_t side, uint8_t forcePersent);
 
 #endif

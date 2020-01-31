@@ -49,14 +49,70 @@ int main(void)
   SelfTestingFull();                             /* Запускаем фул-тест системы */
   stopIndication();                              /* Отключаем мигание */
 
-	
+//  TimeoutType timeoutBIM; 
+//	BIM_Supply_ON() ;
 //	while(1)
 //	{
 //		//BUP_DataUpdate ();
 //		//GetBatteryCharge();
-//		SelfTesting_SNS();
-//		BUP_UpdateDataFromSNS ();
-//		MathModel_initialize();
+//		//SelfTesting_SNS();
+//		//BUP_UpdateDataFromSNS ();
+//		//MathModel_initialize();
+//		SelfTestingOnline ();
+//		
+//		setTimeout (&timeoutBIM, 1000);
+//		while(timeoutStatus(&timeoutBIM) != TIME_IS_UP)
+//		{
+//      SelfTesting_RIGHT_BIM();
+//      SelfTesting_LEFT_BIM();
+//		}
+//		MathModel_sendBimCommand(-1, 50);
+//		MathModel_sendBimCommand(-1, 50);
+//		
+//		setTimeout (&timeoutBIM, 1000);
+//		while(timeoutStatus(&timeoutBIM) != TIME_IS_UP)
+//		{
+//      SelfTesting_RIGHT_BIM();
+//      SelfTesting_LEFT_BIM();
+//		}
+//	  MathModel_sendBimCommand(1, 30);
+//		MathModel_sendBimCommand(1, 30);
+//		
+//		setTimeout (&timeoutBIM, 1000);
+//		while(timeoutStatus(&timeoutBIM) != TIME_IS_UP)
+//		{
+//      SelfTesting_RIGHT_BIM();
+//      SelfTesting_LEFT_BIM();
+//		}
+//	  MathModel_sendBimCommand(0, 0);
+//		MathModel_sendBimCommand(0, 0);
+//		
+//		setTimeout (&timeoutBIM, 1000);
+//		while(timeoutStatus(&timeoutBIM) != TIME_IS_UP)
+//		{
+//      SelfTesting_RIGHT_BIM();
+//      SelfTesting_LEFT_BIM();
+//		}
+//		MathModel_sendBimCommand(0, 20);
+//		MathModel_sendBimCommand(0, 20);
+//	  
+//		setTimeout (&timeoutBIM, 1000);
+//		while(timeoutStatus(&timeoutBIM) != TIME_IS_UP)
+//		{
+//      SelfTesting_RIGHT_BIM();
+//      SelfTesting_LEFT_BIM();
+//		}
+//		MathModel_sendBimCommand(0, 0);
+//		MathModel_sendBimCommand(0, 0);
+//		
+//		setTimeout (&timeoutBIM, 1000);
+//		while(timeoutStatus(&timeoutBIM) != TIME_IS_UP)
+//		{
+//      SelfTesting_RIGHT_BIM();
+//      SelfTesting_LEFT_BIM();
+//		}
+//		MathModel_sendBimCommand(2, 70);
+//		MathModel_sendBimCommand(2, 70);
 //	}
 
   if(!CONNECT_ZPZ_CHECK)                             /* Проверяем подключение разъема ЗПЗ */
