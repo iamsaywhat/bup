@@ -286,8 +286,8 @@ uint8_t ZPZ_service (void)
   static TimeoutType    timeoutHighPriorityTask;  /* Таймаут на удержание в режиме ВПЗ */
 	
 
-  while (UART_GetFlagStatus (ZPZ_UART, UART_FLAG_RXFE) != SET)     /* Вычищаем FIFO от мусора и ждем пока не появится заголовок */
-    UART_ReceiveData(ZPZ_UART);	
+//  while (UART_GetFlagStatus (ZPZ_UART, UART_FLAG_RXFE) != SET)     /* Вычищаем FIFO от мусора и ждем пока не появится заголовок */
+//    UART_ReceiveData(ZPZ_UART);	
 	
   if(timeoutStatus(&timeoutHighPriorityTask) == TIME_IS_UP)         /* Здесь проверяем нужно ли вернуть модуль в режим одиночной команды */
     ZPZ_finishHighPriorityTask();
