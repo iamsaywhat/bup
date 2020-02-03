@@ -1,19 +1,19 @@
 #include "taskmanager.h"
 
 #include "config.h"
-#include "SelfTesting.h"
+#include "selfTesting.h"
 #include "bupdatastorage.h"
 #include "bims.h"
-#include "Math_model/mathmodelapi.h"
+#include "math.model/mathmodelapi.h"
 #include "logfs/log.fs.h"
-#include "RetargetPrintf/RetargetPrintf.h"
+#include "retarget.printf/RetargetPrintf.h"
 #include "debug.h"
 
 
 #ifdef flightRegulatorCFB //******************************************************* Если выбран flightRegulatorCFB
-	#include "Math_model/flightRegulatorCFB/flightRegulatorCFB.h"
+	#include "math.model/flightRegulatorCFB/flightRegulatorCFB.h"
 #else //*************************************************************************** Если выбран flightController
-	#include "Math_model/flightController/flightController.h"
+	#include "math.model/flightController/flightController.h"
 #endif //************************************************************************** !flightRegulatorCFB 
 
 

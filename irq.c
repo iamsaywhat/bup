@@ -1,10 +1,10 @@
 #include "irq.h"
 
 #include "MDR32F9Qx_timer.h"
-#include "Math_model/mathmodelapi.h"
+#include "math.model/mathmodelapi.h"
 #include "bupdatastorage.h"
 #include "taskmanager.h"
-#include "ZPZ.h"
+#include "zpz.h"
 #include "otherlib.h"
 #include "discreteio.h"
 

@@ -365,7 +365,7 @@
               <MiscControls></MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-              <IncludePath>C:\Keil_v5\ARM\Pack\Keil\MDR1986BExx\1.5\Libraries\CMSIS\CM3\DeviceSupport\MDR32F9Qx\inc;.\CustomDrivers\include</IncludePath>
+              <IncludePath>C:\Keil_v5\ARM\Pack\Keil\MDR1986BExx\1.5\Libraries\CMSIS\CM3\DeviceSupport\MDR32F9Qx\inc;.\custom.drivers\include</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -406,7 +406,7 @@
       </TargetOption>
       <Groups>
         <Group>
-          <GroupName>Source</GroupName>
+          <GroupName>source</GroupName>
           <Files>
             <File>
               <FileName>main.c</FileName>
@@ -471,27 +471,32 @@
           </Files>
         </Group>
         <Group>
-          <GroupName>RetargetPrintf</GroupName>
+          <GroupName>retarget.printf</GroupName>
           <Files>
             <File>
               <FileName>Retarget.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\RetargetPrintf\Retarget.c</FilePath>
+              <FilePath>.\retarget.printf\Retarget.c</FilePath>
             </File>
             <File>
               <FileName>RetargetPrintf.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\RetargetPrintf\RetargetPrintf.c</FilePath>
+              <FilePath>.\retarget.printf\RetargetPrintf.c</FilePath>
             </File>
           </Files>
         </Group>
         <Group>
-          <GroupName>Math_model</GroupName>
+          <GroupName>math.model</GroupName>
           <Files>
+            <File>
+              <FileName>mathmodelapi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\math.model\mathmodelapi.c</FilePath>
+            </File>
             <File>
               <FileName>flightRegulatorCFB.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\Math_model\flightRegulatorCFB\flightRegulatorCFB.c</FilePath>
+              <FilePath>.\math.model\flightRegulatorCFB\flightRegulatorCFB.c</FilePath>
               <FileOption>
                 <CommonProperty>
                   <UseCPPCompiler>2</UseCPPCompiler>
@@ -539,17 +544,12 @@
             <File>
               <FileName>flightController.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\Math_model\flightController\flightController.c</FilePath>
-            </File>
-            <File>
-              <FileName>mathmodelapi.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Math_model\mathmodelapi.c</FilePath>
+              <FilePath>.\math.model\flightController\flightController.c</FilePath>
             </File>
           </Files>
         </Group>
         <Group>
-          <GroupName>HeightMap</GroupName>
+          <GroupName>heightmap</GroupName>
           <Files>
             <File>
               <FileName>heightmap.c</FileName>
@@ -569,67 +569,67 @@
           </Files>
         </Group>
         <Group>
-          <GroupName>CustomDrivers</GroupName>
+          <GroupName>custom.drivers</GroupName>
           <Files>
-            <File>
-              <FileName>crc16.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\CustomDrivers\crc16.c</FilePath>
-            </File>
-            <File>
-              <FileName>crc32.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\CustomDrivers\crc32.c</FilePath>
-            </File>
-            <File>
-              <FileName>otherlib.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\CustomDrivers\otherlib.c</FilePath>
-            </File>
-            <File>
-              <FileName>filters.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\CustomDrivers\filters.c</FilePath>
-            </File>
-            <File>
-              <FileName>bupboard.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\CustomDrivers\bupboard.c</FilePath>
-            </File>
             <File>
               <FileName>25q64fv.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\CustomDrivers\25q64fv.c</FilePath>
+              <FilePath>.\custom.drivers\25q64fv.c</FilePath>
             </File>
             <File>
               <FileName>1636pp52y.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\CustomDrivers\1636pp52y.c</FilePath>
+              <FilePath>.\custom.drivers\1636pp52y.c</FilePath>
             </File>
             <File>
               <FileName>analogio.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\CustomDrivers\analogio.c</FilePath>
-            </File>
-            <File>
-              <FileName>discreteio.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\CustomDrivers\discreteio.c</FilePath>
-            </File>
-            <File>
-              <FileName>kmonshelf.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\CustomDrivers\kmonshelf.c</FilePath>
-            </File>
-            <File>
-              <FileName>sws.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\CustomDrivers\sws.c</FilePath>
+              <FilePath>.\custom.drivers\analogio.c</FilePath>
             </File>
             <File>
               <FileName>bims.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\CustomDrivers\bims.c</FilePath>
+              <FilePath>.\custom.drivers\bims.c</FilePath>
+            </File>
+            <File>
+              <FileName>bupboard.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\custom.drivers\bupboard.c</FilePath>
+            </File>
+            <File>
+              <FileName>crc16.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\custom.drivers\crc16.c</FilePath>
+            </File>
+            <File>
+              <FileName>crc32.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\custom.drivers\crc32.c</FilePath>
+            </File>
+            <File>
+              <FileName>discreteio.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\custom.drivers\discreteio.c</FilePath>
+            </File>
+            <File>
+              <FileName>filters.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\custom.drivers\filters.c</FilePath>
+            </File>
+            <File>
+              <FileName>kmonshelf.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\custom.drivers\kmonshelf.c</FilePath>
+            </File>
+            <File>
+              <FileName>otherlib.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\custom.drivers\otherlib.c</FilePath>
+            </File>
+            <File>
+              <FileName>sws.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\custom.drivers\sws.c</FilePath>
             </File>
           </Files>
         </Group>

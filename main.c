@@ -14,9 +14,9 @@
 
 #include "bupdatastorage.h"                      // Хранилище данных
 #include "logfs/log.fs.h"                       // Файловая система для записи логов в "черный ящик"
-#include "Math_model/mathmodelapi.h"             // Математическая модель системы управления полетом
-#include "SelfTesting.h"                         // Модуль самодиагностики
-#include "RetargetPrintf/RetargetPrintf.h"       // Переопределение функции printf для вывода в CAN и записи в черный ящик
+#include "math.model/mathmodelapi.h"             // Математическая модель системы управления полетом
+#include "selfTesting.h"                         // Модуль самодиагностики
+#include "retarget.printf/RetargetPrintf.h"       // Переопределение функции printf для вывода в CAN и записи в черный ящик
 #include "taskmanager.h"                         // Планировщик задач
 
 #ifdef LOGS_ENABLE  //******************************************************* Если включено логирование в черный ящик

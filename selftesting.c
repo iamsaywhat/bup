@@ -1,17 +1,17 @@
-#include "SelfTesting.h"
+#include "selfTesting.h"
 
 #include "bupboard.h"
 #include "discreteio.h"
 #include "analogio.h"
 #include "1636pp52y.h"
 #include "25q64fv.h"
-#include "SWS.h"
+#include "sws.h"
 #include "kmonshelf.h"
 #include "bims.h"
 #include "logfs/log.fs.h"
-#include "HeightMap/heightmap.platformdepend.h"
-#include "HeightMap/heightmap.h"
-#include "RetargetPrintf/RetargetPrintf.h"
+#include "heightmap/heightmap.platformdepend.h"
+#include "heightmap/heightmap.h"
+#include "retarget.printf/RetargetPrintf.h"
 #include "bupdatastorage.h"
 
 

@@ -2,7 +2,7 @@
 
 #include "MDR32F9Qx_port.h"
 #include "MDR32F9Qx_can.h"
-#include "SelfTesting.h"
+#include "selfTesting.h"
 #include "bupdatastorage.h"
 #include "kmonshelf.h"
 #include "config.h"
@@ -10,9 +10,9 @@
 
 
 #ifdef flightRegulatorCFB //******************************************************* Если выбран flightRegulatorCFB
-	#include "Math_model/flightRegulatorCFB/flightRegulatorCFB.h"
+	#include "math.model/flightRegulatorCFB/flightRegulatorCFB.h"
 #else //*************************************************************************** Если выбран flightController
-	#include "Math_model/flightController/flightController.h"
+	#include "math.model/flightController/flightController.h"
 #endif //************************************************************************** !flightRegulatorCFB 
 
 

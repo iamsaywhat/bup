@@ -1,6 +1,6 @@
 #include "bupdatastorage.h"
-#include "HeightMap/heightmap.platformdepend.h"
-#include "HeightMap/heightmap.h"
+#include "heightmap/heightmap.platformdepend.h"
+#include "heightmap/heightmap.h"
 #include "selftesting.h"
 #include "config.h"
 
