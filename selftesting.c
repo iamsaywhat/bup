@@ -8,7 +8,7 @@
 #include "SWS.h"
 #include "kmonshelf.h"
 #include "bims.h"
-#include "Log_FS/Log_FS.h"
+#include "Log_FS/log.fs.h"
 #include "HeightMap/heightmap.platformdepend.h"
 #include "HeightMap/heightmap.h"
 #include "RetargetPrintf/RetargetPrintf.h"
@@ -262,7 +262,7 @@ SelfTesting_STATUS_TYPE SelfTesting_MapNtask(void)
 SelfTesting_STATUS_TYPE SelfTesting_LogFs(void)
 {
   // Если файловая система ответила FINE - она готова к работе
-  if(LogFs_Info() == FS_FINE)
+  if(LogFs_initialize() == FS_FINE)
     SelfTesting_SET_OK(ST_LogFS);
   // Иначе разметка файловой системы повреждена, либо проблемы с spi-flash 
   else

@@ -5,7 +5,7 @@
 #include "1636PP52Y.h"
 #include "crc16.h"
 #include "bims.h"
-#include "Log_FS/Log_FS.h"
+#include "Log_FS/log.fs.h"
 #include "kmonshelf.h"
 #include "sws.h"
 #include "discreteio.h"
@@ -1181,9 +1181,9 @@ static void ZPZ_Response_LOG_FORMAT (uint16_t NumPacket)
 		SendFEND(ZPZ_UART);
 		
 		/* Запускаем форматирование */
-		LogFs_Formatting();
+		LogFs_format();
 		/* После форматирование необходимо обновить информацию о файловой системе */
-		LogFs_Info();
+		LogFs_initialize();
 		
 		return;
 	}
@@ -1238,7 +1238,7 @@ static void ZPZ_Response_LOG_FILES (uint16_t NumPacket)
 	   Остальное зависит от количества файлов в накопителе */
 	ZPZ_Response.Struct.PacketSize = 6;
 	/* Тогда определим количество файлов и прибавим (для каждого файла отводится 6 байт сообщения) */
-	files = LogFs_GetFileNum();
+	files = LogFs_getFileNumber();
 	ZPZ_Response.Struct.PacketSize += 6*files;
 	
 	/* Теперь посчитаем контрольную сумму начала пакета (первые 8 байт) */
@@ -1266,14 +1266,14 @@ static void ZPZ_Response_LOG_FILES (uint16_t NumPacket)
 		/* Если первая итерация то, (как бы устанавливаем точку отсчета) */
 		/* Ищем первый (самый старый файл в директории) */
 		if(j == 0) 
-			result = Log_Fs_FindFile(FIRST_FILE);
+			result = LogFs_findFile(FIRST_FILE);
 		/* При последующих итерациях нужно просто прокручивать файлы 
 		   Командой "NEXT_FILE" */
 		else 
-			result = Log_Fs_FindFile(NEXT_FILE);
+			result = LogFs_findFile(NEXT_FILE);
 		
 		/* Узнаем его номер файла и сразу упакуем в буфер для отправки */
-		*(uint16_t*)buffer = Log_Fs_GetFileProperties (FILE_NUMBER);
+		*(uint16_t*)buffer = LogFs_getFileProperties(FILE_NUMBER);
 		/* Подсчитываем контрольную сумму */
 		ZPZ_Response.Struct.CRC = Crc16(buffer, 2, 	ZPZ_Response.Struct.CRC);
 		/* Отправляем эти 2 байта информации о номере файла */
@@ -1281,7 +1281,7 @@ static void ZPZ_Response_LOG_FILES (uint16_t NumPacket)
 			UARTSendByte_by_SLIP (ZPZ_UART, buffer[i]);
 		
 		/* Узнаем его размер и сразу упакуем в буфер для отправки */
-		*((uint32_t*)buffer) = Log_Fs_GetFileProperties (FILE_SIZE);
+		*((uint32_t*)buffer) = LogFs_getFileProperties (FILE_SIZE);
 		/* Подсчитываем контрольную сумму */
 		ZPZ_Response.Struct.CRC = Crc16(buffer, 4, 	ZPZ_Response.Struct.CRC);
 		/* Отправляем эти 4 байта информации о размере файла */
@@ -1289,7 +1289,7 @@ static void ZPZ_Response_LOG_FILES (uint16_t NumPacket)
 			UARTSendByte_by_SLIP (ZPZ_UART, buffer[i]);
 		
 		/* Дополнительная проверка по выходу из цикла
-		   Если все файлы были просмотрены, функция Log_Fs_FindFile() возвращает FS_ALL_FILES_SCROLLS */
+		   Если все файлы были просмотрены, функция LogFs_findFile() возвращает FS_ALL_FILES_SCROLLS */
 		/* Проконтролируем это */
 		if (result ==  FS_ALL_FILES_SCROLLS)
 			break;
@@ -1333,7 +1333,7 @@ static void ZPZ_Response_LOG_UPLOAD(uint16_t NumPacket)
 	
 	/* Ищем файл в хранилище по номеру
 	   Если функция не найдет файл, то выдаст ошибку, тогда можно не продолжать */
-	if(Log_Fs_FindFile_ByNum(fileNumber)!= FS_FINE)
+	if(LogFs_findFileByNum(fileNumber)!= FS_FINE)
 	{
 		/* Ответим ошибкой: Файл с таким номером не найден */
 		ZPZ_ShortResponse(LOG_UPLOAD, 0, LOG_FS_FILE_NOT_FIND);
@@ -1341,7 +1341,7 @@ static void ZPZ_Response_LOG_UPLOAD(uint16_t NumPacket)
 	}
 
 	/* Узнаем размер файла */
-  filesize = Log_Fs_GetFileProperties(FILE_SIZE);
+  filesize = LogFs_getFileProperties(FILE_SIZE);
 
 	/* Заполняем структуру общей части всех пакетов */
 	ZPZ_Response.Struct.Handler    = HANDLER_FROM_BUP; // Заголовок BU
@@ -1440,7 +1440,7 @@ static void ZPZ_Response_LOG_UPLOAD(uint16_t NumPacket)
 			for(uint32_t i = 0; i < (filesize - (packet_count - 1) * BYTE_FROM_FILE); i++)
 			{
 				/* Будем читать и отправлять побайтово, не забывая пересчитывать контрольную сумму */
-				LogFs_ReadFile(buffer, offset + i, 1);
+				LogFs_readFile(buffer, offset + i, 1);
 				/* Сразу подсчитываем контрольную сумму */
 			  ZPZ_Response.Struct.CRC = Crc16(buffer, 1, 	ZPZ_Response.Struct.CRC);
 			  /* И сразу отправляем */
@@ -1480,7 +1480,7 @@ static void ZPZ_Response_LOG_UPLOAD(uint16_t NumPacket)
 			for(uint32_t i = 0; i < BYTE_FROM_FILE; i++)
 			{
 				/* Будем читать и отправлять побайтово, не забывая пересчитывать контрольную сумму */
-				LogFs_ReadFile(buffer, offset + i, 1);
+				LogFs_readFile(buffer, offset + i, 1);
 				/* Сразу подсчитываем контрольную сумму */
 				ZPZ_Response.Struct.CRC = Crc16(buffer, 1, ZPZ_Response.Struct.CRC);
 				/* И сразу отправляем */

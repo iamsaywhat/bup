@@ -1,7 +1,7 @@
 #include "loger.h"
 
 #include "config.h"
-#include "Log_FS/Log_FS.h"
+#include "Log_FS/log.fs.h"
 #include "RetargetPrintf/RetargetPrintf.h"
 #include "SelfTesting.h"
 #include "bupdatastorage.h"
@@ -25,7 +25,7 @@ void loger_initmsg (void)
   // Переключаем вывод в ЛОГ
   printf_switcher(TO_LOG, 0);
   // В начало файла кладём его порядковый номер
-  printf("***File # %d***\n", LogFs_GetNumCurrentFile());
+  printf("***File # %d***\n", LogFs_getCurrentFileId());
 	
   // Версия ПО, включая версию регулятора
   printf("Firmware Version:");

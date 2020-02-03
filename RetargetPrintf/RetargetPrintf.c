@@ -1,7 +1,7 @@
 #include "RetargetPrintf.h"
 #include "otherlib.h"
 #include "bupboard.h"
-#include "../Log_FS/Log_FS.h"
+#include "../Log_FS/log.fs.h"
 
 
 
@@ -189,7 +189,7 @@ static int sendchar_CAN(int ch)
 static int sendchar_Log_FS(int ch)
 {
   uint8_t sym = (uint8_t)ch;
-  LogFs_WriteToCurrentFile(&sym, 1);
+  LogFs_writeToCurrentFile(&sym, 1);
   return 0;
 }
 
