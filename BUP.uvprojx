@@ -459,14 +459,14 @@
           <GroupName>Log_FS</GroupName>
           <Files>
             <File>
-              <FileName>Log_FS.c</FileName>
+              <FileName>log.fs.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\Log_FS\Log_FS.c</FilePath>
+              <FilePath>.\Log_FS\log.fs.c</FilePath>
             </File>
             <File>
-              <FileName>Log_FS_llio.c</FileName>
+              <FileName>log.fs.platformdepend.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\Log_FS\Log_FS_llio.c</FilePath>
+              <FilePath>.\Log_FS\log.fs.platformdepend.c</FilePath>
             </File>
           </Files>
         </Group>

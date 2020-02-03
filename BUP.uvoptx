@@ -150,25 +150,15 @@
         <Ww>
           <count>1</count>
           <WinNumber>1</WinNumber>
-          <ItemText>Log_Fs_Info</ItemText>
+          <ItemText>TaskManager</ItemText>
         </Ww>
         <Ww>
           <count>2</count>
           <WinNumber>1</WinNumber>
-          <ItemText>Log_Fs_FileProperties</ItemText>
-        </Ww>
-        <Ww>
-          <count>3</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>TaskManager</ItemText>
-        </Ww>
-        <Ww>
-          <count>4</count>
-          <WinNumber>1</WinNumber>
           <ItemText>bupFirmwareVersion</ItemText>
         </Ww>
         <Ww>
-          <count>5</count>
+          <count>3</count>
           <WinNumber>1</WinNumber>
           <ItemText>systemTime,0x10</ItemText>
         </Ww>
@@ -177,55 +167,65 @@
         <Ww>
           <count>0</count>
           <WinNumber>2</WinNumber>
-          <ItemText>Left_BIM</ItemText>
+          <ItemText>Log_Fs_Info</ItemText>
         </Ww>
         <Ww>
           <count>1</count>
           <WinNumber>2</WinNumber>
-          <ItemText>Right_BIM</ItemText>
+          <ItemText>Log_Fs_FileProperties</ItemText>
         </Ww>
         <Ww>
           <count>2</count>
           <WinNumber>2</WinNumber>
-          <ItemText>debug_vars</ItemText>
+          <ItemText>Left_BIM</ItemText>
         </Ww>
         <Ww>
           <count>3</count>
           <WinNumber>2</WinNumber>
-          <ItemText>BUP_DataStorage</ItemText>
+          <ItemText>Right_BIM</ItemText>
         </Ww>
         <Ww>
           <count>4</count>
           <WinNumber>2</WinNumber>
-          <ItemText>rtU</ItemText>
+          <ItemText>debug_vars</ItemText>
         </Ww>
         <Ww>
           <count>5</count>
           <WinNumber>2</WinNumber>
-          <ItemText>rtDW</ItemText>
+          <ItemText>BUP_DataStorage</ItemText>
         </Ww>
         <Ww>
           <count>6</count>
           <WinNumber>2</WinNumber>
-          <ItemText>rtY</ItemText>
+          <ItemText>rtU</ItemText>
         </Ww>
         <Ww>
           <count>7</count>
           <WinNumber>2</WinNumber>
-          <ItemText>systemState</ItemText>
+          <ItemText>rtDW</ItemText>
         </Ww>
         <Ww>
           <count>8</count>
           <WinNumber>2</WinNumber>
-          <ItemText>systemTime</ItemText>
+          <ItemText>rtY</ItemText>
         </Ww>
         <Ww>
           <count>9</count>
           <WinNumber>2</WinNumber>
-          <ItemText>SNS_orientation</ItemText>
+          <ItemText>systemState</ItemText>
         </Ww>
         <Ww>
           <count>10</count>
+          <WinNumber>2</WinNumber>
+          <ItemText>systemTime</ItemText>
+        </Ww>
+        <Ww>
+          <count>11</count>
+          <WinNumber>2</WinNumber>
+          <ItemText>SNS_orientation</ItemText>
+        </Ww>
+        <Ww>
+          <count>12</count>
           <WinNumber>2</WinNumber>
           <ItemText>SNS_position</ItemText>
         </Ww>
@@ -399,7 +399,7 @@
 
   <Group>
     <GroupName>Log_FS</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -407,12 +407,12 @@
       <GroupNumber>2</GroupNumber>
       <FileNumber>10</FileNumber>
       <FileType>1</FileType>
-      <tvExp>0</tvExp>
+      <tvExp>1</tvExp>
       <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>.\Log_FS\Log_FS.c</PathWithFileName>
-      <FilenameWithoutPath>Log_FS.c</FilenameWithoutPath>
+      <PathWithFileName>.\Log_FS\log.fs.c</PathWithFileName>
+      <FilenameWithoutPath>log.fs.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
@@ -420,12 +420,12 @@
       <GroupNumber>2</GroupNumber>
       <FileNumber>11</FileNumber>
       <FileType>1</FileType>
-      <tvExp>0</tvExp>
+      <tvExp>1</tvExp>
       <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>.\Log_FS\Log_FS_llio.c</PathWithFileName>
-      <FilenameWithoutPath>Log_FS_llio.c</FilenameWithoutPath>
+      <PathWithFileName>.\Log_FS\log.fs.platformdepend.c</PathWithFileName>
+      <FilenameWithoutPath>log.fs.platformdepend.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
