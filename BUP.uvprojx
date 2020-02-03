@@ -456,17 +456,17 @@
           </Files>
         </Group>
         <Group>
-          <GroupName>Log_FS</GroupName>
+          <GroupName>logfs</GroupName>
           <Files>
             <File>
               <FileName>log.fs.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\Log_FS\log.fs.c</FilePath>
+              <FilePath>.\logfs\log.fs.c</FilePath>
             </File>
             <File>
               <FileName>log.fs.platformdepend.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\Log_FS\log.fs.platformdepend.c</FilePath>
+              <FilePath>.\logfs\log.fs.platformdepend.c</FilePath>
             </File>
           </Files>
         </Group>

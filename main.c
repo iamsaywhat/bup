@@ -13,7 +13,7 @@
 #include "otherlib.h"                            // Модуль аппаратнозависимых функций общего назначения
 
 #include "bupdatastorage.h"                      // Хранилище данных
-#include "Log_FS/log.fs.h"                       // Файловая система для записи логов в "черный ящик"
+#include "logfs/log.fs.h"                       // Файловая система для записи логов в "черный ящик"
 #include "Math_model/mathmodelapi.h"             // Математическая модель системы управления полетом
 #include "SelfTesting.h"                         // Модуль самодиагностики
 #include "RetargetPrintf/RetargetPrintf.h"       // Переопределение функции printf для вывода в CAN и записи в черный ящик

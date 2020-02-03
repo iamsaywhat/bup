@@ -5,7 +5,7 @@
 #include "1636PP52Y.h"
 #include "crc16.h"
 #include "bims.h"
-#include "Log_FS/log.fs.h"
+#include "logfs/log.fs.h"
 #include "kmonshelf.h"
 #include "sws.h"
 #include "discreteio.h"

@@ -8,7 +8,7 @@
 #include "SWS.h"
 #include "kmonshelf.h"
 #include "bims.h"
-#include "Log_FS/log.fs.h"
+#include "logfs/log.fs.h"
 #include "HeightMap/heightmap.platformdepend.h"
 #include "HeightMap/heightmap.h"
 #include "RetargetPrintf/RetargetPrintf.h"
