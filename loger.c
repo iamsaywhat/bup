@@ -3,7 +3,7 @@
 #include "config.h"
 #include "logfs/log.fs.h"
 #include "retarget.printf/RetargetPrintf.h"
-#include "selfTesting.h"
+#include "selftesting.h"
 #include "bupdatastorage.h"
 #include "kmonshelf.h"
 #include "bims.h"

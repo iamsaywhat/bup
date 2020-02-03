@@ -2,7 +2,7 @@
 
 #include "bims.h"
 #include "discreteio.h"
-#include "../selfTesting.h"
+#include "../selftesting.h"
 #include "otherlib.h"
 #include "../config.h"
 #include "../bupdatastorage.h"

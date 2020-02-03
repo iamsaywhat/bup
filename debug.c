@@ -2,7 +2,7 @@
 
 #include "MDR32F9Qx_port.h"
 #include "MDR32F9Qx_can.h"
-#include "selfTesting.h"
+#include "selftesting.h"
 #include "bupdatastorage.h"
 #include "kmonshelf.h"
 #include "config.h"

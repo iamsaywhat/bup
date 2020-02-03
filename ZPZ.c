@@ -10,7 +10,7 @@
 #include "sws.h"
 #include "discreteio.h"
 #include "otherlib.h"
-#include "selfTesting.h"   
+#include "selftesting.h"   
 #include "bupdatastorage.h"
 #include "heightMap/mapflashlayout.h"
 #include "string.h"

@@ -1,4 +1,4 @@
-#include "selfTesting.h"
+#include "selftesting.h"
 
 #include "bupboard.h"
 #include "discreteio.h"
@@ -11,7 +11,6 @@
 #include "logfs/log.fs.h"
 #include "heightmap/heightmap.platformdepend.h"
 #include "heightmap/heightmap.h"
-#include "retarget.printf/RetargetPrintf.h"
 #include "bupdatastorage.h"
 
 

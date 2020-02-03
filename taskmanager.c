@@ -1,7 +1,7 @@
 #include "taskmanager.h"
 
 #include "config.h"
-#include "selfTesting.h"
+#include "selftesting.h"
 #include "bupdatastorage.h"
 #include "bims.h"
 #include "math.model/mathmodelapi.h"
