@@ -2,17 +2,17 @@
 
 #include "MDR32F9Qx_port.h"
 #include "MDR32F9Qx_can.h"
-#include "SelfTesting.h"
-#include "bup_data_store.h"
-#include "SNS.h"
+#include "selftesting.h"
+#include "bupdatastorage.h"
+#include "kmonshelf.h"
 #include "config.h"
 #include "otherlib.h"
 
 
 #ifdef flightRegulatorCFB //******************************************************* Если выбран flightRegulatorCFB
-	#include "Math_model/flightRegulatorCFB/flightRegulatorCFB.h"
-#else //*************************************************************************** Если выбран Easy_reg
-	#include "Math_model/EasyReg/Easy_reg.h"
+	#include "math.model/flightRegulatorCFB/flightRegulatorCFB.h"
+#else //*************************************************************************** Если выбран flightController
+	#include "math.model/flightController/flightController.h"
 #endif //************************************************************************** !flightRegulatorCFB 
 
 
@@ -88,7 +88,7 @@ void debug_can_full_struct (void)
   debug_can(0x531, &debug_vars.flightMode, 1);
 #else
   /* Здесь можно добавить 
-  вывод необходимых переменных относящихся к Easy_reg
+  вывод необходимых переменных относящихся к flightController
   */
   debug_can(0x524, &debug_vars.DistanceToTDP, 8);
   debug_can(0x529, &debug_vars.TimeToHorTarget, 8);
@@ -137,21 +137,21 @@ void debug_prepare_data (void)
   debug_vars.flightMode            = (uint8_t)(rtY.executeMode);
 #else
   /* Здесь можно добавить 
-  вывод необходимых переменных относящихся к Easy_reg
+  вывод необходимых переменных относящихся к flightController
   */   
-  debug_vars.BIM_CMD               = (int16_t)(rtY.BIM_CMD);                       // Команда БИМам от Easy_reg
+  debug_vars.BIM_CMD               = (int16_t)(rtY.BIM_CMD);                       // Команда БИМам от flightController
   debug_vars.DistanceToTDP         = (double) (rtY.DistanceToTDP);                 // Дистанция до точки приземления, м
   debug_vars.TimeToHorTarget       = (double) (rtY.TimeToHorTarget);               // Время полета то точки приземления по прямой, сек
   debug_vars.TimeToTD              = (double) (rtY.TimeToTD);                      // Время до открытия парашюта, сек
 #endif  
-  debug_vars.TDP_Lat               = BUP_Get_TouchdownLatitude();                  // Широта точки приземления
-  debug_vars.TDP_Lon               = BUP_Get_TouchdownLongitude();                 // Долгота точки приземления
-  debug_vars.Alt2model             = BUP_Get_Altitude();                           // Высота преобразованная в метры
+  debug_vars.TDP_Lat               = Bup_getTouchdownLatitude();                   // Широта точки приземления
+  debug_vars.TDP_Lon               = Bup_getTouchdownLongitude();                  // Долгота точки приземления
+  debug_vars.Alt2model             = Bup_getAltitude();                            // Высота преобразованная в метры
   debug_vars.SNSalt                = SNS_position.Struct.Pos_alt;                  // Высота в том виде в котором принимаем от СНС
-  debug_vars.rtU_XYZi_Lat          = BUP_Get_Latitude();                           // Широта преобразованная в градусы
-  debug_vars.rtU_XYZi_Lon          = BUP_Get_Longitude();                          // Долгота преобразованная в градусы
-  debug_vars.rtU_XYZi_Alt          = BUP_Get_Altitude();                           // Высота преобразованная в метры
-  debug_vars.Relief_height         = BUP_Get_ReliefHeight();                       // Высота рельефа под нами в метрах
+  debug_vars.rtU_XYZi_Lat          = Bup_getLatitude();                            // Широта преобразованная в градусы
+  debug_vars.rtU_XYZi_Lon          = Bup_getLongitude();                           // Долгота преобразованная в градусы
+  debug_vars.rtU_XYZi_Alt          = Bup_getAltitude();                            // Высота преобразованная в метры
+  debug_vars.Relief_height         = Bup_getReliefHeight();                        // Высота рельефа под нами в метрах
   debug_vars.SysState              = systemState;                                  // Состояние системы (из SelfTesing)
 }
 
