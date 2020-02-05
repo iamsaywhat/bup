@@ -1,18 +1,18 @@
-#include "ZPZ.h"
+#include "zpz.h"
 
 #include "MDR32F9Qx_uart.h"
 #include "MDR32F9Qx_can.h"
 #include "1636PP52Y.h"
 #include "crc16.h"
-#include "actuator.h"
-#include "Log_FS/Log_FS.h"
+#include "bims.h"
+#include "logfs/log.fs.h"
 #include "kmonshelf.h"
-#include "SWS.h"
+#include "sws.h"
 #include "discreteio.h"
 #include "otherlib.h"
-#include "SelfTesting.h"   
-#include "bup_data_store.h"
-#include "HeightMap/map_flash_layout.h"
+#include "selftesting.h"   
+#include "bupdatastorage.h"
+#include "heightMap/mapflashlayout.h"
 #include "string.h"
 
 
@@ -96,8 +96,8 @@ static uint16_t UARTReceiveByte_by_SLIP(MDR_UART_TypeDef* UARTx);
 static int16_t  UARTSendByte_by_SLIP (MDR_UART_TypeDef* UARTx, uint16_t Byte);
 static int16_t  SendFEND (MDR_UART_TypeDef* UARTx);
 /*--------------------------------------------------------------------------------------------Режим "ВВПЗ"-----------------------------*/
-static void     ZPZ_StartHighPriorityTask (void);
-static void     ZPZ_FinishHighPriorityTask (void);
+static void     ZPZ_startHighPriorityTask (void);
+static void     ZPZ_finishHighPriorityTask (void);
 /*-------------------------------------------------------------------------------------------------------------------------------------*/
 
 /******************************************************************************************************
@@ -112,14 +112,14 @@ static void     ZPZ_FinishHighPriorityTask (void);
 static void ZPZ_RetargetPins (void)
 {
   // Переназчаем UART на нужный порт для работы ZPZ
-  Pin_init (ZPZ_RX);
-  Pin_init (ZPZ_TX);
+  Pin_initialize (ZPZ_RX);
+  Pin_initialize (ZPZ_TX);
 }
 
 /***************************************************************************************************************
-  ZPZ_init - Запуск процедуры обмена по ZPZ
+  ZPZ_initialize - Запуск процедуры обмена по ZPZ
 ***************************************************************************************************************/
-void ZPZ_init (void)
+void ZPZ_initialize (void)
 {
   UART_InitTypeDef UART_InitStructure;
 	
@@ -152,9 +152,9 @@ void ZPZ_init (void)
 
 
 /***************************************************************************************************************
-  ZPZ_deinit - Деинициализация ЗПЗ
+  ZPZ_deinitialize - Деинициализация ЗПЗ
 ***************************************************************************************************************/
-void ZPZ_deinit (void)
+void ZPZ_deinitialize (void)
 {
   // Сброс конфигуряции UART
   UART_DeInit(ZPZ_UART);
@@ -204,27 +204,27 @@ void ZPZ_ShortResponse(uint8_t Command, uint16_t Count, uint8_t Error)
 
 
 /**************************************************************************************************************
-  ZPZ_WriteIntoCSnUnion - Функция записи производит объединение 4х микросхем SPI-памяти в единое 
-                          адресное пространство 0x00000 - 0x7FFFF, используя драйвер "1636PP52Y.h".
-                          Позволяет абстрагироваться от периферийного уровня и управления CSn.			
+  ZPZ_writeFlash - Функция записи производит объединение 4х микросхем SPI-памяти в единое 
+                   адресное пространство 0x00000 - 0x7FFFF, используя драйвер "1636PP52Y.h".
+                   Позволяет абстрагироваться от периферийного уровня и управления CSn.			
 **************************************************************************************************************/
-void ZPZ_WriteIntoCSnUnion(uint32_t Address, uint8_t* Source, uint32_t Size)
+void ZPZ_writeFlash(uint32_t Address, uint8_t* Source, uint32_t Size)
 {	
   uint32_t  Bytecount = 0;
 
   while(Bytecount < Size)
   {
     if(((Address + Bytecount) < 0x20000))
-      SPI_1636PP52Y_ByteProgram (SPI_1636PP52Y_CS1, Address + Bytecount, *Source++);
+      SPI_1636PP52Y_writeByte (SPI_1636PP52Y_CS1, Address + Bytecount, *Source++);
 			
     else if (((Address + Bytecount) >= 0x20000)  &&  ((Address + Bytecount) < 0x40000))
-      SPI_1636PP52Y_ByteProgram (SPI_1636PP52Y_CS2, (Address - 0x20000 + Bytecount), *Source++);
+      SPI_1636PP52Y_writeByte (SPI_1636PP52Y_CS2, (Address - 0x20000 + Bytecount), *Source++);
 				
     else if (((Address + Bytecount) >= 0x40000)  &&  ((Address + Bytecount) < 0x60000))
-      SPI_1636PP52Y_ByteProgram (SPI_1636PP52Y_CS3, (Address - 0x40000 + Bytecount), *Source++);
+      SPI_1636PP52Y_writeByte (SPI_1636PP52Y_CS3, (Address - 0x40000 + Bytecount), *Source++);
 			
     else if (((Address + Bytecount) >= 0x60000)  &&  ((Address + Bytecount) < 0x80000))
-      SPI_1636PP52Y_ByteProgram (SPI_1636PP52Y_CS4, (Address - 0x60000 + Bytecount), *Source++);
+      SPI_1636PP52Y_writeByte (SPI_1636PP52Y_CS4, (Address - 0x60000 + Bytecount), *Source++);
 
     Bytecount ++;
   }
@@ -233,27 +233,27 @@ void ZPZ_WriteIntoCSnUnion(uint32_t Address, uint8_t* Source, uint32_t Size)
 
 
 /**************************************************************************************************************
-  ZPZ_ReadIntoCSnUnion - Функция чтения производит объединение 4х микросхем SPI-памяти в единое
+  ZPZ_readIntoCSnUnion - Функция чтения производит объединение 4х микросхем SPI-памяти в единое
                          адресное пространство 0x00000 - 0x7FFFF, используя драйвер "1636PP52Y.h".
                          Позволяет абстрагироваться от периферийного уровня и управления CSn.			
 **************************************************************************************************************/
-void ZPZ_ReadIntoCSnUnion(uint32_t Address, uint8_t* Destination, uint32_t Size)
+void ZPZ_readFlash(uint32_t Address, uint8_t* Destination, uint32_t Size)
 {	
   uint32_t  Bytecount = 0;
 	
   while(Bytecount < Size)
   {
     if(((Address + Bytecount) < 0x20000))
-      SPI_1636PP52Y_ReadArray (SPI_1636PP52Y_CS1, Address + Bytecount, Destination++, 1);
+      SPI_1636PP52Y_readArray (SPI_1636PP52Y_CS1, Address + Bytecount, Destination++, 1);
 			
     else if (((Address + Bytecount) >= 0x20000)  &&  ((Address + Bytecount) < 0x40000))
-      SPI_1636PP52Y_ReadArray (SPI_1636PP52Y_CS2, Address + Bytecount, Destination++, 1);
+      SPI_1636PP52Y_readArray (SPI_1636PP52Y_CS2, Address + Bytecount, Destination++, 1);
 				
     else if (((Address + Bytecount) >= 0x40000)  &&  ((Address + Bytecount) < 0x60000))
-      SPI_1636PP52Y_ReadArray (SPI_1636PP52Y_CS3, Address + Bytecount, Destination++, 1);
+      SPI_1636PP52Y_readArray (SPI_1636PP52Y_CS3, Address + Bytecount, Destination++, 1);
 			
     else if (((Address + Bytecount) >= 0x60000)  &&  ((Address + Bytecount) < 0x80000))
-      SPI_1636PP52Y_ReadArray (SPI_1636PP52Y_CS4, Address + Bytecount, Destination++, 1);
+      SPI_1636PP52Y_readArray (SPI_1636PP52Y_CS4, Address + Bytecount, Destination++, 1);
 
     Bytecount ++;
   }
@@ -262,23 +262,23 @@ void ZPZ_ReadIntoCSnUnion(uint32_t Address, uint8_t* Destination, uint32_t Size)
 
 
 /**************************************************************************************************************
-  ZPZ_ChipEraseCSnUnion - Функция стирания всех установленых микросхем памяти, используется
+  ZPZ_eraseFlash - Функция стирания всех установленых микросхем памяти, используется
                           драйвер "1636PP52Y.h".		
 **************************************************************************************************************/
-void ZPZ_ChipEraseCSnUnion(void)
+void ZPZ_eraseFlash(void)
 {	
-  SPI_1636PP52Y_ChipErase (SPI_1636PP52Y_CS1);
-  SPI_1636PP52Y_ChipErase (SPI_1636PP52Y_CS2);
-  SPI_1636PP52Y_ChipErase (SPI_1636PP52Y_CS3);
-  SPI_1636PP52Y_ChipErase (SPI_1636PP52Y_CS4);
+  SPI_1636PP52Y_eraseChip (SPI_1636PP52Y_CS1);
+  SPI_1636PP52Y_eraseChip (SPI_1636PP52Y_CS2);
+  SPI_1636PP52Y_eraseChip (SPI_1636PP52Y_CS3);
+  SPI_1636PP52Y_eraseChip (SPI_1636PP52Y_CS4);
 }	
 
 
 
 /**************************************************************************************************************
-  ZPZ_Service - Функция обслуживания команд от ЗПЗ (Основной режим)
+  ZPZ_service - Функция обслуживания команд от ЗПЗ (Основной режим)
 **************************************************************************************************************/
-uint8_t ZPZ_Service (void)
+uint8_t ZPZ_service (void)
 {
   ZPZ_BasePacket_Union  ZPZ_Base_Request;         /* Сюда складывается приходящий запрос (кроме полей "данные") */
   TimeoutType           timeout;                  /* Контроль превышения времени обработки */
@@ -286,11 +286,11 @@ uint8_t ZPZ_Service (void)
   static TimeoutType    timeoutHighPriorityTask;  /* Таймаут на удержание в режиме ВПЗ */
 	
 
-  while (UART_GetFlagStatus (ZPZ_UART, UART_FLAG_RXFE) != SET)     /* Вычищаем FIFO от мусора и ждем пока не появится заголовок */
-    UART_ReceiveData(ZPZ_UART);	
+//  while (UART_GetFlagStatus (ZPZ_UART, UART_FLAG_RXFE) != SET)     /* Вычищаем FIFO от мусора и ждем пока не появится заголовок */
+//    UART_ReceiveData(ZPZ_UART);	
 	
   if(timeoutStatus(&timeoutHighPriorityTask) == TIME_IS_UP)         /* Здесь проверяем нужно ли вернуть модуль в режим одиночной команды */
-    ZPZ_FinishHighPriorityTask();
+    ZPZ_finishHighPriorityTask();
 		
   setTimeout (&timeout, ZPZ_PACKET_WAIT_TIMEOUT);                   /* Ожидаем заголовок в течение заданного времени */
   while(timeoutStatus(&timeout) != TIME_IS_UP)
@@ -325,7 +325,7 @@ uint8_t ZPZ_Service (void)
       {
         case START_DOWNLOAD: /* Начало загрузки полетного задания */
         {
-          ZPZ_StartHighPriorityTask ();                           /* Процесс ресурсоемкий, будем выполнять его в режиме "ВВПЗ" */
+          ZPZ_startHighPriorityTask ();                           /* Процесс ресурсоемкий, будем выполнять его в режиме "ВВПЗ" */
           setTimeout (&timeoutHighPriorityTask, ZPZ_HPT_TIMEOUT); /* Обновляем таймаут контроль */
           crc = ZPZ_Request_START_DOWNLOAD (crc);                 /* Принимаем данные запроса */
           break;
@@ -338,7 +338,7 @@ uint8_t ZPZ_Service (void)
         }
         case START_UPLOAD: /* Начало выгрузки полетного задания */
         {
-          ZPZ_StartHighPriorityTask ();                           /* Процесс ресурсоемкий, будем выполнять его в режиме "ВВПЗ" */
+          ZPZ_startHighPriorityTask ();                           /* Процесс ресурсоемкий, будем выполнять его в режиме "ВВПЗ" */
           setTimeout (&timeoutHighPriorityTask, ZPZ_HPT_TIMEOUT); /* Обновляем таймаут контроль */
           crc = ZPZ_Request_START_UPLOAD (crc);                   /* Принимаем данные запроса */
           break;
@@ -377,7 +377,7 @@ uint8_t ZPZ_Service (void)
         case LOG_UPLOAD: /* Выгрузка файла лога */
         {
           if(ZPZ_Base_Request.Struct.Count == 0)                  /* Процесс ресурсоемкий, будем выполнять его в режиме "ВВПЗ" */
-            ZPZ_StartHighPriorityTask ();                         /* Определять начало процесса выгрузки логов будем по 0-му номеру пакета */
+            ZPZ_startHighPriorityTask ();                         /* Определять начало процесса выгрузки логов будем по 0-му номеру пакета */
           setTimeout (&timeoutHighPriorityTask, ZPZ_HPT_TIMEOUT); /* Обновляем таймаут контроль */
           crc = ZPZ_Request_LOG_UPLOAD(crc);                      /* Принимаем данные запроса */
           break;
@@ -494,7 +494,7 @@ uint8_t ZPZ_Service (void)
         {
           ZPZ_Response_MAP_DOWNLOAD  (ZPZ_Base_Request.Struct.Count);   /* Формируем ответ */
           if(ZPZ_Base_Request.Struct.Count == NUMBER_OF_MAP_PACKET)     /* Если это конец загрузки карты и задания (определяем как 400й пакет) */
-            ZPZ_FinishHighPriorityTask ();                              /* Завершаем режим "ВВПЗ" */
+            ZPZ_finishHighPriorityTask ();                              /* Завершаем режим "ВВПЗ" */
           break;
         }
         case START_UPLOAD: /* Начало выгрузки полетного задания */
@@ -506,7 +506,7 @@ uint8_t ZPZ_Service (void)
         {
           ZPZ_Response_MAP_UPLOAD (ZPZ_Base_Request.Struct.Count);      /* Формируем ответ */
           if(ZPZ_Base_Request.Struct.Count == NUMBER_OF_MAP_PACKET)     /* Если это конец выгрузки карты и задания (определяем как 400й пакет) */
-            ZPZ_FinishHighPriorityTask ();                              /* Завершаем режим "ВВПЗ" */
+            ZPZ_finishHighPriorityTask ();                              /* Завершаем режим "ВВПЗ" */
           break;
         }
         case CHECK_CONNECT: /* Проверка связи по протоколу */
@@ -776,9 +776,9 @@ static void ZPZ_Response_START_DOWNLOAD (uint16_t NumPacket)
 	/* Если попали сюда, значит пакет валиден и его 
 	   можно записать во flash */
 	/* Очищаем память под полетное задание */
-	ZPZ_ChipEraseCSnUnion(); 
+	ZPZ_eraseFlash(); 
 	/* Записываем точку приземления и масштабы карты высот */
-	ZPZ_WriteIntoCSnUnion(ADDRESS_0_PACKET, buffer, SIZE_OF_0_PACKET_DATA);
+	ZPZ_writeFlash(ADDRESS_0_PACKET, buffer, SIZE_OF_0_PACKET_DATA);
 	/* Отвечаем об успешной команде */
 	ZPZ_ShortResponse(START_DOWNLOAD, NumPacket, SUCCES);
 }
@@ -819,7 +819,7 @@ static void ZPZ_Response_MAP_DOWNLOAD (uint16_t NumPacket)
 	  /* Определяем адрес места записи с помощью макроса */
 		Address = ADDRESS_n_PACKET_MAP(NumPacket);
 		/* Пишем байт во flash */
-		ZPZ_WriteIntoCSnUnion(Address + count, &buffer[count], 1);
+		ZPZ_writeFlash (Address + count, &buffer[count], 1);
 	}
 	/* Если принятый пакет последний и мы попали сюда,
      значит все пакеты валидны, укладываем последний
@@ -833,7 +833,7 @@ static void ZPZ_Response_MAP_DOWNLOAD (uint16_t NumPacket)
        запишем в него признак	*/
 		*((uint32_t*)buffer) = MAP_TAG; 
 		/* А признак теперь уложим в конец*/
-		ZPZ_WriteIntoCSnUnion(Address, buffer, 4);
+		ZPZ_writeFlash(Address, buffer, 4);
 	}		
 	ZPZ_ShortResponse(MAP_DOWNLOAD, NumPacket, SUCCES);
 }
@@ -873,7 +873,7 @@ static void ZPZ_Response_START_UPLOAD (uint16_t NumPacket)
 	for(uint16_t i = 0; i < SIZE_OF_0_PACKET_DATA; i++)
 	{
 		/* Читаем байт */
-		ZPZ_ReadIntoCSnUnion(ADDRESS_0_PACKET+i, buffer, 1);
+		ZPZ_readFlash(ADDRESS_0_PACKET+i, buffer, 1);
 		/* Пересчитываем с его учетом контрольную сумму */
 		ZPZ_Response.Struct.CRC = Crc16(buffer, 1, ZPZ_Response.Struct.CRC);
 		/* Отправляем считанный байт */
@@ -930,7 +930,7 @@ static void ZPZ_Response_MAP_UPLOAD (uint16_t NumPacket)
 		/* Определяем адрес с помощью макроса */
 		Address = ADDRESS_n_PACKET_MAP(NumPacket);
 		/* Читаем байт */
-		ZPZ_ReadIntoCSnUnion(Address + i, buffer, 1);
+		ZPZ_readFlash (Address + i, buffer, 1);
 		/* Пересчитываем с его учетом контрольную сумму */
 		ZPZ_Response.Struct.CRC = Crc16(buffer, 1, ZPZ_Response.Struct.CRC);
 		/* Отправляем считанное */
@@ -1181,9 +1181,9 @@ static void ZPZ_Response_LOG_FORMAT (uint16_t NumPacket)
 		SendFEND(ZPZ_UART);
 		
 		/* Запускаем форматирование */
-		LogFs_Formatting();
+		LogFs_format();
 		/* После форматирование необходимо обновить информацию о файловой системе */
-		LogFs_Info();
+		LogFs_initialize();
 		
 		return;
 	}
@@ -1238,7 +1238,7 @@ static void ZPZ_Response_LOG_FILES (uint16_t NumPacket)
 	   Остальное зависит от количества файлов в накопителе */
 	ZPZ_Response.Struct.PacketSize = 6;
 	/* Тогда определим количество файлов и прибавим (для каждого файла отводится 6 байт сообщения) */
-	files = LogFs_GetFileNum();
+	files = LogFs_getFileNumber();
 	ZPZ_Response.Struct.PacketSize += 6*files;
 	
 	/* Теперь посчитаем контрольную сумму начала пакета (первые 8 байт) */
@@ -1266,14 +1266,14 @@ static void ZPZ_Response_LOG_FILES (uint16_t NumPacket)
 		/* Если первая итерация то, (как бы устанавливаем точку отсчета) */
 		/* Ищем первый (самый старый файл в директории) */
 		if(j == 0) 
-			result = Log_Fs_FindFile(FIRST_FILE);
+			result = LogFs_findFile(FIRST_FILE);
 		/* При последующих итерациях нужно просто прокручивать файлы 
 		   Командой "NEXT_FILE" */
 		else 
-			result = Log_Fs_FindFile(NEXT_FILE);
+			result = LogFs_findFile(NEXT_FILE);
 		
 		/* Узнаем его номер файла и сразу упакуем в буфер для отправки */
-		*(uint16_t*)buffer = Log_Fs_GetFileProperties (FILE_NUMBER);
+		*(uint16_t*)buffer = LogFs_getFileProperties(FILE_NUMBER);
 		/* Подсчитываем контрольную сумму */
 		ZPZ_Response.Struct.CRC = Crc16(buffer, 2, 	ZPZ_Response.Struct.CRC);
 		/* Отправляем эти 2 байта информации о номере файла */
@@ -1281,7 +1281,7 @@ static void ZPZ_Response_LOG_FILES (uint16_t NumPacket)
 			UARTSendByte_by_SLIP (ZPZ_UART, buffer[i]);
 		
 		/* Узнаем его размер и сразу упакуем в буфер для отправки */
-		*((uint32_t*)buffer) = Log_Fs_GetFileProperties (FILE_SIZE);
+		*((uint32_t*)buffer) = LogFs_getFileProperties (FILE_SIZE);
 		/* Подсчитываем контрольную сумму */
 		ZPZ_Response.Struct.CRC = Crc16(buffer, 4, 	ZPZ_Response.Struct.CRC);
 		/* Отправляем эти 4 байта информации о размере файла */
@@ -1289,7 +1289,7 @@ static void ZPZ_Response_LOG_FILES (uint16_t NumPacket)
 			UARTSendByte_by_SLIP (ZPZ_UART, buffer[i]);
 		
 		/* Дополнительная проверка по выходу из цикла
-		   Если все файлы были просмотрены, функция Log_Fs_FindFile() возвращает FS_ALL_FILES_SCROLLS */
+		   Если все файлы были просмотрены, функция LogFs_findFile() возвращает FS_ALL_FILES_SCROLLS */
 		/* Проконтролируем это */
 		if (result ==  FS_ALL_FILES_SCROLLS)
 			break;
@@ -1333,7 +1333,7 @@ static void ZPZ_Response_LOG_UPLOAD(uint16_t NumPacket)
 	
 	/* Ищем файл в хранилище по номеру
 	   Если функция не найдет файл, то выдаст ошибку, тогда можно не продолжать */
-	if(Log_Fs_FindFile_ByNum(fileNumber)!= FS_FINE)
+	if(LogFs_findFileByNum(fileNumber)!= FS_FINE)
 	{
 		/* Ответим ошибкой: Файл с таким номером не найден */
 		ZPZ_ShortResponse(LOG_UPLOAD, 0, LOG_FS_FILE_NOT_FIND);
@@ -1341,7 +1341,7 @@ static void ZPZ_Response_LOG_UPLOAD(uint16_t NumPacket)
 	}
 
 	/* Узнаем размер файла */
-  filesize = Log_Fs_GetFileProperties(FILE_SIZE);
+  filesize = LogFs_getFileProperties(FILE_SIZE);
 
 	/* Заполняем структуру общей части всех пакетов */
 	ZPZ_Response.Struct.Handler    = HANDLER_FROM_BUP; // Заголовок BU
@@ -1440,7 +1440,7 @@ static void ZPZ_Response_LOG_UPLOAD(uint16_t NumPacket)
 			for(uint32_t i = 0; i < (filesize - (packet_count - 1) * BYTE_FROM_FILE); i++)
 			{
 				/* Будем читать и отправлять побайтово, не забывая пересчитывать контрольную сумму */
-				LogFs_ReadFile(buffer, offset + i, 1);
+				LogFs_readFile(buffer, offset + i, 1);
 				/* Сразу подсчитываем контрольную сумму */
 			  ZPZ_Response.Struct.CRC = Crc16(buffer, 1, 	ZPZ_Response.Struct.CRC);
 			  /* И сразу отправляем */
@@ -1480,7 +1480,7 @@ static void ZPZ_Response_LOG_UPLOAD(uint16_t NumPacket)
 			for(uint32_t i = 0; i < BYTE_FROM_FILE; i++)
 			{
 				/* Будем читать и отправлять побайтово, не забывая пересчитывать контрольную сумму */
-				LogFs_ReadFile(buffer, offset + i, 1);
+				LogFs_readFile(buffer, offset + i, 1);
 				/* Сразу подсчитываем контрольную сумму */
 				ZPZ_Response.Struct.CRC = Crc16(buffer, 1, ZPZ_Response.Struct.CRC);
 				/* И сразу отправляем */
@@ -1582,7 +1582,7 @@ static void ZPZ_Response_REQ_SNS_POS (uint16_t NumPacket)
 	ZPZ_Response_Union    ZPZ_Response;  // Стандартный ответ к ЗПЗ
 	
 	/* Обновляем данные СНС */
-	BUP_UpdateDataFromSNS ();
+	Bup_updateData();
 	
 	/* Проверим исправен ли СНС (функция выше должна обновить состояние) */
 	if (SelfTesting_STATUS(ST_sns) == ST_FAULT)
@@ -1859,7 +1859,7 @@ static void ZPZ_Response_SYSTEM_STATE (uint16_t NumPacket)
 	/* Кладём состояние системы в буфер */
   *((uint16_t*)buffer)            = systemState;
   /* Кладём заряд батареи */
-  *((float*)((uint8_t*)buffer+2)) = BUP_DataStorage.Battery50V; 
+  *((float*)((uint8_t*)buffer+2)) = bupDataStorage.battery50V; 
 	/* Кладём версию прошивки */
   *((uint8_t*)buffer+6)           = bupFirmwareVersion.microFirmware;
   *((uint8_t*)buffer+7)           = bupFirmwareVersion.minorFirmware;
@@ -2003,7 +2003,7 @@ static void ZPZ_Response_CAN_TRANSMIT (uint16_t NumPacket)
 /****************************************************************** 
     Запуск режима выполнения высокоприоритетной задачи
 ******************************************************************/
-static void ZPZ_StartHighPriorityTask (void)
+static void ZPZ_startHighPriorityTask (void)
 {
   PinConfigType pin = LED_READY;          /* Мигать будем светодиодом "Готов" */
   HighPriorityTask = ZPZ_HPT_MODE;	      /* Выставляем флаг режима High Priority Task */
@@ -2013,7 +2013,7 @@ static void ZPZ_StartHighPriorityTask (void)
 /****************************************************************** 
     Завершение режима выполнения высокоприоритетной задачи
 ******************************************************************/
-static void ZPZ_FinishHighPriorityTask (void)
+static void ZPZ_finishHighPriorityTask (void)
 {
 	stopIndication();               /* Выключаем индикацию */
 	HighPriorityTask = ZPZ_SC_MODE;	/* Выставляем флаг режима по-умолчанию - Single Command */
@@ -2022,7 +2022,8 @@ static void ZPZ_FinishHighPriorityTask (void)
 /****************************************************************** 
     Проверка занятости модуля высокоприоритетной задачей 
 ******************************************************************/
-uint8_t ZPZ_CheckHighPriorityTask (void)
+uint8_t ZPZ_getStatus (void)
 {
 	return HighPriorityTask;
 }
+

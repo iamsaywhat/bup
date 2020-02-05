@@ -1,10 +1,10 @@
 #include "irq.h"
 
 #include "MDR32F9Qx_timer.h"
-#include "Math_model/mathmodelapi.h"
-#include "bup_data_store.h"
+#include "math.model/mathmodelapi.h"
+#include "bupdatastorage.h"
 #include "taskmanager.h"
-#include "ZPZ.h"
+#include "zpz.h"
 #include "otherlib.h"
 #include "discreteio.h"
 
@@ -29,9 +29,9 @@ void Timer1_IRQHandler(void)
   /* Сбрасываем флаг прерывания */
   TIMER_ClearFlag(MDR_TIMER1,TIMER_STATUS_CNT_ARR);
   /* Делаем инкремент количества секунд с момента начала управления */
-  BUP_DataStorage.ControlSecond ++;
+  bupDataStorage.controlSecond++;
   /* Запускаем обновление данных */
-  BUP_DataUpdate ();
+  Bup_updateData();
   /* Отправляем данные математической модели */
   MathModel_prepareData ();
   /* Запускаем шаг расчета модели */	
@@ -39,7 +39,7 @@ void Timer1_IRQHandler(void)
   /* Выполняем требования матмодели */
   MathModel_control();
   /* Сбрасываем цикл пассивных задач */
-  TaskManagerGo2Task (TaskTest, 0);
+  TaskManager_gotoTask (TaskTest, 0);
 }
 
 /******************************************************************  

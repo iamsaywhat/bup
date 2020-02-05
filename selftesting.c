@@ -1,18 +1,17 @@
-#include "SelfTesting.h"
+#include "selftesting.h"
 
 #include "bupboard.h"
 #include "discreteio.h"
 #include "analogio.h"
 #include "1636pp52y.h"
 #include "25q64fv.h"
-#include "SWS.h"
+#include "sws.h"
 #include "kmonshelf.h"
-#include "actuator.h"
-#include "Log_FS/Log_FS.h"
-#include "HeightMap/Heightmap_conf_and_pd.h"
-#include "HeightMap/Heightmap.h"
-#include "RetargetPrintf/RetargetPrintf.h"
-#include "bup_data_store.h"
+#include "bims.h"
+#include "logfs/log.fs.h"
+#include "heightmap/heightmap.platformdepend.h"
+#include "heightmap/heightmap.h"
+#include "bupdatastorage.h"
 
 
 /***************************************
@@ -96,7 +95,7 @@ void SelfTestingOnline (void)
   // Проверка связи с СНС
   SelfTesting_SNS();
   // Проверка доступности карты
-  SelfTesting_MapAvailability (BUP_Get_Latitude(), BUP_Get_Longitude());
+  SelfTesting_MapAvailability (Bup_getLatitude(), Bup_getLongitude());
   // Проверка напряжения на АКБ
   SelfTesting_Battery50Volt();
 }
@@ -206,13 +205,13 @@ SelfTesting_STATUS_TYPE SelfTesting_1636PP52Y(void)
 {
   // Проверяем просто по ID микросхемы (если ID не совпадёт - это признак неисправности)
   SelfTesting_SET_OK(ST_1636PP52Y);
-  if(SPI_1636PP52Y_ReadID (SPI_1636PP52Y_CS1) != _1636PP52Y_ID)
+  if(SPI_1636PP52Y_readID (SPI_1636PP52Y_CS1) != _1636PP52Y_ID)
     SelfTesting_SET_FAULT(ST_1636PP52Y); 
-  if(SPI_1636PP52Y_ReadID (SPI_1636PP52Y_CS2) != _1636PP52Y_ID)
+  if(SPI_1636PP52Y_readID (SPI_1636PP52Y_CS2) != _1636PP52Y_ID)
     SelfTesting_SET_FAULT(ST_1636PP52Y); 	
-  if(SPI_1636PP52Y_ReadID (SPI_1636PP52Y_CS3) != _1636PP52Y_ID)
+  if(SPI_1636PP52Y_readID (SPI_1636PP52Y_CS3) != _1636PP52Y_ID)
     SelfTesting_SET_FAULT(ST_1636PP52Y); 
-  if(SPI_1636PP52Y_ReadID (SPI_1636PP52Y_CS4) != _1636PP52Y_ID)
+  if(SPI_1636PP52Y_readID (SPI_1636PP52Y_CS4) != _1636PP52Y_ID)
     SelfTesting_SET_FAULT(ST_1636PP52Y); 
 	
   return (SelfTesting_STATUS_TYPE)SelfTesting_STATUS(ST_1636PP52Y); 
@@ -229,7 +228,7 @@ SelfTesting_STATUS_TYPE SelfTesting_25Q64FV(void)
 {
   // Проверяем просто по ID микросхемы (если ID не совпадёт - это признак неисправности)
   SelfTesting_SET_FAULT(ST_25Q64FV); 
-  if(SPI_25Q64FV_ReadID (SPI_25Q64FV_CSn) == _25Q64FV_ID)
+  if(SPI_25Q64FV_readID (SPI_25Q64FV_CSn) == _25Q64FV_ID)
     SelfTesting_SET_OK(ST_25Q64FV);
 	
   return (SelfTesting_STATUS_TYPE)SelfTesting_STATUS(ST_25Q64FV);
@@ -244,7 +243,7 @@ SelfTesting_STATUS_TYPE SelfTesting_25Q64FV(void)
 ************************************************************************************/
 SelfTesting_STATUS_TYPE SelfTesting_MapNtask(void)
 {
-  if(CheckMap())
+  if(checkMap())
     SelfTesting_SET_OK(ST_MAP);
   else 
     SelfTesting_SET_FAULT(ST_MAP);
@@ -262,7 +261,7 @@ SelfTesting_STATUS_TYPE SelfTesting_MapNtask(void)
 SelfTesting_STATUS_TYPE SelfTesting_LogFs(void)
 {
   // Если файловая система ответила FINE - она готова к работе
-  if(LogFs_Info() == FS_FINE)
+  if(LogFs_initialize() == FS_FINE)
     SelfTesting_SET_OK(ST_LogFS);
   // Иначе разметка файловой системы повреждена, либо проблемы с spi-flash 
   else
@@ -350,9 +349,9 @@ void SelfTesting_BIMS_TRY_CONNECT(void)
     setTimeout(&timeout, 10000);
     /* Изменим состояние реле питания БИМ на противоположное */
     if(SelfTesting_STATUS(ST_POW_BIM)) 
-      BIM_Supply_OFF();
+      BIM_disableSupply();
     else 
-      BIM_Supply_ON();
+      BIM_enableSupply();
   }
 }
 
@@ -494,7 +493,7 @@ SelfTesting_STATUS_TYPE SelfTesting_POW_BIM (void)
 SelfTesting_STATUS_TYPE SelfTesting_MapAvailability (double Lat, double Lon)
 {
   // Если в точке (Lat, Lon) карта недоступна,
-  if(GetAvailabilityStatus(Lon, Lat) == MAP_NOT_AVAILABLE)
+  if(getAvailabilityStatus(Lon, Lat) == MAP_NOT_AVAILABLE)
   {
     // То сбрасываем бит доступности
     SelfTesting_SET_FAULT(ST_MapAvailability);
@@ -523,15 +522,11 @@ SelfTesting_STATUS_TYPE SelfTesting_MapAvailability (double Lat, double Lon)
 ************************************************************************************/
 SelfTesting_STATUS_TYPE SelfTesting_Battery50Volt (void)
 {
-  BUP_DataStorage.Battery50V = getBatteryCharge();
-  if(BUP_DataStorage.Battery50V < 47.0)
+  bupDataStorage.battery50V = getBatteryCharge();
+  if(bupDataStorage.battery50V < 47.0)
     SelfTesting_SET_FAULT(ST_BATTERY50V);
   else
     SelfTesting_SET_OK(ST_BATTERY50V);
   return (SelfTesting_STATUS_TYPE)SelfTesting_STATUS(ST_BATTERY50V);
 }
-
-
-
-
 
