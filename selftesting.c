@@ -530,7 +530,3 @@ SelfTesting_STATUS_TYPE SelfTesting_Battery50Volt (void)
   return (SelfTesting_STATUS_TYPE)SelfTesting_STATUS(ST_BATTERY50V);
 }
 
-
-
-
-

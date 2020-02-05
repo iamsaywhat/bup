@@ -177,22 +177,22 @@
         <Ww>
           <count>2</count>
           <WinNumber>2</WinNumber>
-          <ItemText>Left_BIM</ItemText>
+          <ItemText>debug_vars</ItemText>
         </Ww>
         <Ww>
           <count>3</count>
           <WinNumber>2</WinNumber>
-          <ItemText>Right_BIM</ItemText>
+          <ItemText>BUP_DataStorage</ItemText>
         </Ww>
         <Ww>
           <count>4</count>
           <WinNumber>2</WinNumber>
-          <ItemText>debug_vars</ItemText>
+          <ItemText>rtU</ItemText>
         </Ww>
         <Ww>
           <count>5</count>
           <WinNumber>2</WinNumber>
-          <ItemText>BUP_DataStorage</ItemText>
+          <ItemText>rtDW</ItemText>
         </Ww>
         <Ww>
           <count>6</count>

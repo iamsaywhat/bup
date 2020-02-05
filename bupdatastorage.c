@@ -10,7 +10,7 @@
 *******************************************************************************************************************/
 const BupFirmwareVersion  bupFirmwareVersion = {0,         // Старшая версия ПО
                                                 31,        // Младшая версия ПО
-                                                2,         // Изменения внутри версии
+                                                3,         // Изменения внутри версии
 #ifdef flightRegulatorCFB // Если выбран flightRegulatorCFB
                                                 1,         // Oпция регулятора - flightRegulatorCFB
                                                 0,         // Старшая версия модели регулятора
@@ -120,3 +120,4 @@ void Bup_updateDataFromSNS (void)
   if(statusPosition != SNS_OK || statusOrientation != SNS_OK)
     SelfTesting_SET_FAULT(ST_sns);	
 }
+

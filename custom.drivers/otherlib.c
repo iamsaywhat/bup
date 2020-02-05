@@ -471,3 +471,4 @@ static void ADC_switchChannel (ADCdev ADCx, uint32_t Channel)
       break;
   }
 }
+
