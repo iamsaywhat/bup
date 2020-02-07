@@ -139,10 +139,10 @@ void debug_prepare_data (void)
   /* Здесь можно добавить 
   вывод необходимых переменных относящихся к flightController
   */   
-  debug_vars.BIM_CMD               = (int16_t)(rtY.BIM_CMD);                       // Команда БИМам от flightController
-  debug_vars.DistanceToTDP         = (double) (rtY.DistanceToTDP);                 // Дистанция до точки приземления, м
-  debug_vars.TimeToHorTarget       = (double) (rtY.TimeToHorTarget);               // Время полета то точки приземления по прямой, сек
-  debug_vars.TimeToTD              = (double) (rtY.TimeToTD);                      // Время до открытия парашюта, сек
+  debug_vars.BIM_CMD               = (int16_t)(rtY.bimCommand);                    // Команда БИМам от flightController
+  debug_vars.DistanceToTDP         = (double) (rtY.horizontalDistance);            // Дистанция до точки приземления, м
+  debug_vars.TimeToHorTarget       = (double) (rtY.onTargetTime);                  // Время полета то точки приземления по прямой, сек
+  debug_vars.TimeToTD              = (double) (rtY.touchdownTime);                 // Время до открытия парашюта, сек
 #endif  
   debug_vars.TDP_Lat               = Bup_getTouchdownLatitude();                   // Широта точки приземления
   debug_vars.TDP_Lon               = Bup_getTouchdownLongitude();                  // Долгота точки приземления

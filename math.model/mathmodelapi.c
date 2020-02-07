@@ -119,6 +119,8 @@ void MathModel_prepareData (void)
     rtU.LatitudeVelocity   = Bup_getVelocityLatitude();
     rtU.LongitudeVelocity  = Bup_getVelocityLongitude();
     rtU.AltitudeVelocity   = Bup_getVelocityAltitude();
+		rtU.barometricAltitude = 0;
+		rtU.barometricAltitude = 0;
   #endif //************************************************************************** !flightRegulatorCFB 
 }
 
@@ -140,12 +142,11 @@ void MathModel_control (void)
     {
   #else //*************************************************************************** Если выбран flightController
     // Команды на посадку не было, поэтому будем управлять стропами
-    if (rtY.TD_CMD == 0)
-      MathModel_sendBimCommand ((int8_t)((rtY.BIM_CMD > 0) - (rtY.BIM_CMD < 0)),
-                                (uint8_t)(fabs(rtY.BIM_CMD)+0.5));
+    if (rtY.touchdown == 0)
+      MathModel_sendBimCommand (rtY.bimSelect, rtY.bimForce);
 		
     // Команда на посадку, завершаем работу
-    else if (rtY.TD_CMD == 1)
+    else if (rtY.touchdown == 1)
     {
   #endif //************************************************************************** !flightRegulatorCFB 			
     // Переводим БИМЫ в состояние по умолчанию
