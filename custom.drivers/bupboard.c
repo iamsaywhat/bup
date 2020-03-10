@@ -5,6 +5,8 @@ const PinConfigType PIN1              = {MDR_PORTA,  PORT_Pin_0,     PORT_OE_IN,
 const PinConfigType BLIND             = {MDR_PORTA,  PORT_Pin_1,     PORT_OE_IN,      PORT_FUNC_PORT,       PORT_MODE_DIGITAL};
 const PinConfigType PIN2_INV          = {MDR_PORTA,  PORT_Pin_2,     PORT_OE_IN,      PORT_FUNC_PORT,       PORT_MODE_DIGITAL};
 const PinConfigType PIN2_DIR          = {MDR_PORTA,  PORT_Pin_3,     PORT_OE_IN,      PORT_FUNC_PORT,       PORT_MODE_DIGITAL};
+const PinConfigType RADIO_RX          = {MDR_PORTA,  PORT_Pin_6,     PORT_OE_IN,      PORT_FUNC_OVERRID,    PORT_MODE_DIGITAL};
+const PinConfigType RADIO_TX          = {MDR_PORTA,  PORT_Pin_7,     PORT_OE_OUT,     PORT_FUNC_OVERRID,    PORT_MODE_DIGITAL}; 
 const PinConfigType CONNECT_ZPZ       = {MDR_PORTA,  PORT_Pin_13,    PORT_OE_IN,      PORT_FUNC_PORT,       PORT_MODE_DIGITAL};
 /****************************************PORTB********************************************************************************/
 const PinConfigType SNS_TX            = {MDR_PORTB,  PORT_Pin_5,     PORT_OE_OUT,     PORT_FUNC_ALTER,      PORT_MODE_DIGITAL};

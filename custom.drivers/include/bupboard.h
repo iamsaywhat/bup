@@ -10,8 +10,8 @@
   PIN2_DIR             PORT_Pin_3     PORT_OE_IN      PORT_FUNC_PORT       PORT_MODE_DIGITAL
   RESERVED             PORT_Pin_4     PORT_OE_IN      PORT_FUNC_PORT       PORT_MODE_DIGITAL
   RESERVED             PORT_Pin_5     PORT_OE_IN      PORT_FUNC_PORT       PORT_MODE_DIGITAL
-  ---                  PORT_Pin_6     PORT_OE_        PORT_FUNC_           PORT_MODE_
-  ---                  PORT_Pin_7     PORT_OE_        PORT_FUNC_           PORT_MODE_
+  RADIO_RX             PORT_Pin_6     PORT_OE_IN      PORT_FUNC_OVERRID    PORT_MODE_DIGITAL
+  RADIO_TX             PORT_Pin_7     PORT_OE_OUT     PORT_FUNC_OVERRID    PORT_MODE_DIGITAL
   ---                  PORT_Pin_8     PORT_OE_        PORT_FUNC_           PORT_MODE_
   ---                  PORT_Pin_9     PORT_OE_        PORT_FUNC_           PORT_MODE_
   ---                  PORT_Pin_10    PORT_OE_        PORT_FUNC_           PORT_MODE_
@@ -154,6 +154,7 @@ typedef enum {
 #define MMODEL_TIMER            MDR_TIMER1     /* Таймер используемый под обслуживания мат. модели регулятора */
 #define USED_ADC                ADC1           /* Используемый АЦП под аналоговые сигналы */
 #define BATTERY_50V_CH          ADC_CH_ADC10   /* Используемый канал АЦП */
+#define RADIO_UART              MDR_UART1      /* UART используемый радиостанцией */
 
 
 
@@ -176,6 +177,8 @@ extern const PinConfigType PIN1;               /* Шпилька 1 */
 extern const PinConfigType BLIND;              /* Замок створки	 */
 extern const PinConfigType PIN2_INV;           /* Шпилька 2 - инверсный сигнал */
 extern const PinConfigType PIN2_DIR;           /* Шпилька 2 - прямой сигнал */
+extern const PinConfigType RADIO_RX;           /* RX ножка для радиостанции */
+extern const PinConfigType RADIO_TX;           /* TX ножка для радиостанции */
 extern const PinConfigType CONNECT_ZPZ;        /* Подключение ЗПЗ */
 /****************************************PORTB********************************************************************************/
 extern const PinConfigType SNS_TX;             /* TX ножка для SNS */
