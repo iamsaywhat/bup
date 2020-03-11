@@ -21,16 +21,6 @@ enum SlipMarkers{
   TFESC	= 0xDD,		/* Если FESC - не разделитель, то посылается как FESC TFESC */
 };
 
-/**************************************************************************************************************
-  Radio_RetargetPins - Функция переопределения UART1 на другие пины, для работы радиостанции
-  Параметры:  NONE
-***************************************************************************************************************/
-static void Radio_RetargetPins (void)
-{
-  /* Инициализируем пины UART под радиостанцию */
-  Pin_initialize (RADIO_RX);
-  Pin_initialize (RADIO_TX);
-}
 
 /**************************************************************************************************************
   Radio_initialize - Инициализация UART под радиостанцию
@@ -39,6 +29,10 @@ static void Radio_RetargetPins (void)
 static void Radio_initialize (void)
 {
   UART_InitTypeDef UART_InitStructure;
+	
+	/* Инициализируем пины UART под радиостанцию */
+	Pin_initialize (RADIO_RX);
+  Pin_initialize (RADIO_TX);
 	
   UART_DeInit(RADIO_UART);                      /* Сброс конфигуряции UART1 */
   UART_StructInit (&UART_InitStructure);        /* Заполнение структуры по-умолчанию */
@@ -70,32 +64,50 @@ static void Radio_deinitialize (void)
 static uint16_t receiveByte(MDR_UART_TypeDef* UARTx);
 static int16_t sendByte (MDR_UART_TypeDef* UARTx, uint16_t byte);
 static uint16_t sendFend (MDR_UART_TypeDef* UARTx);
+static uint32_t swapUint16 (uint16_t value);
+static uint32_t swapUint32 (uint32_t value);
 
 
-static void sendToRadio(uint8_t *data, uint8_t size)
+void sendToRadio(uint8_t *data, uint8_t size)
 {
 	TimeoutType timeout; 
   RadioBaseFrameType radioData;
+	static uint8_t frameIndex = 0;
 	uint16_t packetSize;
+	uint8_t special[2] = {0x0D, 0x0A};
+	
+	Radio_initialize();
+	
+  while (UART_GetFlagStatus (RADIO_UART, UART_FLAG_RXFE) != SET)     /* Вычищаем FIFO от мусора и ждем пока не появится заголовок */
+    UART_ReceiveData(RADIO_UART);	
 	
 	if (size == 0)                     // Как минимум пакет будет состоять из 6 байт
 	  packetSize = 6;                  
-	else                               // Индекс, адрес, длина(4 байта) + тип данных, длина данных(4 байта) 
-	  packetSize = 4 + 3 + size + 2;   // + данные + crc(2 байта)
+	else                               // Индекс, адрес, длина(4 байта) + тип данных, длина данных(3 байта) 
+	  packetSize = 11 + size;          // + данные(size байт) + спецсимволы:0D,0A(2байта) + crc(2 байта)
 		
-	radioData.Struct.index      = 0;
+	radioData.Struct.index      = frameIndex;
 	radioData.Struct.address    = 1;
 	radioData.Struct.lenght     = packetSize-6;
-	radioData.Struct.dataType   = HOST_DATA;
-	radioData.Struct.dataLenght = size;
+	radioData.Struct.dataType   = AT_COMMAND;
+	radioData.Struct.dataLenght = size+2;
 	radioData.Struct.crc        = 0xFFFF;
+	
+	// Для удобства отправления перевернём в big-endian
+	radioData.Struct.lenght     = swapUint16(radioData.Struct.lenght);
+	radioData.Struct.dataLenght = swapUint16(radioData.Struct.dataLenght);
+	
 	
 	// Подсчитываем контрольную сумму
 	radioData.Struct.crc = Crc16(&radioData.Buffer[0], 4, radioData.Struct.crc);
   if(size != 0) {
     radioData.Struct.crc = Crc16(&radioData.Buffer[4], 3, radioData.Struct.crc);
 		radioData.Struct.crc = Crc16(data, size, radioData.Struct.crc);
+		radioData.Struct.crc = Crc16(special, 2, radioData.Struct.crc);
 	}
+	
+
+	radioData.Struct.crc        = swapUint16(radioData.Struct.crc);
 	
 	// Начинаем отправлять 
   sendFend (RADIO_UART);
@@ -106,12 +118,29 @@ static void sendToRadio(uint8_t *data, uint8_t size)
 		  sendByte (RADIO_UART, radioData.Buffer[i]);
  	  for(uint16_t i = 0; i < size; i++)
 		  sendByte (RADIO_UART, data[i]);
+		for(uint16_t i = 0; i < 2; i++)
+			sendByte(RADIO_UART, special[i]);
   }
   for(uint16_t i = 7; i < 9; i++)
     sendByte (RADIO_UART, radioData.Buffer[i]);
+	
+//	sendFend (RADIO_UART);
+	
+	// Дождемся пока все отправится из FIFO
+	setTimeout (&timeout, RADIO_FIFO_TIMEOUT); 
+	while ((UART_GetFlagStatus (RADIO_UART, UART_FLAG_TXFE) != SET) 
+		    && (timeoutStatus(&timeout) != TIME_IS_UP));
+				
+	uint8_t temp;
+	for(uint16_t i = 0; i < packetSize; i++)
+    temp = receiveByte(RADIO_UART);
+				
+  Radio_deinitialize();
+	
+	frameIndex++;
 }
 
-static void receiveFromeRadio(uint8_t* data)
+static void receiveFromRadio(uint8_t* data)
 {
 
 }
@@ -120,7 +149,6 @@ static void receiveFromeRadio(uint8_t* data)
 
 void getDeviceName(void)
 {
-	Radio_RetargetPins();
 	Radio_initialize();
 }
 
@@ -223,4 +251,14 @@ uint16_t receiveByte(MDR_UART_TypeDef* UARTx)
       byte = FESC;                   // Значит это закодированный FESC
   }
 	return byte;
+}
+uint32_t swapUint16 (uint16_t value)
+{
+		return (uint16_t)((value & 0x00FF) << 8 | (value & 0xFF00) >> 8);
+}
+uint32_t swapUint32 (uint32_t value)
+{
+    value = (value & 0x00FF00FF) << 8 | (value & 0xFF00FF00) >> 8;
+    value = (value & 0x0000FFFF)<< 16 | (value & 0xFFFF0000) >> 16;
+    return value;	
 }

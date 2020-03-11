@@ -631,6 +631,11 @@
               <FileType>1</FileType>
               <FilePath>.\custom.drivers\sws.c</FilePath>
             </File>
+            <File>
+              <FileName>radiostation.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\custom.drivers\radiostation.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

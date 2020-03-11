@@ -27,6 +27,7 @@
 //	#include "debug.h"                             // Отладочный модуль трассировки внутрисистемных переменных в CAN
 #endif //************************************************************************** !DEBUG_VARS 	
 
+#include "radiostation.h"
 
 int main(void)
 {	 
@@ -50,15 +51,35 @@ int main(void)
   stopIndication();                              /* Отключаем мигание */
 
 	
-//	while(1)
-//	{
-//		//BUP_DataUpdate ();
-//		//GetBatteryCharge();
-//		
-//		SelfTesting_SNS();
-//		BUP_UpdateDataFromSNS ();
-//		
-//	}
+	uint8_t buffer[] = "AT+GMI";
+	while(1)
+	{
+		//BUP_DataUpdate ();
+		//GetBatteryCharge();
+		
+		//SelfTesting_SNS();
+		//BUP_UpdateDataFromSNS ();
+		
+	
+	
+	  		sendToRadio(NULL, 0);
+		delay_ms(40);
+				sendToRadio(NULL, 0);
+		delay_ms(40);
+				sendToRadio(NULL, 0);
+		delay_ms(40);
+				sendToRadio(NULL, 0);
+		delay_ms(40);
+				sendToRadio(NULL, 0);
+		delay_ms(40);
+				sendToRadio(NULL, 0);
+		delay_ms(40);
+		sendToRadio(buffer, sizeof(buffer)-1);
+		delay_ms(40);
+		sendToRadio(NULL, 0);
+		delay_ms(40);
+		
+	}
 
   if(!CONNECT_ZPZ_CHECK)                             /* Проверяем подключение разъема ЗПЗ */
   {

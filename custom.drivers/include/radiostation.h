@@ -7,9 +7,9 @@
   Аппаратнозависимая конфигурация
 ************************************************************/
 #define RADIO_BAUDRATE           9600          // Бит/с скорость обмена с СНС
-#define RADIO_BYTE_TIMEOUT       1             // Величина таймаута на приём байта, мс
-#define RADIO_FIFO_TIMEOUT       2             // Величина таймаута на очистку FIFO, мс
-#define RADIO_RECEIVE_TIMEOUT    2
+#define RADIO_BYTE_TIMEOUT       2             // Величина таймаута на приём байта, мс
+#define RADIO_FIFO_TIMEOUT       16            // Величина таймаута на очистку FIFO, мс
+#define RADIO_RECEIVE_TIMEOUT    10
 
 //#define SNS_REQUESTS_CNT          5                         // Количество повторных запросов (при отсутствии ответа)
 //#define SNS_BYTE_TIMEOUT          2                         // Величина таймаута на приём байта, мс
@@ -32,7 +32,7 @@ typedef union {
   uint8_t Buffer[9];
 }RadioBaseFrameType;
 
-
+void sendToRadio(uint8_t *data, uint8_t size);
 
 
 void getDeviceName(void);
