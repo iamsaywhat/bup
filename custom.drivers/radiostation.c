@@ -4,7 +4,10 @@
 #include "otherlib.h"
 #include "crc16.h"
 #include "MDR32F9Qx_uart.h"
+#include <string.h>
 
+uint8_t buffer[200];
+uint8_t frameIndex = 0;
 
 enum DataType{
   AUDIO         = 2,
@@ -64,94 +67,175 @@ static void Radio_deinitialize (void)
 static uint16_t receiveByte(MDR_UART_TypeDef* UARTx);
 static int16_t sendByte (MDR_UART_TypeDef* UARTx, uint16_t byte);
 static uint16_t sendFend (MDR_UART_TypeDef* UARTx);
-static uint32_t swapUint16 (uint16_t value);
+static uint16_t swapUint16 (uint16_t value);
 static uint32_t swapUint32 (uint32_t value);
+static RadioStatus Radio_receive(uint8_t index, uint8_t* data);
 
+RadioStatus parseForDeviceName(uint8_t *data);
 
-void sendToRadio(uint8_t *data, uint8_t size)
+void Radio_send(uint8_t index, uint8_t *data, uint8_t size)
 {
 	TimeoutType timeout; 
-  RadioBaseFrameType radioData;
-	static uint8_t frameIndex = 0;
+  RadioBaseFrameType baseFrame;
+	RadioDataFrameType dataFrame;
 	uint16_t packetSize;
 	uint8_t special[2] = {0x0D, 0x0A};
-	
-	Radio_initialize();
-	
-  while (UART_GetFlagStatus (RADIO_UART, UART_FLAG_RXFE) != SET)     /* Вычищаем FIFO от мусора и ждем пока не появится заголовок */
+	uint16_t i;
+		
+  while (UART_GetFlagStatus (RADIO_UART, UART_FLAG_RXFE) != SET)  // Вычищаем FIFO приёмника от мусора
     UART_ReceiveData(RADIO_UART);	
 	
 	if (size == 0)                     // Как минимум пакет будет состоять из 6 байт
 	  packetSize = 6;                  
 	else                               // Индекс, адрес, длина(4 байта) + тип данных, длина данных(3 байта) 
 	  packetSize = 11 + size;          // + данные(size байт) + спецсимволы:0D,0A(2байта) + crc(2 байта)
-		
-	radioData.Struct.index      = frameIndex;
-	radioData.Struct.address    = 1;
-	radioData.Struct.lenght     = packetSize-6;
-	radioData.Struct.dataType   = AT_COMMAND;
-	radioData.Struct.dataLenght = size+2;
-	radioData.Struct.crc        = 0xFFFF;
 	
-	// Для удобства отправления перевернём в big-endian
-	radioData.Struct.lenght     = swapUint16(radioData.Struct.lenght);
-	radioData.Struct.dataLenght = swapUint16(radioData.Struct.dataLenght);
+  // Формируем базовый пакет	
+	baseFrame.Struct.index   = index;
+	baseFrame.Struct.address = 1;
+	baseFrame.Struct.lenght  = packetSize-6;
+	baseFrame.Struct.crc     = CRC16_INITIAL_FFFF;
+	// Пакет данных
+  dataFrame.Struct.type    = AT_COMMAND;
+	dataFrame.Struct.lenght  = size+2;
+	dataFrame.Struct.data    = data;
 	
+	// Радиостанция в big-endian, а мы в little-endian, поэтому перевернём поля
+	baseFrame.Struct.lenght = swapUint16(baseFrame.Struct.lenght);
+	dataFrame.Struct.lenght = swapUint16(dataFrame.Struct.lenght);
 	
-	// Подсчитываем контрольную сумму
-	radioData.Struct.crc = Crc16(&radioData.Buffer[0], 4, radioData.Struct.crc);
+	// Подсчитываем контрольную сумму базовой части
+	baseFrame.Struct.crc = Crc16(&baseFrame.Buffer[0], 4, baseFrame.Struct.crc);
+	// Если данные есть, до досчитываем кс с учетом их
   if(size != 0) {
-    radioData.Struct.crc = Crc16(&radioData.Buffer[4], 3, radioData.Struct.crc);
-		radioData.Struct.crc = Crc16(data, size, radioData.Struct.crc);
-		radioData.Struct.crc = Crc16(special, 2, radioData.Struct.crc);
+    baseFrame.Struct.crc = Crc16(&dataFrame.Buffer[0], 3,    baseFrame.Struct.crc);
+		baseFrame.Struct.crc = Crc16(data,                 size, baseFrame.Struct.crc);
+		baseFrame.Struct.crc = Crc16(special,              2,    baseFrame.Struct.crc);
 	}
-	
-
-	radioData.Struct.crc        = swapUint16(radioData.Struct.crc);
+	// Контрольную сумму тоже перевернем в big endian
+	baseFrame.Struct.crc = swapUint16(baseFrame.Struct.crc);
 	
 	// Начинаем отправлять 
   sendFend (RADIO_UART);
-	for(uint16_t i = 0; i < 4; i++)
-		sendByte (RADIO_UART, radioData.Buffer[i]);
+	// Базовая часть пакета
+	for(i = 0; i < 4; i++)
+		sendByte (RADIO_UART, baseFrame.Buffer[i]);
+	// Пакет данных	
 	if(size != 0) {
-    for(uint16_t i = 4; i < 7; i++)
-		  sendByte (RADIO_UART, radioData.Buffer[i]);
- 	  for(uint16_t i = 0; i < size; i++)
+    for(i = 0; i < 3; i++)
+		  sendByte (RADIO_UART, dataFrame.Buffer[i]);
+ 	  for(i = 0; i < size; i++)
 		  sendByte (RADIO_UART, data[i]);
-		for(uint16_t i = 0; i < 2; i++)
+		for(i = 0; i < 2; i++)
 			sendByte(RADIO_UART, special[i]);
   }
-  for(uint16_t i = 7; i < 9; i++)
-    sendByte (RADIO_UART, radioData.Buffer[i]);
+	// Контрольная сумма всего пакета
+  for(i = 4; i < 6; i++)
+    sendByte (RADIO_UART, baseFrame.Buffer[i]);
 	
-//	sendFend (RADIO_UART);
+	//sendFend (RADIO_UART);
 	
 	// Дождемся пока все отправится из FIFO
 	setTimeout (&timeout, RADIO_FIFO_TIMEOUT); 
 	while ((UART_GetFlagStatus (RADIO_UART, UART_FLAG_TXFE) != SET) 
 		    && (timeoutStatus(&timeout) != TIME_IS_UP));
-				
-	uint8_t temp;
-	for(uint16_t i = 0; i < packetSize; i++)
-    temp = receiveByte(RADIO_UART);
-				
-  Radio_deinitialize();
+}
+
+RadioStatus Radio_receive(uint8_t index, uint8_t* data)
+{
+  TimeoutType timeout;
+	RadioBaseFrameType baseFrame;
+	uint16_t crc = CRC16_INITIAL_FFFF;
+	uint16_t i;
 	
+  setTimeout (&timeout, RADIO_RECEIVE_TIMEOUT);  /* Ожидаем начало фрейма 0xC0 */
+  while(timeoutStatus(&timeout) != TIME_IS_UP){
+    if(receiveByte(RADIO_UART) == FEND)
+		  break;
+	}
+  if(timeout.status == TIME_IS_UP)     /* Если был таймаут, значит связи нет, можно отключиться */
+    return RADIO_TIMEOUT;
+	
+	// Базовая часть пакета
+  for(i = 0; i < 4; i++){
+    baseFrame.Buffer[i] = receiveByte(RADIO_UART);
+    crc = Crc16(&baseFrame.Buffer[i], 1, crc);	
+  }
+	baseFrame.Struct.lenght = swapUint16(baseFrame.Struct.lenght);
+	// Поле данных
+	for(i = 0; i < baseFrame.Struct.lenght; i++)
+	{
+    data[i] = receiveByte(RADIO_UART);	// Целиком записываем в буфер
+    crc = Crc16(&data[i], 1, crc);	    // И пока только считаем контрольную сумму
+	}
+	// Контрольная сумма
+  for(i = 4; i < 6; i++)
+    baseFrame.Buffer[i] = receiveByte(RADIO_UART);
+	
+	// Проверка контрольной суммы и индекса кадра
+	crc = swapUint16(crc);
+	if(crc != baseFrame.Struct.crc)
+    return RADIO_WRONG_CRC;
+	if(baseFrame.Struct.index != index)
+	  return RADIO_WRONG_INDEX;
+	
+	return RADIO_SUCCES;
+}
+
+
+
+void sendEmpty(void)
+{
+  TimeoutType timeout;
+	setTimeout (&timeout, 100); 
+	Radio_initialize();
+	Radio_send(frameIndex, 0, 0);
+	while ((Radio_receive(frameIndex, buffer) != RADIO_SUCCES) && (timeoutStatus(&timeout) != TIME_IS_UP))
+    Radio_send(frameIndex, 0, 0);
+  Radio_deinitialize();
+	frameIndex++;
+}
+void getDeviceName(void)
+{
+  uint8_t data[] = "ATI";
+  TimeoutType timeout;
+	
+	setTimeout (&timeout, 100); 
+	Radio_initialize();
+	Radio_send(frameIndex, data, sizeof(data)-1);
+	while (timeoutStatus(&timeout) != TIME_IS_UP){
+	  if(Radio_receive(frameIndex, buffer) != RADIO_SUCCES){
+		  Radio_send(frameIndex, 0, 0);
+			continue;
+    }
+		if(parseForDeviceName (buffer) != RADIO_SUCCES){
+			frameIndex++;
+		  Radio_send(frameIndex, 0, 0);
+			continue;
+		}
+		
+	}
+	memset(buffer, 0, 0x10);
+  Radio_deinitialize();
 	frameIndex++;
 }
 
-static void receiveFromRadio(uint8_t* data)
+RadioStatus parseForDeviceName(uint8_t *data)
 {
-
+	const char name[] = {0xD0, 0x2D, 0x31, 0x38, 0x37, 0x2D, 0xCF, 0x31, 0x0A};
+  RadioDataFrameType dataFrame;
+	dataFrame.Struct.type   = data[0];
+	dataFrame.Struct.lenght = *((uint16_t*)(data+1));
+	dataFrame.Struct.data = data;
+  dataFrame.Struct.lenght = swapUint16(dataFrame.Struct.lenght); 
+		
+  if(dataFrame.Struct.type   != AT_COMMAND ||
+	   dataFrame.Struct.lenght != 0x08       ||
+     strncmp(name, (char*)(data+3), 8) != 0)
+		 return RADIO_FAILED;
+  else
+		 return RADIO_SUCCES;
 }
-	
-
-
-void getDeviceName(void)
-{
-	Radio_initialize();
-}
-
 
 
 
@@ -252,7 +336,7 @@ uint16_t receiveByte(MDR_UART_TypeDef* UARTx)
   }
 	return byte;
 }
-uint32_t swapUint16 (uint16_t value)
+uint16_t swapUint16 (uint16_t value)
 {
 		return (uint16_t)((value & 0x00FF) << 8 | (value & 0xFF00) >> 8);
 }

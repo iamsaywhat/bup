@@ -51,7 +51,7 @@ int main(void)
   stopIndication();                              /* Отключаем мигание */
 
 	
-	uint8_t buffer[] = "AT+GMI";
+	uint8_t buffer[] = "ATI";//"AT+GMI";
 	while(1)
 	{
 		//BUP_DataUpdate ();
@@ -61,22 +61,21 @@ int main(void)
 		//BUP_UpdateDataFromSNS ();
 		
 	
-	
-	  		sendToRadio(NULL, 0);
+	  sendEmpty();
 		delay_ms(40);
-				sendToRadio(NULL, 0);
+		sendEmpty();
 		delay_ms(40);
-				sendToRadio(NULL, 0);
+		sendEmpty();
 		delay_ms(40);
-				sendToRadio(NULL, 0);
+		sendEmpty();
 		delay_ms(40);
-				sendToRadio(NULL, 0);
+		sendEmpty();
 		delay_ms(40);
-				sendToRadio(NULL, 0);
+		sendEmpty();
 		delay_ms(40);
-		sendToRadio(buffer, sizeof(buffer)-1);
+		getDeviceName();
 		delay_ms(40);
-		sendToRadio(NULL, 0);
+		getDeviceName();
 		delay_ms(40);
 		
 	}

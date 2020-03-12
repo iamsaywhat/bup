@@ -22,20 +22,39 @@ typedef __packed struct{
 	uint8_t  index;
 	uint8_t  address;
 	uint16_t lenght;
-	uint8_t  dataType;
-	uint16_t dataLenght;
 	uint16_t crc;
 }RadioBaseFrame;
 
+typedef __packed struct{
+  uint8_t  type;
+	uint16_t lenght;
+	uint8_t* data;
+}RadioDataFrame;
+
 typedef union { 
   RadioBaseFrame Struct;
-  uint8_t Buffer[9];
+  uint8_t Buffer[6];
 }RadioBaseFrameType;
 
-void sendToRadio(uint8_t *data, uint8_t size);
+typedef union { 
+  RadioDataFrame Struct;
+  uint8_t        Buffer[7];
+}RadioDataFrameType;
+
+typedef enum{
+  RADIO_WRONG_CRC,
+	RADIO_WRONG_INDEX,
+	RADIO_TIMEOUT,
+	RADIO_SUCCES,
+	RADIO_FAILED,
+}RadioStatus;
+
+
+void Radio_send(uint8_t index, uint8_t *data, uint8_t size);
 
 
 void getDeviceName(void);
+void sendEmpty(void);
 
 
 #endif
