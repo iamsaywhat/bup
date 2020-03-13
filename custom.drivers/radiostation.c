@@ -36,12 +36,12 @@ static void        Radio_send (uint8_t index, uint8_t *data, uint8_t size);
 static RadioStatus Radio_receive (uint8_t index, uint8_t* data, uint16_t *size);
 static void        Radio_initialize (void);
 static void        Radio_deinitialize (void);
-
-RadioStatus parseForDeviceName(uint8_t *data);
-RadioStatus parseForManufacturerName(uint8_t *data);
-RadioStatus parseForListSDS(uint8_t *data);
-RadioStatus parseForCoordinates(uint8_t *data, double *latitude, double *longitude);
-char* findTag(char* string, int length, const char* tag, int tagSize);
+RadioStatus        parseForDeviceName(uint8_t *data);
+RadioStatus        parseForManufacturerName(uint8_t *data);
+RadioStatus        parseForListSDS(uint8_t *data);
+RadioStatus        parseForCoordinates(uint8_t *data, double *latitude, double *longitude);
+char*              findTag(char* string, int length, const char* tag, int tagSize);
+void               itoa(int value, char* result);
 
 
 /****** Публичная часть модуля  **********************************************************/
@@ -144,13 +144,16 @@ void getListSDS(void)
   Radio_deinitialize();       // Выключаем обмен
 	frameIndex++;               // Инкремент индекса кадра
 }
-void getSDS(void)
+void getSDS(int idSDS)
 {
-  uint16_t    size = 0;                // Размер принятых данных
-  uint8_t     data[] = "AT+CSDSRD=4";  // Команда
-  TimeoutType timeout;                 // Таймаут
+  uint16_t    size = 0;                  // Размер принятых данных
+  uint8_t     data[20] = "AT+CSDSRD=4";  // Команда
+  TimeoutType timeout;                   // Таймаут
 	double latitude;
 	double longitude;
+	
+	
+	
 	 
 	setTimeout (&timeout, 150);                                      // Устанавлливаем таймаут
 	Radio_initialize();                                              // Включаем обмен
@@ -211,25 +214,27 @@ RadioStatus parseForManufacturerName(uint8_t *data)
 }
 RadioStatus parseForListSDS(uint8_t *data)
 {
-	const char name[] = {0xC0, 0xED, 0xE3, 0xF1, 0xF2, 0xF0, 0xE5, 0xEC};
+	const char tag[] = {0x2B, 0x43, 0x53, 0x44, 0x53, 0x43, 0x4E, 0x54, 0x3A}; //"+CSDSCNT:
   RadioDataFrameType dataFrame;
 	dataFrame.Struct.type   = data[0];
 	dataFrame.Struct.length = *((uint16_t*)(data+1));
 	dataFrame.Struct.data = data;
   dataFrame.Struct.length = swapUint16(dataFrame.Struct.length); 
+	
+	char* address = findTag((char*)(data), (int)dataFrame.Struct.length, tag, sizeof(tag));
 		
   if(dataFrame.Struct.type   != AT_COMMAND ||
 	   dataFrame.Struct.length != 0x08       ||
-     strncmp(name, (char*)(data+3), 8) != 0)
+     strncmp(tag, (char*)(data+3), 8) != 0)
 		 return RADIO_FAILED;
   else
 		 return RADIO_SUCCESS;
 }
 RadioStatus parseForCoordinates(uint8_t *data, double *latitude, double *longitude)
 {
-	const char commandTag[] = {0xD2, 0xCF, 0x2B};
-	const char latitudeTag[] = {0xD8, 0xC8, 0xD0, 0x3A};
-	const char longitudeTag[] = {0xC4, 0xCE, 0xCB, 0x3A};
+	const char commandTag[] = {0xD2, 0xCF, 0x2B};          //"ТП+"
+	const char latitudeTag[] = {0xD8, 0xC8, 0xD0, 0x3A};   // "ШИР:"
+	const char longitudeTag[] = {0xC4, 0xCE, 0xCB, 0x3A};  // "ДОЛ:"
 	char* latAddress;
 	char* lonAddress;
 	RadioStatus status = RADIO_FAILED;
@@ -260,25 +265,6 @@ RadioStatus parseForCoordinates(uint8_t *data, double *latitude, double *longitu
   return status;
 }
 
-char* findTag(char* string, int length, const char* tag, int tagSize)
-{
-  int i, j;
-  char* address = 0;
-  for(i = 0; i < length; i++)
-	{
-	  for(j = 0; j < tagSize; j++)
-		{
-			if(string[i+j] != tag[j])
-				break;
-		}
-		if(j == tagSize)
-		{
-		  address = &string[i+tagSize];
-			break;
-    }
-	}
-	return address;
-}
 
 /**************************************************************************************************************
   Radio_initialize - Инициализация UART под радиостанцию
@@ -581,4 +567,63 @@ uint32_t swapUint32 (uint32_t value)
     value = (value & 0x00FF00FF) << 8 | (value & 0xFF00FF00) >> 8;
     value = (value & 0x0000FFFF)<< 16 | (value & 0xFFFF0000) >> 16;
     return value;	
+}
+/**************************************************************************************************************
+  findTag - Поиск тэга в строке
+  Параметры:
+            string  - Строка или приёмный буфер,где будем искать
+						length  - Длина сроки или буфера в байтах
+						tag     - Тэг(подстрока) которую ищем
+						tagSize - Размер тэга в байтах
+  Возвращает:
+            Адрес на байта следующим за тэгом;
+***************************************************************************************************************/
+char* findTag(char* string, int length, const char* tag, int tagSize)
+{
+  int i, j;
+  char* address = 0;
+  for(i = 0; i < length; i++)
+	{
+	  for(j = 0; j < tagSize; j++)
+		{
+			if(string[i+j] != tag[j])
+				break;
+		}
+		if(j == tagSize)
+		{
+		  address = &string[i+tagSize];
+			break;
+    }
+	}
+	return address;
+}
+/**************************************************************************************************************
+  itoa - Преобразования числа в строку
+  Параметры:
+            value  - Число
+						result - Указатель на строку, массив буфер, результата
+***************************************************************************************************************/
+void itoa(int value, char* result)
+{
+	char temp;
+	int tempValue;
+	int i = 0;
+	if(value < 0){
+		result[i] = '-';
+		value = -value;
+		i++;
+	}	
+  tempValue = value;
+	while(tempValue > 0)
+	{
+		tempValue/=10;
+		i++;
+	}
+	while(value > 0)
+	{
+		temp = value%10;
+		value/=10;
+		result[i-1] = temp | 0x30;
+		i--;
+	}
 }

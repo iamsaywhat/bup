@@ -29,6 +29,8 @@
 
 #include "radiostation.h"
 
+
+
 int main(void)
 {	 
   Clock_initialize();                            /* Настраиваем тактовую частоту процессора */
@@ -52,6 +54,15 @@ int main(void)
 
 	
 	uint8_t buffer[] = "AT+GMI";
+	
+	int a = 2213;
+	char b[10];
+	
+	itoa(a, b);
+	
+	
+	
+	
 	
 	while(1)
 	{
