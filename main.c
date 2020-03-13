@@ -51,7 +51,8 @@ int main(void)
   stopIndication();                              /* Отключаем мигание */
 
 	
-	uint8_t buffer[] = "ATI";//"AT+GMI";
+	uint8_t buffer[] = "AT+GMI";
+	
 	while(1)
 	{
 		//BUP_DataUpdate ();
@@ -61,22 +62,31 @@ int main(void)
 		//BUP_UpdateDataFromSNS ();
 		
 	
+//	  sendEmpty();
+//		delay_ms(40);
+//		sendEmpty();
+//		delay_ms(40);
+//		sendEmpty();
+//		delay_ms(40);
+//		sendEmpty();
+//		delay_ms(40);
+//		sendEmpty();
+//		delay_ms(40);
+		sendEmpty();
+//		delay_ms(40);
+//		getDeviceName();
+//		delay_ms(40);
+//		getDeviceName();
+		delay_ms(40);
+//		getManufacturerName();
+		delay_ms(40);
+		sendEmpty();		
+		delay_ms(40);
 	  sendEmpty();
 		delay_ms(40);
-		sendEmpty();
-		delay_ms(40);
-		sendEmpty();
-		delay_ms(40);
-		sendEmpty();
-		delay_ms(40);
-		sendEmpty();
-		delay_ms(40);
-		sendEmpty();
-		delay_ms(40);
-		getDeviceName();
-		delay_ms(40);
-		getDeviceName();
-		delay_ms(40);
+		getListSDS();
+		//getSDS();
+		
 		
 	}
 

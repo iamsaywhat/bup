@@ -21,13 +21,13 @@
 typedef __packed struct{
 	uint8_t  index;
 	uint8_t  address;
-	uint16_t lenght;
+	uint16_t length;
 	uint16_t crc;
 }RadioBaseFrame;
 
 typedef __packed struct{
   uint8_t  type;
-	uint16_t lenght;
+	uint16_t length;
 	uint8_t* data;
 }RadioDataFrame;
 
@@ -45,7 +45,7 @@ typedef enum{
   RADIO_WRONG_CRC,
 	RADIO_WRONG_INDEX,
 	RADIO_TIMEOUT,
-	RADIO_SUCCES,
+	RADIO_SUCCESS,
 	RADIO_FAILED,
 }RadioStatus;
 

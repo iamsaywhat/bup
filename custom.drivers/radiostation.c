@@ -5,6 +5,7 @@
 #include "crc16.h"
 #include "MDR32F9Qx_uart.h"
 #include <string.h>
+#include <stdlib.h>
 
 uint8_t buffer[200];
 uint8_t frameIndex = 0;
@@ -25,11 +26,264 @@ enum SlipMarkers{
 };
 
 
+/***** Приватная часть модуля **********************************************************/
+static uint16_t    swapUint16 (uint16_t value);
+static uint32_t    swapUint32 (uint32_t value);
+static uint16_t    receiveByte(MDR_UART_TypeDef* UARTx);
+static int16_t     sendByte (MDR_UART_TypeDef* UARTx, uint16_t byte);
+static uint16_t    sendFend (MDR_UART_TypeDef* UARTx);
+static void        Radio_send (uint8_t index, uint8_t *data, uint8_t size);
+static RadioStatus Radio_receive (uint8_t index, uint8_t* data, uint16_t *size);
+static void        Radio_initialize (void);
+static void        Radio_deinitialize (void);
+
+RadioStatus parseForDeviceName(uint8_t *data);
+RadioStatus parseForManufacturerName(uint8_t *data);
+RadioStatus parseForListSDS(uint8_t *data);
+RadioStatus parseForCoordinates(uint8_t *data, double *latitude, double *longitude);
+char* findTag(char* string, int length, const char* tag, int tagSize);
+
+
+/****** Публичная часть модуля  **********************************************************/
+void sendEmpty(void)
+{
+  uint16_t    size = 0;
+  TimeoutType timeout;
+	setTimeout (&timeout, 100); 
+	Radio_initialize();
+	Radio_send(frameIndex, 0, 0);
+	while (timeoutStatus(&timeout) != TIME_IS_UP){
+	  if(Radio_receive(frameIndex, buffer, &size) != RADIO_SUCCESS){
+		  Radio_send(frameIndex, 0, 0);
+		  continue;
+    }
+		else
+		  break; 
+	}
+	memset(buffer, 0, size);     
+  Radio_deinitialize();
+	frameIndex++;
+}
+void getDeviceName(void)
+{
+  uint16_t    size = 0;          // Размер принятых данных
+  uint8_t     data[] = "ATI";    // Команда
+  TimeoutType timeout;           // Таймаут
+	 
+	setTimeout (&timeout, 150);                                      // Устанавлливаем таймаут
+	Radio_initialize();                                              // Включаем обмен
+	Radio_send(frameIndex, data, sizeof(data)-1);                    // Посылаем команду
+	while (timeoutStatus(&timeout) != TIME_IS_UP){                   // И следим за таймаутом
+	  if(Radio_receive(frameIndex, buffer, &size) != RADIO_SUCCESS){  // Принимаем ответ
+		  Radio_send(frameIndex, 0, 0);                                // Если ответа не последовало или ответ с ошибкой
+			continue;                                                    // Запрос необходимо повторить с этим же индексом
+    }
+		if(parseForDeviceName (buffer) != RADIO_SUCCESS){    // Сюда попали если ответ был принят
+			frameIndex++;                                     // Но нужно проверить, тот ли ответ был принят
+		  Radio_send(frameIndex, 0, 0);                     // Если ответ не тот, необходимо посылать пустые запросы
+			continue;                                         // До тех пор пока не получим нужное
+		}
+		else                  // Если попали сюда, то пакет был принят
+		  break;              // И даже пакет был верным
+	}
+	memset(buffer, 0, size);    // Приёмный буфер необходимо очистить
+  Radio_deinitialize();       // Выключаем обмен
+	frameIndex++;               // Инкремент индекса кадра
+}
+
+void getManufacturerName(void)
+{
+  uint16_t    size = 0;           // Размер принятых данных
+  uint8_t     data[] = "AT+GMI";  // Команда
+  TimeoutType timeout;            // Таймаут
+	 
+	setTimeout (&timeout, 150);                                      // Устанавлливаем таймаут
+	Radio_initialize();                                              // Включаем обмен
+	Radio_send(frameIndex, data, sizeof(data)-1);                    // Посылаем команду
+	while (timeoutStatus(&timeout) != TIME_IS_UP){                   // И следим за таймаутом
+	  if(Radio_receive(frameIndex, buffer, &size) != RADIO_SUCCESS){  // Принимаем ответ
+		  Radio_send(frameIndex, 0, 0);                                // Если ответа не последовало или ответ с ошибкой
+			continue;                                                    // Запрос необходимо повторить с этим же индексом
+    }
+		if(parseForManufacturerName (buffer) != RADIO_SUCCESS){    // Сюда попали если ответ был принят
+			frameIndex++;                                     // Но нужно проверить, тот ли ответ был принят
+		  Radio_send(frameIndex, 0, 0);                     // Если ответ не тот, необходимо посылать пустые запросы
+			continue;                                         // До тех пор пока не получим нужное
+		}
+		else                  // Если попали сюда, то пакет был принят
+		  break;              // И даже пакет был верным
+	}
+	memset(buffer, 0, size);    // Приёмный буфер необходимо очистить
+  Radio_deinitialize();       // Выключаем обмен
+	frameIndex++;               // Инкремент индекса кадра
+}
+
+void getListSDS(void)
+{
+  uint16_t    size = 0;                // Размер принятых данных
+  uint8_t     data[] = "AT+CSDSCNT?";  // Команда
+  TimeoutType timeout;                 // Таймаут
+	 
+	setTimeout (&timeout, 150);                                      // Устанавлливаем таймаут
+	Radio_initialize();                                              // Включаем обмен
+	Radio_send(frameIndex, data, sizeof(data)-1);                    // Посылаем команду
+	while (timeoutStatus(&timeout) != TIME_IS_UP){                   // И следим за таймаутом
+	  if(Radio_receive(frameIndex, buffer, &size) != RADIO_SUCCESS){  // Принимаем ответ
+		  Radio_send(frameIndex, 0, 0);                                // Если ответа не последовало или ответ с ошибкой
+			continue;                                                    // Запрос необходимо повторить с этим же индексом
+    }
+		if(parseForListSDS (buffer) != RADIO_SUCCESS){    // Сюда попали если ответ был принят
+			frameIndex++;                                     // Но нужно проверить, тот ли ответ был принят
+		  Radio_send(frameIndex, 0, 0);                     // Если ответ не тот, необходимо посылать пустые запросы
+			continue;                                         // До тех пор пока не получим нужное
+		}
+		else                  // Если попали сюда, то пакет был принят
+		  break;              // И даже пакет был верным
+	}
+	memset(buffer, 0, size);    // Приёмный буфер необходимо очистить
+  Radio_deinitialize();       // Выключаем обмен
+	frameIndex++;               // Инкремент индекса кадра
+}
+void getSDS(void)
+{
+  uint16_t    size = 0;                // Размер принятых данных
+  uint8_t     data[] = "AT+CSDSRD=4";  // Команда
+  TimeoutType timeout;                 // Таймаут
+	double latitude;
+	double longitude;
+	 
+	setTimeout (&timeout, 150);                                      // Устанавлливаем таймаут
+	Radio_initialize();                                              // Включаем обмен
+	Radio_send(frameIndex, data, sizeof(data)-1);                    // Посылаем команду
+	while (timeoutStatus(&timeout) != TIME_IS_UP){                   // И следим за таймаутом
+	  if(Radio_receive(frameIndex, buffer, &size) != RADIO_SUCCESS){  // Принимаем ответ
+		  Radio_send(frameIndex, 0, 0);                                // Если ответа не последовало или ответ с ошибкой
+			continue;                                                    // Запрос необходимо повторить с этим же индексом
+    }
+		if(parseForCoordinates (buffer, &latitude, &longitude) != RADIO_SUCCESS){    // Сюда попали если ответ был принят
+			frameIndex++;                                     // Но нужно проверить, тот ли ответ был принят
+		  Radio_send(frameIndex, 0, 0);                     // Если ответ не тот, необходимо посылать пустые запросы
+			continue;                                         // До тех пор пока не получим нужное
+		}
+		else                  // Если попали сюда, то пакет был принят
+		  break;              // И даже пакет был верным
+	}
+	memset(buffer, 0, size);    // Приёмный буфер необходимо очистить
+  Radio_deinitialize();       // Выключаем обмен
+	frameIndex++;               // Инкремент индекса кадра
+}
+
+
+
+
+/***** Приватная часть модуля **********************************************************/
+RadioStatus parseForDeviceName(uint8_t *data)
+{
+	const char name[] = {0xD0, 0x2D, 0x31, 0x38, 0x37, 0x2D, 0xCF, 0x31, 0x0A};
+  RadioDataFrameType dataFrame;
+	dataFrame.Struct.type   = data[0];
+	dataFrame.Struct.length = *((uint16_t*)(data+1));
+	dataFrame.Struct.data = data;
+  dataFrame.Struct.length = swapUint16(dataFrame.Struct.length); 
+		
+  if(dataFrame.Struct.type   != AT_COMMAND ||
+	   dataFrame.Struct.length != 0x08       ||
+     strncmp(name, (char*)(data+3), 8) != 0)
+		 return RADIO_FAILED;
+  else
+		 return RADIO_SUCCESS;
+}
+RadioStatus parseForManufacturerName(uint8_t *data)
+{
+	const char name[] = {0xC0, 0xED, 0xE3, 0xF1, 0xF2, 0xF0, 0xE5, 0xEC};
+  RadioDataFrameType dataFrame;
+	dataFrame.Struct.type   = data[0];
+	dataFrame.Struct.length = *((uint16_t*)(data+1));
+	dataFrame.Struct.data = data;
+  dataFrame.Struct.length = swapUint16(dataFrame.Struct.length); 
+		
+  if(dataFrame.Struct.type   != AT_COMMAND ||
+	   dataFrame.Struct.length != 0x08       ||
+     strncmp(name, (char*)(data+3), 8) != 0)
+		 return RADIO_FAILED;
+  else
+		 return RADIO_SUCCESS;
+}
+RadioStatus parseForListSDS(uint8_t *data)
+{
+	const char name[] = {0xC0, 0xED, 0xE3, 0xF1, 0xF2, 0xF0, 0xE5, 0xEC};
+  RadioDataFrameType dataFrame;
+	dataFrame.Struct.type   = data[0];
+	dataFrame.Struct.length = *((uint16_t*)(data+1));
+	dataFrame.Struct.data = data;
+  dataFrame.Struct.length = swapUint16(dataFrame.Struct.length); 
+		
+  if(dataFrame.Struct.type   != AT_COMMAND ||
+	   dataFrame.Struct.length != 0x08       ||
+     strncmp(name, (char*)(data+3), 8) != 0)
+		 return RADIO_FAILED;
+  else
+		 return RADIO_SUCCESS;
+}
+RadioStatus parseForCoordinates(uint8_t *data, double *latitude, double *longitude)
+{
+	const char commandTag[] = {0xD2, 0xCF, 0x2B};
+	const char latitudeTag[] = {0xD8, 0xC8, 0xD0, 0x3A};
+	const char longitudeTag[] = {0xC4, 0xCE, 0xCB, 0x3A};
+	char* latAddress;
+	char* lonAddress;
+	RadioStatus status = RADIO_FAILED;
+	
+  RadioDataFrameType dataFrame;
+	dataFrame.Struct.type   = data[0];
+	dataFrame.Struct.length = *((uint16_t*)(data+1));
+	dataFrame.Struct.data = data;
+  dataFrame.Struct.length = swapUint16(dataFrame.Struct.length); 
+	
+  if(findTag((char*)(data), (int)dataFrame.Struct.length, commandTag, sizeof(commandTag) != NULL))
+	{
+    latAddress = findTag((char*)(data), (int)dataFrame.Struct.length, 
+		                   latitudeTag,  sizeof(latitudeTag));
+	  
+    lonAddress = findTag((char*)(data), dataFrame.Struct.length, 
+		                   longitudeTag, sizeof(longitudeTag));
+											 
+		if(latAddress != NULL || lonAddress != NULL || dataFrame.Struct.type != AT_COMMAND)
+		{
+      *latitude = atof(latAddress);
+      *longitude = atof(lonAddress);
+			status = RADIO_SUCCESS;
+		}
+		else
+      status = RADIO_FAILED;
+  }
+  return status;
+}
+
+char* findTag(char* string, int length, const char* tag, int tagSize)
+{
+  int i, j;
+  char* address = 0;
+  for(i = 0; i < length; i++)
+	{
+	  for(j = 0; j < tagSize; j++)
+		{
+			if(string[i+j] != tag[j])
+				break;
+		}
+		if(j == tagSize)
+		{
+		  address = &string[i+tagSize];
+			break;
+    }
+	}
+	return address;
+}
+
 /**************************************************************************************************************
   Radio_initialize - Инициализация UART под радиостанцию
-  Параметры:  NONE
 ***************************************************************************************************************/
-static void Radio_initialize (void)
+void Radio_initialize (void)
 {
   UART_InitTypeDef UART_InitStructure;
 	
@@ -53,26 +307,22 @@ static void Radio_initialize (void)
 }
 
 /**************************************************************************************************************
-  Radio_deinitialize - Деинициализация SNS и освобождение UART
-  Параметры:  NONE
+  Radio_deinitialize - Деинициализация радиостанции и освобождение UART
 ***************************************************************************************************************/
-static void Radio_deinitialize (void)
+void Radio_deinitialize (void)
 {
   UART_DeInit(RADIO_UART);       /* Сброс конфигуряции UART */
   UART_Cmd(RADIO_UART, DISABLE); /* Выключение UART1 - RADIO */
   Pin_default (RADIO_RX);        /* Сбрасываем настройку пинов по-умолчанию  */
   Pin_default (RADIO_TX);
 }
-
-static uint16_t receiveByte(MDR_UART_TypeDef* UARTx);
-static int16_t sendByte (MDR_UART_TypeDef* UARTx, uint16_t byte);
-static uint16_t sendFend (MDR_UART_TypeDef* UARTx);
-static uint16_t swapUint16 (uint16_t value);
-static uint32_t swapUint32 (uint32_t value);
-static RadioStatus Radio_receive(uint8_t index, uint8_t* data);
-
-RadioStatus parseForDeviceName(uint8_t *data);
-
+/**************************************************************************************************************
+  Radio_send - Приём пакета данных от радиостанции
+  Параметры:
+            index - Индекс отправляемого пакета
+            data - Команда
+            size - Длина команды в байтах			
+***************************************************************************************************************/
 void Radio_send(uint8_t index, uint8_t *data, uint8_t size)
 {
 	TimeoutType timeout; 
@@ -93,16 +343,16 @@ void Radio_send(uint8_t index, uint8_t *data, uint8_t size)
   // Формируем базовый пакет	
 	baseFrame.Struct.index   = index;
 	baseFrame.Struct.address = 1;
-	baseFrame.Struct.lenght  = packetSize-6;
+	baseFrame.Struct.length  = packetSize-6;
 	baseFrame.Struct.crc     = CRC16_INITIAL_FFFF;
 	// Пакет данных
   dataFrame.Struct.type    = AT_COMMAND;
-	dataFrame.Struct.lenght  = size+2;
+	dataFrame.Struct.length  = size+2;
 	dataFrame.Struct.data    = data;
 	
 	// Радиостанция в big-endian, а мы в little-endian, поэтому перевернём поля
-	baseFrame.Struct.lenght = swapUint16(baseFrame.Struct.lenght);
-	dataFrame.Struct.lenght = swapUint16(dataFrame.Struct.lenght);
+	baseFrame.Struct.length = swapUint16(baseFrame.Struct.length);
+	dataFrame.Struct.length = swapUint16(dataFrame.Struct.length);
 	
 	// Подсчитываем контрольную сумму базовой части
 	baseFrame.Struct.crc = Crc16(&baseFrame.Buffer[0], 4, baseFrame.Struct.crc);
@@ -133,15 +383,23 @@ void Radio_send(uint8_t index, uint8_t *data, uint8_t size)
   for(i = 4; i < 6; i++)
     sendByte (RADIO_UART, baseFrame.Buffer[i]);
 	
-	//sendFend (RADIO_UART);
+//	sendFend (RADIO_UART);
 	
 	// Дождемся пока все отправится из FIFO
 	setTimeout (&timeout, RADIO_FIFO_TIMEOUT); 
 	while ((UART_GetFlagStatus (RADIO_UART, UART_FLAG_TXFE) != SET) 
 		    && (timeoutStatus(&timeout) != TIME_IS_UP));
 }
-
-RadioStatus Radio_receive(uint8_t index, uint8_t* data)
+/**************************************************************************************************************
+  Radio_receive - Приём пакета данных от радиостанции
+  Параметры:
+            index - Индекс ожидаемого пакета
+            data - Буфер, в котором принятый пакет будет размещен
+  Возвращает:
+            size - Размер принятого пакета (Возвращается через указатель)
+            status - статус приёма(успех, или код ошибки) 
+***************************************************************************************************************/
+RadioStatus Radio_receive(uint8_t index, uint8_t* data, uint16_t *size)
 {
   TimeoutType timeout;
 	RadioBaseFrameType baseFrame;
@@ -161,9 +419,10 @@ RadioStatus Radio_receive(uint8_t index, uint8_t* data)
     baseFrame.Buffer[i] = receiveByte(RADIO_UART);
     crc = Crc16(&baseFrame.Buffer[i], 1, crc);	
   }
-	baseFrame.Struct.lenght = swapUint16(baseFrame.Struct.lenght);
+	baseFrame.Struct.length = swapUint16(baseFrame.Struct.length);
+	*size = baseFrame.Struct.length;
 	// Поле данных
-	for(i = 0; i < baseFrame.Struct.lenght; i++)
+	for(i = 0; i < baseFrame.Struct.length; i++)
 	{
     data[i] = receiveByte(RADIO_UART);	// Целиком записываем в буфер
     crc = Crc16(&data[i], 1, crc);	    // И пока только считаем контрольную сумму
@@ -179,66 +438,16 @@ RadioStatus Radio_receive(uint8_t index, uint8_t* data)
 	if(baseFrame.Struct.index != index)
 	  return RADIO_WRONG_INDEX;
 	
-	return RADIO_SUCCES;
+	return RADIO_SUCCESS;
 }
-
-
-
-void sendEmpty(void)
-{
-  TimeoutType timeout;
-	setTimeout (&timeout, 100); 
-	Radio_initialize();
-	Radio_send(frameIndex, 0, 0);
-	while ((Radio_receive(frameIndex, buffer) != RADIO_SUCCES) && (timeoutStatus(&timeout) != TIME_IS_UP))
-    Radio_send(frameIndex, 0, 0);
-  Radio_deinitialize();
-	frameIndex++;
-}
-void getDeviceName(void)
-{
-  uint8_t data[] = "ATI";
-  TimeoutType timeout;
-	
-	setTimeout (&timeout, 100); 
-	Radio_initialize();
-	Radio_send(frameIndex, data, sizeof(data)-1);
-	while (timeoutStatus(&timeout) != TIME_IS_UP){
-	  if(Radio_receive(frameIndex, buffer) != RADIO_SUCCES){
-		  Radio_send(frameIndex, 0, 0);
-			continue;
-    }
-		if(parseForDeviceName (buffer) != RADIO_SUCCES){
-			frameIndex++;
-		  Radio_send(frameIndex, 0, 0);
-			continue;
-		}
-		
-	}
-	memset(buffer, 0, 0x10);
-  Radio_deinitialize();
-	frameIndex++;
-}
-
-RadioStatus parseForDeviceName(uint8_t *data)
-{
-	const char name[] = {0xD0, 0x2D, 0x31, 0x38, 0x37, 0x2D, 0xCF, 0x31, 0x0A};
-  RadioDataFrameType dataFrame;
-	dataFrame.Struct.type   = data[0];
-	dataFrame.Struct.lenght = *((uint16_t*)(data+1));
-	dataFrame.Struct.data = data;
-  dataFrame.Struct.lenght = swapUint16(dataFrame.Struct.lenght); 
-		
-  if(dataFrame.Struct.type   != AT_COMMAND ||
-	   dataFrame.Struct.lenght != 0x08       ||
-     strncmp(name, (char*)(data+3), 8) != 0)
-		 return RADIO_FAILED;
-  else
-		 return RADIO_SUCCES;
-}
-
-
-
+/**************************************************************************************************************
+  sendFend - Отправка Fend разделителя пакетов
+  Параметры:
+            UARTx - Используемый UART модуль
+  Возвращает:
+            0x0000, передача прошла успешно
+						0xFFFF, если при передаче произошла ошибка или таймаут ожидания;
+***************************************************************************************************************/
 uint16_t sendFend (MDR_UART_TypeDef* UARTx)
 {
   TimeoutType timeout;
@@ -250,8 +459,15 @@ uint16_t sendFend (MDR_UART_TypeDef* UARTx)
     return 0xFFFF;                                            // то возвращаем ошибку и выходим
   UART_SendData(UARTx, FEND);                                 // Иначе отправляем вместо FEND или FESC сначала FESC
 }
-
-// Отправка символа по SLIP - протоколу
+/**************************************************************************************************************
+  sendByte - Отправка байта данных (с кодированием по Slip-протоколу)
+  Параметры:
+            UARTx - Используемый UART модуль
+						byte - Оправляемый байт данных;
+  Возвращает:
+            0x0000, передача прошла успешно
+						0xFFFF, если при передаче произошла ошибка или таймаут ожидания;
+***************************************************************************************************************/
 int16_t sendByte (MDR_UART_TypeDef* UARTx, uint16_t byte)
 {
 	TimeoutType timeout;
@@ -308,8 +524,14 @@ int16_t sendByte (MDR_UART_TypeDef* UARTx, uint16_t byte)
 	}	
   return 0;
 }
-
-// Приём и декодирование пакета по SLIP Протоколу 
+/**************************************************************************************************************
+  receiveByte - Приём байта данных (с декодированием по Slip-протоколу
+  Параметры:
+            UARTx - Используемый UART модуль
+  Возвращает:
+            16разрядное слово, где младший байт - принятый байт, старший = 0, если приём успешен;
+						0xFFFF, если при приёме произошла ошибка или таймаут ожидания;
+***************************************************************************************************************/
 uint16_t receiveByte(MDR_UART_TypeDef* UARTx)
 {
 	uint16_t    byte = 0;
@@ -336,10 +558,24 @@ uint16_t receiveByte(MDR_UART_TypeDef* UARTx)
   }
 	return byte;
 }
+/**************************************************************************************************************
+  swapUint16 - Изменить порядок байт на обратный в 16х разрядном слове
+  Параметры:
+            Value - Данные с исходным порядком байт
+  Возвращает:
+            Value c обратным порядком следования байт
+***************************************************************************************************************/
 uint16_t swapUint16 (uint16_t value)
 {
 		return (uint16_t)((value & 0x00FF) << 8 | (value & 0xFF00) >> 8);
 }
+/**************************************************************************************************************
+  swapUint32 - Изменить порядок байт на обратный в 32х разрядном слове
+  Параметры:
+            Value - Данные с исходным порядком байт
+  Возвращает:
+            Value c обратным порядком следования байт
+***************************************************************************************************************/
 uint32_t swapUint32 (uint32_t value)
 {
     value = (value & 0x00FF00FF) << 8 | (value & 0xFF00FF00) >> 8;
