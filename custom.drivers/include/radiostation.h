@@ -18,6 +18,11 @@
 //#define SNS_TURN_ON_DELAY         5000                      // Задержка на включение модуля, мс
 
 
+#define PACKET_SIZE_LIMIT 256
+#define RADIO_ADDRESS     0x01
+
+#define RADIO_SEND_PAUSE 40
+
 typedef __packed struct{
 	uint8_t  index;
 	uint8_t  address;
@@ -47,6 +52,8 @@ typedef enum{
 	RADIO_TIMEOUT,
 	RADIO_SUCCESS,
 	RADIO_FAILED,
+	RADIO_WRONG_ADDRESS,
+	RADIO_EXCESS_PACKET_SIZE,
 }RadioStatus;
 
 

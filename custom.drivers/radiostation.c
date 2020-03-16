@@ -74,9 +74,38 @@ void getDeviceName(void)
   uint16_t    size = 0;          // Размер принятых данных
   uint8_t     data[] = "ATI";    // Команда
   TimeoutType timeout;           // Таймаут
+	
 	 
-	setTimeout (&timeout, 150);                                      // Устанавлливаем таймаут
+	setTimeout (&timeout, 500);                                      // Устанавлливаем таймаут
 	Radio_initialize();                                              // Включаем обмен
+	
+//  /////////////////////////////////
+//	Radio_send(frameIndex, 0, 0);
+//	while (timeoutStatus(&timeout) != TIME_IS_UP){
+//	  if(Radio_receive(frameIndex, buffer, &size) != RADIO_SUCCESS){
+//		  Radio_send(frameIndex, 0, 0);
+//		  continue;
+//    }
+//		else
+//		  break; 
+//	}
+//	memset(buffer, 0, size);     
+//	frameIndex++;
+//	
+//		Radio_send(frameIndex, 0, 0);
+//	while (timeoutStatus(&timeout) != TIME_IS_UP){
+//	  if(Radio_receive(frameIndex, buffer, &size) != RADIO_SUCCESS){
+//		  Radio_send(frameIndex, 0, 0);
+//		  continue;
+//    }
+//		else
+//		  break; 
+//	}
+//	memset(buffer, 0, size);     
+//	frameIndex++;
+//	
+//	
+//	////////////////////////////////////////////
 	Radio_send(frameIndex, data, sizeof(data)-1);                    // Посылаем команду
 	while (timeoutStatus(&timeout) != TIME_IS_UP){                   // И следим за таймаутом
 	  if(Radio_receive(frameIndex, buffer, &size) != RADIO_SUCCESS){  // Принимаем ответ
@@ -102,8 +131,37 @@ void getManufacturerName(void)
   uint8_t     data[] = "AT+GMI";  // Команда
   TimeoutType timeout;            // Таймаут
 	 
-	setTimeout (&timeout, 150);                                      // Устанавлливаем таймаут
+	setTimeout (&timeout, 500);                                      // Устанавлливаем таймаут
 	Radio_initialize();                                              // Включаем обмен
+	
+	
+//	  /////////////////////////////////
+//	Radio_send(frameIndex, 0, 0);
+//	while (timeoutStatus(&timeout) != TIME_IS_UP){
+//	  if(Radio_receive(frameIndex, buffer, &size) != RADIO_SUCCESS){
+//		  Radio_send(frameIndex, 0, 0);
+//		  continue;
+//    }
+//		else
+//		  break; 
+//	}
+//	memset(buffer, 0, size);     
+//	frameIndex++;
+//	
+//		Radio_send(frameIndex, 0, 0);
+//	while (timeoutStatus(&timeout) != TIME_IS_UP){
+//	  if(Radio_receive(frameIndex, buffer, &size) != RADIO_SUCCESS){
+//		  Radio_send(frameIndex, 0, 0);
+//		  continue;
+//    }
+//		else
+//		  break; 
+//	}
+//	memset(buffer, 0, size);     
+//	frameIndex++;
+//	////////////////////////////////////////////
+	
+	
 	Radio_send(frameIndex, data, sizeof(data)-1);                    // Посылаем команду
 	while (timeoutStatus(&timeout) != TIME_IS_UP){                   // И следим за таймаутом
 	  if(Radio_receive(frameIndex, buffer, &size) != RADIO_SUCCESS){  // Принимаем ответ
@@ -205,7 +263,7 @@ RadioStatus deleteSds(uint8_t idSds)
 		else                  // Если попали сюда, то пакет был принят
 		  break;              // И даже пакет был верным
 	}
-	//memset(buffer, 0, size);    // Приёмный буфер необходимо очистить
+	memset(buffer, 0, size);    // Приёмный буфер необходимо очистить
   Radio_deinitialize();       // Выключаем обмен
 	frameIndex++;               // Инкремент индекса кадра
 }
@@ -416,13 +474,19 @@ void Radio_deinitialize (void)
 ***************************************************************************************************************/
 void Radio_send(uint8_t index, uint8_t *data, uint8_t size)
 {
+  static TimeoutType sendPause = {0, 1, TIME_IS_UP};
 	TimeoutType timeout; 
   RadioBaseFrameType baseFrame;
 	RadioDataFrameType dataFrame;
 	uint16_t packetSize;
 	uint8_t special[2] = {0x0D, 0x0A};
 	uint16_t i;
-		
+	
+	if(timeoutStatus(&sendPause) == TIME_IS_UP)
+		setTimeout (&sendPause, RADIO_SEND_PAUSE);
+	else
+    while(timeoutStatus(&sendPause) != TIME_IS_UP);
+  	
   while (UART_GetFlagStatus (RADIO_UART, UART_FLAG_RXFE) != SET)  // Вычищаем FIFO приёмника от мусора
     UART_ReceiveData(RADIO_UART);	
 	
@@ -511,6 +575,13 @@ RadioStatus Radio_receive(uint8_t index, uint8_t* data, uint16_t *size)
     crc = Crc16(&baseFrame.Buffer[i], 1, crc);	
   }
 	baseFrame.Struct.length = swapUint16(baseFrame.Struct.length);
+	
+	// На этом этапе уже можем проверить валидность исключив очевидные варианты
+	if(baseFrame.Struct.address != RADIO_ADDRESS)      // Адрес должен быть наш, остальные игнорируем
+    return RADIO_WRONG_ADDRESS;
+	if(baseFrame.Struct.length > PACKET_SIZE_LIMIT)    // Не используем пакеты больше PACKET_SIZE_LIMIT
+    return RADIO_EXCESS_PACKET_SIZE;                 // поэтому если пакет больше, он нам точно неинтересен
+
 	*size = baseFrame.Struct.length;
 	// Поле данных
 	for(i = 0; i < baseFrame.Struct.length; i++)
@@ -632,7 +703,7 @@ uint16_t receiveByte(MDR_UART_TypeDef* UARTx)
 	while ((UART_GetFlagStatus (UARTx, UART_FLAG_RXFE) == SET) 
 	   && (timeoutStatus(&timeout) != TIME_IS_UP));
 	if(timeout.status == TIME_IS_UP)   // Если выход из ожидания по таймауту,
-		return 0xFFFF;                   // то возвращаем ошибку и выходим
+		return 0;                   // то возвращаем ошибку и выходим
 	byte = UART_ReceiveData(UARTx);    // Иначе принимаем байт
 	if(byte == FESC)	                 // Если поймали символ FESC, то смотрим каким будет следующий
 	{
@@ -640,7 +711,7 @@ uint16_t receiveByte(MDR_UART_TypeDef* UARTx)
 		while ((UART_GetFlagStatus (UARTx, UART_FLAG_RXFE) == SET) 
 		    && (timeoutStatus(&timeout) != TIME_IS_UP));
 		if(timeout.status == TIME_IS_UP) // Если выход из ожидания по таймауту,
-			return 0xFFFF;                 // то возвращаем ошибку и выходим
+			return 0;                 // то возвращаем ошибку и выходим
 		byte = UART_ReceiveData(UARTx);  // Иначе принимаем байт		
 		if(byte == TFEND)                // Если принят TFEND
 			byte = FEND;                   // Значит это закодированный FEND

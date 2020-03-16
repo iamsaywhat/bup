@@ -62,7 +62,10 @@ int main(void)
 	
 	
 	
+	const uint32_t  delay = 30;
 	
+	setTimeout (&timeout, delay); 
+	while (timeoutStatus(&timeout) != TIME_IS_UP);
 	
 	while(1)
 	{
@@ -72,33 +75,56 @@ int main(void)
 		//SelfTesting_SNS();
 		//BUP_UpdateDataFromSNS ();
 		
-	
+	//////////////////////////////////////////////
 //	  sendEmpty();
-//		delay_ms(40);
-//		sendEmpty();
-//		delay_ms(40);
-//		sendEmpty();
-//		delay_ms(40);
-//		sendEmpty();
-//		delay_ms(40);
-//		sendEmpty();
-//		delay_ms(40);
-//		sendEmpty();
-//		delay_ms(40);
+//		delay_ms(delay);
 //		getDeviceName();
-//		delay_ms(40);
-//		getDeviceName();
-//		delay_ms(40);
+//		
+//		sendEmpty();
+//		delay_ms(delay);
 //		getManufacturerName();
-//		delay_ms(40);
-//		sendEmpty();		
-//		delay_ms(40);
-//	  sendEmpty();
-//		delay_ms(40);
-//		//getListSDS();
-//		//getSDS(5);
-//		deleteSds(9);
-		getDeviceName();		
+
+//		sendEmpty();
+//		delay_ms(delay);
+//		getListSDS();
+//			
+//		sendEmpty();
+//		delay_ms(delay);
+//		getListSDS();
+//////////////////////////////////////////////////////
+	  sendEmpty();
+	  setTimeout (&timeout, delay); 
+	  while (timeoutStatus(&timeout) != TIME_IS_UP);
+		getDeviceName();
+		
+		sendEmpty();
+	  setTimeout (&timeout, delay); 
+	  while (timeoutStatus(&timeout) != TIME_IS_UP);
+		getManufacturerName();
+
+		sendEmpty();
+	  setTimeout (&timeout, delay); 
+	  while (timeoutStatus(&timeout) != TIME_IS_UP);
+		getListSDS();
+			
+		sendEmpty();
+	  setTimeout (&timeout, delay); 
+	  while (timeoutStatus(&timeout) != TIME_IS_UP);
+		getListSDS();
+
+/////////////////////////////////////////////////////		
+		
+////		sendEmpty();
+//		sendEmpty();
+//		getDeviceName();
+//		
+////		sendEmpty();
+//		sendEmpty();
+//		getManufacturerName();
+
+////		sendEmpty();
+//		sendEmpty();
+//		getListSDS();
 		
 	}
 
