@@ -8,6 +8,8 @@
 #include <stdlib.h>
 
 uint8_t buffer[200];
+uint8_t sdsNum = 0;
+uint8_t sdsIdList[20];
 uint8_t frameIndex = 0;
 
 enum DataType{
@@ -40,8 +42,11 @@ RadioStatus        parseForDeviceName(uint8_t *data);
 RadioStatus        parseForManufacturerName(uint8_t *data);
 RadioStatus        parseForListSDS(uint8_t *data);
 RadioStatus        parseForCoordinates(uint8_t *data, double *latitude, double *longitude);
+RadioStatus        parseForDeleteStatus (uint8_t *data, uint8_t *sended);
 char*              findTag(char* string, int length, const char* tag, int tagSize);
 void               itoa(int value, char* result);
+static void        setSdsNum(uint8_t number){sdsNum = number;}; 
+static uint8_t     getSdsNum(void) {return sdsNum;};
 
 
 /****** Публичная часть модуля  **********************************************************/
@@ -144,17 +149,17 @@ void getListSDS(void)
   Radio_deinitialize();       // Выключаем обмен
 	frameIndex++;               // Инкремент индекса кадра
 }
-void getSDS(int idSDS)
+void getSDS(int idSds)
 {
   uint16_t    size = 0;                  // Размер принятых данных
-  uint8_t     data[20] = "AT+CSDSRD=4";  // Команда
-  TimeoutType timeout;                   // Таймаут
-	double latitude;
+  uint8_t     data[20] = "AT+CSDSRD=";   // Команда
+  TimeoutType timeout;                   // Таймаут  
+	double latitude;                       
 	double longitude;
+	char id[4];                            //
+	itoa(idSds, id);                       // Числовой id, конвертируем в строковый
+	memcpy(data+10, id, strlen(id));       // Вставляем id в строку с командой, перекрывая нуль терминатор
 	
-	
-	
-	 
 	setTimeout (&timeout, 150);                                      // Устанавлливаем таймаут
 	Radio_initialize();                                              // Включаем обмен
 	Radio_send(frameIndex, data, sizeof(data)-1);                    // Посылаем команду
@@ -175,11 +180,48 @@ void getSDS(int idSDS)
   Radio_deinitialize();       // Выключаем обмен
 	frameIndex++;               // Инкремент индекса кадра
 }
+RadioStatus deleteSds(uint8_t idSds)
+{
+  uint8_t     data[20] = "AT+CSDSRM=";   // Команда
+  uint16_t    size = 0;                  // Размер принятых данных
+  TimeoutType timeout;                   // Таймаут 
+	char id[4];                            //
+	itoa(idSds, id);                       // Числовой id, конвертируем в строковый
+	memcpy(data+10, id, strlen(id));       // Вставляем id в строку с командой, перекрывая нуль терминатор
+	
+	setTimeout (&timeout, 150);                                      // Устанавлливаем таймаут
+	Radio_initialize();                                              // Включаем обмен
+	Radio_send(frameIndex, data, sizeof(data)-1);                    // Посылаем команду
+	while (timeoutStatus(&timeout) != TIME_IS_UP){                   // И следим за таймаутом
+	  if(Radio_receive(frameIndex, buffer, &size) != RADIO_SUCCESS){  // Принимаем ответ
+		  Radio_send(frameIndex, 0, 0);                                // Если ответа не последовало или ответ с ошибкой
+			continue;                                                    // Запрос необходимо повторить с этим же индексом
+    }
+		if(parseForDeleteStatus (buffer, data+2) != RADIO_SUCCESS){    // Сюда попали если ответ был принят
+			frameIndex++;                                     // Но нужно проверить, тот ли ответ был принят
+		  Radio_send(frameIndex, 0, 0);                     // Если ответ не тот, необходимо посылать пустые запросы
+			continue;                                         // До тех пор пока не получим нужное
+		}
+		else                  // Если попали сюда, то пакет был принят
+		  break;              // И даже пакет был верным
+	}
+	//memset(buffer, 0, size);    // Приёмный буфер необходимо очистить
+  Radio_deinitialize();       // Выключаем обмен
+	frameIndex++;               // Инкремент индекса кадра
+}
 
 
 
 
 /***** Приватная часть модуля **********************************************************/
+
+/**************************************************************************************************************
+  parseForDeviceName - Распарсить ответ на запрос имени устройства и проверить его валидность
+  Параметры:
+            data - Буфер, в котором размещено принятое сообщение
+  Возвращает:
+            Валидность ответа;
+***************************************************************************************************************/
 RadioStatus parseForDeviceName(uint8_t *data)
 {
 	const char name[] = {0xD0, 0x2D, 0x31, 0x38, 0x37, 0x2D, 0xCF, 0x31, 0x0A};
@@ -196,6 +238,13 @@ RadioStatus parseForDeviceName(uint8_t *data)
   else
 		 return RADIO_SUCCESS;
 }
+/**************************************************************************************************************
+  parseForManufacturerName - Распарсить ответ на запрос имени производителя и проверить его валидность
+  Параметры:
+            data - Буфер, в котором размещено принятое сообщение
+  Возвращает:
+            Валидность ответа;
+***************************************************************************************************************/
 RadioStatus parseForManufacturerName(uint8_t *data)
 {
 	const char name[] = {0xC0, 0xED, 0xE3, 0xF1, 0xF2, 0xF0, 0xE5, 0xEC};
@@ -212,24 +261,58 @@ RadioStatus parseForManufacturerName(uint8_t *data)
   else
 		 return RADIO_SUCCESS;
 }
+/**************************************************************************************************************
+  parseForListSDS - Распарсить ответ на запрос списка сообщений и проверить его валидность.
+  Параметры:
+            data - Буфер, в котором размещено принятое сообщение
+  Возвращает:
+            Валидность ответа;
+***************************************************************************************************************/
 RadioStatus parseForListSDS(uint8_t *data)
 {
 	const char tag[] = {0x2B, 0x43, 0x53, 0x44, 0x53, 0x43, 0x4E, 0x54, 0x3A}; //"+CSDSCNT:
+	char delimiter = ',';
   RadioDataFrameType dataFrame;
 	dataFrame.Struct.type   = data[0];
 	dataFrame.Struct.length = *((uint16_t*)(data+1));
 	dataFrame.Struct.data = data;
   dataFrame.Struct.length = swapUint16(dataFrame.Struct.length); 
 	
-	char* address = findTag((char*)(data), (int)dataFrame.Struct.length, tag, sizeof(tag));
-		
-  if(dataFrame.Struct.type   != AT_COMMAND ||
-	   dataFrame.Struct.length != 0x08       ||
-     strncmp(tag, (char*)(data+3), 8) != 0)
-		 return RADIO_FAILED;
-  else
-		 return RADIO_SUCCESS;
+	char* sdsText = findTag((char*)(data), (int)dataFrame.Struct.length, tag, sizeof(tag));
+	
+	if(dataFrame.Struct.type != AT_COMMAND ||    // Тип команды должен быть AT-COMMAND  
+	   sdsText == NULL)                          // Указатель на начало текста сообщения
+	  return RADIO_FAILED;                       // не должен быть null, если сообщение валидно
+	
+	setSdsNum(atoi(sdsText));                   // Сохраняем количество имеющихся сообщений
+	/* Согласно полученному количеству сообщений нужно, 
+	произвести такое же количество считываний id 
+	сообщений, разделенных ',' */
+	for(int i = 0; i < sdsNum; i++)       
+	{
+	  /* Ищем ближайший ',' в сообщении, получаем адрес байта 
+		следующим сразу за запятой - это и есть id, получаем 
+		его числовое значение и опять по-новой.
+    Так как мы последовательно от разделителя до разделителя 
+		извлекаем id SDS-сообщений, и размер области поиска нужно пересчитывть:
+    длина пакета - (адрес прошлого обращения - (адрес с которого начинаются именно данные):
+    (length      - (sdsText 	               - (data+3)	*/
+	  sdsText = findTag(sdsText, ((int)dataFrame.Struct.length - (sdsText - (data+3))), &delimiter, 1); 
+		sdsIdList[i] = atoi(sdsText);
+	}
+  return RADIO_SUCCESS;
 }
+/**************************************************************************************************************
+  parseForCoordinates - Распарсить ответ на команду чтения сообщения и проверить его валидность.
+	                      В соответсвтии с заданным шаблоном найти в сообщении координаты    
+  Параметры:
+            data - Буфер, в котором размещено принятое сообщение
+						latitude - Указатель на внешнюю переменную широта;
+						longitude - Указатель на внешнюю переменную долгота;
+  Возвращает:
+            Валидность ответа;
+						Найденые в сообщение широту и долготу(через указатель);
+***************************************************************************************************************/
 RadioStatus parseForCoordinates(uint8_t *data, double *latitude, double *longitude)
 {
 	const char commandTag[] = {0xD2, 0xCF, 0x2B};          //"ТП+"
@@ -264,8 +347,30 @@ RadioStatus parseForCoordinates(uint8_t *data, double *latitude, double *longitu
   }
   return status;
 }
-
-
+/**************************************************************************************************************
+  parseForDeleteStatus - Распарсить ответ на команду удаления и проверить его валидность
+  Параметры:
+            data   - Буфер, в котором размещено принятое сообщение
+						sended - Указатель на строку, содержащую ожидаемый (эталон) ответ
+  Возвращает:
+            Валидность ответа;
+***************************************************************************************************************/
+RadioStatus parseForDeleteStatus (uint8_t *data, uint8_t *sended)
+{
+  RadioDataFrameType       dataFrame;
+	dataFrame.Struct.type    = data[0];
+	dataFrame.Struct.length  = *((uint16_t*)(data+1));
+	dataFrame.Struct.data    = data;
+  dataFrame.Struct.length  = swapUint16(dataFrame.Struct.length); 
+	
+	// По полученному адресу можем узнать содержит ли, буфер с сообщением, образцовую строку sended
+	char* address = findTag((char*)(data), (int)dataFrame.Struct.length, sended, strlen(sended)-1);
+		
+  if(dataFrame.Struct.type != AT_COMMAND || address == NULL)
+		 return RADIO_FAILED;
+  else
+		 return RADIO_SUCCESS;
+}
 /**************************************************************************************************************
   Radio_initialize - Инициализация UART под радиостанцию
 ***************************************************************************************************************/
@@ -619,6 +724,7 @@ void itoa(int value, char* result)
 		tempValue/=10;
 		i++;
 	}
+	result[i] = '\0';
 	while(value > 0)
 	{
 		temp = value%10;
@@ -627,3 +733,4 @@ void itoa(int value, char* result)
 		i--;
 	}
 }
+

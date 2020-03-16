@@ -48,7 +48,7 @@ int main(void)
   BIM_CAN_initialize ();                         /* Запускаем драйвер БИМов (который попутно инициализирует CAN1) */
   LogFs_initialize();                            /* Запускаем файловую систему */
   Bup_initialize();                              /* Инициализируем хранилище данных БУП */
-  while(timeoutStatus(&timeout) != TIME_IS_UP);  /* Дожидаемся запуска СНС */     
+  //while(timeoutStatus(&timeout) != TIME_IS_UP);  /* Дожидаемся запуска СНС */     
   SelfTestingFull();                             /* Запускаем фул-тест системы */
   stopIndication();                              /* Отключаем мигание */
 
@@ -83,21 +83,22 @@ int main(void)
 //		delay_ms(40);
 //		sendEmpty();
 //		delay_ms(40);
-		sendEmpty();
+//		sendEmpty();
 //		delay_ms(40);
 //		getDeviceName();
 //		delay_ms(40);
 //		getDeviceName();
-		delay_ms(40);
+//		delay_ms(40);
 //		getManufacturerName();
-		delay_ms(40);
-		sendEmpty();		
-		delay_ms(40);
-	  sendEmpty();
-		delay_ms(40);
-		getListSDS();
-		//getSDS();
-		
+//		delay_ms(40);
+//		sendEmpty();		
+//		delay_ms(40);
+//	  sendEmpty();
+//		delay_ms(40);
+//		//getListSDS();
+//		//getSDS(5);
+//		deleteSds(9);
+		getDeviceName();		
 		
 	}
 
