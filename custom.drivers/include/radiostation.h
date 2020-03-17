@@ -59,11 +59,15 @@ typedef enum{
 }RadioStatus;
 
 
-void Radio_send(uint8_t index, uint8_t *data, uint8_t size);
 
-
-//void getDeviceName(void);
-//void sendEmpty(void);
+RadioStatus sendEmpty(void);
+RadioStatus checkDeviceName(void);
+RadioStatus checkManufacturerName(void);
+RadioStatus updateSdsList(void);
+RadioStatus getCoordinatesFromSds(int idSds, double *latitude, double *longitude);
+RadioStatus deleteSds(uint8_t idSds);
+RadioStatus deleteAllSds (void);
+RadioStatus findCoordinateInSdsList(double *latitude, double *longitude);
 
 
 #endif

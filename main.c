@@ -24,7 +24,7 @@
 #endif //******************************************************************** !LOGS_ENABLE
 
 #ifdef DEBUG_VARS	//*************************************************************** Если активна отладка переменных 
-//	#include "debug.h"                             // Отладочный модуль трассировки внутрисистемных переменных в CAN
+	#include "debug.h"                             // Отладочный модуль трассировки внутрисистемных переменных в CAN
 #endif //************************************************************************** !DEBUG_VARS 	
 
 #include "radiostation.h"
@@ -68,7 +68,7 @@ int main(void)
 //	while (timeoutStatus(&timeout) != TIME_IS_UP);
 double latitude;
 double longitude;
-	
+	BIM_enableSupply();   
 	while(1)
 	{
 		//BUP_DataUpdate ();
@@ -114,9 +114,14 @@ double longitude;
 //	  while (timeoutStatus(&timeout) != TIME_IS_UP);
 //		getListSDS();
 
-/////////////////////////////////////////////////////		
+/////////////////////////////////////////////////////	
+  LED_READY_ON();	
 	updateSdsList();	
-  findCoordinateInSdsList(&latitude, &longitude);	
+  if(findCoordinateInSdsList(&latitude, &longitude) == RADIO_SUCCESS);
+	LED_READY_OFF();
+	delay_ms(300);
+	  
+  	
 
 
 

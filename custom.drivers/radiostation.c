@@ -13,11 +13,11 @@ uint8_t sdsIdList[20];
 uint8_t frameIndex = 0;
 
 enum DataType{
-  AUDIO         = 2,
-  TETRA_VOCODER = 4,
-  AT_COMMAND    = 5,
-  DEVICE_DATA   = 6,
-  HOST_DATA     = 7,
+  AUDIO         = 2,  // Некодированные звуковые данные
+  TETRA_VOCODER = 4,  // Кодированные данные вокодера TETRA
+  AT_COMMAND    = 5,  // AT-команды
+  DEVICE_DATA   = 6,  // Данные от радиостанции к ООД
+  HOST_DATA     = 7,  // Данные от ООД к радиостанции
 };
 
 enum SlipMarkers{
@@ -41,7 +41,7 @@ static void        Radio_deinitialize (void);
 RadioStatus        parseForDeviceName(uint8_t *data);
 RadioStatus        parseForManufacturerName(uint8_t *data);
 RadioStatus        parseForListSDS(uint8_t *data);
-RadioStatus parseForCoordinates(uint8_t *data, uint8_t *sended, double *latitude, double *longitude);
+RadioStatus        parseForCoordinates(uint8_t *data, uint8_t *sended, double *latitude, double *longitude);
 RadioStatus        parseForDeleteStatus (uint8_t *data, uint8_t *sended);
 char*              findTag(char* string, int length, const char* tag, int tagSize);
 void               itoa(int value, char* result);
@@ -283,7 +283,6 @@ RadioStatus deleteSds(uint8_t idSds)
 ***************************************************************************************************************/
 RadioStatus deleteAllSds (void)
 {
-  RadioStatus status = RADIO_FAILED;
   if(updateSdsList() != RADIO_SUCCESS)
 	  return RADIO_FAILED;
 	for(uint16_t i = 0; i < getSdsNum(); i++){
@@ -366,7 +365,7 @@ RadioStatus parseForManufacturerName(uint8_t *data)
 ***************************************************************************************************************/
 RadioStatus parseForListSDS(uint8_t *data)
 {
-	const char tag[] = {0x2B, 0x43, 0x53, 0x44, 0x53, 0x43, 0x4E, 0x54, 0x3A}; //"+CSDSCNT:
+	const char tag[] = "+CSDSCNT:";
 	char delimiter = ',';
   RadioDataFrameType dataFrame;
 	dataFrame.Struct.type   = data[0];
@@ -374,7 +373,7 @@ RadioStatus parseForListSDS(uint8_t *data)
 	dataFrame.Struct.data = data;
   dataFrame.Struct.length = swapUint16(dataFrame.Struct.length); 
 	
-	char* sdsText = findTag((char*)(data), (int)dataFrame.Struct.length, tag, sizeof(tag));
+	char* sdsText = findTag((char*)(data), (int)dataFrame.Struct.length, tag, sizeof(tag)-1);
 	
 	if(dataFrame.Struct.type != AT_COMMAND ||    // Тип команды должен быть AT-COMMAND  
 	   sdsText == NULL)                          // Указатель на начало текста сообщения
@@ -393,7 +392,7 @@ RadioStatus parseForListSDS(uint8_t *data)
 		извлекаем id SDS-сообщений, и размер области поиска нужно пересчитывть:
     длина пакета - (адрес прошлого обращения - (адрес с которого начинаются именно данные):
     (length      - (sdsText 	               - (data+3)	*/
-	  sdsText = findTag(sdsText, ((int)dataFrame.Struct.length - (sdsText - (data+3))), &delimiter, 1); 
+	  sdsText = findTag(sdsText, ((int)dataFrame.Struct.length - ((int)sdsText - (int)(data+3))), &delimiter, 1); 
 		sdsIdList[i] = atoi(sdsText);
 	}
   return RADIO_SUCCESS;
@@ -500,7 +499,6 @@ void Radio_initialize (void)
   UART_Init (RADIO_UART, &UART_InitStructure);  /* Инициализация UART */
   UART_Cmd(RADIO_UART, ENABLE);                 /* Включение UART1 - RADIO */
 }
-
 /**************************************************************************************************************
   Radio_deinitialize - Деинициализация радиостанции и освобождение UART
 ***************************************************************************************************************/
@@ -583,8 +581,6 @@ void Radio_send(uint8_t index, uint8_t *data, uint8_t size)
 	// Контрольная сумма всего пакета
   for(i = 4; i < 6; i++)
     sendByte (RADIO_UART, baseFrame.Buffer[i]);
-	
-//	sendFend (RADIO_UART);
 	
 	// Дождемся пока все отправится из FIFO
 	setTimeout (&timeout, RADIO_FIFO_TIMEOUT); 
