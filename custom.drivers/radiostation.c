@@ -8,8 +8,8 @@
 #include <stdlib.h>
 
 uint8_t buffer[200];
-uint8_t sdsNum = 0;
-uint8_t sdsIdList[20];
+uint8_t sdsCounter = 0;
+uint8_t sdsList[20];
 uint8_t frameIndex = 0;
 
 enum DataType{
@@ -29,25 +29,25 @@ enum SlipMarkers{
 
 
 /***** Приватная часть модуля **********************************************************/
-static uint16_t    swapUint16 (uint16_t value);
-static uint32_t    swapUint32 (uint32_t value);
-static uint16_t    receiveByte(MDR_UART_TypeDef* UARTx);
-static int16_t     sendByte (MDR_UART_TypeDef* UARTx, uint16_t byte);
-static uint16_t    sendFend (MDR_UART_TypeDef* UARTx);
-static void        Radio_send (uint8_t index, uint8_t *data, uint8_t size);
-static RadioStatus Radio_receive (uint8_t index, uint8_t* data, uint16_t *size);
-static void        Radio_initialize (void);
-static void        Radio_deinitialize (void);
-RadioStatus        parseForDeviceName(uint8_t *data);
-RadioStatus        parseForManufacturerName(uint8_t *data);
-RadioStatus        parseForListSDS(uint8_t *data);
-RadioStatus        parseForCoordinates(uint8_t *data, uint8_t *sended, double *latitude, double *longitude);
-RadioStatus        parseForDeleteStatus (uint8_t *data, uint8_t *sended);
-char*              findTag(char* string, int length, const char* tag, int tagSize);
-void               itoa(int value, char* result);
-static void        setSdsNum(uint8_t number){sdsNum = number;}; 
-static uint8_t     getSdsNum(void) {return sdsNum;};
-static void        someMagic(void);
+static uint16_t    swapUint16               (uint16_t value);
+static uint32_t    swapUint32               (uint32_t value);
+static uint16_t    receiveByte              (MDR_UART_TypeDef* UARTx);
+static int16_t     sendByte                 (MDR_UART_TypeDef* UARTx, uint16_t byte);
+static uint16_t    sendFend                 (MDR_UART_TypeDef* UARTx);
+static void        Radio_send               (uint8_t index, uint8_t *data, uint8_t size);
+static RadioStatus Radio_receive            (uint8_t index, uint8_t* data, uint16_t *size);
+static void        Radio_initialize         (void);
+static void        Radio_deinitialize       (void);
+RadioStatus        parseForDeviceName       (uint8_t *data);
+RadioStatus        parseForManufacturerName (uint8_t *data);
+RadioStatus        parseForListSDS          (uint8_t *data);
+RadioStatus        parseForCoordinates      (uint8_t *data, uint8_t *sended, double *latitude, double *longitude);
+RadioStatus        parseForDeleteStatus     (uint8_t *data, uint8_t *sended);
+char*              findTag                  (char* string, int length, const char* tag, int tagSize);
+void               itoa                     (int value, char* result);
+static void        someMagic                (void);
+static void        setSdsCount              (uint8_t count);
+static uint8_t     getSdsId                 (uint8_t index);
 
 
 /****** Публичная часть модуля  **********************************************************/
@@ -234,7 +234,6 @@ RadioStatus getCoordinatesFromSds(int idSds, double *latitude, double *longitude
 	frameIndex++;               // Инкремент индекса кадра
 	return status;
 }
-
 /**************************************************************************************************************
   deleteSds - Стереть SDS сообщение с идентификатором idSds
   Параметры:
@@ -285,28 +284,33 @@ RadioStatus deleteAllSds (void)
 {
   if(updateSdsList() != RADIO_SUCCESS)
 	  return RADIO_FAILED;
-	for(uint16_t i = 0; i < getSdsNum(); i++){
-    if(deleteSds(sdsIdList[i]) != RADIO_SUCCESS)
+	for(uint16_t i = 0; i < getSdsCount(); i++){
+    if(deleteSds(getSdsId(i)) != RADIO_SUCCESS)
       return RADIO_FAILED;
 	}
 	updateSdsList();
 	return RADIO_SUCCESS;
 }
-
+/**************************************************************************************************************
+  findCoordinateInSdsList - Поиск среди SDS сообщений закодированных координат
+  Возвращает:
+            Результат выполнения
+  Приимечание:
+             Ищет в списке сообщений, то которое содержит координаты, и извлекает их,
+						 остальные удаляёт, как и то, из которого только что были извлечены координаты
+***************************************************************************************************************/
 RadioStatus findCoordinateInSdsList(double *latitude, double *longitude)
 {
   RadioStatus status = RADIO_FAILED;
-  for(uint16_t i = 0; i < getSdsNum(); i++){
-	  status = getCoordinatesFromSds(sdsIdList[i], latitude, longitude);
+  for(uint16_t i = 0; i < getSdsCount(); i++){
+	  status = getCoordinatesFromSds(getSdsId(i), latitude, longitude);
 		if(status == RADIO_SUCCESS || status == RADIO_COORDINATES_NOT_FOUND){
-      deleteSds(sdsIdList[i]);
+      deleteSds(getSdsId(i));
       break;
     }
 	}
-	updateSdsList();
 	return status;
 }
-
 
 /***** Приватная часть модуля **********************************************************/
 
@@ -319,16 +323,16 @@ RadioStatus findCoordinateInSdsList(double *latitude, double *longitude)
 ***************************************************************************************************************/
 RadioStatus parseForDeviceName(uint8_t *data)
 {
-	const char name[] = {0xD0, 0x2D, 0x31, 0x38, 0x37, 0x2D, 0xCF, 0x31, 0x0A};
+	const char name[] = {0xD0, 0x2D, 0x31, 0x38, 0x37, 0x2D, 0xCF, 0x31, 0x0A}; // "Р-187-П1\n"
   RadioDataFrameType dataFrame;
-	dataFrame.Struct.type   = data[0];
+	dataFrame.Struct.type = data[0];
 	dataFrame.Struct.length = *((uint16_t*)(data+1));
 	dataFrame.Struct.data = data;
   dataFrame.Struct.length = swapUint16(dataFrame.Struct.length); 
 		
   if(dataFrame.Struct.type   != AT_COMMAND ||
 	   dataFrame.Struct.length != 0x08       ||
-     strncmp(name, (char*)(data+3), 8) != 0)
+     strncmp(name, (char*)(data+3), sizeof(name)-1) != NULL)
 		 return RADIO_FAILED;
   else
 		 return RADIO_SUCCESS;
@@ -342,16 +346,16 @@ RadioStatus parseForDeviceName(uint8_t *data)
 ***************************************************************************************************************/
 RadioStatus parseForManufacturerName(uint8_t *data)
 {
-	const char name[] = {0xC0, 0xED, 0xE3, 0xF1, 0xF2, 0xF0, 0xE5, 0xEC};
+	const char name[] = {0xC0, 0xED, 0xE3, 0xF1, 0xF2, 0xF0, 0xE5, 0xEC, 0x0A}; // "Ангстрем\n"
   RadioDataFrameType dataFrame;
-	dataFrame.Struct.type   = data[0];
+	dataFrame.Struct.type = data[0];
 	dataFrame.Struct.length = *((uint16_t*)(data+1));
 	dataFrame.Struct.data = data;
   dataFrame.Struct.length = swapUint16(dataFrame.Struct.length); 
 		
   if(dataFrame.Struct.type   != AT_COMMAND ||
 	   dataFrame.Struct.length != 0x08       ||
-     strncmp(name, (char*)(data+3), 8) != 0)
+     strncmp(name, (char*)(data+3), sizeof(name)-1) != NULL)
 		 return RADIO_FAILED;
   else
 		 return RADIO_SUCCESS;
@@ -379,11 +383,11 @@ RadioStatus parseForListSDS(uint8_t *data)
 	   sdsText == NULL)                          // Указатель на начало текста сообщения
 	  return RADIO_FAILED;                       // не должен быть null, если сообщение валидно
 	
-	setSdsNum(atoi(sdsText));                   // Сохраняем количество имеющихся сообщений
+	setSdsCount(atoi(sdsText));                   // Сохраняем количество имеющихся сообщений
 	/* Согласно полученному количеству сообщений нужно, 
 	произвести такое же количество считываний id 
 	сообщений, разделенных ',' */
-	for(int i = 0; i < sdsNum; i++)       
+	for(int i = 0; i < getSdsCount(); i++)       
 	{
 	  /* Ищем ближайший ',' в сообщении, получаем адрес байта 
 		следующим сразу за запятой - это и есть id, получаем 
@@ -393,7 +397,7 @@ RadioStatus parseForListSDS(uint8_t *data)
     длина пакета - (адрес прошлого обращения - (адрес с которого начинаются именно данные):
     (length      - (sdsText 	               - (data+3)	*/
 	  sdsText = findTag(sdsText, ((int)dataFrame.Struct.length - ((int)sdsText - (int)(data+3))), &delimiter, 1); 
-		sdsIdList[i] = atoi(sdsText);
+		sdsList[i] = atoi(sdsText);
 	}
   return RADIO_SUCCESS;
 }
@@ -411,9 +415,9 @@ RadioStatus parseForListSDS(uint8_t *data)
 ***************************************************************************************************************/
 RadioStatus parseForCoordinates(uint8_t *data, uint8_t *sended, double *latitude, double *longitude)
 {
-	const char commandTag[] = {0xD2, 0xCF, 0x2B};          //"ТП+"
-	const char latitudeTag[] = {0xD8, 0xC8, 0xD0, 0x3A};   // "ШИР:"
-	const char longitudeTag[] = {0xC4, 0xCE, 0xCB, 0x3A};  // "ДОЛ:"
+	const char commandTag[] = {0xD2, 0xCF, 0x2B, 0x0A};          //"ТП+"
+	const char latitudeTag[] = {0xD8, 0xC8, 0xD0, 0x3A, 0x0A};   // "ШИР:"
+	const char longitudeTag[] = {0xC4, 0xCE, 0xCB, 0x3A, 0x0A};  // "ДОЛ:"
 	char* latAddress;
 	char* lonAddress;
 	RadioStatus status = RADIO_FAILED;
@@ -425,17 +429,13 @@ RadioStatus parseForCoordinates(uint8_t *data, uint8_t *sended, double *latitude
   dataFrame.Struct.length = swapUint16(dataFrame.Struct.length); 
 	
   // Проверим на наш ли запрос пришел ответ
-	if(findTag((char*)(data), (int)dataFrame.Struct.length, sended, strlen(sended)-1) == NULL)
+	if(findTag((char*)data, (int)dataFrame.Struct.length, (char*)sended, strlen((char*)sended)-1) == NULL)
 		 return RADIO_FAILED; // Точно не то, что мы ждали
 	
-  if(findTag((char*)(data), (int)dataFrame.Struct.length, commandTag, sizeof(commandTag) != NULL))
+  if(findTag((char*)(data), (int)dataFrame.Struct.length, commandTag, sizeof(commandTag)-1) != NULL)
 	{
-    latAddress = findTag((char*)(data), (int)dataFrame.Struct.length, 
-		                   latitudeTag,  sizeof(latitudeTag));
-	  
-    lonAddress = findTag((char*)(data), dataFrame.Struct.length, 
-		                   longitudeTag, sizeof(longitudeTag));
-											 
+    latAddress = findTag((char*)(data), (int)dataFrame.Struct.length, latitudeTag,  sizeof(latitudeTag)-1);
+    lonAddress = findTag((char*)(data), (int)dataFrame.Struct.length, longitudeTag, sizeof(longitudeTag)-1);					 
 		if(latAddress != NULL || lonAddress != NULL || dataFrame.Struct.type != AT_COMMAND)
 		{
       *latitude = atof(latAddress);
@@ -467,7 +467,7 @@ RadioStatus parseForDeleteStatus (uint8_t *data, uint8_t *sended)
   dataFrame.Struct.length  = swapUint16(dataFrame.Struct.length); 
 	
 	// По полученному адресу можем узнать содержит ли, буфер с сообщением, образцовую строку sended
-	char* address = findTag((char*)(data), (int)dataFrame.Struct.length, sended, strlen(sended)-1);
+	char* address = findTag((char*)data, (int)dataFrame.Struct.length, (char*)sended, strlen((char*)sended)-1);
 		
   if(dataFrame.Struct.type != AT_COMMAND || address == NULL)
 		 return RADIO_FAILED;
@@ -662,6 +662,7 @@ uint16_t sendFend (MDR_UART_TypeDef* UARTx)
   if(timeout.status == TIME_IS_UP)                            // Если выход из ожидания по таймауту,
     return 0xFFFF;                                            // то возвращаем ошибку и выходим
   UART_SendData(UARTx, FEND);                                 // Иначе отправляем вместо FEND или FESC сначала FESC
+	return 0;
 }
 /**************************************************************************************************************
   sendByte - Отправка байта данных (с кодированием по Slip-протоколу)
@@ -846,6 +847,36 @@ void itoa(int value, char* result)
 		i--;
 	}
 }
+/**************************************************************************************************************
+  setSdsCount - Установить число SDS сообщений в списке 
+  Параметры:
+            count - Число доступных сообщений
+***************************************************************************************************************/
+void setSdsCount (uint8_t count){
+  sdsCounter = count;
+}
+/**************************************************************************************************************
+  getSdsCount - Получить число SDS сообщений в списке
+  Возвращает:
+            Число SDS сообщений в списке
+***************************************************************************************************************/
+uint8_t getSdsCount (void){
+  return sdsCounter;
+}
+/**************************************************************************************************************
+  getSdsId - Получить ID SDS сообщения с индексом index в списке;
+  Возвращает:
+            Число SDS сообщений в списке
+***************************************************************************************************************/
+uint8_t getSdsId(uint8_t index){
+  if(index < sdsCounter)
+    return sdsList[index];
+  else 
+		return 0;
+}
+/**************************************************************************************************************
+  someMagic - Необходимый порядок действий, для того, чтобы радиостанция правильно выбрала интерфейс
+***************************************************************************************************************/
 void someMagic(void)
 {
   /* Здесь необходимо выполнить танцы с бубном, поскольку неизвестно,

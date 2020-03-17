@@ -59,7 +59,7 @@ typedef enum{
 }RadioStatus;
 
 
-
+uint8_t getSdsCount (void);
 RadioStatus sendEmpty(void);
 RadioStatus checkDeviceName(void);
 RadioStatus checkManufacturerName(void);

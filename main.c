@@ -117,6 +117,8 @@ double longitude;
 /////////////////////////////////////////////////////	
   LED_READY_ON();	
 	updateSdsList();	
+//	checkDeviceName();
+//	checkManufacturerName();
   if(findCoordinateInSdsList(&latitude, &longitude) == RADIO_SUCCESS);
 	LED_READY_OFF();
 	delay_ms(300);
