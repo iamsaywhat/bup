@@ -64,8 +64,10 @@ int main(void)
 	
 	const uint32_t  delay = 30;
 	
-	setTimeout (&timeout, delay); 
-	while (timeoutStatus(&timeout) != TIME_IS_UP);
+//	setTimeout (&timeout, delay); 
+//	while (timeoutStatus(&timeout) != TIME_IS_UP);
+double latitude;
+double longitude;
 	
 	while(1)
 	{
@@ -92,40 +94,37 @@ int main(void)
 //		delay_ms(delay);
 //		getListSDS();
 //////////////////////////////////////////////////////
-	  sendEmpty();
-	  setTimeout (&timeout, delay); 
-	  while (timeoutStatus(&timeout) != TIME_IS_UP);
-		getDeviceName();
-		
-		sendEmpty();
-	  setTimeout (&timeout, delay); 
-	  while (timeoutStatus(&timeout) != TIME_IS_UP);
-		getManufacturerName();
-
-		sendEmpty();
-	  setTimeout (&timeout, delay); 
-	  while (timeoutStatus(&timeout) != TIME_IS_UP);
-		getListSDS();
-			
-		sendEmpty();
-	  setTimeout (&timeout, delay); 
-	  while (timeoutStatus(&timeout) != TIME_IS_UP);
-		getListSDS();
-
-/////////////////////////////////////////////////////		
-		
-////		sendEmpty();
-//		sendEmpty();
+//	  sendEmpty();
+//	  setTimeout (&timeout, delay); 
+//	  while (timeoutStatus(&timeout) != TIME_IS_UP);
 //		getDeviceName();
 //		
-////		sendEmpty();
 //		sendEmpty();
+//	  setTimeout (&timeout, delay); 
+//	  while (timeoutStatus(&timeout) != TIME_IS_UP);
 //		getManufacturerName();
 
-////		sendEmpty();
 //		sendEmpty();
+//	  setTimeout (&timeout, delay); 
+//	  while (timeoutStatus(&timeout) != TIME_IS_UP);
 //		getListSDS();
-		
+//			
+//		sendEmpty();
+//	  setTimeout (&timeout, delay); 
+//	  while (timeoutStatus(&timeout) != TIME_IS_UP);
+//		getListSDS();
+
+/////////////////////////////////////////////////////		
+	updateSdsList();	
+  findCoordinateInSdsList(&latitude, &longitude);	
+
+
+
+//		checkDeviceName();
+//		checkManufacturerName();
+//		updateSdsList();
+//		updateSdsList();
+  
 	}
 
   if(!CONNECT_ZPZ_CHECK)                             /* Проверяем подключение разъема ЗПЗ */

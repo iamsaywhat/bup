@@ -21,7 +21,8 @@
 #define PACKET_SIZE_LIMIT 256
 #define RADIO_ADDRESS     0x01
 
-#define RADIO_SEND_PAUSE 40
+#define RADIO_SEND_PAUSE 20
+#define RADIO_REQUEST_DELAY 20
 
 typedef __packed struct{
 	uint8_t  index;
@@ -54,14 +55,15 @@ typedef enum{
 	RADIO_FAILED,
 	RADIO_WRONG_ADDRESS,
 	RADIO_EXCESS_PACKET_SIZE,
+	RADIO_COORDINATES_NOT_FOUND,
 }RadioStatus;
 
 
 void Radio_send(uint8_t index, uint8_t *data, uint8_t size);
 
 
-void getDeviceName(void);
-void sendEmpty(void);
+//void getDeviceName(void);
+//void sendEmpty(void);
 
 
 #endif

@@ -41,17 +41,27 @@ static void        Radio_deinitialize (void);
 RadioStatus        parseForDeviceName(uint8_t *data);
 RadioStatus        parseForManufacturerName(uint8_t *data);
 RadioStatus        parseForListSDS(uint8_t *data);
-RadioStatus        parseForCoordinates(uint8_t *data, double *latitude, double *longitude);
+RadioStatus parseForCoordinates(uint8_t *data, uint8_t *sended, double *latitude, double *longitude);
 RadioStatus        parseForDeleteStatus (uint8_t *data, uint8_t *sended);
 char*              findTag(char* string, int length, const char* tag, int tagSize);
 void               itoa(int value, char* result);
 static void        setSdsNum(uint8_t number){sdsNum = number;}; 
 static uint8_t     getSdsNum(void) {return sdsNum;};
+static void        someMagic(void);
 
 
 /****** Публичная часть модуля  **********************************************************/
-void sendEmpty(void)
+
+/**************************************************************************************************************
+  sendEmpty - Запрос-пустышка
+  Возвращает:
+            Результат выполнения
+  Примечание: Может использоваться для проверки связи с рацией,
+	          или для удержания радиостанции в режиме rs485 (см РЭ на радиостанцию)
+***************************************************************************************************************/
+RadioStatus sendEmpty(void)
 {
+  RadioStatus status = RADIO_FAILED; 
   uint16_t    size = 0;
   TimeoutType timeout;
 	setTimeout (&timeout, 100); 
@@ -62,109 +72,70 @@ void sendEmpty(void)
 		  Radio_send(frameIndex, 0, 0);
 		  continue;
     }
-		else
-		  break; 
+		else {		
+		  status = RADIO_SUCCESS; // Если попали сюда, то пакет был принят
+		  break;                  // И даже пакет был верным
+    }
 	}
 	memset(buffer, 0, size);     
   Radio_deinitialize();
 	frameIndex++;
+	return status;
 }
-void getDeviceName(void)
+/**************************************************************************************************************
+  checkDeviceName - Проверка имени устройства
+  Возвращает:
+            Результат выполнения
+***************************************************************************************************************/
+RadioStatus checkDeviceName(void)
 {
-  uint16_t    size = 0;          // Размер принятых данных
-  uint8_t     data[] = "ATI";    // Команда
-  TimeoutType timeout;           // Таймаут
+  RadioStatus status = RADIO_FAILED;   // Статус выполнения по-умолчанию
+  uint16_t    size = 0;                // Размер принятых данных
+  uint8_t     data[] = "ATI";          // Команда
+  TimeoutType timeout;                 // Таймаут
 	
-	 
-	setTimeout (&timeout, 500);                                      // Устанавлливаем таймаут
-	Radio_initialize();                                              // Включаем обмен
-	
-//  /////////////////////////////////
-//	Radio_send(frameIndex, 0, 0);
-//	while (timeoutStatus(&timeout) != TIME_IS_UP){
-//	  if(Radio_receive(frameIndex, buffer, &size) != RADIO_SUCCESS){
-//		  Radio_send(frameIndex, 0, 0);
-//		  continue;
-//    }
-//		else
-//		  break; 
-//	}
-//	memset(buffer, 0, size);     
-//	frameIndex++;
-//	
-//		Radio_send(frameIndex, 0, 0);
-//	while (timeoutStatus(&timeout) != TIME_IS_UP){
-//	  if(Radio_receive(frameIndex, buffer, &size) != RADIO_SUCCESS){
-//		  Radio_send(frameIndex, 0, 0);
-//		  continue;
-//    }
-//		else
-//		  break; 
-//	}
-//	memset(buffer, 0, size);     
-//	frameIndex++;
-//	
-//	
-//	////////////////////////////////////////////
+	setTimeout (&timeout, 150);    // Устанавлливаем таймаут
+	Radio_initialize();            // Включаем обмен
+  someMagic();                   // Немного магии
 	Radio_send(frameIndex, data, sizeof(data)-1);                    // Посылаем команду
 	while (timeoutStatus(&timeout) != TIME_IS_UP){                   // И следим за таймаутом
-	  if(Radio_receive(frameIndex, buffer, &size) != RADIO_SUCCESS){  // Принимаем ответ
+	  if(Radio_receive(frameIndex, buffer, &size) != RADIO_SUCCESS){ // Принимаем ответ
 		  Radio_send(frameIndex, 0, 0);                                // Если ответа не последовало или ответ с ошибкой
 			continue;                                                    // Запрос необходимо повторить с этим же индексом
     }
-		if(parseForDeviceName (buffer) != RADIO_SUCCESS){    // Сюда попали если ответ был принят
+		if(parseForDeviceName (buffer) != RADIO_SUCCESS){   // Сюда попали если ответ был принят
 			frameIndex++;                                     // Но нужно проверить, тот ли ответ был принят
 		  Radio_send(frameIndex, 0, 0);                     // Если ответ не тот, необходимо посылать пустые запросы
 			continue;                                         // До тех пор пока не получим нужное
 		}
-		else                  // Если попали сюда, то пакет был принят
-		  break;              // И даже пакет был верным
+		else {		
+		  status = RADIO_SUCCESS; // Если попали сюда, то пакет был принят
+		  break;                  // И даже пакет был верным
+    }
 	}
 	memset(buffer, 0, size);    // Приёмный буфер необходимо очистить
   Radio_deinitialize();       // Выключаем обмен
 	frameIndex++;               // Инкремент индекса кадра
+	return status;
 }
-
-void getManufacturerName(void)
+/**************************************************************************************************************
+  checkManufacturerName - Проверка имени производителя
+  Возвращает:
+            Результат выполнения
+***************************************************************************************************************/
+RadioStatus checkManufacturerName(void)
 {
-  uint16_t    size = 0;           // Размер принятых данных
-  uint8_t     data[] = "AT+GMI";  // Команда
-  TimeoutType timeout;            // Таймаут
+  RadioStatus status = RADIO_FAILED;   // Статус выполнения по-умолчанию
+  uint16_t    size = 0;                // Размер принятых данных
+  uint8_t     data[] = "AT+GMI";       // Команда
+  TimeoutType timeout;                 // Таймаут
 	 
-	setTimeout (&timeout, 500);                                      // Устанавлливаем таймаут
-	Radio_initialize();                                              // Включаем обмен
-	
-	
-//	  /////////////////////////////////
-//	Radio_send(frameIndex, 0, 0);
-//	while (timeoutStatus(&timeout) != TIME_IS_UP){
-//	  if(Radio_receive(frameIndex, buffer, &size) != RADIO_SUCCESS){
-//		  Radio_send(frameIndex, 0, 0);
-//		  continue;
-//    }
-//		else
-//		  break; 
-//	}
-//	memset(buffer, 0, size);     
-//	frameIndex++;
-//	
-//		Radio_send(frameIndex, 0, 0);
-//	while (timeoutStatus(&timeout) != TIME_IS_UP){
-//	  if(Radio_receive(frameIndex, buffer, &size) != RADIO_SUCCESS){
-//		  Radio_send(frameIndex, 0, 0);
-//		  continue;
-//    }
-//		else
-//		  break; 
-//	}
-//	memset(buffer, 0, size);     
-//	frameIndex++;
-//	////////////////////////////////////////////
-	
-	
+	setTimeout (&timeout, 150);     // Устанавлливаем таймаут
+	Radio_initialize();             // Включаем обмен
+  someMagic();                    // Немного магии
 	Radio_send(frameIndex, data, sizeof(data)-1);                    // Посылаем команду
 	while (timeoutStatus(&timeout) != TIME_IS_UP){                   // И следим за таймаутом
-	  if(Radio_receive(frameIndex, buffer, &size) != RADIO_SUCCESS){  // Принимаем ответ
+	  if(Radio_receive(frameIndex, buffer, &size) != RADIO_SUCCESS){ // Принимаем ответ
 		  Radio_send(frameIndex, 0, 0);                                // Если ответа не последовало или ответ с ошибкой
 			continue;                                                    // Запрос необходимо повторить с этим же индексом
     }
@@ -173,25 +144,34 @@ void getManufacturerName(void)
 		  Radio_send(frameIndex, 0, 0);                     // Если ответ не тот, необходимо посылать пустые запросы
 			continue;                                         // До тех пор пока не получим нужное
 		}
-		else                  // Если попали сюда, то пакет был принят
-		  break;              // И даже пакет был верным
+		else {		
+		  status = RADIO_SUCCESS; // Если попали сюда, то пакет был принят
+		  break;                  // И даже пакет был верным
+    }
 	}
 	memset(buffer, 0, size);    // Приёмный буфер необходимо очистить
   Radio_deinitialize();       // Выключаем обмен
 	frameIndex++;               // Инкремент индекса кадра
+	return status;
 }
-
-void getListSDS(void)
+/**************************************************************************************************************
+  updateSdsList - Обновить список SDS сообщений
+  Возвращает:
+            Результат выполнения
+***************************************************************************************************************/
+RadioStatus updateSdsList(void)
 {
+  RadioStatus status = RADIO_FAILED;   // Статус выполнения по-умолчанию
   uint16_t    size = 0;                // Размер принятых данных
   uint8_t     data[] = "AT+CSDSCNT?";  // Команда
   TimeoutType timeout;                 // Таймаут
 	 
-	setTimeout (&timeout, 150);                                      // Устанавлливаем таймаут
-	Radio_initialize();                                              // Включаем обмен
+	setTimeout (&timeout, 150);          // Устанавлливаем таймаут
+	Radio_initialize();                  // Включаем обмен
+  someMagic();                         // Немного магии
 	Radio_send(frameIndex, data, sizeof(data)-1);                    // Посылаем команду
 	while (timeoutStatus(&timeout) != TIME_IS_UP){                   // И следим за таймаутом
-	  if(Radio_receive(frameIndex, buffer, &size) != RADIO_SUCCESS){  // Принимаем ответ
+	  if(Radio_receive(frameIndex, buffer, &size) != RADIO_SUCCESS){ // Принимаем ответ
 		  Radio_send(frameIndex, 0, 0);                                // Если ответа не последовало или ответ с ошибкой
 			continue;                                                    // Запрос необходимо повторить с этим же индексом
     }
@@ -200,58 +180,84 @@ void getListSDS(void)
 		  Radio_send(frameIndex, 0, 0);                     // Если ответ не тот, необходимо посылать пустые запросы
 			continue;                                         // До тех пор пока не получим нужное
 		}
-		else                  // Если попали сюда, то пакет был принят
-		  break;              // И даже пакет был верным
+		else {		
+		  status = RADIO_SUCCESS; // Если попали сюда, то пакет был принят
+		  break;                  // И даже пакет был верным
+    }
 	}
 	memset(buffer, 0, size);    // Приёмный буфер необходимо очистить
   Radio_deinitialize();       // Выключаем обмен
 	frameIndex++;               // Инкремент индекса кадра
+	return status;
 }
-void getSDS(int idSds)
+/**************************************************************************************************************
+  getCoordinatesFromSds - Поиск координат в SDS сообщении с идентификатором idSds;
+  Параметры:
+            idSds - Идентификатор SDS сообщения
+						latitude - Указатель на переменную широта для сохранения
+						longitude - Указатель на переменную долгота для сохранения
+  Возвращает:
+            Результат выполнения
+						Долготу, широту через указатель, если были найдены
+***************************************************************************************************************/
+RadioStatus getCoordinatesFromSds(int idSds, double *latitude, double *longitude)
 {
   uint16_t    size = 0;                  // Размер принятых данных
   uint8_t     data[20] = "AT+CSDSRD=";   // Команда
-  TimeoutType timeout;                   // Таймаут  
-	double latitude;                       
-	double longitude;
+  TimeoutType timeout;                   // Таймаут
+  RadioStatus status = RADIO_FAILED;     // Статус выполнения по-умолчанию
 	char id[4];                            //
 	itoa(idSds, id);                       // Числовой id, конвертируем в строковый
 	memcpy(data+10, id, strlen(id));       // Вставляем id в строку с командой, перекрывая нуль терминатор
 	
 	setTimeout (&timeout, 150);                                      // Устанавлливаем таймаут
 	Radio_initialize();                                              // Включаем обмен
+	someMagic();                                                     // Немного магии
 	Radio_send(frameIndex, data, sizeof(data)-1);                    // Посылаем команду
 	while (timeoutStatus(&timeout) != TIME_IS_UP){                   // И следим за таймаутом
-	  if(Radio_receive(frameIndex, buffer, &size) != RADIO_SUCCESS){  // Принимаем ответ
+	  if(Radio_receive(frameIndex, buffer, &size) != RADIO_SUCCESS){ // Принимаем ответ
 		  Radio_send(frameIndex, 0, 0);                                // Если ответа не последовало или ответ с ошибкой
 			continue;                                                    // Запрос необходимо повторить с этим же индексом
     }
-		if(parseForCoordinates (buffer, &latitude, &longitude) != RADIO_SUCCESS){    // Сюда попали если ответ был принят
+		if(parseForCoordinates (buffer, data+2, latitude, longitude) == RADIO_FAILED){    // Сюда попали если ответ был принят
 			frameIndex++;                                     // Но нужно проверить, тот ли ответ был принят
 		  Radio_send(frameIndex, 0, 0);                     // Если ответ не тот, необходимо посылать пустые запросы
 			continue;                                         // До тех пор пока не получим нужное
 		}
-		else                  // Если попали сюда, то пакет был принят
-		  break;              // И даже пакет был верным
+		else {		
+		  status = RADIO_SUCCESS; // Если попали сюда, то пакет был принят
+		  break;                  // И даже пакет был верным
+    }
 	}
 	memset(buffer, 0, size);    // Приёмный буфер необходимо очистить
   Radio_deinitialize();       // Выключаем обмен
 	frameIndex++;               // Инкремент индекса кадра
+	return status;
 }
+
+/**************************************************************************************************************
+  deleteSds - Стереть SDS сообщение с идентификатором idSds
+  Параметры:
+            idSds - Идентификатор SDS сообщения
+  Возвращает:
+            Результат выполнения
+***************************************************************************************************************/
 RadioStatus deleteSds(uint8_t idSds)
 {
   uint8_t     data[20] = "AT+CSDSRM=";   // Команда
   uint16_t    size = 0;                  // Размер принятых данных
   TimeoutType timeout;                   // Таймаут 
+	RadioStatus status = RADIO_FAILED;     // Статус выполнения по-умолчанию
 	char id[4];                            //
 	itoa(idSds, id);                       // Числовой id, конвертируем в строковый
 	memcpy(data+10, id, strlen(id));       // Вставляем id в строку с командой, перекрывая нуль терминатор
 	
 	setTimeout (&timeout, 150);                                      // Устанавлливаем таймаут
 	Radio_initialize();                                              // Включаем обмен
+	someMagic();                                                     // Немного магии
 	Radio_send(frameIndex, data, sizeof(data)-1);                    // Посылаем команду
 	while (timeoutStatus(&timeout) != TIME_IS_UP){                   // И следим за таймаутом
-	  if(Radio_receive(frameIndex, buffer, &size) != RADIO_SUCCESS){  // Принимаем ответ
+	  if(Radio_receive(frameIndex, buffer, &size) != RADIO_SUCCESS){ // Принимаем ответ
 		  Radio_send(frameIndex, 0, 0);                                // Если ответа не последовало или ответ с ошибкой
 			continue;                                                    // Запрос необходимо повторить с этим же индексом
     }
@@ -260,15 +266,47 @@ RadioStatus deleteSds(uint8_t idSds)
 		  Radio_send(frameIndex, 0, 0);                     // Если ответ не тот, необходимо посылать пустые запросы
 			continue;                                         // До тех пор пока не получим нужное
 		}
-		else                  // Если попали сюда, то пакет был принят
-		  break;              // И даже пакет был верным
+		else {		
+		  status = RADIO_SUCCESS; // Если попали сюда, то пакет был принят
+		  break;                  // И даже пакет был верным
+    }
 	}
 	memset(buffer, 0, size);    // Приёмный буфер необходимо очистить
   Radio_deinitialize();       // Выключаем обмен
 	frameIndex++;               // Инкремент индекса кадра
+	return status;
+}
+/**************************************************************************************************************
+  deleteAllSds - Стереть все имеющиеся SDS сообщения
+  Возвращает:
+            Результат выполнения
+***************************************************************************************************************/
+RadioStatus deleteAllSds (void)
+{
+  RadioStatus status = RADIO_FAILED;
+  if(updateSdsList() != RADIO_SUCCESS)
+	  return RADIO_FAILED;
+	for(uint16_t i = 0; i < getSdsNum(); i++){
+    if(deleteSds(sdsIdList[i]) != RADIO_SUCCESS)
+      return RADIO_FAILED;
+	}
+	updateSdsList();
+	return RADIO_SUCCESS;
 }
 
-
+RadioStatus findCoordinateInSdsList(double *latitude, double *longitude)
+{
+  RadioStatus status = RADIO_FAILED;
+  for(uint16_t i = 0; i < getSdsNum(); i++){
+	  status = getCoordinatesFromSds(sdsIdList[i], latitude, longitude);
+		if(status == RADIO_SUCCESS || status == RADIO_COORDINATES_NOT_FOUND){
+      deleteSds(sdsIdList[i]);
+      break;
+    }
+	}
+	updateSdsList();
+	return status;
+}
 
 
 /***** Приватная часть модуля **********************************************************/
@@ -365,13 +403,14 @@ RadioStatus parseForListSDS(uint8_t *data)
 	                      В соответсвтии с заданным шаблоном найти в сообщении координаты    
   Параметры:
             data - Буфер, в котором размещено принятое сообщение
+						sended - Указатель текст запроса
 						latitude - Указатель на внешнюю переменную широта;
 						longitude - Указатель на внешнюю переменную долгота;
   Возвращает:
             Валидность ответа;
 						Найденые в сообщение широту и долготу(через указатель);
 ***************************************************************************************************************/
-RadioStatus parseForCoordinates(uint8_t *data, double *latitude, double *longitude)
+RadioStatus parseForCoordinates(uint8_t *data, uint8_t *sended, double *latitude, double *longitude)
 {
 	const char commandTag[] = {0xD2, 0xCF, 0x2B};          //"ТП+"
 	const char latitudeTag[] = {0xD8, 0xC8, 0xD0, 0x3A};   // "ШИР:"
@@ -385,6 +424,10 @@ RadioStatus parseForCoordinates(uint8_t *data, double *latitude, double *longitu
 	dataFrame.Struct.length = *((uint16_t*)(data+1));
 	dataFrame.Struct.data = data;
   dataFrame.Struct.length = swapUint16(dataFrame.Struct.length); 
+	
+  // Проверим на наш ли запрос пришел ответ
+	if(findTag((char*)(data), (int)dataFrame.Struct.length, sended, strlen(sended)-1) == NULL)
+		 return RADIO_FAILED; // Точно не то, что мы ждали
 	
   if(findTag((char*)(data), (int)dataFrame.Struct.length, commandTag, sizeof(commandTag) != NULL))
 	{
@@ -401,8 +444,11 @@ RadioStatus parseForCoordinates(uint8_t *data, double *latitude, double *longitu
 			status = RADIO_SUCCESS;
 		}
 		else
-      status = RADIO_FAILED;
+      status = RADIO_COORDINATES_NOT_FOUND;
   }
+	else 
+    status = RADIO_COORDINATES_NOT_FOUND; 
+		
   return status;
 }
 /**************************************************************************************************************
@@ -803,5 +849,34 @@ void itoa(int value, char* result)
 		result[i-1] = temp | 0x30;
 		i--;
 	}
+}
+void someMagic(void)
+{
+  /* Здесь необходимо выполнить танцы с бубном, поскольку неизвестно,
+	каким образом радиостанция схватывает rs485?, поэтому опытным путем 
+	было выяснено, что перед запросом нужно сделать следующее:
+	1) Послать запрос-пустышку;
+	2) Получить ответ;
+	3) Дать задержку (тут вообще магия, без этого не работает)
+	4) Послать нужный запрос; 
+	*/
+	TimeoutType timeout; 
+	uint16_t    size = 0;
+	setTimeout (&timeout, 50); 
+	Radio_send(frameIndex, 0, 0);
+	while (timeoutStatus(&timeout) != TIME_IS_UP){
+	  if(Radio_receive(frameIndex, buffer, &size) != RADIO_SUCCESS){
+		  Radio_send(frameIndex, 0, 0);
+		  continue;
+    }
+		else
+		  break; 
+	}
+	memset(buffer, 0, size);     
+	frameIndex++;
+	delay_ms(RADIO_REQUEST_DELAY);
+  /* Теперь можно перейти к стандарному 
+	исполнению запросов 
+	*/
 }
 
