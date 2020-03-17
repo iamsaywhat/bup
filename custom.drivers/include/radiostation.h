@@ -21,41 +21,23 @@
 #define PACKET_SIZE_LIMIT 256
 #define RADIO_ADDRESS     0x01
 
-#define RADIO_SEND_PAUSE 20
+#define RADIO_SEND_PAUSE    1
 #define RADIO_REQUEST_DELAY 20
+#define RADIO_TRANSACTION_TIMEOUT 150
 
-typedef __packed struct{
-	uint8_t  index;
-	uint8_t  address;
-	uint16_t length;
-	uint16_t crc;
-}RadioBaseFrame;
 
-typedef __packed struct{
-  uint8_t  type;
-	uint16_t length;
-	uint8_t* data;
-}RadioDataFrame;
-
-typedef union { 
-  RadioBaseFrame Struct;
-  uint8_t Buffer[6];
-}RadioBaseFrameType;
-
-typedef union { 
-  RadioDataFrame Struct;
-  uint8_t        Buffer[7];
-}RadioDataFrameType;
-
+/*****************
+  Коды ошибок
+******************/
 typedef enum{
-  RADIO_WRONG_CRC,
-	RADIO_WRONG_INDEX,
-	RADIO_TIMEOUT,
-	RADIO_SUCCESS,
-	RADIO_FAILED,
-	RADIO_WRONG_ADDRESS,
-	RADIO_EXCESS_PACKET_SIZE,
-	RADIO_COORDINATES_NOT_FOUND,
+  RADIO_WRONG_CRC,               // Ошибка в контрольной сумме
+	RADIO_WRONG_INDEX,             // Индекс кадра запроса и ответа не совпали
+	RADIO_TIMEOUT,                 // Таймаут
+	RADIO_SUCCESS,                 // Без ошибок/Положительный результат
+	RADIO_FAILED,                  // Ошибка/Отрицательный результат
+	RADIO_WRONG_ADDRESS,           // Адрес радиостанции не опознан
+	RADIO_EXCESS_PACKET_SIZE,      // Превышен размер входящего пакета
+	RADIO_COORDINATES_NOT_FOUND,   // В сообщении не найдены координаты
 }RadioStatus;
 
 

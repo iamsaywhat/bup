@@ -53,84 +53,53 @@ int main(void)
   stopIndication();                              /* Отключаем мигание */
 
 	
-	uint8_t buffer[] = "AT+GMI";
+
+  double latitude;
+  double longitude;
+	BIM_enableSupply();  
 	
-	int a = 2213;
-	char b[10];
-	
-	itoa(a, b);
-	
-	
-	
-	const uint32_t  delay = 30;
-	
-//	setTimeout (&timeout, delay); 
-//	while (timeoutStatus(&timeout) != TIME_IS_UP);
-double latitude;
-double longitude;
-	BIM_enableSupply();   
 	while(1)
 	{
-		//BUP_DataUpdate ();
-		//GetBatteryCharge();
+		LED_READY_ON();	
+		updateSdsList();	
+		checkDeviceName();
+		checkManufacturerName();
+		if(findCoordinateInSdsList(&latitude, &longitude) == RADIO_SUCCESS);
+		LED_READY_OFF();
+		delay_ms(300);
 		
-		//SelfTesting_SNS();
-		//BUP_UpdateDataFromSNS ();
-		
-	//////////////////////////////////////////////
-//	  sendEmpty();
-//		delay_ms(delay);
-//		getDeviceName();
+//		sendEmpty();
+//		delay_ms(20);
+//		sendEmpty();
+//		delay_ms(20);
+//		sendEmpty();
+//		delay_ms(20);
+//		sendEmpty();
+//		delay_ms(20);
+//		updateSdsList();	
 //		
 //		sendEmpty();
-//		delay_ms(delay);
-//		getManufacturerName();
-
+//		delay_ms(20);
 //		sendEmpty();
-//		delay_ms(delay);
-//		getListSDS();
-//			
+//		delay_ms(20);
 //		sendEmpty();
-//		delay_ms(delay);
-//		getListSDS();
-//////////////////////////////////////////////////////
-//	  sendEmpty();
-//	  setTimeout (&timeout, delay); 
-//	  while (timeoutStatus(&timeout) != TIME_IS_UP);
-//		getDeviceName();
-//		
+//		delay_ms(20);
 //		sendEmpty();
-//	  setTimeout (&timeout, delay); 
-//	  while (timeoutStatus(&timeout) != TIME_IS_UP);
-//		getManufacturerName();
-
-//		sendEmpty();
-//	  setTimeout (&timeout, delay); 
-//	  while (timeoutStatus(&timeout) != TIME_IS_UP);
-//		getListSDS();
-//			
-//		sendEmpty();
-//	  setTimeout (&timeout, delay); 
-//	  while (timeoutStatus(&timeout) != TIME_IS_UP);
-//		getListSDS();
-
-/////////////////////////////////////////////////////	
-  LED_READY_ON();	
-	updateSdsList();	
-//	checkDeviceName();
-//	checkManufacturerName();
-  if(findCoordinateInSdsList(&latitude, &longitude) == RADIO_SUCCESS);
-	LED_READY_OFF();
-	delay_ms(300);
-	  
-  	
-
-
-
+//		delay_ms(20);
 //		checkDeviceName();
+//		
+//		sendEmpty();
+//		delay_ms(20);
+//		sendEmpty();
+//		delay_ms(20);
+//		sendEmpty();
+//		delay_ms(20);
+//		sendEmpty();
+//		delay_ms(20);
 //		checkManufacturerName();
-//		updateSdsList();
-//		updateSdsList();
+		
+		
+		
   
 	}
 

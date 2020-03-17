@@ -12,6 +12,9 @@ uint8_t sdsCounter = 0;
 uint8_t sdsList[20];
 uint8_t frameIndex = 0;
 
+/*****************
+  Коды команд
+******************/
 enum DataType{
   AUDIO         = 2,  // Некодированные звуковые данные
   TETRA_VOCODER = 4,  // Кодированные данные вокодера TETRA
@@ -20,12 +23,42 @@ enum DataType{
   HOST_DATA     = 7,  // Данные от ООД к радиостанции
 };
 
+/**************************
+  Маркеры SLIP-протокола
+**************************/
 enum SlipMarkers{
-  FEND  = 0xC0,   /* Начало кадра */
-  TFEND	=	0xDC,		/* Если FEND - не разделитель, то посылается как FESC TFEND */
-  FESC  = 0xDB,		/* Если FEND - не разделитель, то посылается как FESC TFEND */
-  TFESC	= 0xDD,		/* Если FESC - не разделитель, то посылается как FESC TFESC */
+  FEND  = 0xC0,   // Начало кадра
+  TFEND	=	0xDC,		// Если FEND - не разделитель, то посылается как FESC TFEND
+  FESC  = 0xDB,		// Если FEND - не разделитель, то посылается как FESC TFEND
+  TFESC	= 0xDD,		// Если FESC - не разделитель, то посылается как FESC TFESC
 };
+
+/***********************
+  Базовая часть кадра
+************************/
+typedef __packed struct{
+	uint8_t  index;
+	uint8_t  address;
+	uint16_t length;
+	uint16_t crc;
+}RadioBaseFrame;
+typedef union { 
+  RadioBaseFrame Struct;
+  uint8_t Buffer[6];
+}RadioBaseFrameType;
+/***********************
+  Данные кадра
+************************/
+typedef __packed struct{
+  uint8_t  type;
+	uint16_t length;
+	uint8_t* data;
+}RadioDataFrame;
+typedef union { 
+  RadioDataFrame Struct;
+  uint8_t        Buffer[7];
+}RadioDataFrameType;
+
 
 
 /***** Приватная часть модуля **********************************************************/
@@ -94,9 +127,9 @@ RadioStatus checkDeviceName(void)
   uint8_t     data[] = "ATI";          // Команда
   TimeoutType timeout;                 // Таймаут
 	
-	setTimeout (&timeout, 150);    // Устанавлливаем таймаут
-	Radio_initialize();            // Включаем обмен
-  someMagic();                   // Немного магии
+	setTimeout (&timeout, RADIO_TRANSACTION_TIMEOUT);                // Устанавлливаем таймаут
+	Radio_initialize();                                              // Включаем обмен
+  someMagic();                                                     // Немного магии
 	Radio_send(frameIndex, data, sizeof(data)-1);                    // Посылаем команду
 	while (timeoutStatus(&timeout) != TIME_IS_UP){                   // И следим за таймаутом
 	  if(Radio_receive(frameIndex, buffer, &size) != RADIO_SUCCESS){ // Принимаем ответ
@@ -130,9 +163,9 @@ RadioStatus checkManufacturerName(void)
   uint8_t     data[] = "AT+GMI";       // Команда
   TimeoutType timeout;                 // Таймаут
 	 
-	setTimeout (&timeout, 150);     // Устанавлливаем таймаут
-	Radio_initialize();             // Включаем обмен
-  someMagic();                    // Немного магии
+	setTimeout (&timeout, RADIO_TRANSACTION_TIMEOUT);                // Устанавлливаем таймаут
+	Radio_initialize();                                              // Включаем обмен
+  someMagic();                                                     // Немного магии
 	Radio_send(frameIndex, data, sizeof(data)-1);                    // Посылаем команду
 	while (timeoutStatus(&timeout) != TIME_IS_UP){                   // И следим за таймаутом
 	  if(Radio_receive(frameIndex, buffer, &size) != RADIO_SUCCESS){ // Принимаем ответ
@@ -166,16 +199,16 @@ RadioStatus updateSdsList(void)
   uint8_t     data[] = "AT+CSDSCNT?";  // Команда
   TimeoutType timeout;                 // Таймаут
 	 
-	setTimeout (&timeout, 150);          // Устанавлливаем таймаут
-	Radio_initialize();                  // Включаем обмен
-  someMagic();                         // Немного магии
+	setTimeout (&timeout, RADIO_TRANSACTION_TIMEOUT);                // Устанавлливаем таймаут
+	Radio_initialize();                                              // Включаем обмен
+  someMagic();                                                     // Немного магии
 	Radio_send(frameIndex, data, sizeof(data)-1);                    // Посылаем команду
 	while (timeoutStatus(&timeout) != TIME_IS_UP){                   // И следим за таймаутом
 	  if(Radio_receive(frameIndex, buffer, &size) != RADIO_SUCCESS){ // Принимаем ответ
 		  Radio_send(frameIndex, 0, 0);                                // Если ответа не последовало или ответ с ошибкой
 			continue;                                                    // Запрос необходимо повторить с этим же индексом
     }
-		if(parseForListSDS (buffer) != RADIO_SUCCESS){    // Сюда попали если ответ был принят
+		if(parseForListSDS (buffer) != RADIO_SUCCESS){      // Сюда попали если ответ был принят
 			frameIndex++;                                     // Но нужно проверить, тот ли ответ был принят
 		  Radio_send(frameIndex, 0, 0);                     // Если ответ не тот, необходимо посылать пустые запросы
 			continue;                                         // До тех пор пока не получим нужное
@@ -210,7 +243,7 @@ RadioStatus getCoordinatesFromSds(int idSds, double *latitude, double *longitude
 	itoa(idSds, id);                       // Числовой id, конвертируем в строковый
 	memcpy(data+10, id, strlen(id));       // Вставляем id в строку с командой, перекрывая нуль терминатор
 	
-	setTimeout (&timeout, 150);                                      // Устанавлливаем таймаут
+	setTimeout (&timeout, RADIO_TRANSACTION_TIMEOUT);                // Устанавлливаем таймаут
 	Radio_initialize();                                              // Включаем обмен
 	someMagic();                                                     // Немного магии
 	Radio_send(frameIndex, data, sizeof(data)-1);                    // Посылаем команду
@@ -251,7 +284,7 @@ RadioStatus deleteSds(uint8_t idSds)
 	itoa(idSds, id);                       // Числовой id, конвертируем в строковый
 	memcpy(data+10, id, strlen(id));       // Вставляем id в строку с командой, перекрывая нуль терминатор
 	
-	setTimeout (&timeout, 150);                                      // Устанавлливаем таймаут
+	setTimeout (&timeout, RADIO_TRANSACTION_TIMEOUT);                // Устанавлливаем таймаут
 	Radio_initialize();                                              // Включаем обмен
 	someMagic();                                                     // Немного магии
 	Radio_send(frameIndex, data, sizeof(data)-1);                    // Посылаем команду
@@ -282,13 +315,13 @@ RadioStatus deleteSds(uint8_t idSds)
 ***************************************************************************************************************/
 RadioStatus deleteAllSds (void)
 {
-  if(updateSdsList() != RADIO_SUCCESS)
-	  return RADIO_FAILED;
-	for(uint16_t i = 0; i < getSdsCount(); i++){
-    if(deleteSds(getSdsId(i)) != RADIO_SUCCESS)
+  if(updateSdsList() != RADIO_SUCCESS)            // Здесь запрашиваем список SDS сообщений
+	  return RADIO_FAILED;                          // Если здесь его не получили, то дальше идти бессмысленно
+	for(uint16_t i = 0; i < getSdsCount(); i++){    // Из полученного списка начинаем брать по очереди id
+    if(deleteSds(getSdsId(i)) != RADIO_SUCCESS)   // И удалять, пока не пройдем по всем
       return RADIO_FAILED;
 	}
-	updateSdsList();
+	updateSdsList();                                // Обновим список SDS сообщений
 	return RADIO_SUCCESS;
 }
 /**************************************************************************************************************
@@ -302,15 +335,15 @@ RadioStatus deleteAllSds (void)
 RadioStatus findCoordinateInSdsList(double *latitude, double *longitude)
 {
   RadioStatus status = RADIO_FAILED;
-  for(uint16_t i = 0; i < getSdsCount(); i++){
-	  status = getCoordinatesFromSds(getSdsId(i), latitude, longitude);
-		if(status == RADIO_SUCCESS || status == RADIO_COORDINATES_NOT_FOUND){
-      deleteSds(getSdsId(i));
-      break;
+  for(uint16_t i = 0; i < getSdsCount(); i++){                               // В порядке очереди начинаем
+	  status = getCoordinatesFromSds(getSdsId(i), latitude, longitude);        // вычитывать все SDS сообщения
+		if(status == RADIO_SUCCESS || status == RADIO_COORDINATES_NOT_FOUND){    // Если координаты успешно прочитаны
+      deleteSds(getSdsId(i));                                                // либо сообщение прочитано, но там
+      break;                                                                 // нет координат, то его можно удалить
     }
-	}
-	return status;
-}
+	}                                                                          // В противном случае при других статусах
+	return status;                                                             // все равно необходимо будет прочитать сообщение
+}                                                                            // Поэтому пока не удаляем
 
 /***** Приватная часть модуля **********************************************************/
 
@@ -817,7 +850,7 @@ char* findTag(char* string, int length, const char* tag, int tagSize)
 	return address;
 }
 /**************************************************************************************************************
-  itoa - Преобразования числа в строку
+  itoa - Преобразование числа в строку
   Параметры:
             value  - Число
 						result - Указатель на строку, массив буфер, результата
