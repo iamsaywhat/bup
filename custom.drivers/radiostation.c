@@ -51,6 +51,12 @@ uint8_t sdsCounter = 0;
 uint8_t sdsList[20];
 uint8_t frameIndex = 0;
 TimeoutType globalTimeout = {0, 1, TIME_IS_UP}; 
+uint32_t currentBaudrate = RADIO_DEFAULT_BAUDRATE;
+
+
+#define resetCurrentBaudrate()  currentBaudrate = RADIO_DEFAULT_BAUDRATE
+#define setCurrentBaudrate(x)   currentBaudrate = x
+#define getCurrentBaudrate()    currentBaudrate
 
 /*****************
   Коды команд
@@ -109,7 +115,7 @@ static int16_t     sendByte                 (MDR_UART_TypeDef* UARTx, uint16_t b
 static uint16_t    sendFend                 (MDR_UART_TypeDef* UARTx);
 static void        Radio_send               (uint8_t index, uint8_t *data, uint8_t size);
 static RadioStatus Radio_receive            (uint8_t index, uint8_t* data, uint16_t *size);
-static void        Radio_initialize         (void);
+static void        Radio_initialize         (uint32_t baudrate);
 static void        Radio_deinitialize       (void);
 RadioStatus        parseForDeviceName       (uint8_t *data);
 RadioStatus        parseForManufacturerName (uint8_t *data);
@@ -138,7 +144,7 @@ RadioStatus sendEmpty(void)
   uint16_t    size = 0;
   TimeoutType timeout;
 	setTimeout (&timeout, 100); 
-	Radio_initialize();
+	Radio_initialize(getCurrentBaudrate());
 	Radio_send(frameIndex, 0, 0);
 	while (timeoutStatus(&timeout) != TIME_IS_UP){
 	  if(Radio_receive(frameIndex, buffer, &size) != RADIO_SUCCESS){
@@ -173,7 +179,7 @@ RadioStatus checkDeviceName(void)
 #endif
 	
 	setTimeout (&timeout, RADIO_TRANSACTION_TIMEOUT);                // Устанавлливаем таймаут
-	Radio_initialize();                                              // Включаем обмен
+	Radio_initialize(getCurrentBaudrate());                          // Включаем обмен
 	
 #if defined IGNORE_REQUEST_BUG                                     // См. Описание макроса IGNORE_REQUEST_BUG
   someMagic();                                                     // Немного магии
@@ -200,8 +206,10 @@ RadioStatus checkDeviceName(void)
 	frameIndex++;               // Инкремент индекса кадра
 
 #if defined REBOOT_BUG		
-	if(status == RADIO_FAILED)
+	if(status == RADIO_FAILED){
+	  resetCurrentBaudrate();
 	  setTimeout (&globalTimeout, RADIO_BLOCK_TIMEOUT);                // См. описание макроса REBOOT_BUG
+  }
 #endif
 
 	return status;
@@ -224,7 +232,7 @@ RadioStatus checkManufacturerName(void)
 #endif
 	
 	setTimeout (&timeout, RADIO_TRANSACTION_TIMEOUT);                // Устанавлливаем таймаут
-	Radio_initialize();                                              // Включаем обмен
+	Radio_initialize(getCurrentBaudrate());                          // Включаем обмен
 	
 #if defined IGNORE_REQUEST_BUG	                                   // См. Описание макроса IGNORE_REQUEST_BUG
   someMagic();                                                     // Немного магии
@@ -251,8 +259,10 @@ RadioStatus checkManufacturerName(void)
 	frameIndex++;               // Инкремент индекса кадра
 
 #if defined REBOOT_BUG		
-  if(status == RADIO_FAILED)
-    setTimeout (&globalTimeout, RADIO_BLOCK_TIMEOUT);                // См. описание макроса REBOOT_BUG 
+  if(status == RADIO_FAILED){
+	  resetCurrentBaudrate();
+    setTimeout (&globalTimeout, RADIO_BLOCK_TIMEOUT);                // См. описание макроса REBOOT_BUG
+  }
 #endif
 	
 	return status;
@@ -275,7 +285,7 @@ RadioStatus updateSdsList(void)
 #endif
 	
 	setTimeout (&timeout, RADIO_TRANSACTION_TIMEOUT);                // Устанавлливаем таймаут
-	Radio_initialize();                                              // Включаем обмен
+	Radio_initialize(getCurrentBaudrate());                          // Включаем обмен
 	
 #if defined IGNORE_REQUEST_BUG                                     // См. Описание макроса IGNORE_REQUEST_BUG
   someMagic();                                                     // Немного магии
@@ -302,8 +312,10 @@ RadioStatus updateSdsList(void)
 	frameIndex++;               // Инкремент индекса кадра
 
 #if defined REBOOT_BUG			
-  if(status == RADIO_FAILED)
+  if(status == RADIO_FAILED) {
+    resetCurrentBaudrate();
     setTimeout (&globalTimeout, RADIO_BLOCK_TIMEOUT);                // См. описание макроса REBOOT_BUG
+  }
 #endif
 	
 	return status;
@@ -334,7 +346,7 @@ RadioStatus getCoordinatesFromSds(int idSds, double *latitude, double *longitude
 #endif
 	
 	setTimeout (&timeout, RADIO_TRANSACTION_TIMEOUT);                // Устанавлливаем таймаут
-	Radio_initialize();                                              // Включаем обмен
+	Radio_initialize(getCurrentBaudrate());                          // Включаем обмен
 
 #if defined IGNORE_REQUEST_BUG                                     // См. Описание макроса IGNORE_REQUEST_BUG
 	someMagic();                                                     // Немного магии
@@ -361,8 +373,10 @@ RadioStatus getCoordinatesFromSds(int idSds, double *latitude, double *longitude
 	frameIndex++;               // Инкремент индекса кадра
 
 #if defined REBOOT_BUG		
-  if(status == RADIO_FAILED)
+  if(status == RADIO_FAILED){
+    resetCurrentBaudrate();
     setTimeout (&globalTimeout, RADIO_BLOCK_TIMEOUT);                // См. описание макроса REBOOT_BUG
+  }
 #endif
 	
 	return status;
@@ -390,7 +404,7 @@ RadioStatus deleteSds(uint8_t idSds)
 #endif
 	
 	setTimeout (&timeout, RADIO_TRANSACTION_TIMEOUT);                // Устанавлливаем таймаут
-	Radio_initialize();                                              // Включаем обмен
+	Radio_initialize(getCurrentBaudrate());                          // Включаем обмен
 	
 #if defined IGNORE_REQUEST_BUG                                     // См. Описание макроса IGNORE_REQUEST_BUG
 	someMagic();                                                     // Немного магии
@@ -417,8 +431,64 @@ RadioStatus deleteSds(uint8_t idSds)
 	frameIndex++;               // Инкремент индекса кадра
 
 #if defined REBOOT_BUG		
-  if(status == RADIO_FAILED)
+  if(status == RADIO_FAILED){
+    resetCurrentBaudrate();
     setTimeout (&globalTimeout, RADIO_BLOCK_TIMEOUT);                // См. описание макроса REBOOT_BUG
+  }
+#endif
+	
+	return status;
+}
+/**************************************************************************************************************
+  setBaudrate - Установить скорость интерфейса
+  Параметры:
+            baudrate - Скорость в бодах (9600, 115200, 230400, 460800);
+  Возвращает:
+            Результат выполнения
+***************************************************************************************************************/
+RadioStatus setBaudrate (uint32_t baudrate)
+{
+  uint8_t     data[20] = "ATS23=";       // Команда
+  uint16_t    size = 0;                  // Размер принятых данных
+  TimeoutType timeout;                   // Таймаут 
+	RadioStatus status = RADIO_FAILED;     // Статус выполнения по-умолчанию
+	char stringBaudrate[7];                // Строковый бодрейт
+	itoa(baudrate, stringBaudrate);        // Числовой бодрейт, конвертируем в строковый
+	memcpy(data+6, stringBaudrate, strlen(stringBaudrate));       // Вставляем бодрейт в строку с командой, перекрывая нуль терминатор
+	
+#if defined REBOOT_BUG		
+  if(timeoutStatus(&globalTimeout) != TIME_IS_UP)                  // См. описание макроса REBOOT_BUG
+    return RADIO_BLOCKED;
+#endif
+	
+	setTimeout (&timeout, RADIO_TRANSACTION_TIMEOUT);                // Устанавлливаем таймаут
+	Radio_initialize(getCurrentBaudrate());                          // Включаем обмен
+	
+#if defined IGNORE_REQUEST_BUG                                     // См. Описание макроса IGNORE_REQUEST_BUG
+	someMagic();                                                     // Немного магии
+#endif
+
+  Radio_send(frameIndex, data, sizeof(data)-1);                    // Посылаем команду
+	while (timeoutStatus(&timeout) != TIME_IS_UP){                   // И следим за таймаутом
+	  if(Radio_receive(frameIndex, buffer, &size) != RADIO_SUCCESS){ // Принимаем ответ
+		  Radio_send(frameIndex, 0, 0);                                // Если ответа не последовало или ответ с ошибкой
+			continue;                                                    // Запрос необходимо повторить с этим же индексом
+    }
+		else {		
+		  status = RADIO_SUCCESS;           // Если попали сюда, то пакет валидным
+			setCurrentBaudrate(baudrate);     // Бодрейт всего модуля можно обновить
+		  break;
+    }
+	}
+	memset(buffer, 0, size);    // Приёмный буфер необходимо очистить
+  Radio_deinitialize();       // Выключаем обмен
+	frameIndex++;               // Инкремент индекса кадра
+
+#if defined REBOOT_BUG		
+  if(status == RADIO_FAILED){
+	  resetCurrentBaudrate();
+    setTimeout (&globalTimeout, RADIO_BLOCK_TIMEOUT);                // См. описание макроса REBOOT_BUG
+  }
 #endif
 	
 	return status;
@@ -625,7 +695,7 @@ RadioStatus parseForDeleteStatus (uint8_t *data, uint8_t *sended)
 /**************************************************************************************************************
   Radio_initialize - Инициализация UART под радиостанцию
 ***************************************************************************************************************/
-void Radio_initialize (void)
+void Radio_initialize (uint32_t baudrate)
 {
   UART_InitTypeDef UART_InitStructure;
 	
@@ -637,7 +707,7 @@ void Radio_initialize (void)
   UART_StructInit (&UART_InitStructure);        /* Заполнение структуры по-умолчанию */
   UART_BRGInit (RADIO_UART, UART_HCLKdiv1);     /* Установка предделителя блока UART1_CLK = HCLK */
   /* Заполняем структуру инициализации */
-  UART_InitStructure.UART_BaudRate                = RADIO_BAUDRATE;
+  UART_InitStructure.UART_BaudRate                = baudrate;
   UART_InitStructure.UART_WordLength              = UART_WordLength8b;
   UART_InitStructure.UART_StopBits                = UART_StopBits1;
   UART_InitStructure.UART_Parity                  = UART_Parity_No;
@@ -646,6 +716,9 @@ void Radio_initialize (void)
                                                     UART_HardwareFlowControl_TXE;
   UART_Init (RADIO_UART, &UART_InitStructure);  /* Инициализация UART */
   UART_Cmd(RADIO_UART, ENABLE);                 /* Включение UART1 - RADIO */
+	
+  /* Запоминаем текущий бодрейт */
+	setCurrentBaudrate(baudrate);                   
 }
 /**************************************************************************************************************
   Radio_deinitialize - Деинициализация радиостанции и освобождение UART

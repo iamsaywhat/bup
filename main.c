@@ -58,12 +58,26 @@ int main(void)
   double longitude;
 	BIM_enableSupply();  
 	
+	
+	
 	while(1)
 	{
+	
+	
+	  LED_READY_ON();	
+		setBaudrate(230400);
+		LED_READY_OFF();
+		delay_ms(300);
+		
+		
 		LED_READY_ON();	
-		updateSdsList();	
-		checkDeviceName();
-		checkManufacturerName();
+		updateSdsList();
+		LED_READY_OFF();
+		delay_ms(300);
+		
+//		checkDeviceName();
+//		checkManufacturerName();
+		LED_READY_ON();	
 		if(findCoordinateInSdsList(&latitude, &longitude) == RADIO_SUCCESS);
 		LED_READY_OFF();
 		delay_ms(300);
