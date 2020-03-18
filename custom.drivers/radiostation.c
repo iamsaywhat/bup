@@ -7,10 +7,50 @@
 #include <string.h>
 #include <stdlib.h>
 
-uint8_t buffer[200];
+
+/**********************************************************************
+  В текущей версии ПО радиостанции имеется 
+  странный баг, приводящий ее к случайным перезагрузкам.
+  В довесок после такой перезагрузки радиостанция на 
+  любые запросы отвечает пустыми пакетами, поэтому получить 
+  от нее данные не представляется возможным. Однако, если 
+  не посылать станции ничего (совсем!) в районе 3 сек,
+	что было установлено опытным путем, радиостанция вновь
+  сможет верно отвечать на запросы. Данный макрос включает
+  обход этого бага, путем блокировки любых транзаций со станцией
+  на заданное время, если не удаётся получить ответ;
+	
+	Возможно позже этот баг починят, и тогда этот макрос можно
+  будет просто закоментировать.
+***********************************************************************/
+#define REBOOT_BUG
+#define RADIO_BLOCK_TIMEOUT       3000     // Время блокировки обращений к радиостанции, мc
+
+
+/**********************************************************************
+  Этот баг связан с попыткой обмануть заложенный изготовителем
+  порядок работы c интерфейсом, так как такой формат не подходит нам.
+  Проблема в том, что станция игнориует запросы с информации, отвечая 
+	на них всегда пустыми пакетами. Чтобы запрос прошел, необходимо 
+  выполнить некоторую последовательность действий, установленных 
+  опытным путем:
+    1) послать пустой пакет;
+    2) выдержать паузу (~20 мс) 
+    3) и только потом посылать запрос информации
+  Если данные макросы определены, то включен обход этого бага (костыль).
+  Этот баг может уйти позже, когда ПО радиостанции обновят, поэтому
+	закоментировав макросы ниже, можно отключить данный костыль.	
+***********************************************************************/
+#define IGNORE_REQUEST_BUG
+#define RADIO_REQUEST_DELAY       20   // Пауза между пустым и информациооным запросом
+
+
+
+uint8_t buffer[PACKET_SIZE_LIMIT];
 uint8_t sdsCounter = 0;
 uint8_t sdsList[20];
 uint8_t frameIndex = 0;
+TimeoutType globalTimeout = {0, 1, TIME_IS_UP}; 
 
 /*****************
   Коды команд
@@ -126,10 +166,19 @@ RadioStatus checkDeviceName(void)
   uint16_t    size = 0;                // Размер принятых данных
   uint8_t     data[] = "ATI";          // Команда
   TimeoutType timeout;                 // Таймаут
+
+#if defined REBOOT_BUG	
+  if(timeoutStatus(&globalTimeout) != TIME_IS_UP)                  // См. описание макроса REBOOT_BUG
+    return RADIO_BLOCKED;
+#endif
 	
 	setTimeout (&timeout, RADIO_TRANSACTION_TIMEOUT);                // Устанавлливаем таймаут
 	Radio_initialize();                                              // Включаем обмен
+	
+#if defined IGNORE_REQUEST_BUG                                     // См. Описание макроса IGNORE_REQUEST_BUG
   someMagic();                                                     // Немного магии
+#endif
+
 	Radio_send(frameIndex, data, sizeof(data)-1);                    // Посылаем команду
 	while (timeoutStatus(&timeout) != TIME_IS_UP){                   // И следим за таймаутом
 	  if(Radio_receive(frameIndex, buffer, &size) != RADIO_SUCCESS){ // Принимаем ответ
@@ -149,6 +198,12 @@ RadioStatus checkDeviceName(void)
 	memset(buffer, 0, size);    // Приёмный буфер необходимо очистить
   Radio_deinitialize();       // Выключаем обмен
 	frameIndex++;               // Инкремент индекса кадра
+
+#if defined REBOOT_BUG		
+	if(status == RADIO_FAILED)
+	  setTimeout (&globalTimeout, RADIO_BLOCK_TIMEOUT);                // См. описание макроса REBOOT_BUG
+#endif
+
 	return status;
 }
 /**************************************************************************************************************
@@ -162,10 +217,19 @@ RadioStatus checkManufacturerName(void)
   uint16_t    size = 0;                // Размер принятых данных
   uint8_t     data[] = "AT+GMI";       // Команда
   TimeoutType timeout;                 // Таймаут
-	 
+
+#if defined REBOOT_BUG		
+  if(timeoutStatus(&globalTimeout) != TIME_IS_UP)                  // См. описание макроса REBOOT_BUG
+    return RADIO_BLOCKED;
+#endif
+	
 	setTimeout (&timeout, RADIO_TRANSACTION_TIMEOUT);                // Устанавлливаем таймаут
 	Radio_initialize();                                              // Включаем обмен
+	
+#if defined IGNORE_REQUEST_BUG	                                   // См. Описание макроса IGNORE_REQUEST_BUG
   someMagic();                                                     // Немного магии
+#endif
+
 	Radio_send(frameIndex, data, sizeof(data)-1);                    // Посылаем команду
 	while (timeoutStatus(&timeout) != TIME_IS_UP){                   // И следим за таймаутом
 	  if(Radio_receive(frameIndex, buffer, &size) != RADIO_SUCCESS){ // Принимаем ответ
@@ -185,6 +249,12 @@ RadioStatus checkManufacturerName(void)
 	memset(buffer, 0, size);    // Приёмный буфер необходимо очистить
   Radio_deinitialize();       // Выключаем обмен
 	frameIndex++;               // Инкремент индекса кадра
+
+#if defined REBOOT_BUG		
+  if(status == RADIO_FAILED)
+    setTimeout (&globalTimeout, RADIO_BLOCK_TIMEOUT);                // См. описание макроса REBOOT_BUG 
+#endif
+	
 	return status;
 }
 /**************************************************************************************************************
@@ -198,10 +268,19 @@ RadioStatus updateSdsList(void)
   uint16_t    size = 0;                // Размер принятых данных
   uint8_t     data[] = "AT+CSDSCNT?";  // Команда
   TimeoutType timeout;                 // Таймаут
-	 
+
+#if defined REBOOT_BUG		
+  if(timeoutStatus(&globalTimeout) != TIME_IS_UP)                  // См. описание макроса REBOOT_BUG
+    return RADIO_BLOCKED;
+#endif
+	
 	setTimeout (&timeout, RADIO_TRANSACTION_TIMEOUT);                // Устанавлливаем таймаут
 	Radio_initialize();                                              // Включаем обмен
+	
+#if defined IGNORE_REQUEST_BUG                                     // См. Описание макроса IGNORE_REQUEST_BUG
   someMagic();                                                     // Немного магии
+#endif
+
 	Radio_send(frameIndex, data, sizeof(data)-1);                    // Посылаем команду
 	while (timeoutStatus(&timeout) != TIME_IS_UP){                   // И следим за таймаутом
 	  if(Radio_receive(frameIndex, buffer, &size) != RADIO_SUCCESS){ // Принимаем ответ
@@ -221,6 +300,12 @@ RadioStatus updateSdsList(void)
 	memset(buffer, 0, size);    // Приёмный буфер необходимо очистить
   Radio_deinitialize();       // Выключаем обмен
 	frameIndex++;               // Инкремент индекса кадра
+
+#if defined REBOOT_BUG			
+  if(status == RADIO_FAILED)
+    setTimeout (&globalTimeout, RADIO_BLOCK_TIMEOUT);                // См. описание макроса REBOOT_BUG
+#endif
+	
 	return status;
 }
 /**************************************************************************************************************
@@ -242,10 +327,19 @@ RadioStatus getCoordinatesFromSds(int idSds, double *latitude, double *longitude
 	char id[4];                            //
 	itoa(idSds, id);                       // Числовой id, конвертируем в строковый
 	memcpy(data+10, id, strlen(id));       // Вставляем id в строку с командой, перекрывая нуль терминатор
+
+#if defined REBOOT_BUG	
+  if(timeoutStatus(&globalTimeout) != TIME_IS_UP)                  // См. описание макроса REBOOT_BUG
+    return RADIO_BLOCKED;
+#endif
 	
 	setTimeout (&timeout, RADIO_TRANSACTION_TIMEOUT);                // Устанавлливаем таймаут
 	Radio_initialize();                                              // Включаем обмен
+
+#if defined IGNORE_REQUEST_BUG                                     // См. Описание макроса IGNORE_REQUEST_BUG
 	someMagic();                                                     // Немного магии
+#endif
+
 	Radio_send(frameIndex, data, sizeof(data)-1);                    // Посылаем команду
 	while (timeoutStatus(&timeout) != TIME_IS_UP){                   // И следим за таймаутом
 	  if(Radio_receive(frameIndex, buffer, &size) != RADIO_SUCCESS){ // Принимаем ответ
@@ -265,6 +359,12 @@ RadioStatus getCoordinatesFromSds(int idSds, double *latitude, double *longitude
 	memset(buffer, 0, size);    // Приёмный буфер необходимо очистить
   Radio_deinitialize();       // Выключаем обмен
 	frameIndex++;               // Инкремент индекса кадра
+
+#if defined REBOOT_BUG		
+  if(status == RADIO_FAILED)
+    setTimeout (&globalTimeout, RADIO_BLOCK_TIMEOUT);                // См. описание макроса REBOOT_BUG
+#endif
+	
 	return status;
 }
 /**************************************************************************************************************
@@ -283,10 +383,19 @@ RadioStatus deleteSds(uint8_t idSds)
 	char id[4];                            //
 	itoa(idSds, id);                       // Числовой id, конвертируем в строковый
 	memcpy(data+10, id, strlen(id));       // Вставляем id в строку с командой, перекрывая нуль терминатор
+
+#if defined REBOOT_BUG		
+  if(timeoutStatus(&globalTimeout) != TIME_IS_UP)                  // См. описание макроса REBOOT_BUG
+    return RADIO_BLOCKED;
+#endif
 	
 	setTimeout (&timeout, RADIO_TRANSACTION_TIMEOUT);                // Устанавлливаем таймаут
 	Radio_initialize();                                              // Включаем обмен
+	
+#if defined IGNORE_REQUEST_BUG                                     // См. Описание макроса IGNORE_REQUEST_BUG
 	someMagic();                                                     // Немного магии
+#endif
+	
 	Radio_send(frameIndex, data, sizeof(data)-1);                    // Посылаем команду
 	while (timeoutStatus(&timeout) != TIME_IS_UP){                   // И следим за таймаутом
 	  if(Radio_receive(frameIndex, buffer, &size) != RADIO_SUCCESS){ // Принимаем ответ
@@ -306,6 +415,12 @@ RadioStatus deleteSds(uint8_t idSds)
 	memset(buffer, 0, size);    // Приёмный буфер необходимо очистить
   Radio_deinitialize();       // Выключаем обмен
 	frameIndex++;               // Инкремент индекса кадра
+
+#if defined REBOOT_BUG		
+  if(status == RADIO_FAILED)
+    setTimeout (&globalTimeout, RADIO_BLOCK_TIMEOUT);                // См. описание макроса REBOOT_BUG
+#endif
+	
 	return status;
 }
 /**************************************************************************************************************
@@ -907,6 +1022,8 @@ uint8_t getSdsId(uint8_t index){
   else 
 		return 0;
 }
+
+#if defined IGNORE_REQUEST_BUG   
 /**************************************************************************************************************
   someMagic - Необходимый порядок действий, для того, чтобы радиостанция правильно выбрала интерфейс
 ***************************************************************************************************************/
@@ -939,4 +1056,4 @@ void someMagic(void)
 	исполнению запросов 
 	*/
 }
-
+#endif
