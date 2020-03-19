@@ -51,12 +51,11 @@ uint8_t sdsCounter = 0;
 uint8_t sdsList[20];
 uint8_t frameIndex = 0;
 TimeoutType globalTimeout = {0, 1, TIME_IS_UP}; 
-uint32_t currentBaudrate = RADIO_DEFAULT_BAUDRATE;
+uint32_t _currentBaudrate = RADIO_DEFAULT_BAUDRATE;
 
 
-#define resetCurrentBaudrate()  currentBaudrate = RADIO_DEFAULT_BAUDRATE
-#define setCurrentBaudrate(x)   currentBaudrate = x
-#define getCurrentBaudrate()    currentBaudrate
+#define resetCurrentBaudrate()  _currentBaudrate = RADIO_DEFAULT_BAUDRATE
+#define setCurrentBaudrate(x)   _currentBaudrate = x
 
 /*****************
   Коды команд
@@ -144,7 +143,7 @@ RadioStatus sendEmpty(void)
   uint16_t    size = 0;
   TimeoutType timeout;
 	setTimeout (&timeout, 100); 
-	Radio_initialize(getCurrentBaudrate());
+	Radio_initialize(currentBaudrate());
 	Radio_send(frameIndex, 0, 0);
 	while (timeoutStatus(&timeout) != TIME_IS_UP){
 	  if(Radio_receive(frameIndex, buffer, &size) != RADIO_SUCCESS){
@@ -179,7 +178,7 @@ RadioStatus checkDeviceName(void)
 #endif
 	
 	setTimeout (&timeout, RADIO_TRANSACTION_TIMEOUT);                // Устанавлливаем таймаут
-	Radio_initialize(getCurrentBaudrate());                          // Включаем обмен
+	Radio_initialize(currentBaudrate());                          // Включаем обмен
 	
 #if defined IGNORE_REQUEST_BUG                                     // См. Описание макроса IGNORE_REQUEST_BUG
   someMagic();                                                     // Немного магии
@@ -232,7 +231,8 @@ RadioStatus checkManufacturerName(void)
 #endif
 	
 	setTimeout (&timeout, RADIO_TRANSACTION_TIMEOUT);                // Устанавлливаем таймаут
-	Radio_initialize(getCurrentBaudrate());                          // Включаем обмен
+	Radio_initialize(currentBaudrate());                          // Включаем обмен
+
 	
 #if defined IGNORE_REQUEST_BUG	                                   // См. Описание макроса IGNORE_REQUEST_BUG
   someMagic();                                                     // Немного магии
@@ -285,7 +285,7 @@ RadioStatus updateSdsList(void)
 #endif
 	
 	setTimeout (&timeout, RADIO_TRANSACTION_TIMEOUT);                // Устанавлливаем таймаут
-	Radio_initialize(getCurrentBaudrate());                          // Включаем обмен
+	Radio_initialize(currentBaudrate());                          // Включаем обмен
 	
 #if defined IGNORE_REQUEST_BUG                                     // См. Описание макроса IGNORE_REQUEST_BUG
   someMagic();                                                     // Немного магии
@@ -346,7 +346,7 @@ RadioStatus getCoordinatesFromSds(int idSds, double *latitude, double *longitude
 #endif
 	
 	setTimeout (&timeout, RADIO_TRANSACTION_TIMEOUT);                // Устанавлливаем таймаут
-	Radio_initialize(getCurrentBaudrate());                          // Включаем обмен
+	Radio_initialize(currentBaudrate());                          // Включаем обмен
 
 #if defined IGNORE_REQUEST_BUG                                     // См. Описание макроса IGNORE_REQUEST_BUG
 	someMagic();                                                     // Немного магии
@@ -404,7 +404,7 @@ RadioStatus deleteSds(uint8_t idSds)
 #endif
 	
 	setTimeout (&timeout, RADIO_TRANSACTION_TIMEOUT);                // Устанавлливаем таймаут
-	Radio_initialize(getCurrentBaudrate());                          // Включаем обмен
+	Radio_initialize(currentBaudrate());                          // Включаем обмен
 	
 #if defined IGNORE_REQUEST_BUG                                     // См. Описание макроса IGNORE_REQUEST_BUG
 	someMagic();                                                     // Немного магии
@@ -462,7 +462,7 @@ RadioStatus setBaudrate (uint32_t baudrate)
 #endif
 	
 	setTimeout (&timeout, RADIO_TRANSACTION_TIMEOUT);                // Устанавлливаем таймаут
-	Radio_initialize(getCurrentBaudrate());                          // Включаем обмен
+	Radio_initialize(currentBaudrate());                          // Включаем обмен
 	
 #if defined IGNORE_REQUEST_BUG                                     // См. Описание макроса IGNORE_REQUEST_BUG
 	someMagic();                                                     // Немного магии
@@ -489,8 +489,14 @@ RadioStatus setBaudrate (uint32_t baudrate)
 	  resetCurrentBaudrate();
     setTimeout (&globalTimeout, RADIO_BLOCK_TIMEOUT);                // См. описание макроса REBOOT_BUG
   }
+	else
+    sendEmpty();    // Если при установке другого бодрейта не возникло ошибок, 
+		                // то необходимо бросить пустой пакет уже на новой скорости,
+										// интерфейс "схватился".
 #endif
-	
+  
+
+
 	return status;
 }
 /**************************************************************************************************************
@@ -1094,6 +1100,14 @@ uint8_t getSdsId(uint8_t index){
     return sdsList[index];
   else 
 		return 0;
+}
+/**************************************************************************************************************
+  currentBaudrate - Текущий бодрейт
+  Возвращает:
+            Текущий бодрейт
+***************************************************************************************************************/
+uint32_t currentBaudrate(void){
+		return _currentBaudrate;
 }
 
 #if defined IGNORE_REQUEST_BUG   
