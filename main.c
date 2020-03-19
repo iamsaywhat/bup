@@ -29,6 +29,11 @@
 
 #include "radiostation.h"
 
+void sendEmpty (void)
+{
+	int a = 5;
+	a = 4;
+}
 
 
 int main(void)
@@ -58,44 +63,28 @@ int main(void)
   double longitude;
 	BIM_enableSupply();  
 	
+	Radiostation.deleteAllSds();
 	
 	
 	while(1)
-	{
-	
-	
+	{	
+    Radiostation.sendEmpty();
+		Radiostation.sendEmpty();
+		Radiostation.sendEmpty();
+		Radiostation.sendEmpty();
+		Radiostation.sendEmpty();
+		Radiostation.sendEmpty();
 		
-		sendEmpty();
-		sendEmpty();
-		sendEmpty();
-		sendEmpty();
-		sendEmpty();
-		sendEmpty();
 		LED_FAULT_ON();	
-		if(currentBaudrate() == RADIO_DEFAULT_BAUDRATE){
-		  setBaudrate(230400);
+		if(Radiostation.currentBaudrate() == RADIO_DEFAULT_BAUDRATE){
+		  Radiostation.setBaudrate(230400);
 		}
 		else{
-			updateSdsList();
-			findCoordinateInSdsList(&latitude, &longitude);
+			Radiostation.updateSdsList();
+			Radiostation.findCoordinateInSdsList(&latitude, &longitude);
 		}
 		LED_FAULT_OFF();
     delay_ms(1000);
-		
-		
-		
-//		LED_READY_ON();	
-//		updateSdsList();
-//		LED_READY_OFF();
-//		delay_ms(1000);
-//		
-//		LED_FAULT_ON();	
-//		findCoordinateInSdsList(&latitude, &longitude);
-//		LED_FAULT_OFF();
-//		delay_ms(1000);
-		
-		
-  
 	}
 
   if(!CONNECT_ZPZ_CHECK)                             /* Проверяем подключение разъема ЗПЗ */
