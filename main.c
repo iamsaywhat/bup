@@ -63,29 +63,53 @@ int main(void)
   double longitude;
 	BIM_enableSupply();  
 	
-	Radiostation.deleteAllSds();
-	
 	
 	while(1)
 	{	
-    Radiostation.sendEmpty();
-		Radiostation.sendEmpty();
-		Radiostation.sendEmpty();
-		Radiostation.sendEmpty();
-		Radiostation.sendEmpty();
-		Radiostation.sendEmpty();
+
 		
-		LED_FAULT_ON();	
+//		LED_FAULT_ON();	
+////		if(Radiostation.currentBaudrate() == RADIO_DEFAULT_BAUDRATE){
+////		  Radiostation.setBaudrate(230400);
+////		}
+////		else{
+//			Radiostation.updateSdsList();
+//			if(Radiostation.findCoordinateInSdsList(&latitude, &longitude) == RADIO_SUCCESS)
+//      {
+//          if (Pin_read(LED_READY ))                                /* Сменяем состояние индикатора на противоположное */
+//            Pin_reset(LED_READY );
+//          else 
+//            Pin_set(LED_READY );      
+//      }
+////		}
+//		LED_FAULT_OFF();
+//    delay_ms(1000);
+    
+   
+    //		LED_FAULT_ON();	
+//		if(Radiostation.currentBaudrate() == RADIO_DEFAULT_BAUDRATE){
+//		  Radiostation.setBaudrate(230400);
+//		}
+//		else{
+
 		if(Radiostation.currentBaudrate() == RADIO_DEFAULT_BAUDRATE){
 		  Radiostation.setBaudrate(230400);
 		}
-		else{
-			Radiostation.updateSdsList();
-			Radiostation.findCoordinateInSdsList(&latitude, &longitude);
-		}
+			LED_FAULT_ON();	
+			if(findCoordinateInSdsList2(&latitude, &longitude) == RADIO_SUCCESS)
+      {
+          if (Pin_read(LED_READY ))                                /* Сменяем состояние индикатора на противоположное */
+            Pin_reset(LED_READY );
+          else 
+            Pin_set(LED_READY );      
+      }
+//		}
 		LED_FAULT_OFF();
     delay_ms(1000);
+    
+    
 	}
+  
 
   if(!CONNECT_ZPZ_CHECK)                             /* Проверяем подключение разъема ЗПЗ */
   {

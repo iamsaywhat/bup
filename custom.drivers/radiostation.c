@@ -7,7 +7,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-
 /**********************************************************************
   В текущей версии ПО радиостанции имеется 
   странный баг, приводящий ее к случайным перезагрузкам.
@@ -43,6 +42,28 @@
 ***********************************************************************/
 #define IGNORE_REQUEST_BUG
 #define RADIO_REQUEST_DELAY       20   // Пауза между пустым и информационным запросом
+
+/***** Приватная часть модуля **********************************************************/
+static uint16_t    swapUint16               (uint16_t value);
+static uint32_t    swapUint32               (uint32_t value);
+static uint16_t    receiveByte              (MDR_UART_TypeDef* UARTx);
+static int16_t     sendByte                 (MDR_UART_TypeDef* UARTx, uint16_t byte);
+static uint16_t    sendFend                 (MDR_UART_TypeDef* UARTx);
+static void        send               (uint8_t index, uint8_t *data, uint8_t size);
+static RadioStatus receive            (uint8_t index, uint8_t* data, uint16_t *size);
+static void        initialize         (uint32_t baudrate);
+static void        deinitialize       (void);
+RadioStatus        parseForDeviceName       (uint8_t *data);
+RadioStatus        parseForManufacturerName (uint8_t *data);
+RadioStatus        parseForListSDS          (uint8_t *data);
+RadioStatus        parseForCoordinates      (uint8_t *data, uint8_t *sended, double *latitude, double *longitude);
+RadioStatus        parseForDeleteStatus     (uint8_t *data, uint8_t *sended);
+char*              findTag                  (char* string, int length, const char* tag, int tagSize);
+void               itoa                     (int value, char* result);
+static void        someMagic                (void);
+static void        setSdsCount              (uint8_t count);
+static uint8_t     getSdsId                 (uint8_t index);
+
 
 /***** Публичные объявления **********************************************************/
 static RadioStatus setBaudrate (uint32_t baudrate);
@@ -133,29 +154,6 @@ typedef union {
   RadioDataFrame Struct;
   uint8_t        Buffer[7];
 }RadioDataFrameType;
-
-
-
-/***** Приватная часть модуля **********************************************************/
-static uint16_t    swapUint16               (uint16_t value);
-static uint32_t    swapUint32               (uint32_t value);
-static uint16_t    receiveByte              (MDR_UART_TypeDef* UARTx);
-static int16_t     sendByte                 (MDR_UART_TypeDef* UARTx, uint16_t byte);
-static uint16_t    sendFend                 (MDR_UART_TypeDef* UARTx);
-static void        send               (uint8_t index, uint8_t *data, uint8_t size);
-static RadioStatus receive            (uint8_t index, uint8_t* data, uint16_t *size);
-static void        initialize         (uint32_t baudrate);
-static void        deinitialize       (void);
-RadioStatus        parseForDeviceName       (uint8_t *data);
-RadioStatus        parseForManufacturerName (uint8_t *data);
-RadioStatus        parseForListSDS          (uint8_t *data);
-RadioStatus        parseForCoordinates      (uint8_t *data, uint8_t *sended, double *latitude, double *longitude);
-RadioStatus        parseForDeleteStatus     (uint8_t *data, uint8_t *sended);
-char*              findTag                  (char* string, int length, const char* tag, int tagSize);
-void               itoa                     (int value, char* result);
-static void        someMagic                (void);
-static void        setSdsCount              (uint8_t count);
-static uint8_t     getSdsId                 (uint8_t index);
 
 
 /****** Публичная часть модуля  **********************************************************/
@@ -366,46 +364,47 @@ RadioStatus getCoordinatesFromSds(int idSds, double *latitude, double *longitude
   uint8_t     data[20] = "AT+CSDSRD=";   // Команда
   TimeoutType timeout;                   // Таймаут
   RadioStatus status = RADIO_FAILED;     // Статус выполнения по-умолчанию
-	char id[4];                            //
+	char id[4];                            // Строковый ID
 	itoa(idSds, id);                       // Числовой id, конвертируем в строковый
 	memcpy(data+10, id, strlen(id));       // Вставляем id в строку с командой, перекрывая нуль терминатор
 
 #if defined REBOOT_BUG	
-  if(timeoutStatus(&globalTimeout) != TIME_IS_UP)                  // См. описание макроса REBOOT_BUG
+  if(timeoutStatus(&globalTimeout) != TIME_IS_UP)              // См. описание макроса REBOOT_BUG
     return RADIO_BLOCKED;
 #endif
 	
-	setTimeout (&timeout, RADIO_TRANSACTION_TIMEOUT);                // Устанавлливаем таймаут
-	initialize(currentBaudrate());                          // Включаем обмен
+	setTimeout (&timeout, RADIO_TRANSACTION_TIMEOUT);            // Устанавлливаем таймаут
+	initialize(currentBaudrate());                               // Включаем обмен
 
-#if defined IGNORE_REQUEST_BUG                                     // См. Описание макроса IGNORE_REQUEST_BUG
-	someMagic();                                                     // Немного магии
+#if defined IGNORE_REQUEST_BUG                                 // См. Описание макроса IGNORE_REQUEST_BUG
+	someMagic();                                                 // Немного магии
 #endif
 
-	send(frameIndex, data, sizeof(data)-1);                    // Посылаем команду
-	while (timeoutStatus(&timeout) != TIME_IS_UP){                   // И следим за таймаутом
-	  if(receive(frameIndex, buffer, &size) != RADIO_SUCCESS){ // Принимаем ответ
-		  send(frameIndex, 0, 0);                                // Если ответа не последовало или ответ с ошибкой
-			continue;                                                    // Запрос необходимо повторить с этим же индексом
+	send(frameIndex, data, sizeof(data)-1);                      // Посылаем команду
+	while (timeoutStatus(&timeout) != TIME_IS_UP){               // И следим за таймаутом
+    status = receive(frameIndex, buffer, &size);               // Принимаем ответ
+	  if(status != RADIO_SUCCESS &&                              // Здесь два приемлемых варианта: Успешно принято, либо превышение 
+       status != RADIO_EXCESS_PACKET_SIZE){                    // размера пакета (в этом случае, далее сможем хотя бы опознать, тип ответа)    
+		  send(frameIndex, 0, 0);                                  // Если ответа не последовало или ответ с ошибкой
+			continue;                                                // Запрос необходимо повторить с этим же индексом
     }
-		if(parseForCoordinates (buffer, data+2, latitude, longitude) == RADIO_FAILED){    // Сюда попали если ответ был принят
+    status = parseForCoordinates (buffer, data+2, latitude, longitude); // Сюда попали если ответ был принят
+		if(status == RADIO_FAILED){                         // Здесь любой статус приемлем кроме FaIled
 			frameIndex++;                                     // Но нужно проверить, тот ли ответ был принят
-		  send(frameIndex, 0, 0);                     // Если ответ не тот, необходимо посылать пустые запросы
+		  send(frameIndex, 0, 0);                           // Если ответ не тот, необходимо посылать пустые запросы
 			continue;                                         // До тех пор пока не получим нужное
 		}
-		else {		
-		  status = RADIO_SUCCESS; // Если попали сюда, то пакет был принят
-		  break;                  // И даже пакет был верным
-    }
+		else       // Было успешно принято, SDS сообщение
+		  break;   
 	}
 	memset(buffer, 0, size);    // Приёмный буфер необходимо очистить
-  deinitialize();       // Выключаем обмен
+  deinitialize();             // Выключаем обмен
 	frameIndex++;               // Инкремент индекса кадра
 
 #if defined REBOOT_BUG		
   if(status == RADIO_FAILED){
     resetCurrentBaudrate();
-    setTimeout (&globalTimeout, RADIO_BLOCK_TIMEOUT);                // См. описание макроса REBOOT_BUG
+    setTimeout (&globalTimeout, RADIO_BLOCK_TIMEOUT);       // См. описание макроса REBOOT_BUG
   }
 #endif
 	
@@ -559,12 +558,64 @@ RadioStatus findCoordinateInSdsList(double *latitude, double *longitude)
   for(uint16_t i = 0; i < getSdsCount(); i++){                               // В порядке очереди начинаем
 	  status = getCoordinatesFromSds(getSdsId(i), latitude, longitude);        // вычитывать все SDS сообщения
 		if(status == RADIO_SUCCESS || status == RADIO_COORDINATES_NOT_FOUND){    // Если координаты успешно прочитаны
+      //delay_ms(200);
       deleteSds(getSdsId(i));                                                // либо сообщение прочитано, но там
       break;                                                                 // нет координат, то его можно удалить
     }
 	}                                                                          // В противном случае при других статусах
 	return status;                                                             // все равно необходимо будет прочитать сообщение
 }                                                                            // Поэтому пока не удаляем
+
+RadioStatus findCoordinateInSdsList2(double *latitude, double *longitude)
+{
+  RadioStatus status = RADIO_FAILED;
+  enum States {        // Состония автомата
+    updatingListSds,   // Обновление списка
+    parsingSds,        // Разбор сообщения
+    deletionSds        // Удаление сообщения
+  };
+  static enum States state = updatingListSds;      
+  static TimeoutType timeout = {0, 1, TIME_IS_UP};
+  uint16_t index = 0;
+  //uint16_t index = getSdsCount()-1;
+  
+  if(timeoutStatus(&timeout) != TIME_IS_UP)
+    return status; 
+  
+  switch (state)
+  {
+    case updatingListSds: // Обновление данных
+      if(updateSdsList() == RADIO_SUCCESS){
+        if(getSdsCount() > 0)
+          state = parsingSds;
+      }
+      break;
+        
+    case parsingSds: // Разбор сообщения 
+      if(getSdsCount() > 0) {
+          status = getCoordinatesFromSds(getSdsId(index), latitude, longitude);
+          if(status == RADIO_SUCCESS)
+            state = deletionSds;
+          else if (status == RADIO_COORDINATES_NOT_FOUND){ 
+            state = deletionSds;
+            setTimeout(&timeout, 200);
+          }
+          else
+            state = updatingListSds;
+      }
+      break;
+    case deletionSds: // Удаление сообщения
+      deleteSds(getSdsId(index));
+      state = updatingListSds;
+      break;
+    default:
+      state = updatingListSds;
+      break;
+  }
+  return status;
+}
+
+
 
 /***** Приватная часть модуля **********************************************************/
 
@@ -684,23 +735,23 @@ RadioStatus parseForCoordinates(uint8_t *data, uint8_t *sended, double *latitude
 	
   // Проверим на наш ли запрос пришел ответ
 	if(findTag((char*)data, (int)dataFrame.Struct.length, (char*)sended, strlen((char*)sended)-1) == NULL)
-		 return RADIO_FAILED; // Точно не то, что мы ждали
+		 return RADIO_FAILED;  // Это вообще не SDS сообщение
 	
   if(findTag((char*)(data), (int)dataFrame.Struct.length, commandTag, sizeof(commandTag)-1) != NULL)
 	{
     latAddress = findTag((char*)(data), (int)dataFrame.Struct.length, latitudeTag,  sizeof(latitudeTag)-1);
     lonAddress = findTag((char*)(data), (int)dataFrame.Struct.length, longitudeTag, sizeof(longitudeTag)-1);					 
-		if(latAddress != NULL || lonAddress != NULL || dataFrame.Struct.type != AT_COMMAND)
+		if(latAddress != NULL || lonAddress != NULL || dataFrame.Struct.type != AT_COMMAND)  // Проверим были ли найдены обе координаты
 		{
-      *latitude = atof(latAddress);
-      *longitude = atof(lonAddress);
-			status = RADIO_SUCCESS;
+      *latitude = atof(latAddress);    // Преобразуем в double                  
+      *longitude = atof(lonAddress);   // Преобразуем в double 
+			status = RADIO_SUCCESS;          // Координаты были успешно найдены
 		}
 		else
-      status = RADIO_COORDINATES_NOT_FOUND;
+      status = RADIO_COORDINATES_NOT_FOUND;    // Это SDS сообщение, но в нем нет координат
   }
 	else 
-    status = RADIO_COORDINATES_NOT_FOUND; 
+    status = RADIO_COORDINATES_NOT_FOUND;      // Это SDS сообщение, но в нем нет координат
 		
   return status;
 }
@@ -878,26 +929,36 @@ RadioStatus receive(uint8_t index, uint8_t* data, uint16_t *size)
 	// На этом этапе уже можем проверить валидность исключив очевидные варианты
 	if(baseFrame.Struct.address != RADIO_ADDRESS)      // Адрес должен быть наш, остальные игнорируем
     return RADIO_WRONG_ADDRESS;
-	if(baseFrame.Struct.length > PACKET_SIZE_LIMIT)    // Не используем пакеты больше PACKET_SIZE_LIMIT
-    return RADIO_EXCESS_PACKET_SIZE;                 // поэтому если пакет больше, он нам точно неинтересен
+  if(baseFrame.Struct.index != index)                // Индекс кадра должен быть тем же что и в запросе
+	  return RADIO_WRONG_INDEX;
 
-	*size = baseFrame.Struct.length;
-	// Поле данных
-	for(i = 0; i < baseFrame.Struct.length; i++)
-	{
-    data[i] = receiveByte(RADIO_UART);	// Целиком записываем в буфер
-    crc = Crc16(&data[i], 1, crc);	    // И пока только считаем контрольную сумму
-	}
-	// Контрольная сумма
-  for(i = 4; i < 6; i++)
-    baseFrame.Buffer[i] = receiveByte(RADIO_UART);
-	
+  /* 
+    Здесь важно проконтролировать размер пакета больше дозволеного или нет.
+    Если да, то надо принять только часть с идентификатором команды, чтобы позже ее опознать (первые 11 байт)
+    Контрольную сумму можно не считать, так как все равно пакет считается невалидным
+  */
+  if(baseFrame.Struct.length > PACKET_SIZE_LIMIT){    // Не используем пакеты больше PACKET_SIZE_LIMIT
+    const uint16_t byteCount = 16;
+    *size = byteCount;                                // Необходимо вернуть сколько байт приняли
+    for(i = 0; i < byteCount; i++)                    // Принимаем данные
+      data[i] = receiveByte(RADIO_UART);              // Кладем в буфер
+      
+    return RADIO_EXCESS_PACKET_SIZE;                  // Возвращаем статус ошибки
+  }
+  else {
+    for(i = 0; i < baseFrame.Struct.length; i++){     // Поле данных
+      data[i] = receiveByte(RADIO_UART);	            // Целиком записываем в буфер
+      crc = Crc16(&data[i], 1, crc);	                // И пока только считаем контрольную сумму
+    }
+    for(i = 4; i < 6; i++)                            // Контрольная сумма
+      baseFrame.Buffer[i] = receiveByte(RADIO_UART);
+      
+	  *size = baseFrame.Struct.length;
+  }  
 	// Проверка контрольной суммы и индекса кадра
 	crc = swapUint16(crc);
 	if(crc != baseFrame.Struct.crc)
     return RADIO_WRONG_CRC;
-	if(baseFrame.Struct.index != index)
-	  return RADIO_WRONG_INDEX;
 	
 	return RADIO_SUCCESS;
 }
