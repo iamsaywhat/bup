@@ -46,8 +46,8 @@ int main(void)
   BIM_CAN_initialize ();                         /* Запускаем драйвер БИМов (который попутно инициализирует CAN1) */
   LogFs_initialize();                            /* Запускаем файловую систему */
   Bup_initialize();                              /* Инициализируем хранилище данных БУП */
-  while(timeoutStatus(&timeout) != TIME_IS_UP);  /* Дожидаемся запуска СНС */   
   Radiostation.deleteAllSds();                   /* Удаляем все сообщения в радиостанции */  
+  while(timeoutStatus(&timeout) != TIME_IS_UP);  /* Дожидаемся запуска СНС */   
   SelfTestingFull();                             /* Запускаем фул-тест системы */
   stopIndication();                              /* Отключаем мигание */
 

@@ -342,7 +342,7 @@ SelfTesting_STATUS_TYPE SelfTesting_RIGHT_BIM(void)
 ************************************************************************************/
 void SelfTesting_BIMS_TRY_CONNECT(void)
 {
-	static TimeoutType timeout = {0, 1, TIME_IS_UP};
+	static TimeoutType timeout = {0, 0, TIME_IS_UP};
 	
   /* Если хоть один из БИМов неисправен, 
 	и с последней попытки восстановить соединение случился таймаут */ 

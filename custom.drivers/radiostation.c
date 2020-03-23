@@ -104,7 +104,7 @@ uint8_t buffer[PACKET_SIZE_LIMIT];
 uint8_t sdsCounter = 0;
 uint8_t sdsList[20];
 uint8_t frameIndex = 0;
-TimeoutType globalTimeout = {0, 1, TIME_IS_UP}; 
+TimeoutType globalTimeout = {0, 0, TIME_IS_UP}; 
 uint32_t _currentBaudrate = RADIO_DEFAULT_BAUDRATE;
 
 
@@ -173,7 +173,13 @@ RadioStatus sendEmpty(void)
   RadioStatus status = RADIO_FAILED; 
   uint16_t    size = 0;
   TimeoutType timeout;
-	setTimeout (&timeout, 100); 
+  
+#if defined REBOOT_BUG	
+  if(timeoutStatus(&globalTimeout) != TIME_IS_UP)                  // См. описание макроса REBOOT_BUG
+    return RADIO_BLOCKED;
+#endif
+  
+	setTimeout (&timeout, RADIO_TRANSACTION_TIMEOUT); 
 	initialize(currentBaudrate());
 	send(frameIndex, 0, 0);
 	while (timeoutStatus(&timeout) != TIME_IS_UP){
@@ -189,6 +195,14 @@ RadioStatus sendEmpty(void)
 	memset(buffer, 0, size);     
   deinitialize();
 	frameIndex++;
+  
+#if defined REBOOT_BUG		
+	if(status == RADIO_FAILED){
+	  resetCurrentBaudrate();
+	  setTimeout (&globalTimeout, RADIO_BLOCK_TIMEOUT);                // См. описание макроса REBOOT_BUG
+  }
+#endif
+  
 	return status;
 }
 /**************************************************************************************************************
@@ -588,7 +602,7 @@ RadioAutoParserStatus autoChecker(double *latitude, double *longitude)
   RadioStatus status;                                 // Статусы выполнения разовых команд
   RadioAutoParserStatus autoParserStatus;             // Результат работы автопарсера
   static enum States state = updatingListSds;         // Состояние автомата
-  static TimeoutType timeout = {0, 1, TIME_IS_UP};    // Блокирующий таймаут
+  static TimeoutType timeout = {0, 0, TIME_IS_UP};    // Блокирующий таймаут
   uint16_t index;                                     // Индекс(ID) сообщения
   
   index = 0;                                          // Если порядок вычитывания сообщений- сначала старые
@@ -853,7 +867,7 @@ void deinitialize (void)
 ***************************************************************************************************************/
 void send(uint8_t index, uint8_t *data, uint8_t size)
 {
-  static TimeoutType sendPause = {0, 1, TIME_IS_UP};
+  static TimeoutType sendPause = {0, 0, TIME_IS_UP};
 	TimeoutType timeout; 
   RadioBaseFrameType baseFrame;
 	RadioDataFrameType dataFrame;
