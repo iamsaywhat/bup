@@ -3,6 +3,7 @@
 #include "heightmap/heightmap.h"
 #include "selftesting.h"
 #include "config.h"
+#include "radiostation.h"
 
 
 /*******************************************************************************************************************
@@ -51,6 +52,9 @@ void Bup_initialize (void)
   bupDataStorage.course = 0;
   bupDataStorage.reliefHeight = 0x7FFF;
   bupDataStorage.controlSecond = 0;
+  bupDataStorage.radioLatitude = 0;
+  bupDataStorage.radioLongitude = 0;
+  bupDataStorage.radioUpdated = 0;
 	
   // Определим высоту рельефа в точке приземления
   bupDataStorage.reliefOnTDP = getHeightOnThisPoint(bupDataStorage.touchdownLongitude, 
@@ -70,7 +74,7 @@ void Bup_updateData (void)
   Bup_updateDataFromSNS ();
   // Просим данные у СВС
   Bup_updateDataFromSWS ();
-	
+  
   // Далее конвертируем полученные данные и будем хранить их уже в таком виде
   bupDataStorage.latitude           = SNS_getLatitude();
   bupDataStorage.longitude          = SNS_getLongitude();
@@ -83,7 +87,12 @@ void Bup_updateData (void)
   bupDataStorage.pitch              = SNS_getPitch();
   bupDataStorage.roll               = SNS_getRoll();
   bupDataStorage.course             = SNS_getGroundTrack();
-	
+  
+  // Спрашиваем радиостанцию, и если есть новые данные, то поднимаем флаг, что они обновились
+  if(Radiostation.autoChecker(&bupDataStorage.radioLatitude, 
+                              &bupDataStorage.radioLongitude) == RADIO_GOT_NEW_COORDINATES)
+    bupDataStorage.radioUpdated = 1;
+  
   // Рассчитываем по полученным данным высоту рельефа в точке
   bupDataStorage.reliefHeight       = getHeightOnThisPoint(bupDataStorage.longitude, 
                                                            bupDataStorage.latitude, 

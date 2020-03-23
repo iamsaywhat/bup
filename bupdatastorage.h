@@ -68,6 +68,9 @@ typedef struct{
   short    reliefOnTDP;                // Высота рельефа в точке приземления, метры
   float    battery50V;                 // Напряжение на секции 50 Вольт АКБ
   uint32_t controlSecond;              // Системное время БУП
+  double   radioLatitude;              //
+  double   radioLongitude;             //
+  uint8_t  radioUpdated;               //
 }BupDataStorage;
 
 
@@ -138,5 +141,7 @@ inline double   Bup_getCourse(void)             { return bupDataStorage.course;}
 inline short    Bup_getReliefHeight(void)       { return bupDataStorage.reliefHeight;}
 inline short    Bup_getReliefHeightOnTDP(void)  { return bupDataStorage.reliefOnTDP;}
 inline uint32_t Bup_getControlTime (void)       { return bupDataStorage.controlSecond;}
+inline double   Bup_getRadioLatitude(void)      { return bupDataStorage.radioLatitude; }
+inline double   Bup_getRadioLongitude(void)     { return bupDataStorage.radioLongitude; }
 
 #endif

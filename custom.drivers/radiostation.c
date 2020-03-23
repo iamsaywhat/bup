@@ -49,10 +49,10 @@ static uint32_t    swapUint32               (uint32_t value);
 static uint16_t    receiveByte              (MDR_UART_TypeDef* UARTx);
 static int16_t     sendByte                 (MDR_UART_TypeDef* UARTx, uint16_t byte);
 static uint16_t    sendFend                 (MDR_UART_TypeDef* UARTx);
-static void        send               (uint8_t index, uint8_t *data, uint8_t size);
-static RadioStatus receive            (uint8_t index, uint8_t* data, uint16_t *size);
-static void        initialize         (uint32_t baudrate);
-static void        deinitialize       (void);
+static void        send                     (uint8_t index, uint8_t *data, uint8_t size);
+static RadioStatus receive                  (uint8_t index, uint8_t* data, uint16_t *size);
+static void        initialize               (uint32_t baudrate);
+static void        deinitialize             (void);
 RadioStatus        parseForDeviceName       (uint8_t *data);
 RadioStatus        parseForManufacturerName (uint8_t *data);
 RadioStatus        parseForListSDS          (uint8_t *data);
@@ -66,17 +66,17 @@ static uint8_t     getSdsId                 (uint8_t index);
 
 
 /***** Публичные объявления **********************************************************/
-static RadioStatus setBaudrate (uint32_t baudrate);
-static uint32_t currentBaudrate(void);
-static uint8_t getSdsCount (void);
-static RadioStatus sendEmpty(void);
-static RadioStatus checkDeviceName(void);
-static RadioStatus checkManufacturerName(void);
-static RadioStatus updateSdsList(void);
-static RadioStatus getCoordinatesFromSds(int idSds, double *latitude, double *longitude);
-static RadioStatus deleteSds(uint8_t idSds);
-static RadioStatus deleteAllSds (void);
-static RadioStatus findCoordinateInSdsList(double *latitude, double *longitude);
+static RadioStatus           setBaudrate (uint32_t baudrate);
+static uint32_t              currentBaudrate(void);
+static uint8_t               getSdsCount (void);
+static RadioStatus           sendEmpty(void);
+static RadioStatus           checkDeviceName(void);
+static RadioStatus           checkManufacturerName(void);
+static RadioStatus           updateSdsList(void);
+static RadioStatus           getCoordinatesFromSds(int idSds, double *latitude, double *longitude);
+static RadioStatus           deleteSds(uint8_t idSds);
+static RadioStatus           deleteAllSds (void);
+static RadioStatus           findCoordinateInSdsList(double *latitude, double *longitude);
 static RadioAutoParserStatus autoChecker(double *latitude, double *longitude);
 
 /*******************************************
@@ -106,6 +106,7 @@ uint8_t sdsList[20];
 uint8_t frameIndex = 0;
 TimeoutType globalTimeout = {0, 1, TIME_IS_UP}; 
 uint32_t _currentBaudrate = RADIO_DEFAULT_BAUDRATE;
+
 
 #define resetCurrentBaudrate()  _currentBaudrate = RADIO_DEFAULT_BAUDRATE
 #define setCurrentBaudrate(x)   _currentBaudrate = x
@@ -639,6 +640,7 @@ RadioAutoParserStatus autoChecker(double *latitude, double *longitude)
   }
   return autoParserStatus;
 }
+
 
 
 

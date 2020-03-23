@@ -168,6 +168,7 @@ typedef struct{
   RadioAutoParserStatus (*autoChecker)(double *latitude, double *longitude);
 }Radiostation_module;
 
+
 extern Radiostation_module Radiostation;
 
 #endif

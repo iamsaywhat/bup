@@ -12,6 +12,7 @@
 #include "heightmap/heightmap.platformdepend.h"
 #include "heightmap/heightmap.h"
 #include "bupdatastorage.h"
+#include "radiostation.h"
 
 
 /***************************************
@@ -56,6 +57,8 @@ void SelfTestingFull (void)
   SelfTesting_SWS();
   // Проверка напряжения на АКБ
   SelfTesting_Battery50Volt();
+  // Проверка связи с радиостанцией
+  SelfTesting_Radiostation();
   // Управление индикацией, по результатам тестов периферии
   SelfTesting_OnlineDiagnostics();
 }
@@ -98,6 +101,8 @@ void SelfTestingOnline (void)
   SelfTesting_MapAvailability (Bup_getLatitude(), Bup_getLongitude());
   // Проверка напряжения на АКБ
   SelfTesting_Battery50Volt();
+  // Проверка связи с радиостанцией
+  SelfTesting_Radiostation();
 }
 
 
@@ -530,3 +535,27 @@ SelfTesting_STATUS_TYPE SelfTesting_Battery50Volt (void)
   return (SelfTesting_STATUS_TYPE)SelfTesting_STATUS(ST_BATTERY50V);
 }
 
+/************************************************************************************
+  SelfTesting_Radiostation - Проверка связи с радиостанцией
+
+  Параметры:
+              NONE
+								
+  Возвращает: ST_OK - Если напряжение в норме
+              ST_FAULT - Если напряжение ниже порогового
+										
+  Примечание:
+************************************************************************************/
+SelfTesting_STATUS_TYPE SelfTesting_Radiostation (void)
+{
+  RadioStatus status;
+  if(Radiostation.currentBaudrate() == RADIO_DEFAULT_BAUDRATE)
+    status = Radiostation.setBaudrate(230400);
+  else
+    status = Radiostation.sendEmpty();
+  if(status == RADIO_SUCCESS)
+    SelfTesting_SET_OK(ST_RADIOSTATION);
+  else
+    SelfTesting_SET_FAULT(ST_RADIOSTATION);
+  return (SelfTesting_STATUS_TYPE)SelfTesting_STATUS(ST_RADIOSTATION);
+}

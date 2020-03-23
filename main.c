@@ -11,6 +11,7 @@
 #include "analogio.h"                            // Драйвер работы с аналоговыми сигналами
 #include "zpz.h"                                 // Драйвер работы c загрузчиком полетного задания
 #include "otherlib.h"                            // Модуль аппаратнозависимых функций общего назначения
+#include "radiostation.h"                        // Драйвер радиостанции
 
 #include "bupdatastorage.h"                      // Хранилище данных
 #include "logfs/log.fs.h"                        // Файловая система для записи логов в "черный ящик"
@@ -24,16 +25,8 @@
 #endif //******************************************************************** !LOGS_ENABLE
 
 #ifdef DEBUG_VARS	//*************************************************************** Если активна отладка переменных 
-	#include "debug.h"                             // Отладочный модуль трассировки внутрисистемных переменных в CAN
+//	#include "debug.h"                             // Отладочный модуль трассировки внутрисистемных переменных в CAN
 #endif //************************************************************************** !DEBUG_VARS 	
-
-#include "radiostation.h"
-
-void sendEmpty (void)
-{
-	int a = 5;
-	a = 4;
-}
 
 
 int main(void)
@@ -53,63 +46,21 @@ int main(void)
   BIM_CAN_initialize ();                         /* Запускаем драйвер БИМов (который попутно инициализирует CAN1) */
   LogFs_initialize();                            /* Запускаем файловую систему */
   Bup_initialize();                              /* Инициализируем хранилище данных БУП */
-  //while(timeoutStatus(&timeout) != TIME_IS_UP);  /* Дожидаемся запуска СНС */     
+  while(timeoutStatus(&timeout) != TIME_IS_UP);  /* Дожидаемся запуска СНС */   
+  Radiostation.deleteAllSds();                   /* Удаляем все сообщения в радиостанции */  
   SelfTestingFull();                             /* Запускаем фул-тест системы */
   stopIndication();                              /* Отключаем мигание */
 
 	
-
-  double latitude;
-  double longitude;
-	BIM_enableSupply();  
-	
-	
-	while(1)
-	{	
-
-		
-//		LED_FAULT_ON();	
-////		if(Radiostation.currentBaudrate() == RADIO_DEFAULT_BAUDRATE){
-////		  Radiostation.setBaudrate(230400);
-////		}
-////		else{
-//			Radiostation.updateSdsList();
-//			if(Radiostation.findCoordinateInSdsList(&latitude, &longitude) == RADIO_SUCCESS)
-//      {
-//          if (Pin_read(LED_READY ))                                /* Сменяем состояние индикатора на противоположное */
-//            Pin_reset(LED_READY );
-//          else 
-//            Pin_set(LED_READY );      
-//      }
-////		}
-//		LED_FAULT_OFF();
-//    delay_ms(1000);
-    
-   
-    //		LED_FAULT_ON();	
-//		if(Radiostation.currentBaudrate() == RADIO_DEFAULT_BAUDRATE){
-//		  Radiostation.setBaudrate(230400);
-//		}
-//		else{
-
-		if(Radiostation.currentBaudrate() == RADIO_DEFAULT_BAUDRATE){
-		  Radiostation.setBaudrate(230400);
-		}
-			LED_FAULT_ON();	
-			if(Radiostation.autoChecker(&latitude, &longitude) == RADIO_GOT_NEW_COORDINATES)
-      {
-          if (Pin_read(LED_READY ))                                /* Сменяем состояние индикатора на противоположное */
-            Pin_reset(LED_READY );
-          else 
-            Pin_set(LED_READY );      
-      }
-//		}
-		LED_FAULT_OFF();
-    delay_ms(1000);
-    
-    
-	}
-  
+//	while(1)
+//	{
+//		//BUP_DataUpdate ();
+//		//GetBatteryCharge();
+//		
+//		SelfTesting_SNS();
+//		BUP_UpdateDataFromSNS ();
+//		
+//	}
 
   if(!CONNECT_ZPZ_CHECK)                             /* Проверяем подключение разъема ЗПЗ */
   {

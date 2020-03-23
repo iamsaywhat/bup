@@ -221,7 +221,12 @@ void task_selftesting(void)
       SelfTesting_Battery50Volt();
       TaskManager.Task_SelftestingStage++;
     }
-    case 7: /* Этап 7 - Управление индикацией по результам тестов */
+    case 7: /* Этап 7 - Проверка радиостанции */
+    {
+      SelfTesting_Radiostation();
+      TaskManager.Task_SelftestingStage++;
+    }
+    case 8: /* Этап 8 - Управление индикацией по результам тестов */
     {
       SelfTesting_OnlineDiagnostics ();
       TaskManager.Task_SelftestingStage++;
