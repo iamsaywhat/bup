@@ -96,7 +96,7 @@ int main(void)
 		  Radiostation.setBaudrate(230400);
 		}
 			LED_FAULT_ON();	
-			if(findCoordinateInSdsList2(&latitude, &longitude) == RADIO_SUCCESS)
+			if(Radiostation.autoChecker(&latitude, &longitude) == RADIO_GOT_NEW_COORDINATES)
       {
           if (Pin_read(LED_READY ))                                /* Сменяем состояние индикатора на противоположное */
             Pin_reset(LED_READY );

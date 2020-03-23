@@ -77,6 +77,7 @@ static RadioStatus getCoordinatesFromSds(int idSds, double *latitude, double *lo
 static RadioStatus deleteSds(uint8_t idSds);
 static RadioStatus deleteAllSds (void);
 static RadioStatus findCoordinateInSdsList(double *latitude, double *longitude);
+static RadioAutoParserStatus autoChecker(double *latitude, double *longitude);
 
 /*******************************************
   Публичная структура модуля, как объекта  
@@ -92,7 +93,8 @@ Radiostation_module Radiostation = {
   getCoordinatesFromSds,
   deleteSds,
   deleteAllSds,
-  findCoordinateInSdsList
+  findCoordinateInSdsList,
+  autoChecker,
 };
 
 /*******************************************
@@ -565,54 +567,77 @@ RadioStatus findCoordinateInSdsList(double *latitude, double *longitude)
 	}                                                                          // В противном случае при других статусах
 	return status;                                                             // все равно необходимо будет прочитать сообщение
 }                                                                            // Поэтому пока не удаляем
-
-RadioStatus findCoordinateInSdsList2(double *latitude, double *longitude)
+/**************************************************************************************************************
+  autoChecker - Автомат самостоятельно проверяющий новые сообщение и текст в нём на предмет координат
+  Параметры: 
+            latitude - Широта (то, куда запишется результат в случае его наличия)
+            longitude - Долгота (то, куда запишется результат в случае его наличия)
+  Возвращает:
+            Результат выполнения
+  Примечание:
+            За один вызов совершает один элементарный запрос, дял работы требуется запускать циклически
+***************************************************************************************************************/
+RadioAutoParserStatus autoChecker(double *latitude, double *longitude)
 {
-  RadioStatus status = RADIO_FAILED;
   enum States {        // Состония автомата
     updatingListSds,   // Обновление списка
     parsingSds,        // Разбор сообщения
     deletionSds        // Удаление сообщения
   };
-  static enum States state = updatingListSds;      
-  static TimeoutType timeout = {0, 1, TIME_IS_UP};
-  uint16_t index = 0;
-  //uint16_t index = getSdsCount()-1;
+  RadioStatus status;                                 // Статусы выполнения разовых команд
+  RadioAutoParserStatus autoParserStatus;             // Результат работы автопарсера
+  static enum States state = updatingListSds;         // Состояние автомата
+  static TimeoutType timeout = {0, 1, TIME_IS_UP};    // Блокирующий таймаут
+  uint16_t index;                                     // Индекс(ID) сообщения
   
-  if(timeoutStatus(&timeout) != TIME_IS_UP)
-    return status; 
+  index = 0;                                          // Если порядок вычитывания сообщений- сначала старые
+  //index = getSdsCount()-1;                            // Если порядок вычитывания сообщений - сначала новые
+   
+  if(timeoutStatus(&timeout) != TIME_IS_UP)           // Этот контроль таймаута, блокирует работу
+    return RADIO_BLOCKED_BY_TIMEOUT; 
   
   switch (state)
   {
-    case updatingListSds: // Обновление данных
-      if(updateSdsList() == RADIO_SUCCESS){
-        if(getSdsCount() > 0)
-          state = parsingSds;
+    case updatingListSds:                             // Обновление данных
+      if(updateSdsList() == RADIO_SUCCESS){           // Обновление списка прошло успешно
+        autoParserStatus = RADIO_UPDATE_SUCCESS;      // Возвращаем, статус успешного обновления
+        if(getSdsCount() > 0)                         // Если появились сообщения, то нужно их запросить
+          state = parsingSds;                         // Переходим к приёму и разбору сообщения
       }
+      else 
+        autoParserStatus = RADIO_UPDATE_FAILED;       // Возвращаем, статус неудачного обновления
       break;
         
-    case parsingSds: // Разбор сообщения 
-      if(getSdsCount() > 0) {
-          status = getCoordinatesFromSds(getSdsId(index), latitude, longitude);
-          if(status == RADIO_SUCCESS)
-            state = deletionSds;
-          else if (status == RADIO_COORDINATES_NOT_FOUND){ 
-            state = deletionSds;
-            setTimeout(&timeout, 200);
-          }
-          else
-            state = updatingListSds;
-      }
+    case parsingSds:                                                             // Разбор сообщения 
+      if(getSdsCount() > 0) {                                                    // Проверяем, имеются ли сообщения
+          status = getCoordinatesFromSds(getSdsId(index), latitude, longitude);  // Если имеются - запрашиваеи одно из них и разбираем
+          if(status == RADIO_SUCCESS){                                           // Если приём и разбор сообщения удался
+            state = deletionSds;                                                 // то удаляем его за ненадобностью
+            autoParserStatus = RADIO_GOT_NEW_COORDINATES;                        // Вернём статус наличия новых координат
+          }            
+          else if (status == RADIO_COORDINATES_NOT_FOUND){                       // Разбор удался, но искомый текст не был найден
+            autoParserStatus = RADIO_NO_COORDINATES;                             // Вернём статус отсутствия новых координат
+            state = deletionSds;                                                 // Это сообщние можно удалить, оно странное, с ним
+            setTimeout(&timeout, 10);                                            // что-то не так. 
+          }                                                                      //
+          else{                                                                  // Если какая-то неизвестная ошибка, возможно, сообщение
+            state = updatingListSds;                                             // было удалено оператором вручную, поэтому список неактуален,
+            autoParserStatus = RADIO_NO_COORDINATES;                             // его нужно обновить
+          }                                                                      // Вернём статус отсутствия новых координат
+      }                                                                          
       break;
-    case deletionSds: // Удаление сообщения
-      deleteSds(getSdsId(index));
-      state = updatingListSds;
+    case deletionSds:                                      // Удаление сообщения
+      if(deleteSds(getSdsId(index)) == RADIO_SUCCESS)      // Если удаление прошло успешно
+        autoParserStatus = RADIO_DELETE_SUCCESS;           // Вернём соответсвующий статус
+      else                                                 // Если неудачно
+        autoParserStatus = RADIO_DELETE_FAILED;            // Вернём неудачу
+      state = updatingListSds;                             // Автомат переводим в состояние обновления списка
       break;
     default:
-      state = updatingListSds;
+      state = updatingListSds;                            
       break;
   }
-  return status;
+  return autoParserStatus;
 }
 
 

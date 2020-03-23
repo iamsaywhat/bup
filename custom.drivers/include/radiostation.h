@@ -100,7 +100,16 @@
   Примечание:
             Ищет в списке сообщений, то которое содержит координаты, и извлекает их,
 						остальные удаляёт, как и то, из которого только что были извлечены координаты
-*****************************************************************************************************/
+**************************************************************************************************************
+  autoChecker - Автомат самостоятельно проверяющий новые сообщение и текст в нём на предмет координат
+  Параметры: 
+            latitude - Широта (то, куда запишется результат в случае его наличия)
+            longitude - Долгота (то, куда запишется результат в случае его наличия)
+  Возвращает:
+            Результат выполнения
+  Примечание:
+            За один вызов совершает один элементарный запрос, дял работы требуется запускать циклически
+*************************************************************************************************************/
 #ifndef _RADIOSTATION_H_
 #define _RADIOSTATION_H_
 
@@ -134,19 +143,29 @@ typedef enum{
   RADIO_BLOCKED,                 // Обращения к радиостанции программно заблокированы
 }RadioStatus;
 
+typedef enum{
+  RADIO_UPDATE_SUCCESS,
+  RADIO_UPDATE_FAILED,
+  RADIO_GOT_NEW_COORDINATES,
+  RADIO_NO_COORDINATES,
+  RADIO_DELETE_SUCCESS,
+  RADIO_DELETE_FAILED,
+  RADIO_BLOCKED_BY_TIMEOUT,
+}RadioAutoParserStatus;
 
 typedef struct{
-  RadioStatus (*setBaudrate) (uint32_t baudrate);
-  uint32_t    (*currentBaudrate)(void);
-  uint8_t     (*getSdsCount) (void);
-  RadioStatus (*sendEmpty)(void);
-  RadioStatus (*checkDeviceName)(void);
-  RadioStatus (*checkManufacturerName)(void);
-  RadioStatus (*updateSdsList)(void);
-  RadioStatus (*getCoordinatesFromSds)(int idSds, double *latitude, double *longitude);
-  RadioStatus (*deleteSds)(uint8_t idSds);
-  RadioStatus (*deleteAllSds) (void);
-  RadioStatus (*findCoordinateInSdsList)(double *latitude, double *longitude);
+  RadioStatus           (*setBaudrate) (uint32_t baudrate);
+  uint32_t              (*currentBaudrate)(void);
+  uint8_t               (*getSdsCount) (void);
+  RadioStatus           (*sendEmpty)(void);
+  RadioStatus           (*checkDeviceName)(void);
+  RadioStatus           (*checkManufacturerName)(void);
+  RadioStatus           (*updateSdsList)(void);
+  RadioStatus           (*getCoordinatesFromSds)(int idSds, double *latitude, double *longitude);
+  RadioStatus           (*deleteSds)(uint8_t idSds);
+  RadioStatus           (*deleteAllSds) (void);
+  RadioStatus           (*findCoordinateInSdsList)(double *latitude, double *longitude);
+  RadioAutoParserStatus (*autoChecker)(double *latitude, double *longitude);
 }Radiostation_module;
 
 extern Radiostation_module Radiostation;
