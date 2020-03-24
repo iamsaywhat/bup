@@ -30,6 +30,31 @@ const BupFirmwareVersion  bupFirmwareVersion = {0,         // Старшая в�
 BupDataStorage bupDataStorage;
 
 
+/***************************************************************************
+  Функции доступа к данным БУП
+***************************************************************************/
+double   Bup_getTouchdownLatitude(void)  { return bupDataStorage.touchdownLatitude;}
+double   Bup_getTouchdownLongitude(void) { return bupDataStorage.touchdownLongitude;}
+double   Bup_getTouchdownAltitude(void)  { return bupDataStorage.touchdownAltitude;}
+double   Bup_getLatitude(void)           { return bupDataStorage.latitude;}
+double   Bup_getLongitude(void)          { return bupDataStorage.longitude;}
+double   Bup_getAltitude(void)           { return bupDataStorage.altitude;}
+double   Bup_getHeadingTrue(void)        { return bupDataStorage.headingTrue;}
+double   Bup_getHeadingMgn(void)         { return bupDataStorage.headingMgn;}
+double   Bup_getVelocityLatitude(void)   { return bupDataStorage.velocityLatitude;}
+double   Bup_getVelocityLongitude(void)  { return bupDataStorage.velocityLongitude;}
+double   Bup_getVelocityAltitude(void)   { return bupDataStorage.velocityAltitude;}
+double   Bup_getPitch(void)              { return bupDataStorage.pitch;}
+double   Bup_getRoll(void)               { return bupDataStorage.roll;}
+double   Bup_getCourse(void)             { return bupDataStorage.course;}
+short    Bup_getReliefHeight(void)       { return bupDataStorage.reliefHeight;}
+short    Bup_getReliefHeightOnTDP(void)  { return bupDataStorage.reliefOnTDP;}
+float    Bup_getBatteryVoltage(void)     { return bupDataStorage.battery50V; }
+uint32_t Bup_getControlTime (void)       { return bupDataStorage.controlSecond;}
+double   Bup_getRadioLatitude(void)      { return bupDataStorage.radioLatitude; }
+double   Bup_getRadioLongitude(void)     { return bupDataStorage.radioLongitude; }
+uint8_t  Bup_getRadioUpdateIndex(void)   { return bupDataStorage.radioUpdateIndex; }
+
 
 /**************************************************************************************************************
   Bup_initialize - Инициализация хранилища данных 
@@ -54,7 +79,7 @@ void Bup_initialize (void)
   bupDataStorage.controlSecond = 0;
   bupDataStorage.radioLatitude = 0;
   bupDataStorage.radioLongitude = 0;
-  bupDataStorage.radioUpdated = 0;
+  bupDataStorage.radioUpdateIndex = 0;
 	
   // Определим высоту рельефа в точке приземления
   bupDataStorage.reliefOnTDP = getHeightOnThisPoint(bupDataStorage.touchdownLongitude, 
@@ -91,7 +116,7 @@ void Bup_updateData (void)
   // Спрашиваем радиостанцию, и если есть новые данные, то поднимаем флаг, что они обновились
   if(Radiostation.autoChecker(&bupDataStorage.radioLatitude, 
                               &bupDataStorage.radioLongitude) == RADIO_GOT_NEW_COORDINATES)
-    bupDataStorage.radioUpdated = 1;
+    bupDataStorage.radioUpdateIndex++;
   
   // Рассчитываем по полученным данным высоту рельефа в точке
   bupDataStorage.reliefHeight       = getHeightOnThisPoint(bupDataStorage.longitude, 

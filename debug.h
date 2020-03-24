@@ -61,6 +61,9 @@ typedef struct
   double    rtU_XYZi_Alt;            // Зарезервирован адрес CAN 0x523
   int16_t   Relief_height;           // Зарезервирован адрес CAN 0x526
   uint16_t  SysState;                // Зарезервирован адрес CAN 0x527
+  double    radioLatitude;           // Зарезервирован адрес CAN 0x532
+  double    radioLongitude;          // Зарезервирован адрес CAN 0x533
+  uint8_t   radioUpdatedIndex;       // Зарезервирован адрес CAN 0x534
 }debug_output;
 
 // Глобальный экземпляр отладочной структуры

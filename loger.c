@@ -47,7 +47,7 @@ void loger_initmsg (void)
 ************************************************************************************/
 void loger_periodprint (void)
 {
-  printf("\nTimestamp, sec: %d\n",       bupDataStorage.controlSecond); // Метку времени в ЛОГ
+  printf("\nTimestamp, sec: %d\n",       Bup_getControlTime()); // Метку времени в ЛОГ
   printf("SNS_Lat: %llu\n",              SNS_position.Struct.Pos_lat);
   printf("SNS_Lon: %llu\n",              SNS_position.Struct.Pos_lon);
   printf("SNS_Alt: %llu\n",              SNS_position.Struct.Pos_alt);

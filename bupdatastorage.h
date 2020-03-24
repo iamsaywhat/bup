@@ -68,9 +68,9 @@ typedef struct{
   short    reliefOnTDP;                // Высота рельефа в точке приземления, метры
   float    battery50V;                 // Напряжение на секции 50 Вольт АКБ
   uint32_t controlSecond;              // Системное время БУП
-  double   radioLatitude;              //
-  double   radioLongitude;             //
-  uint8_t  radioUpdated;               //
+  double   radioLatitude;              // Широта точки приземления поченные от радиостанции
+  double   radioLongitude;             // Долгота точки приземления поченные от радиостанции
+  uint8_t  radioUpdateIndex;           // Индекс проверки обновления
 }BupDataStorage;
 
 
@@ -124,24 +124,26 @@ void Bup_updateDataFromSWS (void);
 /***************************************************************************
   Функции доступа к данным БУП
 ***************************************************************************/
-inline double   Bup_getTouchdownLatitude(void)  { return bupDataStorage.touchdownLatitude;}
-inline double   Bup_getTouchdownLongitude(void) { return bupDataStorage.touchdownLongitude;}
-inline double   Bup_getTouchdownAltitude(void)  { return bupDataStorage.touchdownAltitude;}
-inline double   Bup_getLatitude(void)           { return bupDataStorage.latitude;}
-inline double   Bup_getLongitude(void)          { return bupDataStorage.longitude;}
-inline double   Bup_getAltitude(void)           { return bupDataStorage.altitude;}
-inline double   Bup_getHeadingTrue(void)        { return bupDataStorage.headingTrue;}
-inline double   Bup_getHeadingMgn(void)         { return bupDataStorage.headingMgn;}
-inline double   Bup_getVelocityLatitude(void)   { return bupDataStorage.velocityLatitude;}
-inline double   Bup_getVelocityLongitude(void)  { return bupDataStorage.velocityLongitude;}
-inline double   Bup_getVelocityAltitude(void)   { return bupDataStorage.velocityAltitude;}
-inline double   Bup_getPitch(void)              { return bupDataStorage.pitch;}
-inline double   Bup_getRoll(void)               { return bupDataStorage.roll;}
-inline double   Bup_getCourse(void)             { return bupDataStorage.course;}
-inline short    Bup_getReliefHeight(void)       { return bupDataStorage.reliefHeight;}
-inline short    Bup_getReliefHeightOnTDP(void)  { return bupDataStorage.reliefOnTDP;}
-inline uint32_t Bup_getControlTime (void)       { return bupDataStorage.controlSecond;}
-inline double   Bup_getRadioLatitude(void)      { return bupDataStorage.radioLatitude; }
-inline double   Bup_getRadioLongitude(void)     { return bupDataStorage.radioLongitude; }
+inline double   Bup_getTouchdownLatitude(void);
+inline double   Bup_getTouchdownLongitude(void);
+inline double   Bup_getTouchdownAltitude(void);
+inline double   Bup_getLatitude(void);
+inline double   Bup_getLongitude(void);
+inline double   Bup_getAltitude(void);
+inline double   Bup_getHeadingTrue(void);
+inline double   Bup_getHeadingMgn(void);
+inline double   Bup_getVelocityLatitude(void);
+inline double   Bup_getVelocityLongitude(void);
+inline double   Bup_getVelocityAltitude(void);
+inline double   Bup_getPitch(void);
+inline double   Bup_getRoll(void);
+inline double   Bup_getCourse(void);
+inline short    Bup_getReliefHeight(void);
+inline short    Bup_getReliefHeightOnTDP(void);
+inline float    Bup_getBatteryVoltage(void);     
+inline uint32_t Bup_getControlTime (void);
+inline double   Bup_getRadioLatitude(void);
+inline double   Bup_getRadioLongitude(void);
+inline uint8_t  Bup_getRadioUpdateIndex(void);
 
 #endif

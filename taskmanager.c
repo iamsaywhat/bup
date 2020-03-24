@@ -282,7 +282,7 @@ void task_loger (void)
   {
     case 0:
     {
-      printf("\nTimestamp, sec: %d\n", bupDataStorage.controlSecond); 
+      printf("\nTimestamp, sec: %d\n", Bup_getControlTime()); 
       TaskManager.Task_LogerStage++; break;
     }
     case 1:
@@ -451,6 +451,26 @@ void task_loger (void)
       #else //*************************************************************************** Если выбран Easy_reg
       printf("Model_TD_CMD: %d\n",  (uint8_t)rtY.touchdown);
       #endif //************************************************************************** !flightRegulatorCFB
+      TaskManager.Task_LogerStage++; break;
+    }
+    case 32:
+    {
+      static uint8_t lastUpdateIndex = 0;
+      if(lastUpdateIndex != Bup_getRadioUpdateIndex())
+      {
+        printf("Radio_lat: %f\n",  Bup_getRadioLatitude());
+        lastUpdateIndex = Bup_getRadioUpdateIndex();
+      }
+      TaskManager.Task_LogerStage++; break;
+    }
+    case 33:
+    {
+      static uint8_t lastUpdateIndex = 0;
+      if(lastUpdateIndex != Bup_getRadioUpdateIndex())
+      {
+        printf("Radio_lon: %f\n",  Bup_getRadioLongitude());
+        lastUpdateIndex = Bup_getRadioUpdateIndex();
+      }
       TaskManager.Task_LogerStage++; break;
     }
     default:

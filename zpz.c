@@ -1859,7 +1859,7 @@ static void ZPZ_Response_SYSTEM_STATE (uint16_t NumPacket)
 	/* Кладём состояние системы в буфер */
   *((uint16_t*)buffer)            = systemState;
   /* Кладём заряд батареи */
-  *((float*)((uint8_t*)buffer+2)) = bupDataStorage.battery50V; 
+  *((float*)((uint8_t*)buffer+2)) = Bup_getBatteryVoltage(); 
 	/* Кладём версию прошивки */
   *((uint8_t*)buffer+6)           = bupFirmwareVersion.microFirmware;
   *((uint8_t*)buffer+7)           = bupFirmwareVersion.minorFirmware;

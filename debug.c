@@ -104,6 +104,10 @@ void debug_can_full_struct (void)
   debug_can(0x523, &debug_vars.rtU_XYZi_Alt, 8);
   debug_can(0x526, &debug_vars.Relief_height, 2);
   debug_can(0x527, &debug_vars.SysState, 2);
+  
+  debug_can(0x532, &debug_vars.radioLatitude, 8);
+  debug_can(0x533, &debug_vars.radioLongitude, 8);
+  debug_can(0x534, &debug_vars.radioUpdatedIndex, 1);
 }
 
 /*********************************************************************************************************
@@ -153,6 +157,9 @@ void debug_prepare_data (void)
   debug_vars.rtU_XYZi_Alt          = Bup_getAltitude();                            // Высота преобразованная в метры
   debug_vars.Relief_height         = Bup_getReliefHeight();                        // Высота рельефа под нами в метрах
   debug_vars.SysState              = systemState;                                  // Состояние системы (из SelfTesing)
+  debug_vars.radioLatitude         = Bup_getRadioLatitude();                       // Широта точки приземления от радиостанции
+  debug_vars.radioLongitude        = Bup_getRadioLongitude();                      // Долгота точки приземления от радиостанции
+  debug_vars.radioUpdatedIndex     = Bup_getRadioUpdateIndex();                    // Индекс обновления координат от радиостанции
 }
 
 
