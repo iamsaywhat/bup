@@ -438,7 +438,25 @@ void task_loger (void)
     case 30:
     {
       #ifdef flightRegulatorCFB	//******************************************************* Если выбран flightRegulatorCFB
-      printf("Model_BIM_CMD: %f\n", (double)(rtY.tightenSling*rtY.directionOfRotation));
+      uint8_t left = 0;
+      uint8_t right = 0;
+      if(rtY.directionOfRotation == -1)
+      {
+        left= (uint8_t)rtY.tightenSling;
+        right = 0;
+      }
+      else if(rtY.directionOfRotation == 1)
+      {
+        right = (uint8_t)rtY.tightenSling;
+        left = 0;
+      }
+      else if(rtY.directionOfRotation == 2)
+      {
+        right = (uint8_t)rtY.tightenSling;
+        left = (uint8_t)rtY.tightenSling;
+      }
+      printf("Model_Left_Bim: %d\n", left);
+      printf("Model_Right_Bim: %d\n", right);
       #else //*************************************************************************** Если выбран Easy_reg
       printf("Model_Left_Bim: %d\n", (uint8_t)rtY.leftStrap);
       printf("Model_Right_Bim: %d\n", (uint8_t)rtY.rightStrap);

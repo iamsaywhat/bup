@@ -84,7 +84,25 @@ void loger_periodprint (void)
     printf("MAP, m: NOT_AVAILABLE\n");
 	
   #ifdef flightRegulatorCFB	//******************************************************* Если выбран flightRegulatorCFB
-    printf("Model_BIM_CMD: %f\n", (double)(rtY.tightenSling*rtY.directionOfRotation));
+    uint8_t left = 0;
+    uint8_t right = 0;
+    if(rtY.directionOfRotation == -1)
+    {
+      left= (uint8_t)rtY.tightenSling;
+      right = 0;
+    }
+    else if(rtY.directionOfRotation == 1)
+    {
+      right = (uint8_t)rtY.tightenSling;
+      left = 0;
+    }
+    else if(rtY.directionOfRotation == 2)
+    {
+      right = (uint8_t)rtY.tightenSling;
+      left = (uint8_t)rtY.tightenSling;
+    }
+    printf("Model_Left_Bim: %d\n", left);
+    printf("Model_Right_Bim: %d\n", right);
     printf("Model_TD_CMD: %d\n",  (uint8_t)rtY.cmdTouchDown);
   #else //*************************************************************************** Если выбран flightController
     printf("Model_Left_Bim: %d\n", (uint8_t)rtY.leftStrap);

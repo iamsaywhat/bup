@@ -87,14 +87,10 @@ void debug_can_full_struct (void)
   debug_can(0x530, &debug_vars.tz, 8);
   debug_can(0x531, &debug_vars.flightMode, 1);
 #else
-  /* Здесь можно добавить 
-  вывод необходимых переменных относящихся к flightController
-  */
   debug_can(0x524, &debug_vars.DistanceToTDP, 8);
   debug_can(0x529, &debug_vars.TimeToHorTarget, 8);
   debug_can(0x530, &debug_vars.TimeToTD, 8);
 #endif 
-//  debug_can(0x509, &debug_vars.BIM_CMD, 2);
   debug_can(0x511, &debug_vars.TDP_Lat, 8);
   debug_can(0x512, &debug_vars.TDP_Lon, 8);
   debug_can(0x515, &debug_vars.Alt2model, 8);
@@ -135,7 +131,6 @@ void debug_prepare_data (void)
   debug_vars.Lon2                  = (double)(rtY.lon2);
   debug_vars.distanceB             = (double)(rtY.distanceB);
   debug_vars.distance2             = (uint16_t)(rtY.distance2);
-//  debug_vars.BIM_CMD               = (int16_t)(rtY.tightenSling*rtY.directionOfRotation);   // Команда БИМам от flightRegulatorCFB
   debug_vars.td                    = (double)(rtY.tD);
   debug_vars.tx                    = (double)(rtY.tx);
   debug_vars.tz                    = (double)(rtY.tz);
@@ -161,28 +156,24 @@ void debug_prepare_data (void)
     debug_vars.leftBimCommand  = 0;
   }
 #else
-  /* Здесь можно добавить 
-  вывод необходимых переменных относящихся к flightController
-  */   
-//  debug_vars.BIM_CMD               = (int16_t)(rtY.bimCommand);                    // Команда БИМам от flightController
-  debug_vars.DistanceToTDP         = (double) (rtY.horizontalDistance);            // Дистанция до точки приземления, м
-  debug_vars.TimeToHorTarget       = (double) (rtY.horizontalTime);                // Время полета то точки приземления по прямой, сек
-  debug_vars.TimeToTD              = (double) (rtY.verticalTime);                  // Время до открытия парашюта, сек
-  debug_vars.leftBimCommand        = rtY.leftStrap;                                // Команда от матмодели левому Биму
-  debug_vars.rightBimCommand       = rtY.rightStrap;                               // Команда от матмодели правому Биму
+  debug_vars.DistanceToTDP         = (double)rtY.horizontalDistance;            // Дистанция до точки приземления, м
+  debug_vars.TimeToHorTarget       = (double)rtY.horizontalTime;                // Время полета то точки приземления по прямой, сек
+  debug_vars.TimeToTD              = (double)rtY.verticalTime;                  // Время до открытия парашюта, сек
+  debug_vars.leftBimCommand        = (uint8_t)rtY.leftStrap;                    // Команда от матмодели левому Биму
+  debug_vars.rightBimCommand       = (uint8_t)rtY.rightStrap;                   // Команда от матмодели правому Биму
 #endif  
-  debug_vars.TDP_Lat               = Bup_getTouchdownLatitude();                   // Широта точки приземления
-  debug_vars.TDP_Lon               = Bup_getTouchdownLongitude();                  // Долгота точки приземления
-  debug_vars.Alt2model             = Bup_getAltitude();                            // Высота преобразованная в метры
-  debug_vars.SNSalt                = SNS_position.Struct.Pos_alt;                  // Высота в том виде в котором принимаем от СНС
-  debug_vars.rtU_XYZi_Lat          = Bup_getLatitude();                            // Широта преобразованная в градусы
-  debug_vars.rtU_XYZi_Lon          = Bup_getLongitude();                           // Долгота преобразованная в градусы
-  debug_vars.rtU_XYZi_Alt          = Bup_getAltitude();                            // Высота преобразованная в метры
-  debug_vars.Relief_height         = Bup_getReliefHeight();                        // Высота рельефа под нами в метрах
-  debug_vars.SysState              = systemState;                                  // Состояние системы (из SelfTesing)
-  debug_vars.radioLatitude         = Bup_getRadioLatitude();                       // Широта точки приземления от радиостанции
-  debug_vars.radioLongitude        = Bup_getRadioLongitude();                      // Долгота точки приземления от радиостанции
-  debug_vars.radioUpdatedIndex     = Bup_getRadioUpdateIndex();                    // Индекс обновления координат от радиостанции
+  debug_vars.TDP_Lat               = Bup_getTouchdownLatitude();                // Широта точки приземления
+  debug_vars.TDP_Lon               = Bup_getTouchdownLongitude();               // Долгота точки приземления
+  debug_vars.Alt2model             = Bup_getAltitude();                         // Высота преобразованная в метры
+  debug_vars.SNSalt                = SNS_position.Struct.Pos_alt;               // Высота в том виде в котором принимаем от СНС
+  debug_vars.rtU_XYZi_Lat          = Bup_getLatitude();                         // Широта преобразованная в градусы
+  debug_vars.rtU_XYZi_Lon          = Bup_getLongitude();                        // Долгота преобразованная в градусы
+  debug_vars.rtU_XYZi_Alt          = Bup_getAltitude();                         // Высота преобразованная в метры
+  debug_vars.Relief_height         = Bup_getReliefHeight();                     // Высота рельефа под нами в метрах
+  debug_vars.SysState              = systemState;                               // Состояние системы (из SelfTesing)
+  debug_vars.radioLatitude         = Bup_getRadioLatitude();                    // Широта точки приземления от радиостанции
+  debug_vars.radioLongitude        = Bup_getRadioLongitude();                   // Долгота точки приземления от радиостанции
+  debug_vars.radioUpdatedIndex     = Bup_getRadioUpdateIndex();                 // Индекс обновления координат от радиостанции
 }
 
 

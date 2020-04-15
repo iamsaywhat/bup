@@ -17,7 +17,6 @@
 typedef struct 
 {
 #ifdef flightRegulatorCFB            // Переменные для отладки flightRegulatorCFB
-	
   int16_t   distanceAB;              // Зарезервирован адрес CAN 0x500
   uint8_t   orderAngle;              // Зарезервирован адрес CAN 0x501
   int16_t   diffAngle;               // Зарезервирован адрес CAN 0x502
@@ -40,17 +39,11 @@ typedef struct
   double    tx;                      // Зарезервирован адрес CAN 0x529
   double    tz;                      // Зарезервирован адрес CAN 0x530
   uint8_t   flightMode;              // Зарезервирован адрес CAN 0x531             
-	
-#else                                // Переменные для отладки Easy_reg
-  /* Здесь можно добавить 
-  необходимые переменные, относящиеся к Easy_reg
-  */
+#else                                // Переменные для отладки flightController
   double    DistanceToTDP;           // Зарезервирован адрес CAN 0x524
   double    TimeToHorTarget;         // Зарезервирован адрес CAN 0x529
-  double    TimeToTD;                // Зарезервирован адрес CAN 0x530
-	
+  double    TimeToTD;                // Зарезервирован адрес CAN 0x530	
 #endif                               // Общесистемные переменные
-
 //  int16_t   BIM_CMD;                 // Зарезервирован адрес CAN 0x509
   double    TDP_Lat;                 // Зарезервирован адрес CAN 0x511
   double    TDP_Lon;                 // Зарезервирован адрес CAN 0x512
