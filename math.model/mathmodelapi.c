@@ -105,22 +105,33 @@ void MathModel_prepareData (void)
 //  // Работает ли правый БИМ: "1" - да, "-1" - нет.		
 //  rtU.RightEnginehadWork = 1.0;  
 
-  #else //*************************************************************************** Если выбран flightController
-    rtU.TDP_lon            = Bup_getTouchdownLongitude();
-    rtU.TDP_lat            = Bup_getTouchdownLatitude();
-    rtU.TDP_alt            = Bup_getTouchdownAltitude();
-    rtU.Pos_lon            = Bup_getLongitude();
-    rtU.Pos_lat            = Bup_getLatitude();
-    rtU.Pos_alt            = Bup_getAltitude();
-    rtU.ActualCourse       = Bup_getCourse();
-    rtU.Relief             = Bup_getReliefHeight();
-    rtU.ReliefOnTDP        = Bup_getReliefHeightOnTDP();
-    rtU.ReliefAvailable    = SelfTesting_STATUS(ST_MapAvailability);
-    rtU.LatitudeVelocity   = Bup_getVelocityLatitude();
-    rtU.LongitudeVelocity  = Bup_getVelocityLongitude();
-    rtU.AltitudeVelocity   = Bup_getVelocityAltitude();
-		rtU.barometricAltitude = 0;
-		rtU.barometricAltitude = 0;
+  #else //*************************************************************************** Если выбран flightController  
+    /* Точка запланированного приземления */
+    rtU.touchdownPointLatitude  = Bup_getTouchdownLatitude();
+    rtU.touchdownPointLongitude = Bup_getTouchdownLongitude();
+    rtU.touchdownPointAltitude  = Bup_getTouchdownAltitude();
+    /* Данные от спутника */
+    rtU.currentPointLatitude    = Bup_getLatitude();
+    rtU.currentPointLongitude   = Bup_getLongitude();
+    rtU.currentPointAltitude    = Bup_getAltitude();
+    rtU.velocityLatitude        = Bup_getVelocityLatitude();
+    rtU.velocityLongitude       = Bup_getVelocityLongitude();
+    rtU.velocityAltitude        = Bup_getVelocityAltitude();
+    rtU.trackingCourse          = Bup_getCourse();
+    /* Данные от свс */
+    rtU.barometricAirSpeed      = 20; //SWS_getTrueSpeed();          // На время испытаний на стенде устанавливаем константу
+    rtU.barometricAltitude      = SWS_getAbsoluteHeight();           // так, как имитатор СВС в настоящий момент отсутсвует  
+    rtU.barometricAvailable     = 0; //SelfTesting_STATUS(ST_sws);   // Высоту от СВС подставляем, но этим флагом заставляем игнорировать
+    /* Данные от радиостанции */
+    rtU.radioPointLatitude      = Bup_getRadioLatitude();
+    rtU.radioPointLongitude     = Bup_getRadioLongitude();
+    rtU.radioPointAltitude      = Bup_getTouchdownAltitude();        // В радиостанция не присылаем высоту открытия парашюта, поэтому клонируем
+    rtU.radioUpdateIndex        = Bup_getRadioUpdateIndex();
+    /* Данные карты */
+    rtU.currentPointRelief          = Bup_getReliefHeight();
+    rtU.currentPointReliefAvailable = SelfTesting_STATUS(ST_MapAvailability);
+    rtU.touchdownPointRelief        = Bup_getReliefHeightOnTDP();
+    rtU.radioPointRelief            = Bup_getReliefHeightOnTDP();    // Пока высоту по координатам не считаем
   #endif //************************************************************************** !flightRegulatorCFB 
 }
 

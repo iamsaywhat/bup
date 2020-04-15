@@ -3,9 +3,9 @@
  *
  * Code generated for Simulink model 'flightController'.
  *
- * Model version                  : 1.832
+ * Model version                  : 1.888
  * Simulink Coder version         : 8.14 (R2018a) 06-Feb-2018
- * C/C++ source code generated on : Fri Feb  7 17:19:33 2020
+ * C/C++ source code generated on : Wed Apr 15 16:25:40 2020
  *
  * Target selection: ert.tlc
  * Embedded hardware selection: ARM Compatible->ARM Cortex
@@ -40,31 +40,39 @@ typedef struct tag_RTM RT_MODEL;
 /* Block signals and states (default storage) for system '<Root>' */
 typedef struct
 {
-  real_T TmpSignalConversionAtSFunctionI[3];/* '<S1>/LogicController' */
-  real_T TmpSignalConversionAtSFunctio_g[3];/* '<S1>/LogicController' */
-  real_T targetPoint[3];               /* '<S1>/LogicController' */
-  real_T touchdownPoint_Offset[3];     /* '<S1>/LogicController' */
-  real_T initialPoint[3];              /* '<S1>/LogicController' */
-  real_T windForce;                    /* '<S9>/Chart' */
-  real_T windCourse;                   /* '<S9>/Chart' */
+  real_T TmpSignalConversionAtSFunctio_o[4];/* '<S1>/TargetSelector' */
+  real_T targetPoint[4];               /* '<S1>/TargetSelector' */
+  real_T TmpSignalConversionAtSFunctio_g[4];/* '<S1>/LogicController' */
+  real_T Delay_DSTATE[4];              /* '<S11>/Delay' */
+  real_T initialPoint[4];              /* '<S1>/LogicController' */
+  real_T windForce;                    /* '<S11>/Chart2' */
+  real_T windCourse;                   /* '<S11>/Chart2' */
   real_T desiredCourse;                /* '<S1>/LogicController' */
-  real_T LastPos_1_DSTATE;             /* '<S17>/LastPos' */
-  real_T LastPos_2_DSTATE;             /* '<S17>/LastPos' */
-  real_T PreviousBearing_DSTATE;       /* '<S20>/PreviousBearing' */
-  real_T initialGroundSpeed;           /* '<S9>/Chart' */
-  real_T currentGroundSpeed;           /* '<S9>/Chart' */
-  real_T initialCourse;                /* '<S9>/Chart' */
-  real_T currentCourse;                /* '<S9>/Chart' */
-  real_T LastLineState;                /* '<S40>/BimTrigger' */
+  real_T LastPos_1_DSTATE;             /* '<S13>/LastPos' */
+  real_T LastPos_2_DSTATE;             /* '<S13>/LastPos' */
+  real_T PreviousBearing_DSTATE;       /* '<S16>/PreviousBearing' */
+  real_T initialGroundSpeed;           /* '<S11>/Chart2' */
+  real_T currentGroundSpeed;           /* '<S11>/Chart2' */
+  real_T initialCourse;                /* '<S11>/Chart2' */
+  real_T currentCourse;                /* '<S11>/Chart2' */
+  real_T currentGroundSpeed_d;         /* '<S11>/Chart' */
+  real_T currentCourse_h;              /* '<S11>/Chart' */
+  real_T LastLineState;                /* '<S36>/BimTrigger' */
   real_T centralCourse;                /* '<S1>/LogicController' */
   real_T courseToTargetPoint;          /* '<S1>/LogicController' */
+  uint32_T passedTime;                 /* '<S11>/Chart2' */
   uint32_T time;                       /* '<S1>/LogicController' */
   uint32_T timeout;                    /* '<S1>/LogicController' */
   uint32_T timeout_b;                  /* '<S1>/LogicController' */
   uint8_T enableTargetting;            /* '<S1>/LogicController' */
-  uint8_T is_active_c5_flightController;/* '<S9>/Chart' */
-  uint8_T is_c5_flightController;      /* '<S9>/Chart' */
-  uint8_T is_active_c9_BupSimulinkLibrari;/* '<S40>/BimTrigger' */
+  uint8_T is_active_c8_flightController;/* '<S11>/Chart2' */
+  uint8_T is_c8_flightController;      /* '<S11>/Chart2' */
+  uint8_T is_active_c5_flightController;/* '<S11>/Chart' */
+  uint8_T is_c5_flightController;      /* '<S11>/Chart' */
+  uint8_T is_active_c9_BupSimulinkLibrari;/* '<S36>/BimTrigger' */
+  uint8_T is_active_c6_flightController;/* '<S1>/TargetSelector' */
+  uint8_T is_c6_flightController;      /* '<S1>/TargetSelector' */
+  uint8_T updateIndex;                 /* '<S1>/TargetSelector' */
   uint8_T is_active_c1_flightController;/* '<S1>/LogicController' */
   uint8_T is_active_Timer;             /* '<S1>/LogicController' */
   uint8_T is_Control;                  /* '<S1>/LogicController' */
@@ -77,7 +85,8 @@ typedef struct
   uint8_T is_active_EventGenerator;    /* '<S1>/LogicController' */
   uint8_T is_BimSupply;                /* '<S1>/LogicController' */
   uint8_T is_active_BimSupply;         /* '<S1>/LogicController' */
-  boolean_T DsblTg_DSTATE;             /* '<S9>/DsblTg' */
+  boolean_T DsblTg_DSTATE;             /* '<S11>/DsblTg' */
+  boolean_T status;                    /* '<S1>/TargetSelector' */
   boolean_T side;                      /* '<S1>/LogicController' */
   boolean_T justReturnedHere;          /* '<S1>/LogicController' */
 }
@@ -86,34 +95,39 @@ DW;
 /* External inputs (root inport signals with default storage) */
 typedef struct
 {
-  real_T TDP_lat;                      /* '<Root>/TDP_lat' */
-  real_T TDP_lon;                      /* '<Root>/TDP_lon' */
-  real_T TDP_alt;                      /* '<Root>/TDP_alt' */
-  int16_T Relief;                      /* '<Root>/relief' */
-  uint8_T ReliefAvailable;             /* '<Root>/reliefAvailable' */
-  int16_T ReliefOnTDP;                 /* '<Root>/reliefOnTdp' */
-  real_T Pos_lat;                      /* '<Root>/Pos_lat' */
-  real_T Pos_lon;                      /* '<Root>/Pos_lon' */
-  real_T Pos_alt;                      /* '<Root>/Pos_alt' */
-  real_T ActualCourse;                 /* '<Root>/trackingCourse' */
-  real_T LatitudeVelocity;             /* '<Root>/velocityLatitude' */
-  real_T LongitudeVelocity;            /* '<Root>/velocityLongitude' */
-  real_T AltitudeVelocity;             /* '<Root>/velocityAltitude' */
-  real_T barometricAltitude;           /* '<Root>/barometricAltitude' */
+  real_T touchdownPointLatitude;       /* '<Root>/touchdownPoint:Latitude' */
+  real_T touchdownPointLongitude;      /* '<Root>/touchdownPoint:Longitude' */
+  real_T touchdownPointAltitude;       /* '<Root>/touchdownPoint:Altitude' */
+  real_T radioPointLatitude;           /* '<Root>/radioPoint:Latitude' */
+  real_T radioPointLongitude;          /* '<Root>/radioPoint:Longitude' */
+  real_T radioPointAltitude;           /* '<Root>/radioPoint:Altitude' */
+  uint8_T radioUpdateIndex;            /* '<Root>/radioUpdateIndex' */
+  int16_T currentPointRelief;          /* '<Root>/currentPointRelief' */
+  uint8_T currentPointReliefAvailable; /* '<Root>/currentReliefAvailable' */
+  int16_T touchdownPointRelief;        /* '<Root>/touchdownPointRelief' */
+  int16_T radioPointRelief;            /* '<Root>/radioPointRelief' */
   uint8_T barometricAvailable;         /* '<Root>/barometricAvailable' */
+  real_T currentPointLatitude;         /* '<Root>/currentPoint:Latitude' */
+  real_T currentPointLongitude;        /* '<Root>/currentPoint:Longitude' */
+  real_T currentPointAltitude;         /* '<Root>/currentPoint:Altitude' */
+  real_T trackingCourse;               /* '<Root>/trackingCourse' */
+  real_T velocityLatitude;             /* '<Root>/velocityLatitude' */
+  real_T velocityLongitude;            /* '<Root>/velocityLongitude' */
+  real_T velocityAltitude;             /* '<Root>/velocityAltitude' */
+  real_T barometricAltitude;           /* '<Root>/barometricAltitude' */
+  real_T barometricAirSpeed;           /* '<Root>/barometricAirSpeed' */
 }
 ExtU;
 
 /* External outputs (root outports fed by signals with default storage) */
 typedef struct
 {
-  real_T bimCommand;                   /* '<Root>/bimCommand' */
+  real_T rightStrap;                   /* '<Root>/rightStrap' */
+  real_T leftStrap;                    /* '<Root>/leftStrap' */
   uint8_T touchdown;                   /* '<Root>/touchdown' */
   real_T horizontalDistance;           /* '<Root>/horizontalDistance' */
-  real_T onTargetTime;                 /* '<Root>/onTargetTime' */
-  real_T touchdownTime;                /* '<Root>/touchdownTime' */
-  int8_T bimSelect;                    /* '<Root>/bimSelect' */
-  uint8_T bimForce;                    /* '<Root>/bimForce' */
+  real_T horizontalTime;               /* '<Root>/horizontalTime' */
+  real_T verticalTime;                 /* '<Root>/verticalTime' */
 }
 ExtY;
 
@@ -144,47 +158,42 @@ extern RT_MODEL *const rtM;
  *
  * Block '<S3>/Display' : Unused code path elimination
  * Block '<S3>/Display1' : Unused code path elimination
- * Block '<S17>/Display' : Unused code path elimination
- * Block '<S17>/Display1' : Unused code path elimination
- * Block '<S21>/Gain' : Unused code path elimination
- * Block '<S22>/Gain' : Unused code path elimination
- * Block '<S17>/Scope1' : Unused code path elimination
- * Block '<S17>/Scope8' : Unused code path elimination
- * Block '<S17>/Scope9' : Unused code path elimination
+ * Block '<S13>/Display' : Unused code path elimination
+ * Block '<S13>/Display1' : Unused code path elimination
+ * Block '<S17>/Gain' : Unused code path elimination
+ * Block '<S18>/Gain' : Unused code path elimination
+ * Block '<S13>/Scope1' : Unused code path elimination
+ * Block '<S13>/Scope8' : Unused code path elimination
+ * Block '<S13>/Scope9' : Unused code path elimination
  * Block '<S3>/Scope1' : Unused code path elimination
  * Block '<S3>/Scope2' : Unused code path elimination
  * Block '<S3>/Scope3' : Unused code path elimination
  * Block '<S1>/Display' : Unused code path elimination
  * Block '<S6>/Gain' : Unused code path elimination
- * Block '<S1>/Scope' : Unused code path elimination
  * Block '<S1>/Scope1' : Unused code path elimination
  * Block '<S1>/Scope2' : Unused code path elimination
- * Block '<S1>/Scope3' : Unused code path elimination
  * Block '<S1>/Scope4' : Unused code path elimination
  * Block '<S1>/Scope5' : Unused code path elimination
  * Block '<S1>/Scope6' : Unused code path elimination
  * Block '<S1>/Scope7' : Unused code path elimination
  * Block '<S1>/Scope8' : Unused code path elimination
- * Block '<S1>/Scope9' : Unused code path elimination
- * Block '<S31>/Gain' : Unused code path elimination
- * Block '<S32>/Gain' : Unused code path elimination
- * Block '<S33>/Gain' : Unused code path elimination
- * Block '<S35>/Scope' : Unused code path elimination
- * Block '<S7>/Scope' : Unused code path elimination
- * Block '<S7>/Scope2' : Unused code path elimination
- * Block '<S7>/Scope5' : Unused code path elimination
- * Block '<S7>/Scope6' : Unused code path elimination
- * Block '<S7>/Scope7' : Unused code path elimination
- * Block '<S7>/Scope8' : Unused code path elimination
- * Block '<S8>/Scope' : Unused code path elimination
+ * Block '<S27>/Gain' : Unused code path elimination
+ * Block '<S28>/Gain' : Unused code path elimination
+ * Block '<S29>/Gain' : Unused code path elimination
+ * Block '<S31>/Scope' : Unused code path elimination
+ * Block '<S9>/Scope' : Unused code path elimination
  * Block '<S9>/Scope2' : Unused code path elimination
- * Block '<S9>/SkipSolution' : Unused code path elimination
+ * Block '<S9>/Scope5' : Unused code path elimination
+ * Block '<S9>/Scope6' : Unused code path elimination
+ * Block '<S9>/Scope7' : Unused code path elimination
+ * Block '<S9>/Scope8' : Unused code path elimination
+ * Block '<S10>/Scope' : Unused code path elimination
  * Block '<S3>/CourseSwitch' : Eliminated due to constant selection input
- * Block '<S17>/Manual Switch2' : Eliminated due to constant selection input
+ * Block '<S13>/Manual Switch2' : Eliminated due to constant selection input
  * Block '<S3>/Manual Switch' : Eliminated due to constant selection input
  * Block '<S3>/Manual Switch1' : Eliminated due to constant selection input
  * Block '<S1>/TD_SysSwitch' : Eliminated due to constant selection input
- * Block '<S35>/Manual Switch' : Eliminated due to constant selection input
+ * Block '<S31>/Manual Switch' : Eliminated due to constant selection input
  * Block '<S1>/Constant' : Unused code path elimination
  * Block '<S3>/Constant1' : Unused code path elimination
  * Block '<S3>/Constant2' : Unused code path elimination
@@ -214,46 +223,43 @@ extern RT_MODEL *const rtM;
  * '<S4>'   : 'fullSystemModel/flightController/Degrees to Radians'
  * '<S5>'   : 'fullSystemModel/flightController/LogicController'
  * '<S6>'   : 'fullSystemModel/flightController/Radians to Degrees'
- * '<S7>'   : 'fullSystemModel/flightController/Targeting'
- * '<S8>'   : 'fullSystemModel/flightController/altitudeWeighting'
- * '<S9>'   : 'fullSystemModel/flightController/feedback'
- * '<S10>'  : 'fullSystemModel/flightController/BimControllaNDriftCalc/BimTriggers'
- * '<S11>'  : 'fullSystemModel/flightController/BimControllaNDriftCalc/DriftEstimator'
- * '<S12>'  : 'fullSystemModel/flightController/BimControllaNDriftCalc/PointMoventPlot'
- * '<S13>'  : 'fullSystemModel/flightController/BimControllaNDriftCalc/PreemptionTDP'
- * '<S14>'  : 'fullSystemModel/flightController/BimControllaNDriftCalc/BimTriggers/BimTrigger'
- * '<S15>'  : 'fullSystemModel/flightController/BimControllaNDriftCalc/PointMoventPlot/MATLAB Function'
- * '<S16>'  : 'fullSystemModel/flightController/BimControllaNDriftCalc/PreemptionTDP/MATLAB Function'
- * '<S17>'  : 'fullSystemModel/flightController/DataAnalyzer/InternalTrackingCourse'
- * '<S18>'  : 'fullSystemModel/flightController/DataAnalyzer/InternalTrackingSpeed'
- * '<S19>'  : 'fullSystemModel/flightController/DataAnalyzer/InternalTrackingCourse/Azimuth'
- * '<S20>'  : 'fullSystemModel/flightController/DataAnalyzer/InternalTrackingCourse/Bearing'
- * '<S21>'  : 'fullSystemModel/flightController/DataAnalyzer/InternalTrackingCourse/Radians to Degrees1'
- * '<S22>'  : 'fullSystemModel/flightController/DataAnalyzer/InternalTrackingCourse/Radians to Degrees2'
- * '<S23>'  : 'fullSystemModel/flightController/DataAnalyzer/InternalTrackingCourse/Azimuth/Azimut'
- * '<S24>'  : 'fullSystemModel/flightController/DataAnalyzer/InternalTrackingCourse/Bearing/Heading_true'
- * '<S25>'  : 'fullSystemModel/flightController/DataAnalyzer/InternalTrackingSpeed/GPSVelocity'
- * '<S26>'  : 'fullSystemModel/flightController/DataAnalyzer/InternalTrackingSpeed/ProjectionSpeed'
- * '<S27>'  : 'fullSystemModel/flightController/DataAnalyzer/InternalTrackingSpeed/GPSVelocity/Velocity'
- * '<S28>'  : 'fullSystemModel/flightController/DataAnalyzer/InternalTrackingSpeed/ProjectionSpeed/Speed'
- * '<S29>'  : 'fullSystemModel/flightController/Targeting/ControlDemode'
- * '<S30>'  : 'fullSystemModel/flightController/Targeting/MATLAB Function'
- * '<S31>'  : 'fullSystemModel/flightController/Targeting/Radians to Degrees1'
- * '<S32>'  : 'fullSystemModel/flightController/Targeting/Radians to Degrees2'
- * '<S33>'  : 'fullSystemModel/flightController/Targeting/Radians to Degrees3'
- * '<S34>'  : 'fullSystemModel/flightController/Targeting/Radians to Degrees4'
- * '<S35>'  : 'fullSystemModel/flightController/Targeting/Roughening'
- * '<S36>'  : 'fullSystemModel/flightController/Targeting/TimeNAngleTurning'
- * '<S37>'  : 'fullSystemModel/flightController/Targeting/ControlDemode/ControlDemode'
- * '<S38>'  : 'fullSystemModel/flightController/Targeting/Roughening/DeadZone'
- * '<S39>'  : 'fullSystemModel/flightController/Targeting/Roughening/DeadZone/DeadZone'
- * '<S40>'  : 'fullSystemModel/flightController/feedback/BimTriggers'
- * '<S41>'  : 'fullSystemModel/flightController/feedback/Chart'
- * '<S42>'  : 'fullSystemModel/flightController/feedback/PointMoventPlot'
- * '<S43>'  : 'fullSystemModel/flightController/feedback/PreemptionTDP'
- * '<S44>'  : 'fullSystemModel/flightController/feedback/BimTriggers/BimTrigger'
- * '<S45>'  : 'fullSystemModel/flightController/feedback/PointMoventPlot/MATLAB Function'
- * '<S46>'  : 'fullSystemModel/flightController/feedback/PreemptionTDP/MATLAB Function'
+ * '<S7>'   : 'fullSystemModel/flightController/StrapControl'
+ * '<S8>'   : 'fullSystemModel/flightController/TargetSelector'
+ * '<S9>'   : 'fullSystemModel/flightController/Targeting'
+ * '<S10>'  : 'fullSystemModel/flightController/altitudeWeighting'
+ * '<S11>'  : 'fullSystemModel/flightController/feedback'
+ * '<S12>'  : 'fullSystemModel/flightController/BimControllaNDriftCalc/DriftEstimator'
+ * '<S13>'  : 'fullSystemModel/flightController/DataAnalyzer/InternalTrackingCourse'
+ * '<S14>'  : 'fullSystemModel/flightController/DataAnalyzer/InternalTrackingSpeed'
+ * '<S15>'  : 'fullSystemModel/flightController/DataAnalyzer/InternalTrackingCourse/Azimuth'
+ * '<S16>'  : 'fullSystemModel/flightController/DataAnalyzer/InternalTrackingCourse/Bearing'
+ * '<S17>'  : 'fullSystemModel/flightController/DataAnalyzer/InternalTrackingCourse/Radians to Degrees1'
+ * '<S18>'  : 'fullSystemModel/flightController/DataAnalyzer/InternalTrackingCourse/Radians to Degrees2'
+ * '<S19>'  : 'fullSystemModel/flightController/DataAnalyzer/InternalTrackingCourse/Azimuth/Azimut'
+ * '<S20>'  : 'fullSystemModel/flightController/DataAnalyzer/InternalTrackingCourse/Bearing/Heading_true'
+ * '<S21>'  : 'fullSystemModel/flightController/DataAnalyzer/InternalTrackingSpeed/GPSVelocity'
+ * '<S22>'  : 'fullSystemModel/flightController/DataAnalyzer/InternalTrackingSpeed/ProjectionSpeed'
+ * '<S23>'  : 'fullSystemModel/flightController/DataAnalyzer/InternalTrackingSpeed/GPSVelocity/Velocity'
+ * '<S24>'  : 'fullSystemModel/flightController/DataAnalyzer/InternalTrackingSpeed/ProjectionSpeed/Speed'
+ * '<S25>'  : 'fullSystemModel/flightController/Targeting/ControlDemode'
+ * '<S26>'  : 'fullSystemModel/flightController/Targeting/MATLAB Function'
+ * '<S27>'  : 'fullSystemModel/flightController/Targeting/Radians to Degrees1'
+ * '<S28>'  : 'fullSystemModel/flightController/Targeting/Radians to Degrees2'
+ * '<S29>'  : 'fullSystemModel/flightController/Targeting/Radians to Degrees3'
+ * '<S30>'  : 'fullSystemModel/flightController/Targeting/Radians to Degrees4'
+ * '<S31>'  : 'fullSystemModel/flightController/Targeting/Roughening'
+ * '<S32>'  : 'fullSystemModel/flightController/Targeting/TimeNAngleTurning'
+ * '<S33>'  : 'fullSystemModel/flightController/Targeting/ControlDemode/ControlDemode'
+ * '<S34>'  : 'fullSystemModel/flightController/Targeting/Roughening/DeadZone'
+ * '<S35>'  : 'fullSystemModel/flightController/Targeting/Roughening/DeadZone/DeadZone'
+ * '<S36>'  : 'fullSystemModel/flightController/feedback/BimTriggers'
+ * '<S37>'  : 'fullSystemModel/flightController/feedback/Chart'
+ * '<S38>'  : 'fullSystemModel/flightController/feedback/Chart2'
+ * '<S39>'  : 'fullSystemModel/flightController/feedback/PointMoventPlot'
+ * '<S40>'  : 'fullSystemModel/flightController/feedback/PreemptionTDP'
+ * '<S41>'  : 'fullSystemModel/flightController/feedback/BimTriggers/BimTrigger'
+ * '<S42>'  : 'fullSystemModel/flightController/feedback/PointMoventPlot/MATLAB Function'
+ * '<S43>'  : 'fullSystemModel/flightController/feedback/PreemptionTDP/MATLAB Function'
  */
 
 /*-
