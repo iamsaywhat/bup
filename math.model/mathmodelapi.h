@@ -69,6 +69,6 @@ void MathModel_control (void);
           forcePersent - Управляющий сигнал в процентах от (0..100%) 
                          на затяжку строп;
 *******************************************************************************/
-void MathModel_sendBimCommand (int8_t side, uint8_t forcePersent);
+void MathModel_sendBimCommand (uint8_t left, uint8_t right);
 
 #endif

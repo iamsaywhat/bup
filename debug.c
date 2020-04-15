@@ -94,7 +94,7 @@ void debug_can_full_struct (void)
   debug_can(0x529, &debug_vars.TimeToHorTarget, 8);
   debug_can(0x530, &debug_vars.TimeToTD, 8);
 #endif 
-  debug_can(0x509, &debug_vars.BIM_CMD, 2);
+//  debug_can(0x509, &debug_vars.BIM_CMD, 2);
   debug_can(0x511, &debug_vars.TDP_Lat, 8);
   debug_can(0x512, &debug_vars.TDP_Lon, 8);
   debug_can(0x515, &debug_vars.Alt2model, 8);
@@ -103,11 +103,12 @@ void debug_can_full_struct (void)
   debug_can(0x522, &debug_vars.rtU_XYZi_Lon, 8);
   debug_can(0x523, &debug_vars.rtU_XYZi_Alt, 8);
   debug_can(0x526, &debug_vars.Relief_height, 2);
-  debug_can(0x527, &debug_vars.SysState, 2);
-  
+  debug_can(0x527, &debug_vars.SysState, 2); 
   debug_can(0x532, &debug_vars.radioLatitude, 8);
   debug_can(0x533, &debug_vars.radioLongitude, 8);
   debug_can(0x534, &debug_vars.radioUpdatedIndex, 1);
+  debug_can(0x535, &debug_vars.leftBimCommand, 1);
+  debug_can(0x536, &debug_vars.rightBimCommand, 1);
 }
 
 /*********************************************************************************************************
@@ -134,19 +135,41 @@ void debug_prepare_data (void)
   debug_vars.Lon2                  = (double)(rtY.lon2);
   debug_vars.distanceB             = (double)(rtY.distanceB);
   debug_vars.distance2             = (uint16_t)(rtY.distance2);
-  debug_vars.BIM_CMD               = (int16_t)(rtY.tightenSling*rtY.directionOfRotation);   // Команда БИМам от flightRegulatorCFB
+//  debug_vars.BIM_CMD               = (int16_t)(rtY.tightenSling*rtY.directionOfRotation);   // Команда БИМам от flightRegulatorCFB
   debug_vars.td                    = (double)(rtY.tD);
   debug_vars.tx                    = (double)(rtY.tx);
   debug_vars.tz                    = (double)(rtY.tz);
   debug_vars.flightMode            = (uint8_t)(rtY.executeMode);
+  if(rtY.directionOfRotation == -1)
+  {
+    debug_vars.leftBimCommand = (uint8_t)rtY.tightenSling;
+    debug_vars.rightBimCommand = 0;
+  }
+  else if(rtY.directionOfRotation == 1)
+  {
+    debug_vars.rightBimCommand = (uint8_t)rtY.tightenSling;
+    debug_vars.leftBimCommand = 0;
+  }
+  else if(rtY.directionOfRotation == 2)
+  {
+    debug_vars.rightBimCommand = (uint8_t)rtY.tightenSling;
+    debug_vars.leftBimCommand  = (uint8_t)rtY.tightenSling;
+  }
+  else 
+  {
+    debug_vars.rightBimCommand = 0;
+    debug_vars.leftBimCommand  = 0;
+  }
 #else
   /* Здесь можно добавить 
   вывод необходимых переменных относящихся к flightController
   */   
-  debug_vars.BIM_CMD               = (int16_t)(rtY.bimCommand);                    // Команда БИМам от flightController
+//  debug_vars.BIM_CMD               = (int16_t)(rtY.bimCommand);                    // Команда БИМам от flightController
   debug_vars.DistanceToTDP         = (double) (rtY.horizontalDistance);            // Дистанция до точки приземления, м
-  debug_vars.TimeToHorTarget       = (double) (rtY.onTargetTime);                  // Время полета то точки приземления по прямой, сек
-  debug_vars.TimeToTD              = (double) (rtY.touchdownTime);                 // Время до открытия парашюта, сек
+  debug_vars.TimeToHorTarget       = (double) (rtY.horizontalTime);                // Время полета то точки приземления по прямой, сек
+  debug_vars.TimeToTD              = (double) (rtY.verticalTime);                  // Время до открытия парашюта, сек
+  debug_vars.leftBimCommand        = rtY.leftStrap;                                // Команда от матмодели левому Биму
+  debug_vars.rightBimCommand       = rtY.rightStrap;                               // Команда от матмодели правому Биму
 #endif  
   debug_vars.TDP_Lat               = Bup_getTouchdownLatitude();                   // Широта точки приземления
   debug_vars.TDP_Lon               = Bup_getTouchdownLongitude();                  // Долгота точки приземления

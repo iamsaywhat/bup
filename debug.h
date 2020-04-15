@@ -51,7 +51,7 @@ typedef struct
 	
 #endif                               // Общесистемные переменные
 
-  int16_t   BIM_CMD;                 // Зарезервирован адрес CAN 0x509
+//  int16_t   BIM_CMD;                 // Зарезервирован адрес CAN 0x509
   double    TDP_Lat;                 // Зарезервирован адрес CAN 0x511
   double    TDP_Lon;                 // Зарезервирован адрес CAN 0x512
   int64_t   SNSalt;                  // Зарезервирован адрес CAN 0x516
@@ -64,6 +64,8 @@ typedef struct
   double    radioLatitude;           // Зарезервирован адрес CAN 0x532
   double    radioLongitude;          // Зарезервирован адрес CAN 0x533
   uint8_t   radioUpdatedIndex;       // Зарезервирован адрес CAN 0x534
+  uint8_t   leftBimCommand;          // Зарезервирован адрес СAN 0x535
+  uint8_t   rightBimCommand;         // Зарезервирован адрес СAN 0x536
 }debug_output;
 
 // Глобальный экземпляр отладочной структуры

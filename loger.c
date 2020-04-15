@@ -87,7 +87,8 @@ void loger_periodprint (void)
     printf("Model_BIM_CMD: %f\n", (double)(rtY.tightenSling*rtY.directionOfRotation));
     printf("Model_TD_CMD: %d\n",  (uint8_t)rtY.cmdTouchDown);
   #else //*************************************************************************** Если выбран flightController
-    printf("Model_BIM_CMD: %f\n", (double)rtY.bimCommand);
+    printf("Model_Left_Bim: %d\n", (uint8_t)rtY.leftStrap);
+    printf("Model_Right_Bim: %d\n", (uint8_t)rtY.rightStrap);
     printf("Model_TD_CMD: %d\n",  (uint8_t)rtY.touchdown);
   #endif //************************************************************************** !flightRegulatorCFB
 }

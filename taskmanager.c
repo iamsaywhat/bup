@@ -440,7 +440,8 @@ void task_loger (void)
       #ifdef flightRegulatorCFB	//******************************************************* Если выбран flightRegulatorCFB
       printf("Model_BIM_CMD: %f\n", (double)(rtY.tightenSling*rtY.directionOfRotation));
       #else //*************************************************************************** Если выбран Easy_reg
-      printf("Model_BIM_CMD: %f\n", (double)(rtY.bimCommand));
+      printf("Model_Left_Bim: %d\n", (uint8_t)rtY.leftStrap);
+      printf("Model_Right_Bim: %d\n", (uint8_t)rtY.rightStrap);
       #endif //************************************************************************** !flightRegulatorCFB
       TaskManager.Task_LogerStage++; break;
     }
