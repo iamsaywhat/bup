@@ -93,6 +93,11 @@ TimeoutStatus timeoutStatus(TimeoutType* timeout)
       return TIME_IS_UP;
     }
   }
+  else if(timeout->stop == timeout->start)
+  {
+    timeout->status = TIME_IS_UP;
+    return TIME_IS_UP;
+  }
   else
   {
     if((currentTime > timeout->stop) && (currentTime < timeout->start))

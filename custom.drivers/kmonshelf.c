@@ -25,9 +25,8 @@ SNS_Orientation_Data_Response_Union     SNS_orientation;
 
 
 /* Приватные функции модуля */
-static void       SNS_RetargetPins  (void);
-static void       SNS_init          (void);
-static void       SNS_deinit        (void);
+static void       SNS_initialize    (void);
+static void       SNS_deinitialize  (void);
 static SNS_Status SNS_Request       (uint8_t Command);
 static double     Rad_12_to_Deg     (int64_t rad);
 static double     Rad_6_to_Deg      (int32_t rad);
@@ -39,23 +38,16 @@ static double     Ms_6_to_Ms        (int32_t Ms);
 
 
 /**************************************************************************************************************
-  SNS_RetargetPins - Функция переопределения UART1 на другие пины, для работы SNS
+  SNS_initialize - Инициализация UART под SNS
   Параметры:  NONE
 ***************************************************************************************************************/
-static void SNS_RetargetPins (void)
+void SNS_initialize (void)
 {
+  UART_InitTypeDef UART_InitStructure;
+  
   /* Переназчаем UART1 на порт B для работы SNS */
   Pin_initialize (SNS_RX);
   Pin_initialize (SNS_TX);
-}
-
-/**************************************************************************************************************
-  SNS_init - Инициализация UART под SNS
-  Параметры:  NONE
-***************************************************************************************************************/
-static void SNS_init (void)
-{
-  UART_InitTypeDef UART_InitStructure;
 	
   UART_DeInit(SNS_UART);                     /* Сброс конфигуряции UART1 */
   UART_StructInit (&UART_InitStructure);     /* Заполнение структуры по-умолчанию */
@@ -73,10 +65,10 @@ static void SNS_init (void)
 }
 
 /**************************************************************************************************************
-  SNS_deinit - Деинициализация SNS и освобождение UART
+  SNS_deinitialize - Деинициализация SNS и освобождение UART
   Параметры:  NONE
 ***************************************************************************************************************/
-static void SNS_deinit (void)
+void SNS_deinitialize (void)
 {
   UART_DeInit(SNS_UART);      /* Сброс конфигуряции UART */
   UART_Cmd(SNS_UART,DISABLE); /* Выключение UART1 - CНС */
@@ -90,7 +82,7 @@ static void SNS_deinit (void)
             Command - Код команды, отправляемый СНС
             (СНС реагирует только на команды перечисленные а протоколе)
 ***************************************************************************************************************/
-static SNS_Status SNS_Request(uint8_t Command)
+SNS_Status SNS_Request(uint8_t Command)
 {
   SNS_Request_Union      SNS_Req;
   uint8_t                i;
@@ -276,8 +268,7 @@ SNS_Status SNS_updateDeviceInformation(void)
     return SNS_TIMEOUT;
 	
   // Подключаемся к СНС
-  SNS_RetargetPins();
-  SNS_init();
+  SNS_initialize();
   /* Так как СНС не спешит с ответом, необходимо спросить его несколько раз,
   и надеяться что хоть на какой-то из низ он ответит */
   for(requestCounter = 0; requestCounter < SNS_REQUESTS_CNT; requestCounter++)
@@ -297,7 +288,7 @@ SNS_Status SNS_updateDeviceInformation(void)
     }
   }
   /* Отключаемся от СНС */
-  SNS_deinit();
+  SNS_deinitialize();
 	
   /* Проверим количество отправленных запросов, 
   если больше лимита значит связаться ответ так и не был получен */	
@@ -335,8 +326,8 @@ SNS_Status SNS_updateDataState(void)
     return SNS_TIMEOUT;
 
   // Подключаемся к СНС
-  SNS_RetargetPins();
-  SNS_init();	
+  SNS_initialize();	
+  
   /* Так как СНС не спешит с ответом, необходимо спросить его несколько раз,
   и надеяться что хоть на какой-то из низ он ответит */
   for(requestCounter = 0; requestCounter < SNS_REQUESTS_CNT; requestCounter++)
@@ -356,7 +347,7 @@ SNS_Status SNS_updateDataState(void)
     }
   }
   /* Отключаемся от СНС */
-  SNS_deinit();
+  SNS_deinitialize();
 	
   /* Проверим количество отправленных запросов, 
   если больше лимита значит связаться ответ так и не был получен */	
@@ -393,8 +384,8 @@ SNS_Status SNS_updatePositionData(void)
     return SNS_TIMEOUT;
 	
   // Подключаемся к СНС
-  SNS_RetargetPins();
-  SNS_init();	
+  SNS_initialize();	
+  
   /* Так как СНС не спешит с ответом, необходимо спросить его несколько раз,
   и надеяться что хоть на какой-то из низ он ответит */
   for(requestCounter = 0; requestCounter < SNS_REQUESTS_CNT; requestCounter++)
@@ -414,7 +405,7 @@ SNS_Status SNS_updatePositionData(void)
     }
   }
   // Отключаемся от СНС
-  SNS_deinit();
+  SNS_deinitialize();
 	
   /* Проверим количество отправленных запросов, 
   если больше лимита значит связаться ответ так и не был получен */	
@@ -451,8 +442,8 @@ SNS_Status SNS_updateOrientationData(void)
     return SNS_TIMEOUT;
 	
   // Подключаемся к СНС
-  SNS_RetargetPins();
-  SNS_init();
+  SNS_initialize();
+  
   /* Так как СНС не спешит с ответом, необходимо спросить его несколько раз,
   и надеяться что хоть на какой-то из низ он ответит */
   for(requestCounter = 0; requestCounter < SNS_REQUESTS_CNT; requestCounter++)
@@ -472,7 +463,7 @@ SNS_Status SNS_updateOrientationData(void)
     }
   }
   // Отключаемся от СНС
-  SNS_deinit();
+  SNS_deinitialize();
 	
   /* Проверим количество отправленных запросов, 
   если больше лимита значит связаться ответ так и не был получен */	
@@ -495,12 +486,11 @@ SNS_Status SNS_startGyroCalibration (void)
 {
   SNS_Status result;
   // Подключаемся к СНС
-  SNS_RetargetPins();
-  SNS_init();
+  SNS_initialize();
   // Отправляем запрос
   result = SNS_Request(GCE);
   // Отключаемся от СНС
-  SNS_deinit();
+  SNS_deinitialize();
 	
   return result;
 }
@@ -512,12 +502,11 @@ SNS_Status SNS_resetGyroCalibration (void)
 {
   SNS_Status result;
   // Подключаемся к СНС
-  SNS_RetargetPins();
-  SNS_init();
+  SNS_initialize();
   // Отправляем запрос
   result = SNS_Request(GCR);
   // Отключаемся от СНС
-  SNS_deinit();
+  SNS_deinitialize();
 	
   return result;
 }
@@ -529,12 +518,11 @@ SNS_Status SNS_startMagnetometerCalibration (void)
 {
   SNS_Status result;
   // Подключаемся к СНС
-  SNS_RetargetPins();
-  SNS_init();
+  SNS_initialize();
   // Отправляем запрос
   result = SNS_Request(MCE);
   // Отключаемся от СНС
-  SNS_deinit();
+  SNS_deinitialize();
 	
   return result;
 }
@@ -546,12 +534,11 @@ SNS_Status SNS_resetMagnetometerCalibration (void)
 {
   SNS_Status result;
   // Подключаемся к СНС
-  SNS_RetargetPins();
-  SNS_init();
+  SNS_initialize();
   // Отправляем запрос
   result = SNS_Request(MCR);
   // Отключаемся от СНС
-  SNS_deinit();
+  SNS_deinitialize();
 	
   return result;
 }
@@ -563,12 +550,11 @@ SNS_Status SNS_enableHorizontalCorrection (void)
 {
   SNS_Status result;
   // Подключаемся к СНС
-  SNS_RetargetPins();
-  SNS_init();
+  SNS_initialize();
   // Отправляем запрос
   result = SNS_Request(HCE);
   // Отключаемся от СНС
-  SNS_deinit();
+  SNS_deinitialize();
 	
   return result;
 }
@@ -580,12 +566,11 @@ SNS_Status SNS_disableHorizontalCorrection (void)
 {
   SNS_Status result;
   // Подключаемся к СНС
-  SNS_RetargetPins();
-  SNS_init();
+  SNS_initialize();
   // Отправляем запрос
   result = SNS_Request(HCD);
   // Отключаемся от СНС
-  SNS_deinit();
+  SNS_deinitialize();
 	
   return result;
 }
@@ -681,7 +666,7 @@ double SNS_getRoll(void)
 *************************************************************************
   Rad_12_to_Deg - Преобразование 10E-12 радиан в градусы
 ***************************************************************************/
-static double Rad_12_to_Deg(int64_t rad)
+double Rad_12_to_Deg(int64_t rad)
 {
   double result = 0;
   result = ((rad/1e12)*180.0)/pi_const; 
@@ -691,7 +676,7 @@ static double Rad_12_to_Deg(int64_t rad)
 /***************************************************************************
   Rad_6_to_Deg - Преобразование 10E-6 радиан в градусы
 ***************************************************************************/
-static double Rad_6_to_Deg(int32_t rad)
+double Rad_6_to_Deg(int32_t rad)
 {
   double result = 0;
   result = ((rad/1e6)*180.0)/pi_const;
@@ -701,7 +686,7 @@ static double Rad_6_to_Deg(int32_t rad)
 /***************************************************************************
   Rad_to_Deg - Преобразование радиан в градусы
 ***************************************************************************/
-static double Rad_to_Deg(double rad)
+double Rad_to_Deg(double rad)
 {
   double result = 0;
   result = (rad*180.0)/pi_const;
@@ -710,7 +695,7 @@ static double Rad_to_Deg(double rad)
 /***************************************************************************
   Rad_6_to_Rad - Преобразование 10E-6 радиан в радианы
 ***************************************************************************/
-static double Rad_6_to_Rad(int32_t rad)
+double Rad_6_to_Rad(int32_t rad)
 {
   double result = 0;
   result = (rad/1e6);
@@ -720,7 +705,7 @@ static double Rad_6_to_Rad(int32_t rad)
 /***************************************************************************
   Meter_12_to_Meter - Преобразование 10E-12 метров в метры
 ***************************************************************************/
-static double Meter_12_to_Meter (int64_t meter)
+double Meter_12_to_Meter (int64_t meter)
 {
   double result = 0;
   result = ((double)(meter/1e12));
@@ -730,7 +715,7 @@ static double Meter_12_to_Meter (int64_t meter)
 /***************************************************************************
   Ms_6_to_Ms - Преобразование 10E-6 метров\c в метры\с
 ***************************************************************************/
-static double Ms_6_to_Ms (int32_t Ms)
+double Ms_6_to_Ms (int32_t Ms)
 {
   double result = 0;
   result = ((double)(Ms/1e6));

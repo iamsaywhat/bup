@@ -12,6 +12,7 @@
 #include "heightmap/heightmap.platformdepend.h"
 #include "heightmap/heightmap.h"
 #include "bupdatastorage.h"
+#include "radiostation.h"
 
 
 /***************************************
@@ -56,6 +57,8 @@ void SelfTestingFull (void)
   SelfTesting_SWS();
   // Проверка напряжения на АКБ
   SelfTesting_Battery50Volt();
+  // Проверка связи с радиостанцией
+  SelfTesting_Radiostation();
   // Управление индикацией, по результатам тестов периферии
   SelfTesting_OnlineDiagnostics();
 }
@@ -95,9 +98,11 @@ void SelfTestingOnline (void)
   // Проверка связи с СНС
   SelfTesting_SNS();
   // Проверка доступности карты
-  SelfTesting_MapAvailability (Bup_getLatitude(), Bup_getLongitude());
+  SelfTesting_MapAvailability (Bup_getCurrentPointLatitude(), Bup_getCurrentPointLongitude());
   // Проверка напряжения на АКБ
   SelfTesting_Battery50Volt();
+  // Проверка связи с радиостанцией
+  SelfTesting_Radiostation();
 }
 
 
@@ -337,7 +342,7 @@ SelfTesting_STATUS_TYPE SelfTesting_RIGHT_BIM(void)
 ************************************************************************************/
 void SelfTesting_BIMS_TRY_CONNECT(void)
 {
-	static TimeoutType timeout = {0, 1, TIME_IS_UP};
+	static TimeoutType timeout = {0, 0, TIME_IS_UP};
 	
   /* Если хоть один из БИМов неисправен, 
 	и с последней попытки восстановить соединение случился таймаут */ 
@@ -530,3 +535,27 @@ SelfTesting_STATUS_TYPE SelfTesting_Battery50Volt (void)
   return (SelfTesting_STATUS_TYPE)SelfTesting_STATUS(ST_BATTERY50V);
 }
 
+/************************************************************************************
+  SelfTesting_Radiostation - Проверка связи с радиостанцией
+
+  Параметры:
+              NONE
+								
+  Возвращает: ST_OK - Если напряжение в норме
+              ST_FAULT - Если напряжение ниже порогового
+										
+  Примечание:
+************************************************************************************/
+SelfTesting_STATUS_TYPE SelfTesting_Radiostation (void)
+{
+  RadioStatus status;
+  if(Radiostation.currentBaudrate() == RADIO_DEFAULT_BAUDRATE)
+    status = Radiostation.setBaudrate(230400);
+  else
+    status = Radiostation.sendEmpty();
+  if(status == RADIO_SUCCESS)
+    SelfTesting_SET_OK(ST_RADIOSTATION);
+  else
+    SelfTesting_SET_FAULT(ST_RADIOSTATION);
+  return (SelfTesting_STATUS_TYPE)SelfTesting_STATUS(ST_RADIOSTATION);
+}

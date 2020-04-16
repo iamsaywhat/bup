@@ -34,7 +34,7 @@
 void MathModel_initialize(void)
 {
   // Переведем БИМы в состояние 0
-  MathModel_sendBimCommand (0.0);
+  MathModel_sendBimCommand (0, 0);
 	
   #ifdef flightRegulatorCFB //******************************************************* Если выбран flightRegulatorCFB
     flightRegulatorCFB_initialize();
@@ -65,21 +65,22 @@ void MathModel_prepareData (void)
 {
   #ifdef flightRegulatorCFB //******************************************************* Если выбран flightRegulatorCFB
     // Координаты точки приземления (подгружаем из памяти)
-    rtU.xyzPoints[lat] = Bup_getTouchdownLatitude();
-    rtU.xyzPoints[lon] = Bup_getTouchdownLongitude();
+    rtU.xyzPoints[lat] = Bup_getTouchdownPointLatitude();
+    rtU.xyzPoints[lon] = Bup_getTouchdownPointLongitude();
     rtU.xyzPoints[alt] = 0;
     // Текущие координаты:
-    rtU.XYZi[lat] = Bup_getLatitude();
-    rtU.XYZi[lon] = Bup_getLongitude();
-    rtU.XYZi[alt] = Bup_getAltitude();
+    rtU.XYZi[lat] = Bup_getCurrentPointLatitude();
+    rtU.XYZi[lon] = Bup_getCurrentPointLongitude();
+    rtU.XYZi[alt] = Bup_getCurrentPointAltitude();
     // Путевой курс
-    rtU.angle = Bup_getCourse();
+    rtU.angle = Bup_getCurrentCourse();
     // Статус навигационного решения от СНС
     rtU.isVeracityGns = 1; //SNS_PosData.Quality;
     // Подставляем статус доступности карты
     rtU.isAvailableDigitalTerrain = SelfTesting_STATUS(ST_MapAvailability);
-    rtU.HighDigitalTerrain = Bup_getReliefHeight();
+    rtU.HighDigitalTerrain = Bup_getCurrentPointRelief();
     rtU.highStopUPS = 300.0;
+	
 	
 //  // Высота над рельефом
 //  rtU.HighAboveTheGround = 0; 
@@ -104,20 +105,33 @@ void MathModel_prepareData (void)
 //  // Работает ли правый БИМ: "1" - да, "-1" - нет.		
 //  rtU.RightEnginehadWork = 1.0;  
 
-  #else //*************************************************************************** Если выбран flightController
-    rtU.TDP_lon            = Bup_getTouchdownLongitude();
-    rtU.TDP_lat            = Bup_getTouchdownLatitude();
-    rtU.TDP_alt            = Bup_getTouchdownAltitude();
-    rtU.Pos_lon            = Bup_getLongitude();
-    rtU.Pos_lat            = Bup_getLatitude();
-    rtU.Pos_alt            = Bup_getAltitude();
-    rtU.ActualCourse       = Bup_getCourse();
-    rtU.Relief             = Bup_getReliefHeight();
-    rtU.ReliefOnTDP        = Bup_getReliefHeightOnTDP();
-    rtU.ReliefAvailable    = SelfTesting_STATUS(ST_MapAvailability);
-    rtU.LatitudeVelocity   = Bup_getVelocityLatitude();
-    rtU.LongitudeVelocity  = Bup_getVelocityLongitude();
-    rtU.AltitudeVelocity   = Bup_getVelocityAltitude();
+  #else //*************************************************************************** Если выбран flightController  
+    /* Точка запланированного приземления */
+    rtU.touchdownPointLatitude  = Bup_getTouchdownPointLatitude();
+    rtU.touchdownPointLongitude = Bup_getTouchdownPointLongitude();
+    rtU.touchdownPointAltitude  = Bup_getTouchdownPointAltitude();
+    /* Данные от спутника */
+    rtU.currentPointLatitude    = Bup_getCurrentPointLatitude();
+    rtU.currentPointLongitude   = Bup_getCurrentPointLongitude();
+    rtU.currentPointAltitude    = Bup_getCurrentPointAltitude();
+    rtU.velocityLatitude        = Bup_getCurrentVelocityLatitude();
+    rtU.velocityLongitude       = Bup_getCurrentVelocityLongitude();
+    rtU.velocityAltitude        = Bup_getCurrentVelocityAltitude();
+    rtU.trackingCourse          = Bup_getCurrentCourse();
+    /* Данные от свс */
+    rtU.barometricAirSpeed      = 20; //SWS_getTrueSpeed();          // На время испытаний на стенде устанавливаем константу
+    rtU.barometricAltitude      = SWS_getAbsoluteHeight();           // так, как имитатор СВС в настоящий момент отсутсвует  
+    rtU.barometricAvailable     = 0; //SelfTesting_STATUS(ST_sws);   // Высоту от СВС подставляем, но этим флагом заставляем игнорировать
+    /* Данные от радиостанции */
+    rtU.radioPointLatitude      = Bup_getRadioPointLatitude();
+    rtU.radioPointLongitude     = Bup_getRadioPointLongitude();
+    rtU.radioPointAltitude      = Bup_getTouchdownPointAltitude();        // В радиостанция не присылаем высоту открытия парашюта, поэтому клонируем
+    rtU.radioUpdateIndex        = Bup_getRadioPointUpdateIndex();
+    /* Данные карты */
+    rtU.currentPointRelief          = Bup_getCurrentPointRelief();
+    rtU.currentPointReliefAvailable = SelfTesting_STATUS(ST_MapAvailability);
+    rtU.touchdownPointRelief        = Bup_getTouchdownPointRelief();
+    rtU.radioPointRelief            = Bup_getRadioPointRelief();
   #endif //************************************************************************** !flightRegulatorCFB 
 }
 
@@ -128,25 +142,42 @@ void MathModel_control (void)
 {	
   #ifdef flightRegulatorCFB	//******************************************************* Если выбран flightRegulatorCFB	
     // Если команда на посадку не пришла, мы еще в полете, будем управлять
+    uint8_t left = 0;
+    uint8_t right = 0;
     if(rtY.cmdTouchDown == 0)
     {
       // Управление БИМами по выходу модели
-      MathModel_sendBimCommand (rtY.tightenSling*rtY.directionOfRotation);
+      if(rtY.directionOfRotation == -1)
+      {
+        left= (uint8_t)rtY.tightenSling;
+        right = 0;
+      }
+      else if(rtY.directionOfRotation == 1)
+      {
+        right = (uint8_t)rtY.tightenSling;
+        left = 0;
+      }
+      else if(rtY.directionOfRotation == 2)
+      {
+        right = (uint8_t)rtY.tightenSling;
+        left = (uint8_t)rtY.tightenSling;
+      }
+      MathModel_sendBimCommand (left, right);
     }
     // Это команда на посадку 
     else if (rtY.cmdTouchDown == 1)
     {
   #else //*************************************************************************** Если выбран flightController
     // Команды на посадку не было, поэтому будем управлять стропами
-    if (rtY.TD_CMD == 0)
-      MathModel_sendBimCommand (rtY.BIM_CMD);
+    if (rtY.touchdown == 0)
+      MathModel_sendBimCommand ((uint8_t)rtY.leftStrap, (uint8_t)rtY.rightStrap);
 		
     // Команда на посадку, завершаем работу
-    else if (rtY.TD_CMD == 1)
+    else if (rtY.touchdown == 1)
     {
   #endif //************************************************************************** !flightRegulatorCFB 			
     // Переводим БИМЫ в состояние по умолчанию
-    MathModel_sendBimCommand (0.0);
+    MathModel_sendBimCommand (0, 0);
     // Замок створки открыть
     BLIND_CTRL_ON();
 			
@@ -166,103 +197,71 @@ void MathModel_control (void)
   }
 }
 
-/*******************************************************************************
-    MathModel_sendBimCommand -  Функция, предоставляющая мат модели управление БИМами
-*******************************************************************************/
-void MathModel_sendBimCommand (double Side)
+/*************************************************************************************
+    MathModel_sendBimCommand - Функция, предоставляющая мат модели управление БИМами
+*************************************************************************************/
+void MathModel_sendBimCommand (uint8_t left, uint8_t right)
 {
-  int16_t i;          // Счетчик циклов
-  int16_t SIDE = 0;   // Положение стропы (отриц - левая, полож - правая)
-	
-  // Целое число со знаком SIDE в процентах, знак указывает каким БИМом будем управлять
-  // Конвертируем проценты в диапазон [0...255] и отбрасываем дробную часть
-  SIDE = (int16_t)(2.55*Side);
-	
-  // Запретим управление БИМ, если шпилька 1 вставлена (несмотря на то, что это реализованно аппаратно)
+  // Запретим управление БИМ, если шпилька 1 вставлена или реле выключено
   if(SelfTesting_STATUS(ST_pin1) == ST_OK || SelfTesting_STATUS(ST_POW_BIM) != ST_OK)
-  {
-    // Это необходимо потому что, при износе переключателей, иногда при вставленой шпильке аппаратное отключение не происходит
-    // Так же для общности будем отказываться управлять, если реле питания БИМ выключено (хоть такое происходить и не должно)
     return;
-  }
-	
-  // Отрицательное значение означает, что нужно затянуть левый БИМ в положение SIDE и отпустить правый
-  if(SIDE < 0)
+  
+  if(left > 100)                    // Если процент затяжки больше 100, чего быть не должно,
+    left = 100;                     // то ограничиваем сверху
+  if(right > 100)
+    right = 100;
+  left = (uint8_t)(2.55*left);      // Переводим в байтовый диапазон 
+  right = (uint8_t)(2.55*right);    // [0...255]
+  
+  /* Этот каскад условий необходим, чтобы: 
+  1) Запретить одновременную работу двигателей, принудительным переходом через ноль
+  (если было: левый 50%, а сейчас пришла команда правый 50%, то сначала левый переводится в ноль,
+  а только потом, правый переводится в 50%);
+  2) Контролировать текущее (реальное) положение двигателей, чтобы избавиться от шелчков, возникающих
+  при попытке перевести двигатель в положение в котором он уже находится;		
+  */
+  
+  if(left > 0 && right == 0) // нужно затянуть левый БИМ в положение left и отпустить правый в 0
   {
-    // Делаем SIDE положительным и приводим к uint8_t
-    SIDE = (uint8_t)((-1)*SIDE);
-		
-    /* Этот каскад условий необходим, чтобы: 
-    1) Запретить одновременную работу двигателей, принудительным переходом через ноль
-      (если было: левый 50%, а сейчас пришла команда правый 50%, то сначала левый переводится в ноль,
-        а только потом, правый переводится в 50%);
-    2) Контролировать текущее (реальное) положение двигателей, чтобы избавиться от шелчков, возникающих
-      при попытке перевести двигатель в положение в котором он уже находится;		
-    */
-		
-    // Требуется затянуть левый БИМ, правый при этом должен быть в положении 0 
-    if (BIM_getStrapPosition (RIGHT_BIM) != 0)
+    if (BIM_getStrapPosition (RIGHT_BIM) != 0)                    // Требуется затянуть левый БИМ, правый при этом должен быть в положении 0 
+      BIM_sendRequest (RIGHT_BIM, BIM_CMD_ON, 0, 9, 255, 255);    // Правый не в нуле, поэтому пока только переведём его в ноль
+    
+    else  // Правый действительно находится в нуле, можно отдать команду на затяжку левому
     {
-      // Правый не в нуле, поэтому пока только переведём его в ноль
-      BIM_sendRequest (RIGHT_BIM, BIM_CMD_ON, 0, 9, 255, 255);
-    }
-    // Правый действительно находится в нуле, можно отдать команду на затяжку левому
-    else
-    {
-      if(BIM_getStrapPosition (LEFT_BIM) != SIDE)
-      {
-        // Устанавливать новое положение, будем только если оно отличается от старого (защита от щелчков)
-        BIM_sendRequest (LEFT_BIM, BIM_CMD_ON, SIDE, 7, 255, 255);
-      }
+      if(BIM_getStrapPosition (LEFT_BIM) != left)
+        BIM_sendRequest (LEFT_BIM, BIM_CMD_ON, left, 7, 255, 255);    // Устанавливать новое положение, будем только если оно отличается от старого (защита от щелчков)
     }
   }
-  // Это значит, что нужно ослабить оба БИМА
-  else if(SIDE == 0)
-  {	
-    if(BIM_getStrapPosition (LEFT_BIM) != 0)
+  else if (right > 0 && left == 0) // нужно затянуть правый БИМ в положение right и отпустить левый в 0
+  {
+    if(BIM_getStrapPosition (LEFT_BIM) != 0)                   // Требуется затянуть правый БИМ, левый при этом должен быть в положении 0 
+      BIM_sendRequest (LEFT_BIM, BIM_CMD_ON, 0, 7, 255, 255);  // Левый не в нуле, поэтому пока только переведём его в ноль	
+    else // Левый действительно находится в нуле, можно отдать команду на затяжку правому
     {
-      BIM_sendRequest (LEFT_BIM, BIM_CMD_ON, 0, 7, 255, 255);
+      if(BIM_getStrapPosition (RIGHT_BIM) != right)                   // Устанавливать новое положение, будем только 
+        BIM_sendRequest (RIGHT_BIM, BIM_CMD_ON, right, 9, 255, 255);  // если оно отличается от старого (защита от щелчков)
     }
+  }
+  else if (right > 0 && left > 0) // нужно затянуть оба БИМа
+  {
+    if (BIM_getStrapPosition (RIGHT_BIM) != right)                   //  
+      BIM_sendRequest (RIGHT_BIM, BIM_CMD_ON, right, 9, 255, 255);   // 
+      
+    if (BIM_getStrapPosition (RIGHT_BIM) != left)                    //  
+      BIM_sendRequest (RIGHT_BIM, BIM_CMD_ON, left, 7, 255, 255);    // 
+  }
+  else // Нужно оба бима опустить в 0
+  {
+    if(BIM_getStrapPosition (LEFT_BIM) != 0)
+      BIM_sendRequest (LEFT_BIM, BIM_CMD_ON, 0, 7, 255, 255);
     if(BIM_getStrapPosition (RIGHT_BIM) != 0)
-    {
       BIM_sendRequest (RIGHT_BIM, BIM_CMD_ON, 0, 9, 255, 255);
-    }
   }
-  // Положительное значение означает, что нужно затянуть правый БИМ в положение SIDE, и отпустить левый
-  else if(SIDE > 0)
-  {
-    // SIDE приводим к uint8_t
-    SIDE = (uint8_t)(SIDE);
-		
-    /* Этот каскад условий необходим, чтобы: 
-    1) Запретить одновременную работу двигателей, принудительным переходом через ноль
-      (если было: левый 50%, а сейчас пришла команда правый 50%, то сначала левый переводится в ноль,
-      а только потом, правый переводится в 50%);
-    2) Контролировать текущее (реальное) положение двигателей, чтобы избавиться от шелчков, возникающих
-      при попытке перевести двигатель в положение в котором он уже находится;		
-    */
-		
-    // Требуется затянуть правый БИМ, левый при этом должен быть в положении 0 
-    if(BIM_getStrapPosition (LEFT_BIM) != 0)
-    {
-      // Левый не в нуле, поэтому пока только переведём его в ноль
-      BIM_sendRequest (LEFT_BIM, BIM_CMD_ON, 0, 7, 255, 255);
-    }
-    // Левый действительно находится в нуле, можно отдать команду на затяжку правому
-    else
-    {
-      if(BIM_getStrapPosition (RIGHT_BIM) != SIDE)
-      {
-        // Устанавливать новое положение, будем только если оно отличается от старого (защита от щелчков)
-        BIM_sendRequest (RIGHT_BIM, BIM_CMD_ON, SIDE, 9, 255, 255);
-      }
-    }
-  }
-  // БИМы не сразу обновляют своё состояние по CAN, поэтому заставляем их 5 раз сообщить своё состояние
-  for(i = 0; i < 5; i++)
+  // БИМы не сразу обновляют своё состояние по CAN, 
+  // поэтому заставляем их 5 раз сообщить своё состояние
+  for(uint8_t i = 0; i < 5; i++)
   {
     SelfTesting_RIGHT_BIM();
     SelfTesting_LEFT_BIM();
   }
 }
-

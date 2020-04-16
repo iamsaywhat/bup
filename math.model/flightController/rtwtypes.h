@@ -3,9 +3,9 @@
  *
  * Code generated for Simulink model 'flightController'.
  *
- * Model version                  : 1.785
+ * Model version                  : 1.888
  * Simulink Coder version         : 8.14 (R2018a) 06-Feb-2018
- * C/C++ source code generated on : Thu Jan 23 12:19:38 2020
+ * C/C++ source code generated on : Wed Apr 15 16:25:40 2020
  *
  * Target selection: ert.tlc
  * Embedded hardware selection: ARM Compatible->ARM Cortex
@@ -33,7 +33,7 @@
  * Target hardware information
  *   Device type: ARM Compatible->ARM Cortex
  *   Number of bits:     char:   8    short:   16    int:  32
- *                       long:  32    long long:  64
+ *                       long:  32
  *                       native word size:  32
  *   Byte ordering: LittleEndian
  *   Signed integer division rounds to: Zero
@@ -52,14 +52,12 @@ typedef short int16_T;
 typedef unsigned short uint16_T;
 typedef int int32_T;
 typedef unsigned int uint32_T;
-typedef long long int64_T;
-typedef unsigned long long uint64_T;
 typedef float real32_T;
 typedef double real64_T;
 
 /*===========================================================================*
  * Generic type definitions: boolean_T, char_T, byte_T, int_T, uint_T,       *
- *                           real_T, time_T, ulong_T, ulonglong_T.           *
+ *                           real_T, time_T, ulong_T.                        *
  *===========================================================================*/
 typedef double real_T;
 typedef double time_T;
@@ -67,7 +65,6 @@ typedef unsigned char boolean_T;
 typedef int int_T;
 typedef unsigned int uint_T;
 typedef unsigned long ulong_T;
-typedef unsigned long long ulonglong_T;
 typedef char char_T;
 typedef unsigned char uchar_T;
 typedef char_T byte_T;
@@ -86,9 +83,6 @@ typedef char_T byte_T;
 #define MAX_int32_T                    ((int32_T)(2147483647))
 #define MIN_int32_T                    ((int32_T)(-2147483647-1))
 #define MAX_uint32_T                   ((uint32_T)(0xFFFFFFFFU))
-#define MAX_int64_T                    ((int64_T)(9223372036854775807LL))
-#define MIN_int64_T                    ((int64_T)(-9223372036854775807LL-1LL))
-#define MAX_uint64_T                   ((uint64_T)(0xFFFFFFFFFFFFFFFFULL))
 
 /* Block D-Work pointer type */
 typedef void * pointer_T;

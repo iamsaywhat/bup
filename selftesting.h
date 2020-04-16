@@ -34,7 +34,7 @@
             12 бит - Доступность карты рельефа
             13 бит - POW_BIM (Реле питания БИМ)
 						14 бит - BATTERY50V (Секция 50 вольт АКБ)
-						15 бит - Резерв
+						15 бит - Radiostation (Радиостанция)
 					
     Использование:
         Состояние того или иного устройства модуля можно узнать с помощью
@@ -58,7 +58,8 @@
                 ST_sws              - СВС  				
                 ST_MapAvailability  - Доступность карты рельефа
                 ST_POW_BIM          - Реле питания БИМ и CAN     (ST_OK/ST_FAULT  = Включено/Выключено)
-                ST_BATTERY50V       - Секция 50 вольт АКБ		
+                ST_BATTERY50V       - Секция 50 вольт АКБ
+                ST_RADIOSTATION     - Радиостанция
 		 
 ************************************************************************************/
 #ifndef _SELF_TESTING_H_
@@ -100,6 +101,7 @@ typedef enum {
 #define ST_MapAvailability         (12)
 #define ST_POW_BIM                 (13)
 #define ST_BATTERY50V              (14)
+#define ST_RADIOSTATION            (15)
 #define SelfTesting_SET_OK(x)      (systemState|=(1<<x))          // Результат проверки - ОК
 #define SelfTesting_SET_FAULT(x)   (systemState&=~(1<<x))         // Результат проверки - FAULT
 #define SelfTesting_STATUS(x)      ((systemState&(1<<x))>>(x))    // Узнать состояние
@@ -328,4 +330,17 @@ SelfTesting_STATUS_TYPE SelfTesting_MapAvailability (double Lat, double Lon);
 ************************************************************************************/
 SelfTesting_STATUS_TYPE SelfTesting_Battery50Volt (void);
 
+
+/************************************************************************************
+  SelfTesting_Radiostation - Проверка связи с радиостанцией
+
+  Параметры:
+              NONE
+								
+  Возвращает: ST_OK - Если связь со станцией исправна
+              ST_FAULT - Если неисправна
+										
+  Примечание:
+************************************************************************************/
+SelfTesting_STATUS_TYPE SelfTesting_Radiostation (void);
 #endif

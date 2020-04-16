@@ -17,7 +17,6 @@
 typedef struct 
 {
 #ifdef flightRegulatorCFB            // Переменные для отладки flightRegulatorCFB
-	
   int16_t   distanceAB;              // Зарезервирован адрес CAN 0x500
   uint8_t   orderAngle;              // Зарезервирован адрес CAN 0x501
   int16_t   diffAngle;               // Зарезервирован адрес CAN 0x502
@@ -40,18 +39,12 @@ typedef struct
   double    tx;                      // Зарезервирован адрес CAN 0x529
   double    tz;                      // Зарезервирован адрес CAN 0x530
   uint8_t   flightMode;              // Зарезервирован адрес CAN 0x531             
-	
-#else                                // Переменные для отладки Easy_reg
-  /* Здесь можно добавить 
-  необходимые переменные, относящиеся к Easy_reg
-  */
+#else                                // Переменные для отладки flightController
   double    DistanceToTDP;           // Зарезервирован адрес CAN 0x524
   double    TimeToHorTarget;         // Зарезервирован адрес CAN 0x529
-  double    TimeToTD;                // Зарезервирован адрес CAN 0x530
-	
+  double    TimeToTD;                // Зарезервирован адрес CAN 0x530	
 #endif                               // Общесистемные переменные
-
-  int16_t   BIM_CMD;                 // Зарезервирован адрес CAN 0x509
+//  int16_t   BIM_CMD;                 // Зарезервирован адрес CAN 0x509
   double    TDP_Lat;                 // Зарезервирован адрес CAN 0x511
   double    TDP_Lon;                 // Зарезервирован адрес CAN 0x512
   int64_t   SNSalt;                  // Зарезервирован адрес CAN 0x516
@@ -61,6 +54,11 @@ typedef struct
   double    rtU_XYZi_Alt;            // Зарезервирован адрес CAN 0x523
   int16_t   Relief_height;           // Зарезервирован адрес CAN 0x526
   uint16_t  SysState;                // Зарезервирован адрес CAN 0x527
+  double    radioLatitude;           // Зарезервирован адрес CAN 0x532
+  double    radioLongitude;          // Зарезервирован адрес CAN 0x533
+  uint8_t   radioUpdatedIndex;       // Зарезервирован адрес CAN 0x534
+  uint8_t   leftBimCommand;          // Зарезервирован адрес СAN 0x535
+  uint8_t   rightBimCommand;         // Зарезервирован адрес СAN 0x536
 }debug_output;
 
 // Глобальный экземпляр отладочной структуры
