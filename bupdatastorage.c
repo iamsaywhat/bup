@@ -33,27 +33,29 @@ BupDataStorage bupDataStorage;
 /***************************************************************************
   Функции доступа к данным БУП
 ***************************************************************************/
-double   Bup_getTouchdownLatitude(void)  { return bupDataStorage.touchdownLatitude;}
-double   Bup_getTouchdownLongitude(void) { return bupDataStorage.touchdownLongitude;}
-double   Bup_getTouchdownAltitude(void)  { return bupDataStorage.touchdownAltitude;}
-double   Bup_getLatitude(void)           { return bupDataStorage.latitude;}
-double   Bup_getLongitude(void)          { return bupDataStorage.longitude;}
-double   Bup_getAltitude(void)           { return bupDataStorage.altitude;}
-double   Bup_getHeadingTrue(void)        { return bupDataStorage.headingTrue;}
-double   Bup_getHeadingMgn(void)         { return bupDataStorage.headingMgn;}
-double   Bup_getVelocityLatitude(void)   { return bupDataStorage.velocityLatitude;}
-double   Bup_getVelocityLongitude(void)  { return bupDataStorage.velocityLongitude;}
-double   Bup_getVelocityAltitude(void)   { return bupDataStorage.velocityAltitude;}
-double   Bup_getPitch(void)              { return bupDataStorage.pitch;}
-double   Bup_getRoll(void)               { return bupDataStorage.roll;}
-double   Bup_getCourse(void)             { return bupDataStorage.course;}
-short    Bup_getReliefHeight(void)       { return bupDataStorage.reliefHeight;}
-short    Bup_getReliefHeightOnTDP(void)  { return bupDataStorage.reliefOnTDP;}
-float    Bup_getBatteryVoltage(void)     { return bupDataStorage.battery50V; }
-uint32_t Bup_getControlTime (void)       { return bupDataStorage.controlSecond;}
-double   Bup_getRadioLatitude(void)      { return bupDataStorage.radioLatitude; }
-double   Bup_getRadioLongitude(void)     { return bupDataStorage.radioLongitude; }
-uint8_t  Bup_getRadioUpdateIndex(void)   { return bupDataStorage.radioUpdateIndex; }
+double   Bup_getTouchdownPointLatitude(void)  { return bupDataStorage.touchdownPointLatitude;}
+double   Bup_getTouchdownPointLongitude(void) { return bupDataStorage.touchdownPointLongitude;}
+double   Bup_getTouchdownPointAltitude(void)  { return bupDataStorage.touchdownPointAltitude;}
+short    Bup_getTouchdownPointRelief(void)    { return bupDataStorage.touchdownPointRelief;}
+double   Bup_getRadioPointLatitude(void)      { return bupDataStorage.radioPointLatitude; }
+double   Bup_getRadioPointLongitude(void)     { return bupDataStorage.radioPointLongitude; }
+uint8_t  Bup_getRadioPointUpdateIndex(void)   { return bupDataStorage.radioPointUpdateIndex; }
+short    Bup_getRadioPointRelief(void)        { return bupDataStorage.radioPointRelief; }
+double   Bup_getCurrentPointLatitude(void)    { return bupDataStorage.currentPointLatitude;}
+double   Bup_getCurrentPointLongitude(void)   { return bupDataStorage.currentPointLongitude;}
+double   Bup_getCurrentPointAltitude(void)    { return bupDataStorage.currentPointAltitude;}
+short    Bup_getCurrentPointRelief(void)      { return bupDataStorage.currentPointRelief;}
+double   Bup_getCurrentHeadingTrue(void)      { return bupDataStorage.currentHeadingTrue;}
+double   Bup_getCurrentHeadingMgn(void)       { return bupDataStorage.currentHeadingMgn;}
+double   Bup_getCurrentVelocityLatitude(void) { return bupDataStorage.currentVelocityLatitude;}
+double   Bup_getCurrentVelocityLongitude(void){ return bupDataStorage.currentVelocityLongitude;}
+double   Bup_getCurrentVelocityAltitude(void) { return bupDataStorage.currentVelocityAltitude;}
+double   Bup_getCurrentPitch(void)            { return bupDataStorage.currentPitch;}
+double   Bup_getCurrentRoll(void)             { return bupDataStorage.currentRoll;}
+double   Bup_getCurrentCourse(void)           { return bupDataStorage.currentCourse;}
+float    Bup_getBatteryVoltage(void)          { return bupDataStorage.battery50V; }
+uint32_t Bup_getControlTime (void)            { return bupDataStorage.controlSecond;}
+
 
 
 /**************************************************************************************************************
@@ -61,32 +63,37 @@ uint8_t  Bup_getRadioUpdateIndex(void)   { return bupDataStorage.radioUpdateInde
 ***************************************************************************************************************/
 void Bup_initialize (void)
 {
-  bupDataStorage.touchdownLatitude  = getTouchdownLatitude();  // Подгружаем из памяти
-  bupDataStorage.touchdownLongitude = getTouchdownLongitude(); // Подгружаем из памяти
-  bupDataStorage.touchdownAltitude  = getTouchdownAltitude();  // Подгружаем из памяти
-  bupDataStorage.latitude = 0;
-  bupDataStorage.longitude = 0;
-  bupDataStorage.altitude = 0;
-  bupDataStorage.headingTrue = 0;
-  bupDataStorage.headingMgn = 0;
-  bupDataStorage.velocityLatitude = 0;
-  bupDataStorage.velocityLongitude = 0;
-  bupDataStorage.velocityAltitude = 0;
-  bupDataStorage.pitch = 0;
-  bupDataStorage.roll = 0;
-  bupDataStorage.course = 0;
-  bupDataStorage.reliefHeight = 0x7FFF;
+  /* Данные о запланированной точке приземления */
+  bupDataStorage.touchdownPointLatitude  = getTouchdownLatitude();  // Подгружаем из памяти
+  bupDataStorage.touchdownPointLongitude = getTouchdownLongitude(); // Подгружаем из памяти
+  bupDataStorage.touchdownPointAltitude  = getTouchdownAltitude();  // Подгружаем из памяти
+  bupDataStorage.touchdownPointRelief = getHeightOnThisPoint(bupDataStorage.touchdownPointLongitude, 
+                                                             bupDataStorage.touchdownPointLatitude,
+                                                             TRIANGULARTION);
+  if(bupDataStorage.touchdownPointRelief == MAP_NO_SOLUTION)
+    bupDataStorage.touchdownPointRelief = 0;
+  /* Данные точки, получаемой с радиостанции */
+  bupDataStorage.radioPointLatitude = 0;
+  bupDataStorage.radioPointLongitude = 0;
+  bupDataStorage.radioPointUpdateIndex = 0;
+  bupDataStorage.radioPointRelief = 0;
+  /* Текущие данные местоположения */
+  bupDataStorage.currentPointLatitude = 0;
+  bupDataStorage.currentPointLongitude = 0;
+  bupDataStorage.currentPointAltitude = 0;
+  bupDataStorage.currentPointRelief = 0x7FFF;
+  /* Текущие данные с датчиков */
+  bupDataStorage.currentHeadingTrue = 0;
+  bupDataStorage.currentHeadingMgn = 0;
+  bupDataStorage.currentVelocityLatitude = 0;
+  bupDataStorage.currentVelocityLongitude = 0;
+  bupDataStorage.currentVelocityAltitude = 0;
+  bupDataStorage.currentPitch = 0;
+  bupDataStorage.currentRoll = 0;
+  bupDataStorage.currentCourse = 0;
+  /* Прочие системные данные */
   bupDataStorage.controlSecond = 0;
-  bupDataStorage.radioLatitude = 0;
-  bupDataStorage.radioLongitude = 0;
-  bupDataStorage.radioUpdateIndex = 0;
-	
-  // Определим высоту рельефа в точке приземления
-  bupDataStorage.reliefOnTDP = getHeightOnThisPoint(bupDataStorage.touchdownLongitude, 
-                                                     bupDataStorage.touchdownLatitude,
-                                                     TRIANGULARTION);
-  if(bupDataStorage.reliefOnTDP == MAP_NO_SOLUTION)
-    bupDataStorage.reliefOnTDP = 0;
+  bupDataStorage.battery50V = 0;
 }
 
 
@@ -99,29 +106,25 @@ void Bup_updateData (void)
   Bup_updateDataFromSNS ();
   // Просим данные у СВС
   Bup_updateDataFromSWS ();
+  // Обновить данные радиостанции
+  Bup_updateRadiostationData ();
   
   // Далее конвертируем полученные данные и будем хранить их уже в таком виде
-  bupDataStorage.latitude           = SNS_getLatitude();
-  bupDataStorage.longitude          = SNS_getLongitude();
-  bupDataStorage.altitude           = SNS_getAltitude();
-  bupDataStorage.headingTrue        = SNS_getTrueCourse();
-  bupDataStorage.headingMgn         = SNS_getMagnetCourse();
-  bupDataStorage.velocityLatitude   = SNS_getLatitudeVelocity();
-  bupDataStorage.velocityLongitude  = SNS_getLongitudeVelocity(); 
-  bupDataStorage.velocityAltitude   = SNS_getAltitudeVelocity(); 
-  bupDataStorage.pitch              = SNS_getPitch();
-  bupDataStorage.roll               = SNS_getRoll();
-  bupDataStorage.course             = SNS_getGroundTrack();
-  
-  // Спрашиваем радиостанцию, и если есть новые данные, то поднимаем флаг, что они обновились
-  if(Radiostation.autoChecker(&bupDataStorage.radioLatitude, 
-                              &bupDataStorage.radioLongitude) == RADIO_GOT_NEW_COORDINATES)
-    bupDataStorage.radioUpdateIndex++;
-  
+  bupDataStorage.currentPointLatitude      = SNS_getLatitude();
+  bupDataStorage.currentPointLongitude     = SNS_getLongitude();
+  bupDataStorage.currentPointAltitude      = SNS_getAltitude();
+  bupDataStorage.currentHeadingTrue        = SNS_getTrueCourse();
+  bupDataStorage.currentHeadingMgn         = SNS_getMagnetCourse();
+  bupDataStorage.currentVelocityLatitude   = SNS_getLatitudeVelocity();
+  bupDataStorage.currentVelocityLongitude  = SNS_getLongitudeVelocity(); 
+  bupDataStorage.currentVelocityAltitude   = SNS_getAltitudeVelocity(); 
+  bupDataStorage.currentPitch              = SNS_getPitch();
+  bupDataStorage.currentRoll               = SNS_getRoll();
+  bupDataStorage.currentCourse             = SNS_getGroundTrack();
   // Рассчитываем по полученным данным высоту рельефа в точке
-  bupDataStorage.reliefHeight       = getHeightOnThisPoint(bupDataStorage.longitude, 
-                                                           bupDataStorage.latitude, 
-                                                           TRIANGULARTION); 
+  bupDataStorage.currentPointRelief = getHeightOnThisPoint(bupDataStorage.currentPointLongitude, 
+                                                           bupDataStorage.currentPointLatitude, 
+                                                           TRIANGULARTION);
 }
 
 /**************************************************************************************************************
@@ -155,3 +158,18 @@ void Bup_updateDataFromSNS (void)
     SelfTesting_SET_FAULT(ST_sns);	
 }
 
+/**************************************************************************************************************
+  Bup_updateRadiostationData - Обновление данных от радиостанции                
+***************************************************************************************************************/
+void Bup_updateRadiostationData (void)
+{
+  // Спрашиваем радиостанцию, и если есть новые данные, то поднимаем флаг, что они обновились
+  if(Radiostation.autoChecker(&bupDataStorage.radioPointLatitude, 
+                              &bupDataStorage.radioPointLongitude) == RADIO_GOT_NEW_COORDINATES)
+  {
+    bupDataStorage.radioPointUpdateIndex++;
+    bupDataStorage.radioPointRelief = getHeightOnThisPoint(bupDataStorage.radioPointLongitude, 
+                                                           bupDataStorage.radioPointLatitude, 
+                                                           TRIANGULARTION);
+  }
+}

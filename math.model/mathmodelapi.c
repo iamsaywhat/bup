@@ -65,20 +65,20 @@ void MathModel_prepareData (void)
 {
   #ifdef flightRegulatorCFB //******************************************************* Если выбран flightRegulatorCFB
     // Координаты точки приземления (подгружаем из памяти)
-    rtU.xyzPoints[lat] = Bup_getTouchdownLatitude();
-    rtU.xyzPoints[lon] = Bup_getTouchdownLongitude();
+    rtU.xyzPoints[lat] = Bup_getTouchdownPointLatitude();
+    rtU.xyzPoints[lon] = Bup_getTouchdownPointLongitude();
     rtU.xyzPoints[alt] = 0;
     // Текущие координаты:
-    rtU.XYZi[lat] = Bup_getLatitude();
-    rtU.XYZi[lon] = Bup_getLongitude();
-    rtU.XYZi[alt] = Bup_getAltitude();
+    rtU.XYZi[lat] = Bup_getCurrentPointLatitude();
+    rtU.XYZi[lon] = Bup_getCurrentPointLongitude();
+    rtU.XYZi[alt] = Bup_getCurrentPointAltitude();
     // Путевой курс
-    rtU.angle = Bup_getCourse();
+    rtU.angle = Bup_getCurrentCourse();
     // Статус навигационного решения от СНС
     rtU.isVeracityGns = 1; //SNS_PosData.Quality;
     // Подставляем статус доступности карты
     rtU.isAvailableDigitalTerrain = SelfTesting_STATUS(ST_MapAvailability);
-    rtU.HighDigitalTerrain = Bup_getReliefHeight();
+    rtU.HighDigitalTerrain = Bup_getCurrentPointRelief();
     rtU.highStopUPS = 300.0;
 	
 	
@@ -107,31 +107,31 @@ void MathModel_prepareData (void)
 
   #else //*************************************************************************** Если выбран flightController  
     /* Точка запланированного приземления */
-    rtU.touchdownPointLatitude  = Bup_getTouchdownLatitude();
-    rtU.touchdownPointLongitude = Bup_getTouchdownLongitude();
-    rtU.touchdownPointAltitude  = Bup_getTouchdownAltitude();
+    rtU.touchdownPointLatitude  = Bup_getTouchdownPointLatitude();
+    rtU.touchdownPointLongitude = Bup_getTouchdownPointLongitude();
+    rtU.touchdownPointAltitude  = Bup_getTouchdownPointAltitude();
     /* Данные от спутника */
-    rtU.currentPointLatitude    = Bup_getLatitude();
-    rtU.currentPointLongitude   = Bup_getLongitude();
-    rtU.currentPointAltitude    = Bup_getAltitude();
-    rtU.velocityLatitude        = Bup_getVelocityLatitude();
-    rtU.velocityLongitude       = Bup_getVelocityLongitude();
-    rtU.velocityAltitude        = Bup_getVelocityAltitude();
-    rtU.trackingCourse          = Bup_getCourse();
+    rtU.currentPointLatitude    = Bup_getCurrentPointLatitude();
+    rtU.currentPointLongitude   = Bup_getCurrentPointLongitude();
+    rtU.currentPointAltitude    = Bup_getCurrentPointAltitude();
+    rtU.velocityLatitude        = Bup_getCurrentVelocityLatitude();
+    rtU.velocityLongitude       = Bup_getCurrentVelocityLongitude();
+    rtU.velocityAltitude        = Bup_getCurrentVelocityAltitude();
+    rtU.trackingCourse          = Bup_getCurrentCourse();
     /* Данные от свс */
     rtU.barometricAirSpeed      = 20; //SWS_getTrueSpeed();          // На время испытаний на стенде устанавливаем константу
     rtU.barometricAltitude      = SWS_getAbsoluteHeight();           // так, как имитатор СВС в настоящий момент отсутсвует  
     rtU.barometricAvailable     = 0; //SelfTesting_STATUS(ST_sws);   // Высоту от СВС подставляем, но этим флагом заставляем игнорировать
     /* Данные от радиостанции */
-    rtU.radioPointLatitude      = Bup_getRadioLatitude();
-    rtU.radioPointLongitude     = Bup_getRadioLongitude();
-    rtU.radioPointAltitude      = Bup_getTouchdownAltitude();        // В радиостанция не присылаем высоту открытия парашюта, поэтому клонируем
-    rtU.radioUpdateIndex        = Bup_getRadioUpdateIndex();
+    rtU.radioPointLatitude      = Bup_getRadioPointLatitude();
+    rtU.radioPointLongitude     = Bup_getRadioPointLongitude();
+    rtU.radioPointAltitude      = Bup_getTouchdownPointAltitude();        // В радиостанция не присылаем высоту открытия парашюта, поэтому клонируем
+    rtU.radioUpdateIndex        = Bup_getRadioPointUpdateIndex();
     /* Данные карты */
-    rtU.currentPointRelief          = Bup_getReliefHeight();
+    rtU.currentPointRelief          = Bup_getCurrentPointRelief();
     rtU.currentPointReliefAvailable = SelfTesting_STATUS(ST_MapAvailability);
-    rtU.touchdownPointRelief        = Bup_getReliefHeightOnTDP();
-    rtU.radioPointRelief            = Bup_getReliefHeightOnTDP();    // Пока высоту по координатам не считаем
+    rtU.touchdownPointRelief        = Bup_getTouchdownPointRelief();
+    rtU.radioPointRelief            = Bup_getRadioPointRelief();
   #endif //************************************************************************** !flightRegulatorCFB 
 }
 

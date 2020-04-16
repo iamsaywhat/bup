@@ -50,27 +50,28 @@ typedef struct{
   Тип структуры служебных данных БУП    
 *******************************************/
 typedef struct{
-  double   touchdownLatitude;          // Широта точки приземления, градус
-  double   touchdownLongitude;         // Долгота точки приземления, градус
-  double   touchdownAltitude;          // Высота раскрытия посадочного парашюта, метры
-  double   latitude;                   // Текущая широта, градус
-  double   longitude;                  // Текущая долгота, градус
-  double   altitude;                   // Текущая высота над уровнем моря по данным от СНС, метры
-  double   headingTrue;                // Истинный курс, радианы
-  double   headingMgn;                 // Магнитный курс, радианы
-  double   velocityLatitude;           // Скорость по широте, м/c
-  double   velocityLongitude;          // Скорость по долготе, м/c
-  double   velocityAltitude;           // Скорость снижения, м/c
-  double   pitch;                      // Тангаж, радианы
-  double   roll;                       // Крен, радианы
-  double   course;                     // Путевой курс, радианы
-  short    reliefHeight;               // Высота рельефа в текущей точке, метры
-  short    reliefOnTDP;                // Высота рельефа в точке приземления, метры
+  double   touchdownPointLatitude;     // Широта точки приземления, градус
+  double   touchdownPointLongitude;    // Долгота точки приземления, градус
+  double   touchdownPointAltitude;     // Высота раскрытия посадочного парашюта, метры
+  short    touchdownPointRelief;       // Высота рельефа в точке приземления, метры
+  double   radioPointLatitude;         // Широта точки приземления полученной от радиостанции, градус
+  double   radioPointLongitude;        // Долгота точки приземления полученной от радиостанции, градус
+  uint8_t  radioPointUpdateIndex;      // Индекс обновления точки полученные от радиостанции
+  short    radioPointRelief;           // Высота рельефа в точке полученной от радиостанции, метры
+  double   currentPointLatitude;       // Текущая широта, градус
+  double   currentPointLongitude;      // Текущая долгота, градус
+  double   currentPointAltitude;       // Текущая высота над уровнем моря по данным от СНС, метры
+  short    currentPointRelief;         // Высота рельефа в текущей точке, метры
+  double   currentHeadingTrue;         // Истинный курс, радианы
+  double   currentHeadingMgn;          // Магнитный курс, радианы
+  double   currentVelocityLatitude;    // Скорость по широте, м/c
+  double   currentVelocityLongitude;   // Скорость по долготе, м/c
+  double   currentVelocityAltitude;    // Скорость снижения, м/c
+  double   currentPitch;               // Тангаж, радианы
+  double   currentRoll;                // Крен, радианы
+  double   currentCourse;              // Путевой курс, радианы
   float    battery50V;                 // Напряжение на секции 50 Вольт АКБ
   uint32_t controlSecond;              // Системное время БУП
-  double   radioLatitude;              // Широта точки приземления поченные от радиостанции
-  double   radioLongitude;             // Долгота точки приземления поченные от радиостанции
-  uint8_t  radioUpdateIndex;           // Индекс проверки обновления
 }BupDataStorage;
 
 
@@ -121,29 +122,38 @@ void Bup_updateDataFromSNS (void);
 void Bup_updateDataFromSWS (void);
 
 
+/**************************************************************************************************************
+  Bup_updateRadiostationData - Обновление данных от радиостанции
+  
+  Описание: Получает данные от радиостанции, если получены координаты расчитывает так же высоту рельефа
+***************************************************************************************************************/
+void Bup_updateRadiostationData (void);
+
 /***************************************************************************
   Функции доступа к данным БУП
 ***************************************************************************/
-inline double   Bup_getTouchdownLatitude(void);
-inline double   Bup_getTouchdownLongitude(void);
-inline double   Bup_getTouchdownAltitude(void);
-inline double   Bup_getLatitude(void);
-inline double   Bup_getLongitude(void);
-inline double   Bup_getAltitude(void);
-inline double   Bup_getHeadingTrue(void);
-inline double   Bup_getHeadingMgn(void);
-inline double   Bup_getVelocityLatitude(void);
-inline double   Bup_getVelocityLongitude(void);
-inline double   Bup_getVelocityAltitude(void);
-inline double   Bup_getPitch(void);
-inline double   Bup_getRoll(void);
-inline double   Bup_getCourse(void);
-inline short    Bup_getReliefHeight(void);
-inline short    Bup_getReliefHeightOnTDP(void);
+inline double   Bup_getTouchdownPointLatitude(void);
+inline double   Bup_getTouchdownPointLongitude(void);
+inline double   Bup_getTouchdownPointAltitude(void);
+inline short    Bup_getTouchdownPointRelief(void);
+inline double   Bup_getCurrentPointLatitude(void);
+inline double   Bup_getCurrentPointLongitude(void);
+inline double   Bup_getCurrentPointAltitude(void);
+inline short    Bup_getCurrentPointRelief(void);
+inline double   Bup_getRadioPointLatitude(void);
+inline double   Bup_getRadioPointLongitude(void);
+inline uint8_t  Bup_getRadioPointUpdateIndex(void);
+inline short    Bup_getRadioPointRelief(void);
+inline double   Bup_getCurrentHeadingTrue(void);
+inline double   Bup_getCurrentHeadingMgn(void);
+inline double   Bup_getCurrentVelocityLatitude(void);
+inline double   Bup_getCurrentVelocityLongitude(void);
+inline double   Bup_getCurrentVelocityAltitude(void);
+inline double   Bup_getCurrentPitch(void);
+inline double   Bup_getCurrentRoll(void);
+inline double   Bup_getCurrentCourse(void);
 inline float    Bup_getBatteryVoltage(void);     
 inline uint32_t Bup_getControlTime (void);
-inline double   Bup_getRadioLatitude(void);
-inline double   Bup_getRadioLongitude(void);
-inline uint8_t  Bup_getRadioUpdateIndex(void);
+
 
 #endif

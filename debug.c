@@ -162,18 +162,18 @@ void debug_prepare_data (void)
   debug_vars.leftBimCommand        = (uint8_t)rtY.leftStrap;                    // Команда от матмодели левому Биму
   debug_vars.rightBimCommand       = (uint8_t)rtY.rightStrap;                   // Команда от матмодели правому Биму
 #endif  
-  debug_vars.TDP_Lat               = Bup_getTouchdownLatitude();                // Широта точки приземления
-  debug_vars.TDP_Lon               = Bup_getTouchdownLongitude();               // Долгота точки приземления
-  debug_vars.Alt2model             = Bup_getAltitude();                         // Высота преобразованная в метры
+  debug_vars.TDP_Lat               = Bup_getTouchdownPointLatitude();           // Широта точки приземления
+  debug_vars.TDP_Lon               = Bup_getTouchdownPointLongitude();          // Долгота точки приземления
+  debug_vars.Alt2model             = Bup_getCurrentPointAltitude();             // Высота преобразованная в метры
   debug_vars.SNSalt                = SNS_position.Struct.Pos_alt;               // Высота в том виде в котором принимаем от СНС
-  debug_vars.rtU_XYZi_Lat          = Bup_getLatitude();                         // Широта преобразованная в градусы
-  debug_vars.rtU_XYZi_Lon          = Bup_getLongitude();                        // Долгота преобразованная в градусы
-  debug_vars.rtU_XYZi_Alt          = Bup_getAltitude();                         // Высота преобразованная в метры
-  debug_vars.Relief_height         = Bup_getReliefHeight();                     // Высота рельефа под нами в метрах
+  debug_vars.rtU_XYZi_Lat          = Bup_getCurrentPointLatitude();             // Широта преобразованная в градусы
+  debug_vars.rtU_XYZi_Lon          = Bup_getCurrentPointLongitude();            // Долгота преобразованная в градусы
+  debug_vars.rtU_XYZi_Alt          = Bup_getCurrentPointAltitude();             // Высота преобразованная в метры
+  debug_vars.Relief_height         = Bup_getCurrentPointRelief();               // Высота рельефа под нами в метрах
   debug_vars.SysState              = systemState;                               // Состояние системы (из SelfTesing)
-  debug_vars.radioLatitude         = Bup_getRadioLatitude();                    // Широта точки приземления от радиостанции
-  debug_vars.radioLongitude        = Bup_getRadioLongitude();                   // Долгота точки приземления от радиостанции
-  debug_vars.radioUpdatedIndex     = Bup_getRadioUpdateIndex();                 // Индекс обновления координат от радиостанции
+  debug_vars.radioLatitude         = Bup_getRadioPointLatitude();               // Широта точки приземления от радиостанции
+  debug_vars.radioLongitude        = Bup_getRadioPointLongitude();              // Долгота точки приземления от радиостанции
+  debug_vars.radioUpdatedIndex     = Bup_getRadioPointUpdateIndex();            // Индекс обновления координат от радиостанции
 }
 
 

@@ -212,7 +212,7 @@ void task_selftesting(void)
     }
     case 5: /* Этап 5 - Доступность карты */
     {
-      SelfTesting_MapAvailability (Bup_getLatitude(), Bup_getLongitude());
+      SelfTesting_MapAvailability (Bup_getCurrentPointLatitude(), Bup_getCurrentPointLongitude());
       TaskManager.Task_SelftestingStage++;
       break;
     }
@@ -372,64 +372,64 @@ void task_loger (void)
     }
     case 18:
     {
-      printf("Model_Lat, deg: %f\n", Bup_getLatitude()); 
+      printf("Model_Lat, deg: %f\n", Bup_getCurrentPointLatitude()); 
       TaskManager.Task_LogerStage++; break;
     }
     case 19:
     {
-      printf("Model_Lon, deg: %f\n", Bup_getLongitude()); 
+      printf("Model_Lon, deg: %f\n", Bup_getCurrentPointLongitude()); 
       TaskManager.Task_LogerStage++; break;
     }
     case 20:
     {
-      printf("Model_Alt, m: %f\n", Bup_getAltitude()); 
+      printf("Model_Alt, m: %f\n", Bup_getCurrentPointAltitude()); 
       TaskManager.Task_LogerStage++; break;
     }
     case 21:
     {
-      printf("Model_VelocityLat, m/s: %f\n", Bup_getVelocityLatitude()); 
+      printf("Model_VelocityLat, m/s: %f\n", Bup_getCurrentVelocityLatitude()); 
       TaskManager.Task_LogerStage++; break;
     }
     case 22:
     {
-      printf("Model_VelocityLon, m/s: %f\n", Bup_getVelocityLongitude()); 
+      printf("Model_VelocityLon, m/s: %f\n", Bup_getCurrentVelocityLongitude()); 
       TaskManager.Task_LogerStage++; break;
     }
     case 23:
     {
-      printf("Model_VelocityAlt, m/s: %f\n", Bup_getVelocityAltitude()); 
+      printf("Model_VelocityAlt, m/s: %f\n", Bup_getCurrentVelocityAltitude()); 
       TaskManager.Task_LogerStage++; break;
     }
     case 24:
     {
-      printf("Model_HeadingTrue, rad: %f\n", Bup_getHeadingTrue()); 
+      printf("Model_HeadingTrue, rad: %f\n", Bup_getCurrentHeadingTrue()); 
       TaskManager.Task_LogerStage++; break;
     }
     case 25:
     {
-      printf("Model_HeadingMgn, rad: %f\n", Bup_getHeadingMgn()); 
+      printf("Model_HeadingMgn, rad: %f\n", Bup_getCurrentHeadingMgn()); 
       TaskManager.Task_LogerStage++; break;
     }
     case 26:
     {
-      printf("Model_Course, rad: %f\n", Bup_getCourse()); 
+      printf("Model_Course, rad: %f\n", Bup_getCurrentCourse()); 
       TaskManager.Task_LogerStage++; break;
     }
     case 27:
     {
-      printf("Model_Pitch, rad: %f\n", Bup_getPitch()); 
+      printf("Model_Pitch, rad: %f\n", Bup_getCurrentPitch()); 
       TaskManager.Task_LogerStage++; break;
     }
     case 28:
     {
-      printf("Model_Roll, rad: %f\n", Bup_getRoll()); 
+      printf("Model_Roll, rad: %f\n", Bup_getCurrentRoll()); 
       TaskManager.Task_LogerStage++; break;
     }
     case 29:
     {
       // Если карта рельефа в текущей позиции доступна, запишем высоту рельефа
       if (SelfTesting_STATUS(ST_MapAvailability))
-        printf("MAP, m: %d\n", Bup_getReliefHeight());
+        printf("MAP, m: %d\n", Bup_getCurrentPointRelief());
       else
         printf("MAP, m: NOT_AVAILABLE\n");
 			
@@ -475,20 +475,20 @@ void task_loger (void)
     case 32:
     {
       static uint8_t lastUpdateIndex = 0;
-      if(lastUpdateIndex != Bup_getRadioUpdateIndex())
+      if(lastUpdateIndex != Bup_getRadioPointUpdateIndex())
       {
-        printf("Radio_lat: %f\n",  Bup_getRadioLatitude());
-        lastUpdateIndex = Bup_getRadioUpdateIndex();
+        printf("Radio_lat: %f\n",  Bup_getRadioPointLatitude());
+        lastUpdateIndex = Bup_getRadioPointUpdateIndex();
       }
       TaskManager.Task_LogerStage++; break;
     }
     case 33:
     {
       static uint8_t lastUpdateIndex = 0;
-      if(lastUpdateIndex != Bup_getRadioUpdateIndex())
+      if(lastUpdateIndex != Bup_getRadioPointUpdateIndex())
       {
-        printf("Radio_lon: %f\n",  Bup_getRadioLongitude());
-        lastUpdateIndex = Bup_getRadioUpdateIndex();
+        printf("Radio_lon: %f\n",  Bup_getRadioPointLongitude());
+        lastUpdateIndex = Bup_getRadioPointUpdateIndex();
       }
       TaskManager.Task_LogerStage++; break;
     }

@@ -98,7 +98,7 @@ void SelfTestingOnline (void)
   // Проверка связи с СНС
   SelfTesting_SNS();
   // Проверка доступности карты
-  SelfTesting_MapAvailability (Bup_getLatitude(), Bup_getLongitude());
+  SelfTesting_MapAvailability (Bup_getCurrentPointLatitude(), Bup_getCurrentPointLongitude());
   // Проверка напряжения на АКБ
   SelfTesting_Battery50Volt();
   // Проверка связи с радиостанцией
