@@ -10,8 +10,8 @@
   Версия ПО БУП               
 *******************************************************************************************************************/
 const BupFirmwareVersion  bupFirmwareVersion = {0,         // Старшая версия ПО
-                                                31,        // Младшая версия ПО
-                                                3,         // Изменения внутри версии
+                                                32,        // Младшая версия ПО
+                                                0,         // Изменения внутри версии
 #ifdef flightRegulatorCFB // Если выбран flightRegulatorCFB
                                                 1,         // Oпция регулятора - flightRegulatorCFB
                                                 0,         // Старшая версия модели регулятора
@@ -171,5 +171,7 @@ void Bup_updateRadiostationData (void)
     bupDataStorage.radioPointRelief = getHeightOnThisPoint(bupDataStorage.radioPointLongitude, 
                                                            bupDataStorage.radioPointLatitude, 
                                                            TRIANGULARTION);
+    if(bupDataStorage.radioPointRelief == MAP_NO_SOLUTION)
+      bupDataStorage.radioPointRelief = 0;
   }
 }
