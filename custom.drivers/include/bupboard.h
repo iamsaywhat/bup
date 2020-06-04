@@ -69,7 +69,7 @@
   JTAGB_TRST           PORT_Pin_2     PORT_OE_        PORT_FUNC_           PORT_MODE_
   JTAGB_TDI            PORT_Pin_3     PORT_OE_        PORT_FUNC_           PORT_MODE_
   JTAGB_TDO            PORT_Pin_4     PORT_OE_        PORT_FUNC_           PORT_MODE_
-  ---                  PORT_Pin_5     PORT_OE_        PORT_FUNC_           PORT_MODE_
+  RADIO_DE             PORT_Pin_5     PORT_OE_OUT     PORT_FUNC_PORT       PORT_MODE_DIGITAL
   SWS_DE               PORT_Pin_6     PORT_OE_OUT     PORT_FUNC_PORT       PORT_MODE_DIGITAL
   SWS_RX               PORT_Pin_7     PORT_OE_IN      PORT_FUNC_OVERRID    PORT_MODE_DIGITAL
   SWS_TX               PORT_Pin_8     PORT_OE_OUT     PORT_FUNC_OVERRID    PORT_MODE_DIGITAL
@@ -197,7 +197,8 @@ extern const PinConfigType BIM_CAN_CS1;        /* Номер CS трансиве
 extern const PinConfigType CAN2_RX;            /* RX ножка порта для CAN2  */
 extern const PinConfigType CAN2_TX;            /* TX ножка порта для CAN2 */
 /****************************************PORTD********************************************************************************/
-extern const PinConfigType SWS_DE;             /* Направление передачи RS-485 */
+extern const PinConfigType RADIO_DE;           /* Напраление передачи RS-458 радиостанции */
+extern const PinConfigType SWS_DE;             /* Направление передачи RS-485 SWS */
 extern const PinConfigType SWS_RX;             /* RX ножка для SWS */
 extern const PinConfigType SWS_TX;             /* TX ножка для SWS */
 extern const PinConfigType BATTERY_50V;        /* Аналоговый вход контроля напряжения АКБ */

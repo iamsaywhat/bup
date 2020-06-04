@@ -25,6 +25,7 @@ const PinConfigType BIM_CAN_CS1       = {MDR_PORTC,  PORT_Pin_10,    PORT_OE_OUT
 const PinConfigType CAN2_RX           = {MDR_PORTC,  PORT_Pin_14,    PORT_OE_IN,      PORT_FUNC_OVERRID,    PORT_MODE_DIGITAL};
 const PinConfigType CAN2_TX           = {MDR_PORTC,  PORT_Pin_15,    PORT_OE_OUT,     PORT_FUNC_OVERRID,    PORT_MODE_DIGITAL};
 /****************************************PORTD********************************************************************************/
+const PinConfigType RADIO_DE          = {MDR_PORTD,  PORT_Pin_5,     PORT_OE_OUT,     PORT_FUNC_PORT,       PORT_MODE_DIGITAL};
 const PinConfigType SWS_DE            = {MDR_PORTD,  PORT_Pin_6,     PORT_OE_OUT,     PORT_FUNC_PORT,       PORT_MODE_DIGITAL}; 
 const PinConfigType SWS_RX            = {MDR_PORTD,  PORT_Pin_7,     PORT_OE_IN,      PORT_FUNC_OVERRID,    PORT_MODE_DIGITAL}; 
 const PinConfigType SWS_TX            = {MDR_PORTD,  PORT_Pin_8,     PORT_OE_OUT,     PORT_FUNC_OVERRID,    PORT_MODE_DIGITAL}; 

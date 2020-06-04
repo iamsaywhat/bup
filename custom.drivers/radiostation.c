@@ -830,6 +830,10 @@ void initialize (uint32_t baudrate)
 	/* Инициализируем пины UART под радиостанцию */
 	Pin_initialize (RADIO_RX);
   Pin_initialize (RADIO_TX);
+	/* Пин выбора направления передачи */
+	Pin_initialize (RADIO_DE);
+	/* По-умолчанию прослушиваем линию - состояние 0 */
+	Pin_reset(RADIO_DE);                    
 	
   UART_DeInit(RADIO_UART);                      /* Сброс конфигуряции UART1 */
   UART_StructInit (&UART_InitStructure);        /* Заполнение структуры по-умолчанию */
@@ -857,6 +861,7 @@ void deinitialize (void)
   UART_Cmd(RADIO_UART, DISABLE); /* Выключение UART1 - RADIO */
   Pin_default (RADIO_RX);        /* Сбрасываем настройку пинов по-умолчанию  */
   Pin_default (RADIO_TX);
+	Pin_default (RADIO_DE);
 }
 /**************************************************************************************************************
   send - Приём пакета данных от радиостанции
@@ -913,6 +918,9 @@ void send(uint8_t index, uint8_t *data, uint8_t size)
 	// Контрольную сумму тоже перевернем в big endian
 	baseFrame.Struct.crc = swapUint16(baseFrame.Struct.crc);
 	
+	// Переводим направление передачи на передачу данных в шину
+	Pin_set(RADIO_DE);
+	
 	// Начинаем отправлять 
   sendFend (RADIO_UART);
 	// Базовая часть пакета
@@ -935,6 +943,9 @@ void send(uint8_t index, uint8_t *data, uint8_t size)
 	setTimeout (&timeout, RADIO_FIFO_TIMEOUT); 
 	while ((UART_GetFlagStatus (RADIO_UART, UART_FLAG_TXFE) != SET) 
 		    && (timeoutStatus(&timeout) != TIME_IS_UP));
+	
+	// Переводим направление передачи на прием данных (прослушка шины в шины)
+	Pin_reset(RADIO_DE);
 }
 /**************************************************************************************************************
   receive - Приём пакета данных от радиостанции
@@ -1089,7 +1100,7 @@ int16_t sendByte (MDR_UART_TypeDef* UARTx, uint16_t byte)
   return 0;
 }
 /**************************************************************************************************************
-  receiveByte - Приём байта данных (с декодированием по Slip-протоколу
+  receiveByte - Приём байта данных (с декодированием по Slip-протоколу)
   Параметры:
             UARTx - Используемый UART модуль
   Возвращает:
