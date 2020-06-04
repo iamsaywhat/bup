@@ -73,15 +73,15 @@
 #define RESERVED                 0x7E00 // Резерв
 #define READY                    0x8000 // Флаг готовности (исправности)
 
-#define CHECK_SENSOR_FAULT(x)       ((x&0x0001))          // Выделение флага "Отказ датчика положения"
-#define CHECK_OVERCURRENT(x)        ((x&0x0002) >> 1)     // Выделение флага "Превышение тока преобразователя" 
-#define	CHECK_OVERVOLT(x)           ((x&0x0004) >> 2)     // Выделение флага "Превышение силовое питание"
-#define CHECK_UNDER_VOLT(x)         ((x&0x0008) >> 3)     // Выделение флага "Недостаточное силовое питание"
-#define CHECK_OVERTEMPERATURE(x)    ((x&0x0010) >> 4)     // Выделение флага "Перегрев двигателя"
-#define CHECK_OVERLOAD(x)           ((x&0x0020) >> 5)     // Выделение флага "Перегруз двигателя"
-#define CHECK_POSITION_ERR(x)       ((x&0x0080) >> 7)     // Выделение флага "Флаг рассогласования положения"
-#define CHECK_HALT_OK(x)            ((x&0x0100) >> 8)     // Выделение флага "Преобразователь выключен"
-#define CHECK_READY(x)              ((x&0x8000) >> 15)    // Выделение флага "Флаг готовности (исправности)"
+#define CHECK_SENSOR_FAULT(x)       ((x&SENSOR_FAULT))           // Выделение флага "Отказ датчика положения"
+#define CHECK_OVERCURRENT(x)        ((x&OVERCURRENT) >> 1)       // Выделение флага "Превышение тока преобразователя" 
+#define	CHECK_OVERVOLT(x)           ((x&OVERVOLT) >> 2)          // Выделение флага "Превышение силовое питание"
+#define CHECK_UNDER_VOLT(x)         ((x&UNDER_VOLT) >> 3)        // Выделение флага "Недостаточное силовое питание"
+#define CHECK_OVERTEMPERATURE(x)    ((x&OVERTEMPERATURE) >> 4)   // Выделение флага "Перегрев двигателя"
+#define CHECK_OVERLOAD(x)           ((x&OVERLOAD) >> 5)          // Выделение флага "Перегруз двигателя"
+#define CHECK_POSITION_ERR(x)       ((x&POSITION_ERR) >> 7)      // Выделение флага "Флаг рассогласования положения"
+#define CHECK_HALT_OK(x)            ((x&HALT_OK) >> 8)           // Выделение флага "Преобразователь выключен"
+#define CHECK_READY(x)              ((x&READY) >> 15)            // Выделение флага "Флаг готовности (исправности)"
 
 /************************************************************
   Структура ответа BIM
