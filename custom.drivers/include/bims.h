@@ -190,6 +190,6 @@ uint8_t BIM_getSpeed (uint16_t DeviceID);
   Возвращает:
             Актуальные флаги состояния устройства.
 **************************************************************************************************************/
-uint8_t BIM_getStatusFlags (uint16_t DeviceID);
+uint16_t BIM_getStatusFlags (uint16_t DeviceID);
 
 #endif
