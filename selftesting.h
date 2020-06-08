@@ -80,6 +80,8 @@ extern uint16_t systemState;
 typedef enum {
 	ST_OK = 1,
 	ST_FAULT = 0,
+	ST_ENABLE = 1,
+	ST_DISABLE = 0,
 } SelfTesting_STATUS_TYPE;
 
 

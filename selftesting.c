@@ -291,22 +291,22 @@ SelfTesting_STATUS_TYPE SelfTesting_LEFT_BIM(void)
   if(SelfTesting_PIN1() != ST_OK  &&  SelfTesting_POW_BIM() == ST_OK)
   {
     if(BIM_checkConnection (LEFT_BIM)) {
-			uint16_t flags = BIM_getStatusFlags(LEFT_BIM);
-			if (!CHECK_SENSOR_FAULT(flags) && 
-					!CHECK_OVERCURRENT(flags) && 
-					!CHECK_OVERVOLT(flags) && 
-					!CHECK_UNDER_VOLT(flags) && 
-					!CHECK_OVERTEMPERATURE(flags) && 
-					!CHECK_OVERLOAD(flags) && 
-					!CHECK_POSITION_ERR(flags) && 
-					!CHECK_HALT_OK(flags) && 
-					CHECK_READY(flags))
+//			uint16_t flags = BIM_getStatusFlags(LEFT_BIM);
+//			if (!CHECK_SENSOR_FAULT(flags) && 
+//					!CHECK_OVERCURRENT(flags) && 
+//					!CHECK_OVERVOLT(flags) && 
+//					!CHECK_UNDER_VOLT(flags) && 
+//  				!CHECK_OVERTEMPERATURE(flags) && 
+//					!CHECK_OVERLOAD(flags) && 
+//					!CHECK_POSITION_ERR(flags) && 
+//					!CHECK_HALT_OK(flags) && 
+//					CHECK_READY(flags))
 				SelfTesting_SET_OK(ST_Left_BIM);
-			else
-				SelfTesting_SET_FAULT(ST_Left_BIM);
+//			else
+//				SelfTesting_SET_FAULT(ST_Left_BIM);
 		}
-    else 
-    SelfTesting_SET_FAULT(ST_Left_BIM);
+//    else 
+//    SelfTesting_SET_FAULT(ST_Left_BIM);
   }
   // Питание на БИМ отсутствует, проверить их нельзя, будем считать, что исправны
   else 
@@ -332,19 +332,19 @@ SelfTesting_STATUS_TYPE SelfTesting_RIGHT_BIM(void)
   {
     // Можно проверить связь
     if(BIM_checkConnection (RIGHT_BIM)) {
-			uint16_t flags = BIM_getStatusFlags(RIGHT_BIM);
-			if (!CHECK_SENSOR_FAULT(flags) && 
-					!CHECK_OVERCURRENT(flags) && 
-					!CHECK_OVERVOLT(flags) && 
-					!CHECK_UNDER_VOLT(flags) && 
-					!CHECK_OVERTEMPERATURE(flags) && 
-					!CHECK_OVERLOAD(flags) && 
-					!CHECK_POSITION_ERR(flags) && 
-					!CHECK_HALT_OK(flags) && 
-					CHECK_READY(flags))
+//			uint16_t flags = BIM_getStatusFlags(RIGHT_BIM);
+//			if (!CHECK_SENSOR_FAULT(flags) && 
+//					!CHECK_OVERCURRENT(flags) && 
+//					!CHECK_OVERVOLT(flags) && 
+//					!CHECK_UNDER_VOLT(flags) && 
+//					!CHECK_OVERTEMPERATURE(flags) && 
+//					!CHECK_OVERLOAD(flags) && 
+//					!CHECK_POSITION_ERR(flags) && 
+//					!CHECK_HALT_OK(flags) && 
+//					CHECK_READY(flags))
 				SelfTesting_SET_OK(ST_Right_BIM);
-			else
-				SelfTesting_SET_FAULT(ST_Right_BIM);
+//			else
+//				SelfTesting_SET_FAULT(ST_Right_BIM);
 		}
     else 
       SelfTesting_SET_FAULT(ST_Right_BIM);
@@ -372,7 +372,13 @@ void SelfTesting_BIMS_TRY_CONNECT(void)
 	
   /* Если хоть один из БИМов неисправен, 
 	и с последней попытки восстановить соединение случился таймаут */ 
-  if((SelfTesting_STATUS(ST_Right_BIM) != ST_OK || 
+	if((SelfTesting_STATUS(ST_POW_BIM) == ST_FAULT) && (timeoutStatus(&timeout) == TIME_IS_UP)) {
+		/* Заводим таймаут на 10 сек */
+    setTimeout(&timeout, 10000); 
+    BIM_enableSupply();
+	}
+	else {
+		  if((SelfTesting_STATUS(ST_Right_BIM) != ST_OK || 
       SelfTesting_STATUS(ST_Left_BIM)  != ST_OK) 
       && (timeoutStatus(&timeout) == TIME_IS_UP))
   {
@@ -384,6 +390,7 @@ void SelfTesting_BIMS_TRY_CONNECT(void)
     else 
       BIM_enableSupply();
   }
+	}
 }
 
 
