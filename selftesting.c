@@ -291,22 +291,22 @@ SelfTesting_STATUS_TYPE SelfTesting_LEFT_BIM(void)
   if(SelfTesting_PIN1() != ST_OK  &&  SelfTesting_POW_BIM() == ST_OK)
   {
     if(BIM_checkConnection (LEFT_BIM)) {
-//			uint16_t flags = BIM_getStatusFlags(LEFT_BIM);
-//			if (!CHECK_SENSOR_FAULT(flags) && 
-//					!CHECK_OVERCURRENT(flags) && 
-//					!CHECK_OVERVOLT(flags) && 
-//					!CHECK_UNDER_VOLT(flags) && 
-//  				!CHECK_OVERTEMPERATURE(flags) && 
-//					!CHECK_OVERLOAD(flags) && 
-//					!CHECK_POSITION_ERR(flags) && 
-//					!CHECK_HALT_OK(flags) && 
-//					CHECK_READY(flags))
+			uint16_t flags = BIM_getStatusFlags(LEFT_BIM);
+			if (!CHECK_SENSOR_FAULT(flags) && 
+					!CHECK_OVERCURRENT(flags) && 
+					!CHECK_OVERVOLT(flags) && 
+					!CHECK_UNDER_VOLT(flags) && 
+  				!CHECK_OVERTEMPERATURE(flags) && 
+					!CHECK_OVERLOAD(flags) && 
+					!CHECK_POSITION_ERR(flags) && 
+					!CHECK_HALT_OK(flags) && 
+					CHECK_READY(flags))
 				SelfTesting_SET_OK(ST_Left_BIM);
-//			else
-//				SelfTesting_SET_FAULT(ST_Left_BIM);
+			else
+				SelfTesting_SET_FAULT(ST_Left_BIM);
 		}
-//    else 
-//    SelfTesting_SET_FAULT(ST_Left_BIM);
+    else 
+    SelfTesting_SET_FAULT(ST_Left_BIM);
   }
   // Питание на БИМ отсутствует, проверить их нельзя, будем считать, что исправны
   else 
@@ -332,19 +332,19 @@ SelfTesting_STATUS_TYPE SelfTesting_RIGHT_BIM(void)
   {
     // Можно проверить связь
     if(BIM_checkConnection (RIGHT_BIM)) {
-//			uint16_t flags = BIM_getStatusFlags(RIGHT_BIM);
-//			if (!CHECK_SENSOR_FAULT(flags) && 
-//					!CHECK_OVERCURRENT(flags) && 
-//					!CHECK_OVERVOLT(flags) && 
-//					!CHECK_UNDER_VOLT(flags) && 
-//					!CHECK_OVERTEMPERATURE(flags) && 
-//					!CHECK_OVERLOAD(flags) && 
-//					!CHECK_POSITION_ERR(flags) && 
-//					!CHECK_HALT_OK(flags) && 
-//					CHECK_READY(flags))
+			uint16_t flags = BIM_getStatusFlags(RIGHT_BIM);
+			if (!CHECK_SENSOR_FAULT(flags) && 
+					!CHECK_OVERCURRENT(flags) && 
+					!CHECK_OVERVOLT(flags) && 
+					!CHECK_UNDER_VOLT(flags) && 
+					!CHECK_OVERTEMPERATURE(flags) && 
+					!CHECK_OVERLOAD(flags) && 
+					!CHECK_POSITION_ERR(flags) && 
+					!CHECK_HALT_OK(flags) && 
+					CHECK_READY(flags))
 				SelfTesting_SET_OK(ST_Right_BIM);
-//			else
-//				SelfTesting_SET_FAULT(ST_Right_BIM);
+			else
+				SelfTesting_SET_FAULT(ST_Right_BIM);
 		}
     else 
       SelfTesting_SET_FAULT(ST_Right_BIM);
@@ -368,28 +368,31 @@ SelfTesting_STATUS_TYPE SelfTesting_RIGHT_BIM(void)
 ************************************************************************************/
 void SelfTesting_BIMS_TRY_CONNECT(void)
 {
-	static TimeoutType timeout = {0, 0, TIME_IS_UP};
+	static TimeoutType timeout = {0, 0, TIME_IS_UP};   // Контроль таймаутом с момента последнего вкл/откл реле
+	static uint8_t needToReset = 0;                    // Флаг ожидания перезапуска
 	
-  /* Если хоть один из БИМов неисправен, 
-	и с последней попытки восстановить соединение случился таймаут */ 
-	if((SelfTesting_STATUS(ST_POW_BIM) == ST_FAULT) && (timeoutStatus(&timeout) == TIME_IS_UP)) {
-		/* Заводим таймаут на 10 сек */
-    setTimeout(&timeout, 10000); 
-    BIM_enableSupply();
+	if(needToReset)                                  // Нужно перезапустить Реле
+	{
+		if(timeoutStatus(&timeout) == TIME_IS_UP)      // Необходимая пауза между включения и отключения выдержана
+		{
+      setTimeout(&timeout, 10000);                 // Взводим новый таймаут
+      BIM_enableSupply();                          // Включаем БИМЫ
+		  needToReset = 0;                             // Сбрасываем флаг ожидания перезапуска
+		}
 	}
-	else {
-		  if((SelfTesting_STATUS(ST_Right_BIM) != ST_OK || 
-      SelfTesting_STATUS(ST_Left_BIM)  != ST_OK) 
-      && (timeoutStatus(&timeout) == TIME_IS_UP))
-  {
-    /* Заводим таймаут на 10 сек */
-    setTimeout(&timeout, 10000);
-    /* Изменим состояние реле питания БИМ на противоположное */
-    if(SelfTesting_STATUS(ST_POW_BIM)) 
-      BIM_disableSupply();
-    else 
-      BIM_enableSupply();
-  }
+	else if ((SelfTesting_STATUS(ST_POW_BIM) == ST_ENABLE) &&    // Если питание на бимах есть гарантированно
+		       (SelfTesting_PIN1() == ST_DISABLE))           
+	{
+		if(SelfTesting_STATUS(ST_Right_BIM) == ST_FAULT ||         // Но хотя бы один из них неисправен
+			 SelfTesting_STATUS(ST_Left_BIM) == ST_FAULT)            
+		{
+		  if (timeoutStatus(&timeout) == TIME_IS_UP)               // И время с момента поледнего перезапуска прошло
+			{
+				BIM_disableSupply();                                   // Отключаем реле питания
+				setTimeout(&timeout, 10000);                           // Взводим новый таймаут
+				needToReset = 1;                                       // Взводим флаг необходимости перезауска
+			}
+		}			
 	}
 }
 
