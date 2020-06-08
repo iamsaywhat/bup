@@ -292,15 +292,17 @@ SelfTesting_STATUS_TYPE SelfTesting_LEFT_BIM(void)
   {
     if(BIM_checkConnection (LEFT_BIM)) {
 			uint16_t flags = BIM_getStatusFlags(LEFT_BIM);
-			if (!CHECK_SENSOR_FAULT(flags) && 
-					!CHECK_OVERCURRENT(flags) && 
-					!CHECK_OVERVOLT(flags) && 
-					!CHECK_UNDER_VOLT(flags) && 
-  				!CHECK_OVERTEMPERATURE(flags) && 
-					!CHECK_OVERLOAD(flags) && 
-					!CHECK_POSITION_ERR(flags) && 
-					!CHECK_HALT_OK(flags) && 
-					CHECK_READY(flags))
+			if (
+//    			!CHECK_SENSOR_FAULT(flags) && 
+//					!CHECK_OVERCURRENT(flags) && 
+//					!CHECK_OVERVOLT(flags) && 
+//					!CHECK_UNDER_VOLT(flags) && 
+//  				!CHECK_OVERTEMPERATURE(flags) && 
+//					!CHECK_OVERLOAD(flags) && 
+//					!CHECK_POSITION_ERR(flags) && 
+//					!CHECK_HALT_OK(flags) && 
+					CHECK_READY(flags)
+			)
 				SelfTesting_SET_OK(ST_Left_BIM);
 			else
 				SelfTesting_SET_FAULT(ST_Left_BIM);
@@ -333,15 +335,17 @@ SelfTesting_STATUS_TYPE SelfTesting_RIGHT_BIM(void)
     // Можно проверить связь
     if(BIM_checkConnection (RIGHT_BIM)) {
 			uint16_t flags = BIM_getStatusFlags(RIGHT_BIM);
-			if (!CHECK_SENSOR_FAULT(flags) && 
-					!CHECK_OVERCURRENT(flags) && 
-					!CHECK_OVERVOLT(flags) && 
-					!CHECK_UNDER_VOLT(flags) && 
-					!CHECK_OVERTEMPERATURE(flags) && 
-					!CHECK_OVERLOAD(flags) && 
-					!CHECK_POSITION_ERR(flags) && 
-					!CHECK_HALT_OK(flags) && 
-					CHECK_READY(flags))
+			if (
+//				  !CHECK_SENSOR_FAULT(flags) && 
+//					!CHECK_OVERCURRENT(flags) && 
+//					!CHECK_OVERVOLT(flags) && 
+//					!CHECK_UNDER_VOLT(flags) && 
+//					!CHECK_OVERTEMPERATURE(flags) && 
+//					!CHECK_OVERLOAD(flags) && 
+//					!CHECK_POSITION_ERR(flags) && 
+//					!CHECK_HALT_OK(flags) && 
+					CHECK_READY(flags)
+			)
 				SelfTesting_SET_OK(ST_Right_BIM);
 			else
 				SelfTesting_SET_FAULT(ST_Right_BIM);

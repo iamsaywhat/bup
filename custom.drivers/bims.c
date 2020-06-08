@@ -110,13 +110,13 @@ void BIM_CAN_initialize (void)
 	// Сейчас настроен фильтр на 200h адрес только на 0 буфере
 	CAN_FilterInitStruct.Filter_ID = CAN_STDID_TO_EXTID(0x200);
 	CAN_FilterInitStruct.Mask_ID = 0xFFFFFFFF;
-	CAN_FilterInit (MDR_CAN1, 0, &CAN_FilterInitStruct);
+	CAN_FilterInit (MDR_CAN1, BUFFER_200, &CAN_FilterInitStruct);
 
 	//Настройка фильтров
 	// Сейчас настроен фильтр на 201h адрес только на 1 буфере
 	CAN_FilterInitStruct.Filter_ID = CAN_STDID_TO_EXTID(0x201);
 	CAN_FilterInitStruct.Mask_ID = 0xFFFFFFFF;
-	CAN_FilterInit (MDR_CAN1, 1, &CAN_FilterInitStruct); 	
+	CAN_FilterInit (MDR_CAN1, BUFFER_201, &CAN_FilterInitStruct); 	
 	
 	// Активируем передатчик
 	Pin_set (BIM_CAN_CS1); 
@@ -145,7 +145,6 @@ uint8_t BIM_sendRequest (uint16_t DeviceID, uint8_t CMD, uint8_t StrapPosition, 
 	
 	// Спросим какой из буферов свободен для использования
 	Buffer_number = CAN_GetDisabledBuffer (BIM_CAN);
-	
 	// Кладём сообщение в нужный буфер и ждем отправки
 	CAN_Transmit(BIM_CAN, Buffer_number, &BIM_Request);
 	// Ожидаем конца передачи, либо превышения времени ожидания
@@ -177,9 +176,6 @@ uint8_t BIM_checkConnection (uint16_t DeviceID)
 	{
 		// Посылаем запрос на получение состояния БИМа
 		status = BIM_sendRequest(DeviceID, BIM_CMD_REQ, 0xAA, 0, 0, 0);
-		
-		if(status)
-			return status;
 	}
 	return status;
 }
@@ -307,23 +303,23 @@ static uint8_t BIM_ReceiveResponse (uint16_t DeviceID)
 	CAN_RxMsgTypeDef RxMsg;
 	
 	setTimeout (&timeout, BIM_RECEIVE_TIMEOUT);
-	if(DeviceID == DEVICE_100)		// Принять ответ от БИМа с адресом 100 (Левый)
+	if(DeviceID == DEVICE_100)		// Принять ответ от БИМа с адресом 200 (Левый)
 	{
-		while (!CAN_GetRxITStatus(BIM_CAN, 0)	&& (timeoutStatus(&timeout) != TIME_IS_UP))
-		CAN_GetRawReceivedData (BIM_CAN, 0 , &RxMsg);
+		while (!CAN_GetRxITStatus(BIM_CAN, BUFFER_200)	&& (timeoutStatus(&timeout) != TIME_IS_UP));
+		CAN_GetRawReceivedData (BIM_CAN, BUFFER_200, &RxMsg);
 		Left_BIM.Buffer[0] =  RxMsg.Data[0];
 		Left_BIM.Buffer[1] =  RxMsg.Data[1];
 		// Сбрасываем флаг того, что имеется необработаное сообщение
-		CAN_ITClearRxTxPendingBit(BIM_CAN, 0, CAN_STATUS_RX_READY);
+		CAN_ITClearRxTxPendingBit(BIM_CAN, BUFFER_200, CAN_STATUS_RX_READY);
 	}
-	else if (DeviceID == DEVICE_101)	// Принять ответ от БИМа с адресом 101 (Правый)
+	else if (DeviceID == DEVICE_101)	// Принять ответ от БИМа с адресом 201 (Правый)
 	{
-		while (!CAN_GetRxITStatus(BIM_CAN, 1)	&& (timeoutStatus(&timeout) != TIME_IS_UP))
-		CAN_GetRawReceivedData (BIM_CAN, 1 , &RxMsg);
+		while (!CAN_GetRxITStatus(BIM_CAN, BUFFER_201)	&& (timeoutStatus(&timeout) != TIME_IS_UP));
+		CAN_GetRawReceivedData (BIM_CAN, BUFFER_201 , &RxMsg);
 		Right_BIM.Buffer[0] =  RxMsg.Data[0];
 		Right_BIM.Buffer[1] =  RxMsg.Data[1];
 	  // Сбрасываем флаг того, что имеется необработаное сообщение
-		CAN_ITClearRxTxPendingBit(BIM_CAN, 1, CAN_STATUS_RX_READY);
+		CAN_ITClearRxTxPendingBit(BIM_CAN, BUFFER_201, CAN_STATUS_RX_READY);
 	}
 	// БИМов с другимми адресами нет, возвращаем признак ошибки
 	else 
