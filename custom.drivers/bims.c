@@ -162,36 +162,62 @@ uint8_t BIM_sendRequest (uint16_t DeviceID, uint8_t CMD, uint8_t StrapPosition, 
 	return BIM_ReceiveResponse (DeviceID);
 }
 
-
+/**************************************************************************************************************
+  BIM_checkNeedToStop - Проверка необходимости предварительно остановить БИМ перед командой управления
+  Параметры:
+            DeviceID 	- Идентификатор БИМ-устройства
+            StrapPosition  - Положение стропы (0..255)  												
+  Возвращает: 
+            0 - БИМ перед отправкой этой команды не нужно остановить
+            1 - БИМ перед отправкой этой команды необходимо остановить	 	
+  Примечание:
+            Эта функция реализует функционал который почему-то не был заложен разработчкиком БИМ.
+            Если БИМ вращается в одном направлении, а приходит команда, согласно которой БИМ должен 
+            начать вращаться в другом направлении, то БИМ предварительно не останавливается,
+            а включается в реверсе, при этом отдаёт противо-ЭДС в сеть, и по сумме напряжений получает
+            превышение питания, из-за чего повисает. 
+**************************************************************************************************************/
+uint8_t BIM_checkNeedToStop (uint16_t DeviceID, uint8_t StrapPosition)
+{
+  uint8_t status = 0;
+  
+  BIM_sendRequest (DeviceID, BIM_CMD_REQ, 0, 77, 255, 255);  // Спросим состояние БИМ
+  
+  if(BIM_getSpeed(DeviceID) < 0)                             // Стропа затягивается
+  {
+    if(BIM_getStrapPosition(DeviceID) > StrapPosition)       // Будем останавливать БИМ только если,
+      status = 1;                                            // Команда собирается запустить его в реверсе
+  }
+  else if(BIM_getSpeed(DeviceID) > 0)                         // Стропа совобождается
+  {
+    if(BIM_getStrapPosition(DeviceID) < StrapPosition)        // Будем останавливать БИМ только если,
+      status = 1;                                             // Команда собирается запустить его в реверсе
+  }  
+  return status;
+}
 /**************************************************************************************************************
     BIM_controlCommand - Команда управления положением БИМа
 **************************************************************************************************************/
 uint8_t BIM_controlCommand (uint16_t DeviceID, uint8_t StrapPosition)
 {
-	static TimeoutType timeout = {0, 0, TIME_IS_UP};   // Для фиксации неисправности во времени
+	static TimeoutType timeout = {0, 0, TIME_IS_UP};           // Для фиксации неисправности во времени
   
-  setTimeout(&timeout, 500);
-  BIM_sendRequest (DeviceID, BIM_CMD_REQ, 0, 77, 255, 255);
+  setTimeout(&timeout, 500);                                 // Устанавливаем максимальное время ожидания остановки БИМ
+  BIM_sendRequest (DeviceID, BIM_CMD_REQ, 0, 77, 255, 255);  // Спросим состояние БИМ
   
-//  if(BIM_getSpeed(DeviceID) < 0) // затягивается
-//  {
-//    if(BIM_getStrapPosition(DeviceID) > StrapPosition) 
-//    {
-//      while(BIM_getSpeed(DeviceID) != 0 && timeoutStatus(&timeout) != TIME_IS_UP)
-//      BIM_sendRequest (DeviceID, BIM_CMD_OFF, 0, 66, 255, 255);      
-//    }
-//  }
-//  else if(BIM_getSpeed(DeviceID) > 0) // освобождается
-//  {
-//    if(BIM_getStrapPosition(DeviceID) < StrapPosition) 
-//    {
-//      while(BIM_getSpeed(DeviceID) != 0 && timeoutStatus(&timeout) != TIME_IS_UP)
-//      BIM_sendRequest (DeviceID, BIM_CMD_OFF, 0, 66, 255, 255);      
-//    }
-//  }
-    
-	while(BIM_getSpeed(DeviceID) != 0 && timeoutStatus(&timeout) != TIME_IS_UP)
-    BIM_sendRequest (DeviceID, BIM_CMD_OFF, 0, 66, 255, 255);
+  uint8_t needToStop = BIM_checkNeedToStop (DeviceID, StrapPosition);
+  
+  if(needToStop)
+  {
+    // Команда собирается запустить его в реверсе
+    while(BIM_getSpeed(DeviceID) != 0 && timeoutStatus(&timeout) != TIME_IS_UP)
+      BIM_sendRequest (DeviceID, BIM_CMD_OFF, 0, 66, 255, 255);      
+  } 
+  
+//	while(BIM_getSpeed(DeviceID) != 0 && timeoutStatus(&timeout) != TIME_IS_UP)
+//    BIM_sendRequest (DeviceID, BIM_CMD_OFF, 0, 66, 255, 255);
+
+  // Теперь отдаем команду
   return BIM_sendRequest (DeviceID, BIM_CMD_ON, StrapPosition, 66, 255, 255);
 }
 
@@ -274,7 +300,7 @@ uint8_t BIM_getVoltage (uint16_t DeviceID)
 /**************************************************************************************************************
     BIM_getCurrent - Получить текущее значение тока
 **************************************************************************************************************/
-uint8_t BIM_getCurrent (uint16_t DeviceID)
+int8_t BIM_getCurrent (uint16_t DeviceID)
 {
 	// Спрашивается положение стропы левого БИМа
 	if(DeviceID == LEFT_BIM)
@@ -295,7 +321,7 @@ uint8_t BIM_getCurrent (uint16_t DeviceID)
 /**************************************************************************************************************
     BIM_getSpeed - Получить текущее значение скорости
 **************************************************************************************************************/
-uint8_t BIM_getSpeed (uint16_t DeviceID)
+int8_t BIM_getSpeed (uint16_t DeviceID)
 {
 	// Спрашивается положение стропы левого БИМа
 	if(DeviceID == LEFT_BIM)
