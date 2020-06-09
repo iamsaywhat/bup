@@ -116,20 +116,17 @@ SelfTesting_STATUS_TYPE SelfTesting_PreflightDiagnostics (void)
   SelfTesting_STATUS_TYPE status = ST_OK;   // Статус анализа тестов (по-умолчанию OK)
 	
   // Основная часть тестов, по которым будем судить о неисправности
-  if(SelfTesting_STATUS(ST_MAP)       == ST_FAULT 
-  || SelfTesting_STATUS(ST_1636PP52Y) == ST_FAULT 
-  || SelfTesting_STATUS(ST_25Q64FV)   == ST_FAULT 
-  || SelfTesting_STATUS(ST_LogFS)     == ST_FAULT
-  || SelfTesting_STATUS(ST_sns)       == ST_FAULT
-  || SelfTesting_STATUS(ST_sws)       == ST_FAULT
-  || SelfTesting_STATUS(ST_pin1)      == ST_FAULT 	
-  || SelfTesting_STATUS(ST_pin2)      == ST_FAULT
-  || SelfTesting_STATUS(ST_BATTERY50V)== ST_FAULT)
-  {
-    // Если хоть один из тестов отрицательный - сбрасываем флаг
-    status = ST_FAULT;
-  }
-		
+  // Если хоть один из тестов отрицательный - сбрасываем флаг
+  status &= SelfTesting_STATUS(ST_MAP);
+  status &= SelfTesting_STATUS(ST_1636PP52Y); 
+  status &= SelfTesting_STATUS(ST_25Q64FV); 
+  status &= SelfTesting_STATUS(ST_LogFS);
+  status &= SelfTesting_STATUS(ST_sns);
+  status &= SelfTesting_STATUS(ST_sws);
+  status &= SelfTesting_STATUS(ST_pin1); 	
+  status &= SelfTesting_STATUS(ST_pin2);
+  status &= SelfTesting_STATUS(ST_BATTERY50V);
+  		
   // По результатам тестирования принимаем решение о режиме индикации
   if(status == ST_OK)
   {
@@ -158,30 +155,17 @@ SelfTesting_STATUS_TYPE SelfTesting_OnlineDiagnostics (void)
   SelfTesting_STATUS_TYPE status = ST_OK;   // Статус анализа тестов (по-умолчанию OK)
 	
   // Основная часть тестов, по которым будем судить о неисправности
-  if(SelfTesting_STATUS(ST_MAP)       == ST_FAULT 
-  || SelfTesting_STATUS(ST_1636PP52Y) == ST_FAULT 
-  || SelfTesting_STATUS(ST_25Q64FV)   == ST_FAULT 
-  || SelfTesting_STATUS(ST_LogFS)     == ST_FAULT
-  || SelfTesting_STATUS(ST_sns)       == ST_FAULT 
-  || SelfTesting_STATUS(ST_sws)       == ST_FAULT
-  || SelfTesting_STATUS(ST_BATTERY50V)== ST_FAULT)
-  {
-    // Если хоть один из тестов отрицательный - сбрасываем флаг
-    status = ST_FAULT;
-  }
-		
-  // Если БИМы аппаратно запитаны (вынута шпилька1 и включено реле),
-  // То не обходимо проверить связь с ними
-  if(SelfTesting_STATUS(ST_pin1) != ST_OK && SelfTesting_STATUS(ST_POW_BIM) == ST_OK)
-  {
-    // Если хоть один из БИМов неисправен
-    if(SelfTesting_STATUS(ST_Left_BIM) == ST_FAULT || SelfTesting_STATUS(ST_Right_BIM) == ST_FAULT)
-    {
-      // Сбрасывает флаг и признаём неисправность
-      status = ST_FAULT;
-    }
-  }
-		
+  // Если хоть один из тестов отрицательный - status будет false
+  status &= SelfTesting_STATUS(ST_MAP);
+  status &= SelfTesting_STATUS(ST_1636PP52Y); 
+  status &= SelfTesting_STATUS(ST_25Q64FV); 
+  status &= SelfTesting_STATUS(ST_LogFS);
+  status &= SelfTesting_STATUS(ST_sns);
+  status &= SelfTesting_STATUS(ST_sws);
+  status &= SelfTesting_STATUS(ST_Left_BIM); 	
+  status &= SelfTesting_STATUS(ST_Right_BIM);  
+  status &= SelfTesting_STATUS(ST_BATTERY50V);
+  		
   // По результатам тестирования принимаем решение о режиме индикации
   if(status == ST_OK)
   {
@@ -335,9 +319,12 @@ SelfTesting_STATUS_TYPE SelfTesting_LEFT_BIM(void)
 			SelfTesting_SET_FAULT(ST_Left_BIM);                 // Если ответ не был получен, то точно неисправен
   }
   // Питание на БИМ отсутствует, проверить их нельзя, будем считать, что исправны
-  else 
-    SelfTesting_SET_OK(ST_Left_BIM);
-	
+  else {
+    if (fault)                              // За исключением случая, когда БИМ
+      SelfTesting_SET_FAULT(ST_Left_BIM);   // выключены по причине по неисправности и ждут перезапуска
+    else
+      SelfTesting_SET_OK(ST_Left_BIM);
+	}
   return (SelfTesting_STATUS_TYPE)SelfTesting_STATUS(ST_Left_BIM);
 }
 
@@ -401,9 +388,12 @@ SelfTesting_STATUS_TYPE SelfTesting_RIGHT_BIM(void)
 			SelfTesting_SET_FAULT(ST_Right_BIM);                 // Если ответ не был получен, то точно неисправен
   }
   // Питание на БИМ отсутствует, проверить их нельзя, будем считать, что исправны
-  else 
-    SelfTesting_SET_OK(ST_Right_BIM);
-	
+  else {
+    if (fault)                              // За исключением случая, когда БИМ
+      SelfTesting_SET_FAULT(ST_Right_BIM);   // выключены по причине по неисправности и ждут перезапуска
+    else
+      SelfTesting_SET_OK(ST_Right_BIM);
+	}
   return (SelfTesting_STATUS_TYPE)SelfTesting_STATUS(ST_Right_BIM);
 }
 
