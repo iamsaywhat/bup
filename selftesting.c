@@ -286,29 +286,53 @@ SelfTesting_STATUS_TYPE SelfTesting_LEFT_BIM(void)
 {
   // Нет смысла проверять БИМ, если аппаратно на них не подано питание
   // (то есть вставлена Шпилька1 и/или реле питания БИМ выключено)
-	
+  // Есть аппаратная проблема связанная повисанием БИМов при скачках напржения
+  // при которой он отвечает на запросы, но больше не управляется
+  // Поэтому необходимо анализировать флаги его состояния, чтобы по ним определять
+  // его состояние. Но здесь возникает вторая проблема, часто даже при штатной работе
+  // БИМ может выставить флаг на очень короткий период времени, о какой-либо неисправности, 
+  // хотя фактически он продолжает работать в нормальном режиме. Получается, что анализировать 
+  // флаги нужно, но необходимо различать ложные флаги (мгновенные), от реальных неисправностей
+  // блокирующих работу. Поэтому будем считать неисправность подтвержденной, если она
+  // продолжает подтверждаться в течение некоторого времени.
+  
+	static TimeoutType timeout = {0, 0, TIME_IS_UP};   // Для фиксации неисправности во времени
+	static uint8_t fault = 0;	                         // Флаг того, что была зафиксирована неисправность и начался отсчет.
+  
   // Если шпилька не вставлена и питание БИМОВ включено
   if(SelfTesting_PIN1() != ST_OK  &&  SelfTesting_POW_BIM() == ST_OK)
   {
-    if(BIM_checkConnection (LEFT_BIM)) {
-			uint16_t flags = BIM_getStatusFlags(LEFT_BIM);
-			if (
-//    			!CHECK_SENSOR_FAULT(flags) && 
-//					!CHECK_OVERCURRENT(flags) && 
-//					!CHECK_OVERVOLT(flags) && 
-//					!CHECK_UNDER_VOLT(flags) && 
-//  				!CHECK_OVERTEMPERATURE(flags) && 
-//					!CHECK_OVERLOAD(flags) && 
-//					!CHECK_POSITION_ERR(flags) && 
-//					!CHECK_HALT_OK(flags) && 
-					CHECK_READY(flags)
-			)
-				SelfTesting_SET_OK(ST_Left_BIM);
+    if(BIM_checkConnection (LEFT_BIM)) {                  // Если ответ от БИМА получен
+			uint16_t flags = BIM_getStatusFlags(LEFT_BIM);      // Спрашиваем его флаги
+			uint8_t summary = 0;                                 // Суммируем по ИЛИ все флаги несправностей
+      summary |= CHECK_SENSOR_FAULT(flags); 
+      summary |= CHECK_OVERCURRENT(flags); 
+      summary |= CHECK_OVERVOLT(flags); 
+      summary |= CHECK_UNDER_VOLT(flags); 
+      summary |= CHECK_OVERTEMPERATURE(flags); 
+			summary |= CHECK_OVERLOAD(flags); 
+      summary |= CHECK_POSITION_ERR(flags); 
+			summary |= CHECK_HALT_OK(flags); 
+//			summary |= !CHECK_READY(flags);
+			
+			if (!fault && summary) {                // Текущие флаги сообщают о первой неисправности, 
+				fault = 1;                            // Фиксируем неиправность
+				setTimeout(&timeout, 5000);           // Начинаем отсчет подтвержения неисправности
+			}
+			else if (!summary)                      // В данный момент неисправность ушла
+			{
+				fault = 0;                            // Снимаем фиксацию
+				timeout.start = 0;                    // Сбрасываем таймаут
+				timeout.stop = 0;              
+				timeout.status = TIME_IS_UP;
+			}
+			if(fault && timeoutStatus(&timeout) == TIME_IS_UP)  // Фиксация неисправности не была снята и время фиксации вышло
+				SelfTesting_SET_FAULT(ST_Left_BIM);               // Подтверждаем неисправность
 			else
-				SelfTesting_SET_FAULT(ST_Left_BIM);
+				SelfTesting_SET_OK(ST_Left_BIM);                  // Иначе поддверждаем исправность
 		}
     else 
-    SelfTesting_SET_FAULT(ST_Left_BIM);
+			SelfTesting_SET_FAULT(ST_Left_BIM);                 // Если ответ не был получен, то точно неисправен
   }
   // Питание на БИМ отсутствует, проверить их нельзя, будем считать, что исправны
   else 
@@ -328,33 +352,56 @@ SelfTesting_STATUS_TYPE SelfTesting_RIGHT_BIM(void)
 {	
   // Нет смысла проверять БИМ, если аппаратно на них не подано питание
   // (то есть вставлена Шпилька1 и/или реле питания БИМ выключено)
-	
+  // Есть аппаратная проблема связанная повисанием БИМов при скачках напржения
+  // при которой он отвечает на запросы, но больше не управляется
+  // Поэтому необходимо анализировать флаги его состояния, чтобы по ним определять
+  // его состояние. Но здесь возникает вторая проблема, часто даже при штатной работе
+  // БИМ может выставить флаг на очень короткий период времени, о какой-либо неисправности, 
+  // хотя фактически он продолжает работать в нормальном режиме. Получается, что анализировать 
+  // флаги нужно, но необходимо различать ложные флаги (мгновенные), от реальных неисправностей
+  // блокирующих работу. Поэтому будем считать неисправность подтвержденной, если она
+  // продолжает подтверждаться в течение некоторого времени.
+  
+	static TimeoutType timeout = {0, 0, TIME_IS_UP};   // Для фиксации неисправности во времени
+	static uint8_t fault = 0;	                         // Флаг того, что была зафиксирована неисправность и начался отсчет.
+  
   // Если шпилька не вставлена и питание БИМОВ включено
   if(SelfTesting_PIN1() != ST_OK  &&  SelfTesting_POW_BIM() == ST_OK)
   {
-    // Можно проверить связь
-    if(BIM_checkConnection (RIGHT_BIM)) {
-			uint16_t flags = BIM_getStatusFlags(RIGHT_BIM);
-			if (
-//				  !CHECK_SENSOR_FAULT(flags) && 
-//					!CHECK_OVERCURRENT(flags) && 
-//					!CHECK_OVERVOLT(flags) && 
-//					!CHECK_UNDER_VOLT(flags) && 
-//					!CHECK_OVERTEMPERATURE(flags) && 
-//					!CHECK_OVERLOAD(flags) && 
-//					!CHECK_POSITION_ERR(flags) && 
-//					!CHECK_HALT_OK(flags) && 
-					CHECK_READY(flags)
-			)
-				SelfTesting_SET_OK(ST_Right_BIM);
+    if(BIM_checkConnection (RIGHT_BIM)) {                  // Если ответ от БИМА получен
+			uint16_t flags = BIM_getStatusFlags(RIGHT_BIM);      // Спрашиваем его флаги
+			uint8_t summary = 0;                                 // Суммируем по ИЛИ все флаги несправностей
+      summary |= CHECK_SENSOR_FAULT(flags); 
+      summary |= CHECK_OVERCURRENT(flags); 
+      summary |= CHECK_OVERVOLT(flags); 
+      summary |= CHECK_UNDER_VOLT(flags); 
+      summary |= CHECK_OVERTEMPERATURE(flags); 
+			summary |= CHECK_OVERLOAD(flags); 
+      summary |= CHECK_POSITION_ERR(flags); 
+			summary |= CHECK_HALT_OK(flags); 
+//			summary |= !CHECK_READY(flags);
+			
+			if (!fault && summary) {                // Текущие флаги сообщают о первой неисправности, 
+				fault = 1;                            // Фиксируем неиправность
+				setTimeout(&timeout, 5000);           // Начинаем отсчет подтвержения неисправности
+			}
+			else if (!summary)                      // В данный момент неисправность ушла
+			{
+				fault = 0;                            // Снимаем фиксацию
+				timeout.start = 0;                    // Сбрасываем таймаут
+				timeout.stop = 0;              
+				timeout.status = TIME_IS_UP;
+			}
+			if(fault && timeoutStatus(&timeout) == TIME_IS_UP)   // Фиксация неисправности не была снята и время фиксации вышло
+				SelfTesting_SET_FAULT(ST_Right_BIM);               // Подтверждаем неисправность
 			else
-				SelfTesting_SET_FAULT(ST_Right_BIM);
+				SelfTesting_SET_OK(ST_Right_BIM);                  // Иначе поддверждаем исправность
 		}
     else 
-      SelfTesting_SET_FAULT(ST_Right_BIM);
+			SelfTesting_SET_FAULT(ST_Right_BIM);                 // Если ответ не был получен, то точно неисправен
   }
   // Питание на БИМ отсутствует, проверить их нельзя, будем считать, что исправны
-  else
+  else 
     SelfTesting_SET_OK(ST_Right_BIM);
 	
   return (SelfTesting_STATUS_TYPE)SelfTesting_STATUS(ST_Right_BIM);
