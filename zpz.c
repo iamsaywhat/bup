@@ -1010,12 +1010,12 @@ static void ZPZ_Response_BIM_CONTROL (uint16_t NumPacket)
   // Проверяем вращается ли БИМ сейчас (по ненулевой скорости) и если да, то стопорим его, и
   // посылаем новую команду.
   
-  BIM_sendRequest (BIM_Side, BIM_CMD_REQ, 0, 55, 255, 255);
-	while(BIM_getSpeed(BIM_Side) != 0)
-    BIM_sendRequest (BIM_Side, BIM_CMD_OFF, 0, 66, 255, 255);
-  
-	/* Отправляем запрос на управление с параметрами */
-	status = BIM_sendRequest (BIM_Side, BIM_Data.Struct.State, BIM_Data.Struct.Position, 7, 255, 255);
+  if(BIM_Data.Struct.State == BIM_CMD_REQ)
+    status = BIM_updateCommand(BIM_Side);
+  else if (BIM_Data.Struct.State == BIM_CMD_OFF)
+    status = BIM_stopCommand(BIM_Side);
+  else if (BIM_Data.Struct.State == BIM_CMD_ON)
+    status = BIM_controlCommand(BIM_Side, BIM_Data.Struct.Position);
 	
 	/* Теперь нужно ответить по ЗПЗ */
 	if(status)
@@ -1080,7 +1080,7 @@ static void ZPZ_Response_BIM_STATUS(uint16_t NumPacket)
 	}
 	
 	/* Спросим состояние БИМов */
-	status = BIM_sendRequest(BIM_Side, BIM_CMD_REQ, 0, 0, 0, 0);
+	status = BIM_updateCommand(BIM_Side);
 	/* Проверим состоялся ли обмен, и если нет, то ответим ошибкой */
 	if(!status)
 	{	

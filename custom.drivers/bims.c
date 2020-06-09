@@ -163,6 +163,53 @@ uint8_t BIM_sendRequest (uint16_t DeviceID, uint8_t CMD, uint8_t StrapPosition, 
 }
 
 
+/**************************************************************************************************************
+    BIM_controlCommand - Команда управления положением БИМа
+**************************************************************************************************************/
+uint8_t BIM_controlCommand (uint16_t DeviceID, uint8_t StrapPosition)
+{
+	static TimeoutType timeout = {0, 0, TIME_IS_UP};   // Для фиксации неисправности во времени
+  
+  setTimeout(&timeout, 500);
+  BIM_sendRequest (DeviceID, BIM_CMD_REQ, 0, 77, 255, 255);
+  
+//  if(BIM_getSpeed(DeviceID) < 0) // затягивается
+//  {
+//    if(BIM_getStrapPosition(DeviceID) > StrapPosition) 
+//    {
+//      while(BIM_getSpeed(DeviceID) != 0 && timeoutStatus(&timeout) != TIME_IS_UP)
+//      BIM_sendRequest (DeviceID, BIM_CMD_OFF, 0, 66, 255, 255);      
+//    }
+//  }
+//  else if(BIM_getSpeed(DeviceID) > 0) // освобождается
+//  {
+//    if(BIM_getStrapPosition(DeviceID) < StrapPosition) 
+//    {
+//      while(BIM_getSpeed(DeviceID) != 0 && timeoutStatus(&timeout) != TIME_IS_UP)
+//      BIM_sendRequest (DeviceID, BIM_CMD_OFF, 0, 66, 255, 255);      
+//    }
+//  }
+    
+	while(BIM_getSpeed(DeviceID) != 0 && timeoutStatus(&timeout) != TIME_IS_UP)
+    BIM_sendRequest (DeviceID, BIM_CMD_OFF, 0, 66, 255, 255);
+  return BIM_sendRequest (DeviceID, BIM_CMD_ON, StrapPosition, 66, 255, 255);
+}
+
+/**************************************************************************************************************
+    BIM_stopCommand - Команда на остановку БИМА
+**************************************************************************************************************/
+uint8_t BIM_stopCommand (uint16_t DeviceID)
+{
+  return BIM_sendRequest (DeviceID, BIM_CMD_OFF, 0, 11, 255, 255);
+}
+
+/**************************************************************************************************************
+    BIM_updateCommand - Обновить данные о состоянии БИМа
+**************************************************************************************************************/
+uint8_t BIM_updateCommand (uint16_t DeviceID)
+{
+  return BIM_sendRequest (DeviceID, BIM_CMD_REQ, 0, 55, 255, 255);
+}
 
 /**************************************************************************************************************
     BIM_checkConnection - Проверка связи с БИМами
