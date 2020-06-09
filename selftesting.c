@@ -370,7 +370,7 @@ SelfTesting_STATUS_TYPE SelfTesting_RIGHT_BIM(void)
 			
 			if (!fault && summary) {                // Текущие флаги сообщают о первой неисправности, 
 				fault = 1;                            // Фиксируем неиправность
-				setTimeout(&timeout, 5000);           // Начинаем отсчет подтвержения неисправности
+				setTimeout(&timeout, 4000);           // Начинаем отсчет подтвержения неисправности
 			}
 			else if (!summary)                      // В данный момент неисправность ушла
 			{
