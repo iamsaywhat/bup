@@ -280,43 +280,43 @@ SelfTesting_STATUS_TYPE SelfTesting_LEFT_BIM(void)
   // блокирующих работу. Поэтому будем считать неисправность подтвержденной, если она
   // продолжает подтверждаться в течение некоторого времени.
   
-	static TimeoutType timeout = {0, 0, TIME_IS_UP};   // Для фиксации неисправности во времени
-	static uint8_t fault = 0;	                         // Флаг того, что была зафиксирована неисправность и начался отсчет.
+  static TimeoutType timeout = {0, 0, TIME_IS_UP};   // Для фиксации неисправности во времени
+  static uint8_t fault = 0;	                         // Флаг того, что была зафиксирована неисправность и начался отсчет.
   
   // Если шпилька не вставлена и питание БИМОВ включено
   if(SelfTesting_PIN1() != ST_OK  &&  SelfTesting_POW_BIM() == ST_OK)
   {
     if(BIM_checkConnection (LEFT_BIM) == BIM_DONE) {      // Если ответ от БИМА получен
-			uint16_t flags = BIM_getStatusFlags(LEFT_BIM);      // Спрашиваем его флаги
-			uint8_t summary = 0;                                // Суммируем по ИЛИ все флаги несправностей
+      uint16_t flags = BIM_getStatusFlags(LEFT_BIM);      // Спрашиваем его флаги
+      uint8_t summary = 0;                                // Суммируем по ИЛИ все флаги несправностей
       summary |= CHECK_SENSOR_FAULT(flags); 
       summary |= CHECK_OVERCURRENT(flags); 
       summary |= CHECK_OVERVOLT(flags); 
       summary |= CHECK_UNDER_VOLT(flags); 
       summary |= CHECK_OVERTEMPERATURE(flags); 
-			summary |= CHECK_OVERLOAD(flags); 
+      summary |= CHECK_OVERLOAD(flags); 
       summary |= CHECK_POSITION_ERR(flags); 
-			summary |= CHECK_HALT_OK(flags); 
-//			summary |= !CHECK_READY(flags);
+      summary |= CHECK_HALT_OK(flags); 
+//      summary |= !CHECK_READY(flags);
 			
-			if (!fault && summary) {                // Текущие флаги сообщают о первой неисправности, 
-				fault = 1;                            // Фиксируем неиправность
-				setTimeout(&timeout, 5000);           // Начинаем отсчет подтвержения неисправности
-			}
-			else if (!summary)                      // В данный момент неисправность ушла
-			{
-				fault = 0;                            // Снимаем фиксацию
-				timeout.start = 0;                    // Сбрасываем таймаут
-				timeout.stop = 0;              
-				timeout.status = TIME_IS_UP;
-			}
-			if(fault && timeoutStatus(&timeout) == TIME_IS_UP)  // Фиксация неисправности не была снята и время фиксации вышло
-				SelfTesting_SET_FAULT(ST_Left_BIM);               // Подтверждаем неисправность
-			else
-				SelfTesting_SET_OK(ST_Left_BIM);                  // Иначе поддверждаем исправность
-		}
+      if (!fault && summary) {                // Текущие флаги сообщают о первой неисправности, 
+        fault = 1;                            // Фиксируем неиправность
+        setTimeout(&timeout, 5000);           // Начинаем отсчет подтвержения неисправности
+      }
+      else if (!summary)                      // В данный момент неисправность ушла
+      {
+        fault = 0;                            // Снимаем фиксацию
+		timeout.start = 0;                    // Сбрасываем таймаут
+        timeout.stop = 0;              
+		timeout.status = TIME_IS_UP;
+      }
+	  if (fault && timeoutStatus(&timeout) == TIME_IS_UP)  // Фиксация неисправности не была снята и время фиксации вышло
+        SelfTesting_SET_FAULT(ST_Left_BIM);                // Подтверждаем неисправность
+      else
+        SelfTesting_SET_OK(ST_Left_BIM);                   // Иначе поддверждаем исправность
+	}
     else 
-			SelfTesting_SET_FAULT(ST_Left_BIM);                 // Если ответ не был получен, то точно неисправен
+      SelfTesting_SET_FAULT(ST_Left_BIM);                  // Если ответ не был получен, то точно неисправен
   }
   // Питание на БИМ отсутствует, проверить их нельзя, будем считать, что исправны
   else {
@@ -324,7 +324,7 @@ SelfTesting_STATUS_TYPE SelfTesting_LEFT_BIM(void)
       SelfTesting_SET_FAULT(ST_Left_BIM);   // выключены по причине по неисправности и ждут перезапуска
     else
       SelfTesting_SET_OK(ST_Left_BIM);
-	}
+  }
   return (SelfTesting_STATUS_TYPE)SelfTesting_STATUS(ST_Left_BIM);
 }
 
@@ -349,51 +349,51 @@ SelfTesting_STATUS_TYPE SelfTesting_RIGHT_BIM(void)
   // блокирующих работу. Поэтому будем считать неисправность подтвержденной, если она
   // продолжает подтверждаться в течение некоторого времени.
   
-	static TimeoutType timeout = {0, 0, TIME_IS_UP};   // Для фиксации неисправности во времени
-	static uint8_t fault = 0;	                         // Флаг того, что была зафиксирована неисправность и начался отсчет.
+  static TimeoutType timeout = {0, 0, TIME_IS_UP};   // Для фиксации неисправности во времени
+  static uint8_t fault = 0;	                         // Флаг того, что была зафиксирована неисправность и начался отсчет.
   
   // Если шпилька не вставлена и питание БИМОВ включено
   if(SelfTesting_PIN1() != ST_OK  &&  SelfTesting_POW_BIM() == ST_OK)
   {
     if(BIM_checkConnection (RIGHT_BIM) == BIM_DONE) {      // Если ответ от БИМА получен
-			uint16_t flags = BIM_getStatusFlags(RIGHT_BIM);      // Спрашиваем его флаги
-			uint8_t summary = 0;                                 // Суммируем по ИЛИ все флаги несправностей
+      uint16_t flags = BIM_getStatusFlags(RIGHT_BIM);      // Спрашиваем его флаги
+      uint8_t summary = 0;                                 // Суммируем по ИЛИ все флаги несправностей
       summary |= CHECK_SENSOR_FAULT(flags); 
       summary |= CHECK_OVERCURRENT(flags); 
       summary |= CHECK_OVERVOLT(flags); 
       summary |= CHECK_UNDER_VOLT(flags); 
       summary |= CHECK_OVERTEMPERATURE(flags); 
-			summary |= CHECK_OVERLOAD(flags); 
+      summary |= CHECK_OVERLOAD(flags); 
       summary |= CHECK_POSITION_ERR(flags); 
-			summary |= CHECK_HALT_OK(flags); 
-//			summary |= !CHECK_READY(flags);
+      summary |= CHECK_HALT_OK(flags); 
+//      summary |= !CHECK_READY(flags);
 			
-			if (!fault && summary) {                // Текущие флаги сообщают о первой неисправности, 
-				fault = 1;                            // Фиксируем неиправность
-				setTimeout(&timeout, 4000);           // Начинаем отсчет подтвержения неисправности
-			}
-			else if (!summary)                      // В данный момент неисправность ушла
-			{
-				fault = 0;                            // Снимаем фиксацию
-				timeout.start = 0;                    // Сбрасываем таймаут
-				timeout.stop = 0;              
-				timeout.status = TIME_IS_UP;
-			}
-			if(fault && timeoutStatus(&timeout) == TIME_IS_UP)   // Фиксация неисправности не была снята и время фиксации вышло
-				SelfTesting_SET_FAULT(ST_Right_BIM);               // Подтверждаем неисправность
-			else
-				SelfTesting_SET_OK(ST_Right_BIM);                  // Иначе поддверждаем исправность
-		}
+        if (!fault && summary) {                // Текущие флаги сообщают о первой неисправности, 
+          fault = 1;                            // Фиксируем неиправность
+          setTimeout(&timeout, 4000);           // Начинаем отсчет подтвержения неисправности
+        }
+        else if (!summary)                      // В данный момент неисправность ушла
+        {
+          fault = 0;                            // Снимаем фиксацию
+          timeout.start = 0;                    // Сбрасываем таймаут
+          timeout.stop = 0;              
+          timeout.status = TIME_IS_UP;
+        }
+        if(fault && timeoutStatus(&timeout) == TIME_IS_UP)   // Фиксация неисправности не была снята и время фиксации вышло
+          SelfTesting_SET_FAULT(ST_Right_BIM);               // Подтверждаем неисправность
+        else
+          SelfTesting_SET_OK(ST_Right_BIM);                  // Иначе поддверждаем исправность
+    }
     else 
-			SelfTesting_SET_FAULT(ST_Right_BIM);                 // Если ответ не был получен, то точно неисправен
+      SelfTesting_SET_FAULT(ST_Right_BIM);                   // Если ответ не был получен, то точно неисправен
   }
   // Питание на БИМ отсутствует, проверить их нельзя, будем считать, что исправны
   else {
-    if (fault)                              // За исключением случая, когда БИМ
+    if (fault)                               // За исключением случая, когда БИМ
       SelfTesting_SET_FAULT(ST_Right_BIM);   // выключены по причине по неисправности и ждут перезапуска
     else
       SelfTesting_SET_OK(ST_Right_BIM);
-	}
+  }
   return (SelfTesting_STATUS_TYPE)SelfTesting_STATUS(ST_Right_BIM);
 }
 
@@ -409,32 +409,32 @@ SelfTesting_STATUS_TYPE SelfTesting_RIGHT_BIM(void)
 ************************************************************************************/
 void SelfTesting_BIMS_TRY_CONNECT(void)
 {
-	static TimeoutType timeout = {0, 0, TIME_IS_UP};   // Контроль таймаутом с момента последнего вкл/откл реле
-	static uint8_t needToReset = 0;                    // Флаг ожидания перезапуска
+  static TimeoutType timeout = {0, 0, TIME_IS_UP};   // Контроль таймаутом с момента последнего вкл/откл реле
+  static uint8_t needToReset = 0;                    // Флаг ожидания перезапуска
 	
-	if(needToReset)                                  // Нужно перезапустить Реле
-	{
-		if(timeoutStatus(&timeout) == TIME_IS_UP)      // Необходимая пауза между включения и отключения выдержана
-		{
-      setTimeout(&timeout, 10000);                 // Взводим новый таймаут
-      BIM_enableSupply();                          // Включаем БИМЫ
-		  needToReset = 0;                             // Сбрасываем флаг ожидания перезапуска
-		}
+  if(needToReset)                                    // Нужно перезапустить Реле
+  {
+    if(timeoutStatus(&timeout) == TIME_IS_UP)        // Необходимая пауза между включения и отключения выдержана
+    {
+      setTimeout(&timeout, 10000);                   // Взводим новый таймаут
+      BIM_enableSupply();                            // Включаем БИМЫ
+      needToReset = 0;                               // Сбрасываем флаг ожидания перезапуска
 	}
-	else if ((SelfTesting_STATUS(ST_POW_BIM) == ST_ENABLE) &&    // Если питание на бимах есть гарантированно
-		       (SelfTesting_PIN1() == ST_DISABLE))           
-	{
-		if(SelfTesting_STATUS(ST_Right_BIM) == ST_FAULT ||         // Но хотя бы один из них неисправен
-			 SelfTesting_STATUS(ST_Left_BIM) == ST_FAULT)            
-		{
-		  if (timeoutStatus(&timeout) == TIME_IS_UP)               // И время с момента поледнего перезапуска прошло
-			{
-				BIM_disableSupply();                                   // Отключаем реле питания
-				setTimeout(&timeout, 10000);                           // Взводим новый таймаут
-				needToReset = 1;                                       // Взводим флаг необходимости перезауска
-			}
-		}			
-	}
+  }
+  else if ((SelfTesting_STATUS(ST_POW_BIM) == ST_ENABLE) &&    // Если питание на бимах есть гарантированно
+           (SelfTesting_PIN1() == ST_DISABLE))           
+  {
+    if(SelfTesting_STATUS(ST_Right_BIM) == ST_FAULT ||         // Но хотя бы один из них неисправен
+       SelfTesting_STATUS(ST_Left_BIM) == ST_FAULT)            
+    {
+      if (timeoutStatus(&timeout) == TIME_IS_UP)               // И время с момента поледнего перезапуска прошло
+      {
+        BIM_disableSupply();                                   // Отключаем реле питания
+		setTimeout(&timeout, 10000);                           // Взводим новый таймаут
+        needToReset = 1;                                       // Взводим флаг необходимости перезауска
+      }
+    }			
+  }
 }
 
 

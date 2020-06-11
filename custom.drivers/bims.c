@@ -168,8 +168,8 @@ Bim_status BIM_sendRequest (uint16_t DeviceID, uint8_t CMD, uint8_t StrapPositio
             DeviceID 	- Идентификатор БИМ-устройства
             StrapPosition  - Положение стропы (0..255)  												
   Возвращает: 
-            0 - БИМ перед отправкой этой команды не нужно остановить
-            1 - БИМ перед отправкой этой команды необходимо остановить	 	
+            BIM_DONT_NEED_TO_STOP - БИМ перед отправкой этой команды не нужно остановить
+            BIM_NEED_TO_STOP      - БИМ перед отправкой этой команды необходимо остановить	 	
   Примечание:
             Эта функция реализует функционал который почему-то не был заложен разработчкиком БИМ.
             Если БИМ вращается в одном направлении, а приходит команда, согласно которой БИМ должен 
@@ -200,7 +200,7 @@ Bim_status BIM_checkNeedToStop (uint16_t DeviceID, uint8_t StrapPosition)
 **************************************************************************************************************/
 Bim_status BIM_controlCommand (uint16_t DeviceID, uint8_t StrapPosition)
 {
-	static TimeoutType timeout = {0, 0, TIME_IS_UP};           // Для фиксации неисправности во времени
+  static TimeoutType timeout = {0, 0, TIME_IS_UP};           // Для фиксации неисправности во времени
   
   setTimeout(&timeout, 500);                                 // Устанавливаем максимальное время ожидания остановки БИМ
   BIM_sendRequest (DeviceID, BIM_CMD_REQ, 0, 77, 255, 255);  // Спросим состояние БИМ
@@ -237,15 +237,15 @@ Bim_status BIM_updateCommand (uint16_t DeviceID)
 **************************************************************************************************************/
 Bim_status BIM_checkConnection (uint16_t DeviceID)
 {
-	Bim_status status = BIM_ERROR;  // Флаг результата проверки связи
-	uint8_t i;                      // Счетчик количесвта опросов
+  Bim_status status = BIM_ERROR;  // Флаг результата проверки связи
+  uint8_t i;                      // Счетчик количесвта опросов
 	
-	for(i = 0; i < 5; i++)
-	{
-		// Посылаем запрос на получение состояния БИМа
-		status = BIM_sendRequest(DeviceID, BIM_CMD_REQ, 0xAA, 0, 0, 0);
-	}
-	return status;
+  for(i = 0; i < 5; i++)
+  {
+    // Посылаем запрос на получение состояния БИМа
+    status = BIM_sendRequest(DeviceID, BIM_CMD_REQ, 0xAA, 0, 0, 0);
+  }
+  return status;
 }
 
 

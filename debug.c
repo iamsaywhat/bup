@@ -119,7 +119,7 @@ void debug_prepare_data (void)
   debug_vars.setAngle              = (int16_t)(rtY.setAngle);
   debug_vars.stateTurn             = (uint8_t)(rtY.stateTurn);
   debug_vars.stateAngleDoing       = (uint8_t)(rtY.stateAngleDoing);
-  debug_vars.stateAngleCorrection	 = (uint8_t)(rtY.stateAngleCorrection);
+  debug_vars.stateAngleCorrection  = (uint8_t)(rtY.stateAngleCorrection);
   debug_vars.changeControl	       = (uint8_t)(rtY.changeControl);
   debug_vars.doingManeuverMode     = (uint8_t)(rtY.doingManeuverMode);
   debug_vars.angle                 = (int16_t)(rtU.angle);
