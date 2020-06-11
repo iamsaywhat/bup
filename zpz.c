@@ -967,8 +967,8 @@ static uint16_t ZPZ_Request_BIM_CONTROL (uint16_t CRC)
 
 static void ZPZ_Response_BIM_CONTROL (uint16_t NumPacket)
 {
-	uint16_t BIM_Side;
-	uint8_t  status = 0;
+	uint16_t    BIM_Side;
+	Bim_status  status;
 	ZPZ_RequestControlBIM_Union BIM_Data;
 	
 	/* Разберем буфер */
@@ -1017,11 +1017,11 @@ static void ZPZ_Response_BIM_CONTROL (uint16_t NumPacket)
   else if (BIM_Data.Struct.State == BIM_CMD_ON)
     status = BIM_controlCommand(BIM_Side, BIM_Data.Struct.Position);
 	
-	/* Теперь нужно ответить по ЗПЗ */
-	if(status)
-		ZPZ_ShortResponse(BIM_CONTROL, NumPacket, SUCCES);
-	else 
+	/* Теперь нужно ответить по ЗПЗ */		
+	if (status == BIM_ERROR)
 		ZPZ_ShortResponse(BIM_CONTROL, NumPacket, BIM_CTRL_FAILED);
+  else 
+    ZPZ_ShortResponse(BIM_CONTROL, NumPacket, SUCCES);
 }
 
 
@@ -1042,7 +1042,7 @@ static void ZPZ_Response_BIM_STATUS(uint16_t NumPacket)
 	ZPZ_ResponseStatusBIM_Union   ZPZ_BIM_Status;      // Структура с информацией от БИМ
 	ZPZ_Response_Union            ZPZ_Response;        // Стандартный ответ к ЗПЗ
 	uint16_t                      BIM_Side, i;         // Выбор левого, правого БИМ; счетчик циклов
-	uint8_t                       status = 0;          // Статус обмена с БИМ
+	Bim_status                    status;              // Статус обмена с БИМ
 	
 	/* Разбираем буфер */
 	uint8_t Side = buffer[0];
@@ -1082,7 +1082,7 @@ static void ZPZ_Response_BIM_STATUS(uint16_t NumPacket)
 	/* Спросим состояние БИМов */
 	status = BIM_updateCommand(BIM_Side);
 	/* Проверим состоялся ли обмен, и если нет, то ответим ошибкой */
-	if(!status)
+	if(status == BIM_ERROR)
 	{	
 		ZPZ_ShortResponse(BIM_STATUS, NumPacket, BIM_CTRL_FAILED);
 		return;

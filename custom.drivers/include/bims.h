@@ -45,35 +45,53 @@
 #define BAUDRATE_BIM              125000                // Cкорость обмена по CAN, бит/c
 #define BIM_SEND_TIMEOUT          2                     // Таймаут на отправку сообщения, мс
 #define BIM_RECEIVE_TIMEOUT       3                     // Таймаут на приём ответа, мс
-
-// Адреса БИМ-устройств на CAN шине
-#define DEVICE_100                0x100                 // Левый БИМ
-#define DEVICE_101                0x101                 // Правый БИМ
-#define LEFT_BIM                  0x100                 // Левый БИМ
-#define RIGHT_BIM                 0x101                 // Правый БИМ
 #define BUFFER_200                0
 #define BUFFER_201                1
+
+
+/************************************************************
+  Адреса устройств БИМ на CAN ШИНЕ
+************************************************************/
+typedef enum{
+  DEVICE_100    = 0x100,    // Левый БИМ
+  DEVICE_101    = 0x101,    // Правый БИМ
+  LEFT_BIM      = 0x100,    // Левый БИМ
+  RIGHT_BIM     = 0x101,    // Правый БИМ
+}Bim_devices;
+
 
 /************************************************************
   Список команд управления БИМами
 ************************************************************/
-#define BIM_CMD_OFF								0x00    // Команда выключения          
-#define BIM_CMD_ON								0x01    // Команда включения
-#define BIM_CMD_REQ								0x0F    // Запрос ответа
+typedef enum{
+  BIM_CMD_OFF    = 0x00,    // Команда выключения          
+  BIM_CMD_ON     = 0x01,    // Команда включения
+  BIM_CMD_REQ    = 0x0F,    // Запрос ответа
+}Bim_command;
+
+typedef enum{
+  BIM_DONE,
+  BIM_ERROR,
+  BIM_ALREADY_ON_POSITION,
+  BIM_NEED_TO_STOP,
+  BIM_DONT_NEED_TO_STOP,
+}Bim_status;
 
 /************************************************************
   Макросы для выделения флагов состояния
 ************************************************************/
-#define SENSOR_FAULT             0x0001 // Отказ датчика положения 
-#define OVERCURRENT              0x0002 // Превышение тока преобразователя 
-#define	OVERVOLT                 0x0004 // Превышение силовое питание
-#define UNDER_VOLT               0x0008 // Недостаточное силовое питание
-#define OVERTEMPERATURE          0x0010	// Перегрев двигателя
-#define OVERLOAD                 0x0020 // Перегруз двигателя
-#define POSITION_ERR             0x0080 // Флаг рассогласования положения
-#define HALT_OK                  0x0100 // Преобразователь выключен
-#define RESERVED                 0x7E00 // Резерв
-#define READY                    0x8000 // Флаг готовности (исправности)
+typedef enum {
+  SENSOR_FAULT      = 0x0001,  // Отказ датчика положения 
+  OVERCURRENT       = 0x0002,  // Превышение тока преобразователя 
+  OVERVOLT          = 0x0004,  // Превышение силовое питание
+  UNDER_VOLT        = 0x0008,  // Недостаточное силовое питание
+  OVERTEMPERATURE   = 0x0010,  // Перегрев двигателя
+  OVERLOAD          = 0x0020,  // Перегруз двигателя
+  POSITION_ERR      = 0x0080,  // Флаг рассогласования положения
+  HALT_OK           = 0x0100,  // Преобразователь выключен
+  RESERVED          = 0x7E00,  // Резерв
+  READY             = 0x8000,  // Флаг готовности (исправности)
+}Bim_flags;
 
 #define CHECK_SENSOR_FAULT(x)       ((x&SENSOR_FAULT))           // Выделение флага "Отказ датчика положения"
 #define CHECK_OVERCURRENT(x)        ((x&OVERCURRENT) >> 1)       // Выделение флага "Превышение тока преобразователя" 
@@ -128,7 +146,7 @@ void BIM_CAN_initialize (void);
             0 - Команда не выполнена
             1 - Команда успешно выполнена	 		
 **************************************************************************************************************/
-uint8_t BIM_controlCommand (uint16_t DeviceID, uint8_t StrapPosition);
+Bim_status BIM_controlCommand (uint16_t DeviceID, uint8_t StrapPosition);
 
 /**************************************************************************************************************
   BIM_stopCommand - Команда на остановку БИМа
@@ -138,7 +156,7 @@ uint8_t BIM_controlCommand (uint16_t DeviceID, uint8_t StrapPosition);
             0 - Команда не выполнена
             1 - Команда успешно выполнена	 		
 **************************************************************************************************************/
-uint8_t BIM_stopCommand (uint16_t DeviceID);
+Bim_status BIM_stopCommand (uint16_t DeviceID);
 
 /**************************************************************************************************************
   BIM_updateCommand - Обновление данных о состоянии БИМа
@@ -148,7 +166,7 @@ uint8_t BIM_stopCommand (uint16_t DeviceID);
             0 - Обновление данных не выполнено
             1 - Данные о состоянии БИМа обновлены	 		
 **************************************************************************************************************/
-uint8_t BIM_updateCommand (uint16_t DeviceID);
+Bim_status BIM_updateCommand (uint16_t DeviceID);
 
 /**************************************************************************************************************
   BIM_checkNeedToStop - Проверка необходимости предварительно остановить БИМ перед командой управления
@@ -165,7 +183,7 @@ uint8_t BIM_updateCommand (uint16_t DeviceID);
             а включается в реверсе, при этом отдаёт противо-ЭДС в сеть, и по сумме напряжений получает
             превышение питания, из-за чего повисает. 
 **************************************************************************************************************/
-uint8_t BIM_checkNeedToStop (uint16_t DeviceID, uint8_t StrapPosition);
+Bim_status BIM_checkNeedToStop (uint16_t DeviceID, uint8_t StrapPosition);
 
 /**************************************************************************************************************
   BIM_sendRequest - Функция отправки запроса БИМам с командами
@@ -181,12 +199,12 @@ uint8_t BIM_checkNeedToStop (uint16_t DeviceID, uint8_t StrapPosition);
             0 - Если ошибка при передаче (таймаут передачи)
             1 - Если отправлено успешно	 		
 **************************************************************************************************************/
-uint8_t BIM_sendRequest (uint16_t DeviceID, 
-                         uint8_t  CMD, 
-                         uint8_t  StrapPosition, 
-                         uint8_t  ReqCount, 
-                         uint8_t  SpeedLimit, 
-                         uint8_t  CurrentLimit);
+Bim_status BIM_sendRequest (uint16_t DeviceID, 
+                            uint8_t  CMD, 
+                            uint8_t  StrapPosition, 
+                            uint8_t  ReqCount, 
+                            uint8_t  SpeedLimit, 
+                            uint8_t  CurrentLimit);
 
 /**************************************************************************************************************
   BIM_checkConnection - Проверка связи с БИМами
@@ -196,7 +214,7 @@ uint8_t BIM_sendRequest (uint16_t DeviceID,
             0 - Связь нарущена
             1 - Связь с БИМом в порядке	 		
 **************************************************************************************************************/
-uint8_t BIM_checkConnection (uint16_t DeviceID);
+Bim_status BIM_checkConnection (uint16_t DeviceID);
 
 /**************************************************************************************************************
   BIM_getStrapPosition - Получить текущее положение стропы

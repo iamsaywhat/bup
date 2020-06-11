@@ -13,7 +13,7 @@ BIM_Response_UnionType Left_BIM;
 /**************************************************************************************************************
     Объявления локальных функций модуля
 ***************************************************************************************************************/
-static uint8_t BIM_ReceiveResponse (uint16_t DeviceID);
+static Bim_status BIM_ReceiveResponse (uint16_t DeviceID);
 
 
 /**************************************************************************************************************
@@ -126,7 +126,7 @@ void BIM_CAN_initialize (void)
 /**************************************************************************************************************
     BIM_sendRequest - Отправка запроса к БИМу
 **************************************************************************************************************/
-uint8_t BIM_sendRequest (uint16_t DeviceID, uint8_t CMD, uint8_t StrapPosition, uint8_t ReqCount, uint8_t SpeedLimit, uint8_t CurrentLimit)
+Bim_status BIM_sendRequest (uint16_t DeviceID, uint8_t CMD, uint8_t StrapPosition, uint8_t ReqCount, uint8_t SpeedLimit, uint8_t CurrentLimit)
 {
 	uint16_t         Buffer_number;
 	CAN_TxMsgTypeDef BIM_Request; 
@@ -156,7 +156,7 @@ uint8_t BIM_sendRequest (uint16_t DeviceID, uint8_t CMD, uint8_t StrapPosition, 
 	
 	// Проверяем был ли таймаут, и если да, то выдаём признак неудачи
 	if(timeout.status == TIME_IS_UP)
-		return 0;
+		return BIM_ERROR;
 	
 	// Если попали сюда, значит передача удалась, вернём результат приёма ответа
 	return BIM_ReceiveResponse (DeviceID);
@@ -177,54 +177,48 @@ uint8_t BIM_sendRequest (uint16_t DeviceID, uint8_t CMD, uint8_t StrapPosition, 
             а включается в реверсе, при этом отдаёт противо-ЭДС в сеть, и по сумме напряжений получает
             превышение питания, из-за чего повисает. 
 **************************************************************************************************************/
-uint8_t BIM_checkNeedToStop (uint16_t DeviceID, uint8_t StrapPosition)
+Bim_status BIM_checkNeedToStop (uint16_t DeviceID, uint8_t StrapPosition)
 {
-  uint8_t status = 0;
+  Bim_status status = BIM_DONT_NEED_TO_STOP;
   
   BIM_sendRequest (DeviceID, BIM_CMD_REQ, 0, 77, 255, 255);  // Спросим состояние БИМ
   
   if(BIM_getSpeed(DeviceID) < 0)                             // Стропа затягивается
   {
     if(BIM_getStrapPosition(DeviceID) > StrapPosition)       // Будем останавливать БИМ только если,
-      status = 1;                                            // Команда собирается запустить его в реверсе
+      status = BIM_NEED_TO_STOP;                             // Команда собирается запустить его в реверсе
   }
   else if(BIM_getSpeed(DeviceID) > 0)                         // Стропа совобождается
   {
     if(BIM_getStrapPosition(DeviceID) < StrapPosition)        // Будем останавливать БИМ только если,
-      status = 1;                                             // Команда собирается запустить его в реверсе
+      status = BIM_NEED_TO_STOP;                              // Команда собирается запустить его в реверсе
   }  
   return status;
 }
 /**************************************************************************************************************
     BIM_controlCommand - Команда управления положением БИМа
 **************************************************************************************************************/
-uint8_t BIM_controlCommand (uint16_t DeviceID, uint8_t StrapPosition)
+Bim_status BIM_controlCommand (uint16_t DeviceID, uint8_t StrapPosition)
 {
 	static TimeoutType timeout = {0, 0, TIME_IS_UP};           // Для фиксации неисправности во времени
   
   setTimeout(&timeout, 500);                                 // Устанавливаем максимальное время ожидания остановки БИМ
   BIM_sendRequest (DeviceID, BIM_CMD_REQ, 0, 77, 255, 255);  // Спросим состояние БИМ
-  
-  uint8_t needToStop = BIM_checkNeedToStop (DeviceID, StrapPosition);
-  
-  if(needToStop)
+    
+  if(BIM_checkNeedToStop (DeviceID, StrapPosition) == BIM_NEED_TO_STOP)
   {
     // Команда собирается запустить его в реверсе
     while(BIM_getSpeed(DeviceID) != 0 && timeoutStatus(&timeout) != TIME_IS_UP)
       BIM_sendRequest (DeviceID, BIM_CMD_OFF, 0, 66, 255, 255);      
-  } 
-  
-//	while(BIM_getSpeed(DeviceID) != 0 && timeoutStatus(&timeout) != TIME_IS_UP)
-//    BIM_sendRequest (DeviceID, BIM_CMD_OFF, 0, 66, 255, 255);
-
-  // Теперь отдаем команду
+  }
+ 
   return BIM_sendRequest (DeviceID, BIM_CMD_ON, StrapPosition, 66, 255, 255);
 }
 
 /**************************************************************************************************************
     BIM_stopCommand - Команда на остановку БИМА
 **************************************************************************************************************/
-uint8_t BIM_stopCommand (uint16_t DeviceID)
+Bim_status BIM_stopCommand (uint16_t DeviceID)
 {
   return BIM_sendRequest (DeviceID, BIM_CMD_OFF, 0, 11, 255, 255);
 }
@@ -232,7 +226,7 @@ uint8_t BIM_stopCommand (uint16_t DeviceID)
 /**************************************************************************************************************
     BIM_updateCommand - Обновить данные о состоянии БИМа
 **************************************************************************************************************/
-uint8_t BIM_updateCommand (uint16_t DeviceID)
+Bim_status BIM_updateCommand (uint16_t DeviceID)
 {
   return BIM_sendRequest (DeviceID, BIM_CMD_REQ, 0, 55, 255, 255);
 }
@@ -240,10 +234,10 @@ uint8_t BIM_updateCommand (uint16_t DeviceID)
 /**************************************************************************************************************
     BIM_checkConnection - Проверка связи с БИМами
 **************************************************************************************************************/
-uint8_t BIM_checkConnection (uint16_t DeviceID)
+Bim_status BIM_checkConnection (uint16_t DeviceID)
 {
-	uint8_t status = 0;         // Флаг результата проверки связи
-	uint8_t i;                  // Счетчик количесвта опросов
+	Bim_status status = BIM_ERROR;  // Флаг результата проверки связи
+	uint8_t i;                      // Счетчик количесвта опросов
 	
 	for(i = 0; i < 5; i++)
 	{
@@ -370,7 +364,7 @@ uint16_t BIM_getStatusFlags (uint16_t DeviceID)
     Возвращает: 0 - Если ошибка при приёме (таймаут или DeviceID не найден)
                 1 - Если отправлено успешно 		
 **************************************************************************************************************/
-static uint8_t BIM_ReceiveResponse (uint16_t DeviceID)
+static Bim_status BIM_ReceiveResponse (uint16_t DeviceID)
 {
 	TimeoutType      timeout;
 	CAN_RxMsgTypeDef RxMsg;
@@ -402,10 +396,10 @@ static uint8_t BIM_ReceiveResponse (uint16_t DeviceID)
 	}
 	// БИМов с другимми адресами нет, возвращаем признак ошибки
 	else 
-		return 0;  
+		return BIM_ERROR;  
     // Таймаут, возвращаем признак ошибки	
 	if(timeout.status == TIME_IS_UP)
-		return 0;		
+		return BIM_ERROR;		
 		
-	return 1;
+	return BIM_DONE;
 }

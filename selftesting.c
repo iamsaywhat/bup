@@ -286,9 +286,9 @@ SelfTesting_STATUS_TYPE SelfTesting_LEFT_BIM(void)
   // Если шпилька не вставлена и питание БИМОВ включено
   if(SelfTesting_PIN1() != ST_OK  &&  SelfTesting_POW_BIM() == ST_OK)
   {
-    if(BIM_checkConnection (LEFT_BIM)) {                  // Если ответ от БИМА получен
+    if(BIM_checkConnection (LEFT_BIM) == BIM_DONE) {      // Если ответ от БИМА получен
 			uint16_t flags = BIM_getStatusFlags(LEFT_BIM);      // Спрашиваем его флаги
-			uint8_t summary = 0;                                 // Суммируем по ИЛИ все флаги несправностей
+			uint8_t summary = 0;                                // Суммируем по ИЛИ все флаги несправностей
       summary |= CHECK_SENSOR_FAULT(flags); 
       summary |= CHECK_OVERCURRENT(flags); 
       summary |= CHECK_OVERVOLT(flags); 
@@ -355,7 +355,7 @@ SelfTesting_STATUS_TYPE SelfTesting_RIGHT_BIM(void)
   // Если шпилька не вставлена и питание БИМОВ включено
   if(SelfTesting_PIN1() != ST_OK  &&  SelfTesting_POW_BIM() == ST_OK)
   {
-    if(BIM_checkConnection (RIGHT_BIM)) {                  // Если ответ от БИМА получен
+    if(BIM_checkConnection (RIGHT_BIM) == BIM_DONE) {      // Если ответ от БИМА получен
 			uint16_t flags = BIM_getStatusFlags(RIGHT_BIM);      // Спрашиваем его флаги
 			uint8_t summary = 0;                                 // Суммируем по ИЛИ все флаги несправностей
       summary |= CHECK_SENSOR_FAULT(flags); 
