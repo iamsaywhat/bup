@@ -211,7 +211,8 @@ Bim_status BIM_controlCommand (uint16_t DeviceID, uint8_t StrapPosition)
     while(BIM_getSpeed(DeviceID) != 0 && timeoutStatus(&timeout) != TIME_IS_UP)
       BIM_sendRequest (DeviceID, BIM_CMD_OFF, 0, 66, 255, 255);      
   }
- 
+  if (BIM_getStrapPosition(DeviceID) == StrapPosition)
+    return BIM_ALREADY_ON_POSITION;
   return BIM_sendRequest (DeviceID, BIM_CMD_ON, StrapPosition, 66, 255, 255);
 }
 

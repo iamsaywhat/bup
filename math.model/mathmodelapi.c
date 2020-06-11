@@ -223,39 +223,27 @@ void MathModel_sendBimCommand (uint8_t left, uint8_t right)
   
   if(left > 0 && right == 0) // нужно затянуть левый БИМ в положение left и отпустить правый в 0
   {
-    if (BIM_getStrapPosition (RIGHT_BIM) != 0)                    // Требуется затянуть левый БИМ, правый при этом должен быть в положении 0 
-      BIM_sendRequest (RIGHT_BIM, BIM_CMD_ON, 0, 9, 255, 255);    // Правый не в нуле, поэтому пока только переведём его в ноль
-    
-    else  // Правый действительно находится в нуле, можно отдать команду на затяжку левому
-    {
-      if(BIM_getStrapPosition (LEFT_BIM) != left)
-        BIM_sendRequest (LEFT_BIM, BIM_CMD_ON, left, 7, 255, 255);    // Устанавливать новое положение, будем только если оно отличается от старого (защита от щелчков)
-    }
+    if (BIM_getStrapPosition (RIGHT_BIM) != 0)     // Требуется затянуть левый БИМ, правый при этом должен быть в положении 0 
+      BIM_controlCommand (RIGHT_BIM, 0);           // Правый не в нуле, поэтому пока только переведём его в ноль
+    else                                           // Правый действительно находится в нуле, 
+      BIM_controlCommand(LEFT_BIM, left);          // можно отдать команду на затяжку левому
   }
   else if (right > 0 && left == 0) // нужно затянуть правый БИМ в положение right и отпустить левый в 0
   {
-    if(BIM_getStrapPosition (LEFT_BIM) != 0)                   // Требуется затянуть правый БИМ, левый при этом должен быть в положении 0 
-      BIM_sendRequest (LEFT_BIM, BIM_CMD_ON, 0, 7, 255, 255);  // Левый не в нуле, поэтому пока только переведём его в ноль	
-    else // Левый действительно находится в нуле, можно отдать команду на затяжку правому
-    {
-      if(BIM_getStrapPosition (RIGHT_BIM) != right)                   // Устанавливать новое положение, будем только 
-        BIM_sendRequest (RIGHT_BIM, BIM_CMD_ON, right, 9, 255, 255);  // если оно отличается от старого (защита от щелчков)
-    }
+    if(BIM_getStrapPosition (LEFT_BIM) != 0)       // Требуется затянуть правый БИМ, левый при этом должен быть в положении 0 
+      BIM_controlCommand(LEFT_BIM, 0);             // Левый не в нуле, поэтому пока только переведём его в ноль	
+    else                                           // Левый действительно находится в нуле, 
+      BIM_controlCommand(RIGHT_BIM, right);        // можно отдать команду на затяжку правому
   }
-  else if (right > 0 && left > 0) // нужно затянуть оба БИМа
-  {
-    if (BIM_getStrapPosition (RIGHT_BIM) != right)                   //  
-      BIM_sendRequest (RIGHT_BIM, BIM_CMD_ON, right, 9, 255, 255);   // 
-      
-    if (BIM_getStrapPosition (RIGHT_BIM) != left)                    //  
-      BIM_sendRequest (RIGHT_BIM, BIM_CMD_ON, left, 7, 255, 255);    // 
+  else if (right > 0 && left > 0)                  // нужно затянуть оба БИМа
+  { 
+    BIM_controlCommand(RIGHT_BIM, right); 
+    BIM_controlCommand(LEFT_BIM, left);
   }
   else // Нужно оба бима опустить в 0
   {
-    if(BIM_getStrapPosition (LEFT_BIM) != 0)
-      BIM_sendRequest (LEFT_BIM, BIM_CMD_ON, 0, 7, 255, 255);
-    if(BIM_getStrapPosition (RIGHT_BIM) != 0)
-      BIM_sendRequest (RIGHT_BIM, BIM_CMD_ON, 0, 9, 255, 255);
+    BIM_controlCommand(LEFT_BIM, 0);
+    BIM_controlCommand(RIGHT_BIM, 0);
   }
   // БИМы не сразу обновляют своё состояние по CAN, 
   // поэтому заставляем их 5 раз сообщить своё состояние
