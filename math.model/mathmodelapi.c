@@ -242,11 +242,4 @@ void MathModel_sendBimCommand (uint8_t left, uint8_t right)
     BIM_controlCommand(LEFT_BIM, 0);
     BIM_controlCommand(RIGHT_BIM, 0);
   }
-  // БИМы не сразу обновляют своё состояние по CAN, 
-  // поэтому заставляем их 5 раз сообщить своё состояние
-  for(uint8_t i = 0; i < 5; i++)
-  {
-    SelfTesting_RIGHT_BIM();
-    SelfTesting_LEFT_BIM();
-  }
 }
