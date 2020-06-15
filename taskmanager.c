@@ -8,6 +8,7 @@
 #include "logfs/log.fs.h"
 #include "retarget.printf/RetargetPrintf.h"
 #include "debug.h"
+#include "loger.h"
 
 
 #ifdef flightRegulatorCFB //******************************************************* Если выбран flightRegulatorCFB
@@ -282,160 +283,142 @@ void task_loger (void)
   {
     case 0:
     {
-      printf("\nTimestamp, sec: %d\n", Bup_getControlTime()); 
+      logger_series("timestamp", Bup_getControlTime());
       TaskManager.Task_LogerStage++; break;
     }
     case 1:
     {
-      printf("SNS_Lat: %llu\n", SNS_position.Struct.Pos_lat); 
+      logger_series("sns_lat", SNS_position.Struct.Pos_lat);       
       TaskManager.Task_LogerStage++; break;
     }
     case 2:
     {
-      printf("SNS_Lon: %llu\n", SNS_position.Struct.Pos_lon); 
+      logger_series("sns_lon", SNS_position.Struct.Pos_lon); 
       TaskManager.Task_LogerStage++; break;
     }
     case 3:
     {
-      printf("SNS_Alt: %llu\n", SNS_position.Struct.Pos_alt); 
+      logger_series("sns_alt", SNS_position.Struct.Pos_alt); 
       TaskManager.Task_LogerStage++; break;
     }
     case 4:
     {
-      printf("SNS_Vel_lat: %d\n", SNS_position.Struct.Vel_lat); 
+      logger_series("sns_vel_lat", SNS_position.Struct.Vel_lat); 
       TaskManager.Task_LogerStage++; break;
     }
     case 5:
     {
-      printf("SNS_Vel_lon: %d\n", SNS_position.Struct.Vel_lon); 
+      logger_series("sns_vel_lon", SNS_position.Struct.Vel_lon); 
       TaskManager.Task_LogerStage++; break;
     }
     case 6:
     {
-      printf("SNS_Vel_alt: %d\n", SNS_position.Struct.Vel_alt); 
+      logger_series("sns_vel_alt", SNS_position.Struct.Vel_alt); 
       TaskManager.Task_LogerStage++; break;
     }
     case 7:
     {
-      printf("SNS_Course: %d\n", SNS_position.Struct.Course); 
+      logger_series("sns_course", SNS_position.Struct.Course); 
       TaskManager.Task_LogerStage++; break;
     }
     case 8:
     {
-      printf("SNS_Heading_true: %d\n", SNS_orientation.Struct.Heading_true); 
+      logger_series("sns_heading_true", SNS_orientation.Struct.Heading_true);       
       TaskManager.Task_LogerStage++; break;
     }
     case 9:
     {
-      printf("SNS_Heading_mgn: %d\n", SNS_orientation.Struct.Heading_mgn); 
+      logger_series("sns_heading_mgn", SNS_orientation.Struct.Heading_mgn);  
       TaskManager.Task_LogerStage++; break;
     }
     case 10:
     {
-      printf("SNS_Pitch: %d\n", SNS_orientation.Struct.Pitch); 
+      logger_series("sns_pitch", SNS_orientation.Struct.Pitch);  
       TaskManager.Task_LogerStage++; break;
     }
     case 11:
     {
-      printf("SNS_Roll: %d\n", SNS_orientation.Struct.Roll); 
+      logger_series("sns_roll", SNS_orientation.Struct.Roll); 
       TaskManager.Task_LogerStage++; break;
     }
     case 12:
     {
-      printf("SWS_TrueSpeed: %f\n", SWS_getTrueSpeed()); 
+      logger_series("sns_true_speed", SWS_getTrueSpeed()); 
       TaskManager.Task_LogerStage++; break;
     }
     case 13:
     {
-      printf("SWS_InstrumentSpeed: %f\n", SWS_getInstrumentSpeed()); 
+      logger_series("sns_inst_speed", SWS_getInstrumentSpeed()); 
       TaskManager.Task_LogerStage++; break;
     }
     case 14:
     {
-      printf("SWS_AbsoluteHeight: %f\n", SWS_getAbsoluteHeight());
+      logger_series("sns_abs_height", SWS_getAbsoluteHeight());
       TaskManager.Task_LogerStage++; break;
     }
     case 15:
     {
-      printf("BIML_Pos: %d\n",(uint8_t)(0.5 + 0.3922*BIM_getStrapPosition(LEFT_BIM)));  // Перевод к процентной шкале с округлением
+      logger_series("bim_l_pos", (uint8_t)(0.5 + 0.3922*BIM_getStrapPosition(LEFT_BIM))); // Перевод к процентной шкале с округлением
       TaskManager.Task_LogerStage++; break;  
     }
     case 16:
     {
-      printf("BIMR_Pos: %d\n",(uint8_t)(0.5 + 0.3922*BIM_getStrapPosition(RIGHT_BIM))); // Перевод к процентной шкале с округлением
+      logger_series("bim_r_pos", (uint8_t)(0.5 + 0.3922*BIM_getStrapPosition(RIGHT_BIM))); // Перевод к процентной шкале с округлением
       TaskManager.Task_LogerStage++; break;
     }
     case 17:
     {
-      printf("SystemState: %x\n", systemState); 
+      logger_track(Bup_getCurrentPointLatitude(), Bup_getCurrentPointLongitude(), Bup_getCurrentPointAltitude());
       TaskManager.Task_LogerStage++; break;
     }
     case 18:
     {
-      printf("Model_Lat, deg: %f\n", Bup_getCurrentPointLatitude()); 
+      logger_series("velocity_lat", Bup_getCurrentVelocityLatitude());
       TaskManager.Task_LogerStage++; break;
     }
     case 19:
     {
-      printf("Model_Lon, deg: %f\n", Bup_getCurrentPointLongitude()); 
+      logger_series("velocity_lon", Bup_getCurrentVelocityLongitude());      
       TaskManager.Task_LogerStage++; break;
     }
     case 20:
     {
-      printf("Model_Alt, m: %f\n", Bup_getCurrentPointAltitude()); 
+      logger_series("velocity_alt", Bup_getCurrentVelocityAltitude());
       TaskManager.Task_LogerStage++; break;
     }
     case 21:
     {
-      printf("Model_VelocityLat, m/s: %f\n", Bup_getCurrentVelocityLatitude()); 
+      logger_series("heading_true", Bup_getCurrentHeadingTrue());
       TaskManager.Task_LogerStage++; break;
     }
     case 22:
     {
-      printf("Model_VelocityLon, m/s: %f\n", Bup_getCurrentVelocityLongitude()); 
+      logger_series("heading_mgn", Bup_getCurrentHeadingMgn()); 
       TaskManager.Task_LogerStage++; break;
     }
     case 23:
     {
-      printf("Model_VelocityAlt, m/s: %f\n", Bup_getCurrentVelocityAltitude()); 
+      logger_series("course", Bup_getCurrentCourse());
       TaskManager.Task_LogerStage++; break;
     }
     case 24:
     {
-      printf("Model_HeadingTrue, rad: %f\n", Bup_getCurrentHeadingTrue()); 
+      logger_series("pitch", Bup_getCurrentPitch());
       TaskManager.Task_LogerStage++; break;
     }
     case 25:
     {
-      printf("Model_HeadingMgn, rad: %f\n", Bup_getCurrentHeadingMgn()); 
+      logger_series("roll", Bup_getCurrentRoll());
       TaskManager.Task_LogerStage++; break;
     }
     case 26:
     {
-      printf("Model_Course, rad: %f\n", Bup_getCurrentCourse()); 
+      // Если карта рельефа в текущей позиции доступна, запишем высоту рельефа
+      if (SelfTesting_STATUS(ST_MapAvailability))
+        logger_series("map", Bup_getCurrentPointRelief());
       TaskManager.Task_LogerStage++; break;
     }
     case 27:
-    {
-      printf("Model_Pitch, rad: %f\n", Bup_getCurrentPitch()); 
-      TaskManager.Task_LogerStage++; break;
-    }
-    case 28:
-    {
-      printf("Model_Roll, rad: %f\n", Bup_getCurrentRoll()); 
-      TaskManager.Task_LogerStage++; break;
-    }
-    case 29:
-    {
-      // Если карта рельефа в текущей позиции доступна, запишем высоту рельефа
-      if (SelfTesting_STATUS(ST_MapAvailability))
-        printf("MAP, m: %d\n", Bup_getCurrentPointRelief());
-      else
-        printf("MAP, m: NOT_AVAILABLE\n");
-			
-      TaskManager.Task_LogerStage++; break;
-    }
-    case 30:
     {
       #ifdef flightRegulatorCFB	//******************************************************* Если выбран flightRegulatorCFB
       uint8_t left = 0;
@@ -455,39 +438,29 @@ void task_loger (void)
         right = (uint8_t)rtY.tightenSling;
         left = (uint8_t)rtY.tightenSling;
       }
-      printf("Model_Left_Bim: %d\n", left);
-      printf("Model_Right_Bim: %d\n", right);
+      logger_series("bim_left_cmd", left);
+      logger_series("bim_right_cmd", right);
       #else //*************************************************************************** Если выбран Easy_reg
-      printf("Model_Left_Bim: %d\n", (uint8_t)rtY.leftStrap);
-      printf("Model_Right_Bim: %d\n", (uint8_t)rtY.rightStrap);
+      logger_series("bim_left_cmd", (uint8_t)rtY.leftStrap);
+      logger_series("bim_right_cmd", (uint8_t)rtY.rightStrap);
       #endif //************************************************************************** !flightRegulatorCFB
       TaskManager.Task_LogerStage++; break;
     }
-    case 31:
+    case 28:
     {
       #ifdef flightRegulatorCFB	//******************************************************* Если выбран flightRegulatorCFB
-      printf("Model_TD_CMD: %d\n",  (uint8_t)rtY.cmdTouchDown);
+      logger_series("td_cmd", (uint8_t)rtY.cmdTouchDown);
       #else //*************************************************************************** Если выбран Easy_reg
-      printf("Model_TD_CMD: %d\n",  (uint8_t)rtY.touchdown);
+      logger_series("td_cmd", (uint8_t)rtY.touchdown);
       #endif //************************************************************************** !flightRegulatorCFB
       TaskManager.Task_LogerStage++; break;
     }
-    case 32:
+    case 29:
     {
       static uint8_t lastUpdateIndex = 0;
       if(lastUpdateIndex != Bup_getRadioPointUpdateIndex())
       {
-        printf("Radio_lat: %f\n",  Bup_getRadioPointLatitude());
-        lastUpdateIndex = Bup_getRadioPointUpdateIndex();
-      }
-      TaskManager.Task_LogerStage++; break;
-    }
-    case 33:
-    {
-      static uint8_t lastUpdateIndex = 0;
-      if(lastUpdateIndex != Bup_getRadioPointUpdateIndex())
-      {
-        printf("Radio_lon: %f\n",  Bup_getRadioPointLongitude());
+        logger_point("radio_point", Bup_getRadioPointLatitude(), Bup_getRadioPointLongitude(), Bup_getTouchdownPointAltitude());
         lastUpdateIndex = Bup_getRadioPointUpdateIndex();
       }
       TaskManager.Task_LogerStage++; break;

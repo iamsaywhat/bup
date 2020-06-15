@@ -7,22 +7,22 @@
 #define _LOG_RECORDER_H_
 
 
-/************************************************************************************
-  loger_initmsg - Запись в лог первичной информации
-************************************************************************************/
-void loger_initmsg (void);
-
-
-/************************************************************************************
-  loger_periodprint - Функция, определяющая формат записи в лог сообщений
-  на каждый шаг алгоритма.
-************************************************************************************/
-void loger_periodprint(void);
-
+//typedef enum {
+//  Logger
+//  Logger_LLU,
+//  Logger_F0,
+//  Logger_F1,
+//  Logger_F2
+//}Logger_mods;
 
 /************************************************************************************
   loger_exitmsg - Запись в лог информации о завершении работы БУП
 ************************************************************************************/
-void loger_exitmsg(void);
+void logger_openNewSession(void);
+void logger_warning(char* string);
+void logger_error(char* string);
+void logger_point(char* name, double latitude, double longitute, double altitude);
+void logger_series(char* name, double value);
+void logger_track(double latitude, double longitude, double altitude);
 
 #endif
