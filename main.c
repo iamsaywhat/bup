@@ -97,7 +97,11 @@ int main(void)
   delay_ms(1000);                     /* Ждем 1 секунду, чтобы питание БИМов стабилировалось */
 	
   #ifdef LOGS_ENABLE	//******************************************************* Если включено логирование в черный ящик
-    logger_openNewSession();          /* Запускаем сессию логирования */
+    logger_openNewSession();                          /* Запускаем сессию логирования */
+    logger_point("td",                                /* Загруженная точка приземления */
+                 Bup_getTouchdownPointLatitude(), 
+                 Bup_getTouchdownPointLongitude(), 
+                 Bup_getTouchdownPointAltitude());
   #endif //******************************************************************** !LOGS_ENABLE	
 	
   SelfTestingOnline();                /* Запустим быструю диагностику системы перед запуском управления */
