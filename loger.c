@@ -17,9 +17,6 @@
 #endif //************************************************************************** !flightRegulatorCFB 
 
 
-
-
-
 void logger_openNewSession(void)
 {
   LogFs_initialize();
@@ -46,13 +43,29 @@ void logger_point(char* name, double latitude, double longitute, double altitude
 {
   printf("{\"time\":%llu,\"point\":[\"%s\",%f,%f,%.2f]}\n", getCurrentSystemTime(), name, latitude, longitute, altitude);
 }
-void logger_series(char* name, double value)
-{
-  printf("{\"time\":%llu,\"series\":[\"%s\",%d,%f]}\n", getCurrentSystemTime(), name, Bup_getControlTime(), value);
-}
 void logger_track(double latitude, double longitude, double altitude)
 {
   printf("{\"time\":%llu,\"track\":[%d,%f,%f,%.2f]}\n", getCurrentSystemTime(), Bup_getControlTime(), latitude, longitude, altitude);
+}
+void logger_series_f (char* name, double value)
+{
+  printf("{\"time\":%llu,\"series\":[\"%s\",%d,%f]}\n", getCurrentSystemTime(), name, Bup_getControlTime(), value);
+}
+void logger_series_f0 (char* name, double value)
+{
+  printf("{\"time\":%llu,\"series\":[\"%s\",%d,%.0f]}\n", getCurrentSystemTime(), name, Bup_getControlTime(), value);
+}
+void logger_series_f2 (char* name, double value)
+{
+  printf("{\"time\":%llu,\"series\":[\"%s\",%d,%.2f]}\n", getCurrentSystemTime(), name, Bup_getControlTime(), value);
+}
+void logger_series_lld (char* name, int64_t value)
+{
+  printf("{\"time\":%llu,\"series\":[\"%s\",%d,%lld]}\n", getCurrentSystemTime(), name, Bup_getControlTime(), value);
+}
+void logger_series_llu (char* name, uint64_t value)
+{
+  printf("{\"time\":%llu,\"series\":[\"%s\",%d,%llu]}\n", getCurrentSystemTime(), name, Bup_getControlTime(), value);
 }
 
 

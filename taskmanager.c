@@ -283,87 +283,87 @@ void task_loger (void)
   {
     case 0:
     {
-      logger_series("timestamp", Bup_getControlTime());
+      logger_series_llu ("timestamp", Bup_getControlTime());
       TaskManager.Task_LogerStage++; break;
     }
     case 1:
     {
-      logger_series("sns_lat", SNS_position.Struct.Pos_lat);       
+      logger_series_lld ("sns_lat", SNS_position.Struct.Pos_lat);       
       TaskManager.Task_LogerStage++; break;
     }
     case 2:
     {
-      logger_series("sns_lon", SNS_position.Struct.Pos_lon); 
+      logger_series_lld ("sns_lon", SNS_position.Struct.Pos_lon); 
       TaskManager.Task_LogerStage++; break;
     }
     case 3:
     {
-      logger_series("sns_alt", SNS_position.Struct.Pos_alt); 
+      logger_series_lld ("sns_alt", SNS_position.Struct.Pos_alt); 
       TaskManager.Task_LogerStage++; break;
     }
     case 4:
     {
-      logger_series("sns_vel_lat", SNS_position.Struct.Vel_lat); 
+      logger_series_lld ("sns_vel_lat", SNS_position.Struct.Vel_lat); 
       TaskManager.Task_LogerStage++; break;
     }
     case 5:
     {
-      logger_series("sns_vel_lon", SNS_position.Struct.Vel_lon); 
+      logger_series_lld ("sns_vel_lon", SNS_position.Struct.Vel_lon); 
       TaskManager.Task_LogerStage++; break;
     }
     case 6:
     {
-      logger_series("sns_vel_alt", SNS_position.Struct.Vel_alt); 
+      logger_series_lld ("sns_vel_alt", SNS_position.Struct.Vel_alt); 
       TaskManager.Task_LogerStage++; break;
     }
     case 7:
     {
-      logger_series("sns_course", SNS_position.Struct.Course); 
+      logger_series_lld ("sns_course", SNS_position.Struct.Course); 
       TaskManager.Task_LogerStage++; break;
     }
     case 8:
     {
-      logger_series("sns_heading_true", SNS_orientation.Struct.Heading_true);       
+      logger_series_lld ("sns_heading_true", SNS_orientation.Struct.Heading_true);       
       TaskManager.Task_LogerStage++; break;
     }
     case 9:
     {
-      logger_series("sns_heading_mgn", SNS_orientation.Struct.Heading_mgn);  
+      logger_series_lld ("sns_heading_mgn", SNS_orientation.Struct.Heading_mgn);  
       TaskManager.Task_LogerStage++; break;
     }
     case 10:
     {
-      logger_series("sns_pitch", SNS_orientation.Struct.Pitch);  
+      logger_series_lld ("sns_pitch", SNS_orientation.Struct.Pitch);  
       TaskManager.Task_LogerStage++; break;
     }
     case 11:
     {
-      logger_series("sns_roll", SNS_orientation.Struct.Roll); 
+      logger_series_lld ("sns_roll", SNS_orientation.Struct.Roll); 
       TaskManager.Task_LogerStage++; break;
     }
     case 12:
     {
-      logger_series("sns_true_speed", SWS_getTrueSpeed()); 
+      logger_series_f ("sws_true_speed", SWS_getTrueSpeed()); 
       TaskManager.Task_LogerStage++; break;
     }
     case 13:
     {
-      logger_series("sns_inst_speed", SWS_getInstrumentSpeed()); 
+      logger_series_f ("sws_inst_speed", SWS_getInstrumentSpeed()); 
       TaskManager.Task_LogerStage++; break;
     }
     case 14:
     {
-      logger_series("sns_abs_height", SWS_getAbsoluteHeight());
+      logger_series_f ("sws_abs_height", SWS_getAbsoluteHeight());
       TaskManager.Task_LogerStage++; break;
     }
     case 15:
     {
-      logger_series("bim_l_pos", (uint8_t)(0.5 + 0.3922*BIM_getStrapPosition(LEFT_BIM))); // Перевод к процентной шкале с округлением
+      logger_series_llu ("bim_l_pos", (uint8_t)(0.5 + 0.3922*BIM_getStrapPosition(LEFT_BIM))); // Перевод к процентной шкале с округлением
       TaskManager.Task_LogerStage++; break;  
     }
     case 16:
     {
-      logger_series("bim_r_pos", (uint8_t)(0.5 + 0.3922*BIM_getStrapPosition(RIGHT_BIM))); // Перевод к процентной шкале с округлением
+      logger_series_llu ("bim_r_pos", (uint8_t)(0.5 + 0.3922*BIM_getStrapPosition(RIGHT_BIM))); // Перевод к процентной шкале с округлением
       TaskManager.Task_LogerStage++; break;
     }
     case 17:
@@ -373,49 +373,49 @@ void task_loger (void)
     }
     case 18:
     {
-      logger_series("velocity_lat", Bup_getCurrentVelocityLatitude());
+      logger_series_f ("velocity_lat", Bup_getCurrentVelocityLatitude());
       TaskManager.Task_LogerStage++; break;
     }
     case 19:
     {
-      logger_series("velocity_lon", Bup_getCurrentVelocityLongitude());      
+      logger_series_f ("velocity_lon", Bup_getCurrentVelocityLongitude());      
       TaskManager.Task_LogerStage++; break;
     }
     case 20:
     {
-      logger_series("velocity_alt", Bup_getCurrentVelocityAltitude());
+      logger_series_f ("velocity_alt", Bup_getCurrentVelocityAltitude());
       TaskManager.Task_LogerStage++; break;
     }
     case 21:
     {
-      logger_series("heading_true", Bup_getCurrentHeadingTrue());
+      logger_series_f ("heading_true", Bup_getCurrentHeadingTrue());
       TaskManager.Task_LogerStage++; break;
     }
     case 22:
     {
-      logger_series("heading_mgn", Bup_getCurrentHeadingMgn()); 
+      logger_series_f ("heading_mgn", Bup_getCurrentHeadingMgn()); 
       TaskManager.Task_LogerStage++; break;
     }
     case 23:
     {
-      logger_series("course", Bup_getCurrentCourse());
+      logger_series_f ("course", Bup_getCurrentCourse());
       TaskManager.Task_LogerStage++; break;
     }
     case 24:
     {
-      logger_series("pitch", Bup_getCurrentPitch());
+      logger_series_f ("pitch", Bup_getCurrentPitch());
       TaskManager.Task_LogerStage++; break;
     }
     case 25:
     {
-      logger_series("roll", Bup_getCurrentRoll());
+      logger_series_f ("roll", Bup_getCurrentRoll());
       TaskManager.Task_LogerStage++; break;
     }
     case 26:
     {
       // Если карта рельефа в текущей позиции доступна, запишем высоту рельефа
       if (SelfTesting_STATUS(ST_MapAvailability))
-        logger_series("map", Bup_getCurrentPointRelief());
+        logger_series_f2 ("map", Bup_getCurrentPointRelief());
       TaskManager.Task_LogerStage++; break;
     }
     case 27:
@@ -438,20 +438,20 @@ void task_loger (void)
         right = (uint8_t)rtY.tightenSling;
         left = (uint8_t)rtY.tightenSling;
       }
-      logger_series("bim_left_cmd", left);
-      logger_series("bim_right_cmd", right);
+      logger_series_llu ("bim_left_cmd", left);
+      logger_series_llu ("bim_right_cmd", right);
       #else //*************************************************************************** Если выбран Easy_reg
-      logger_series("bim_left_cmd", (uint8_t)rtY.leftStrap);
-      logger_series("bim_right_cmd", (uint8_t)rtY.rightStrap);
+      logger_series_llu ("bim_left_cmd", (uint8_t)rtY.leftStrap);
+      logger_series_llu ("bim_right_cmd", (uint8_t)rtY.rightStrap);
       #endif //************************************************************************** !flightRegulatorCFB
       TaskManager.Task_LogerStage++; break;
     }
     case 28:
     {
       #ifdef flightRegulatorCFB	//******************************************************* Если выбран flightRegulatorCFB
-      logger_series("td_cmd", (uint8_t)rtY.cmdTouchDown);
+      logger_series_llu ("td_cmd", (uint8_t)rtY.cmdTouchDown);
       #else //*************************************************************************** Если выбран Easy_reg
-      logger_series("td_cmd", (uint8_t)rtY.touchdown);
+      logger_series_llu ("td_cmd", (uint8_t)rtY.touchdown);
       #endif //************************************************************************** !flightRegulatorCFB
       TaskManager.Task_LogerStage++; break;
     }
@@ -460,7 +460,7 @@ void task_loger (void)
       static uint8_t lastUpdateIndex = 0;
       if(lastUpdateIndex != Bup_getRadioPointUpdateIndex())
       {
-        logger_point("radio_point", Bup_getRadioPointLatitude(), Bup_getRadioPointLongitude(), Bup_getTouchdownPointAltitude());
+        logger_point ("radio_point", Bup_getRadioPointLatitude(), Bup_getRadioPointLongitude(), Bup_getTouchdownPointAltitude());
         lastUpdateIndex = Bup_getRadioPointUpdateIndex();
       }
       TaskManager.Task_LogerStage++; break;
