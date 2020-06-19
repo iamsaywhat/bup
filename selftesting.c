@@ -13,6 +13,7 @@
 #include "heightmap/heightmap.h"
 #include "bupdatastorage.h"
 #include "radiostation.h"
+#include "loger.h"
 
 
 /***************************************
@@ -306,7 +307,7 @@ SelfTesting_STATUS_TYPE SelfTesting_LEFT_BIM(void)
       else if (!summary)                      // В данный момент неисправность ушла
       {
         fault = 0;                            // Снимаем фиксацию
-		timeout.start = 0;                    // Сбрасываем таймаут
+        timeout.start = 0;                    // Сбрасываем таймаут
         timeout.stop = 0;              
 		timeout.status = TIME_IS_UP;
       }
@@ -419,7 +420,7 @@ void SelfTesting_BIMS_TRY_CONNECT(void)
       setTimeout(&timeout, 10000);                   // Взводим новый таймаут
       BIM_enableSupply();                            // Включаем БИМЫ
       needToReset = 0;                               // Сбрасываем флаг ожидания перезапуска
-	}
+    }
   }
   else if ((SelfTesting_STATUS(ST_POW_BIM) == ST_ENABLE) &&    // Если питание на бимах есть гарантированно
            (SelfTesting_PIN1() == ST_DISABLE))           
@@ -430,8 +431,9 @@ void SelfTesting_BIMS_TRY_CONNECT(void)
       if (timeoutStatus(&timeout) == TIME_IS_UP)               // И время с момента поледнего перезапуска прошло
       {
         BIM_disableSupply();                                   // Отключаем реле питания
-		setTimeout(&timeout, 10000);                           // Взводим новый таймаут
+        setTimeout(&timeout, 10000);                           // Взводим новый таймаут
         needToReset = 1;                                       // Взводим флаг необходимости перезауска
+        logger_error("bim is faulty! trying to restart power");
       }
     }			
   }
@@ -446,11 +448,20 @@ void SelfTesting_BIMS_TRY_CONNECT(void)
 ************************************************************************************/
 SelfTesting_STATUS_TYPE SelfTesting_PIN1(void)
 {
-  if(PIN1_CHECK)
-    SelfTesting_SET_OK(ST_pin1);
-  else
-    SelfTesting_SET_FAULT(ST_pin1);
-	
+  SelfTesting_STATUS_TYPE previous = (SelfTesting_STATUS_TYPE)SelfTesting_STATUS(ST_pin1);
+  if(PIN1_CHECK != previous)
+  {
+    if(PIN1_CHECK)
+    {
+      SelfTesting_SET_OK(ST_pin1);
+      logger_warning("pin1 has been inserted");
+    }
+    else
+    {
+      SelfTesting_SET_FAULT(ST_pin1);
+      logger_warning("pin1 has been removed");
+    }
+  }
   return (SelfTesting_STATUS_TYPE)SelfTesting_STATUS(ST_pin1);
 }
 
@@ -463,11 +474,20 @@ SelfTesting_STATUS_TYPE SelfTesting_PIN1(void)
 ************************************************************************************/
 SelfTesting_STATUS_TYPE SelfTesting_PIN2(void)
 {
-  if(PIN2_DIR_CHECK && !PIN2_INV_CHECK)
-    SelfTesting_SET_OK(ST_pin2);
-  else
-    SelfTesting_SET_FAULT(ST_pin2);
-	
+  SelfTesting_STATUS_TYPE previous = (SelfTesting_STATUS_TYPE)SelfTesting_STATUS(ST_pin2);
+  if((PIN2_DIR_CHECK && !PIN2_INV_CHECK) != previous)
+  {
+    if(PIN2_DIR_CHECK && !PIN2_INV_CHECK)
+    {
+      SelfTesting_SET_OK(ST_pin2);
+      logger_warning("pin1 has been inserted!");
+    }
+    else
+    {
+      SelfTesting_SET_FAULT(ST_pin2);
+      logger_warning("pin2 has been removed!");
+    }
+	}
   return (SelfTesting_STATUS_TYPE)SelfTesting_STATUS(ST_pin2);
 }
 
@@ -480,11 +500,20 @@ SelfTesting_STATUS_TYPE SelfTesting_PIN2(void)
 ************************************************************************************/
 SelfTesting_STATUS_TYPE SelfTesting_PYRO(void)
 {
-  if(PYRO_CHECK)
-    SelfTesting_SET_OK(ST_pyro);
-  else
-    SelfTesting_SET_FAULT(ST_pyro);
-	
+  SelfTesting_STATUS_TYPE previous = (SelfTesting_STATUS_TYPE)SelfTesting_STATUS(ST_pyro);
+  if(PYRO_CHECK != previous)
+  {
+    if(PYRO_CHECK)
+    {
+      SelfTesting_SET_OK(ST_pyro);
+      logger_warning("pyro has been enabled!");
+    }
+    else
+    {
+      SelfTesting_SET_FAULT(ST_pyro);
+      logger_warning("pyro has been disable!");
+    }
+	}
   return (SelfTesting_STATUS_TYPE)SelfTesting_STATUS(ST_pyro);
 }
 
@@ -497,11 +526,20 @@ SelfTesting_STATUS_TYPE SelfTesting_PYRO(void)
 ************************************************************************************/
 SelfTesting_STATUS_TYPE SelfTesting_BLIND(void)
 {
-  if(BLIND_CTRL_CHECK && BLIND_CHECK)
-    SelfTesting_SET_OK(ST_blind);
-  else
-    SelfTesting_SET_FAULT(ST_blind);
-	
+  SelfTesting_STATUS_TYPE previous = (SelfTesting_STATUS_TYPE)SelfTesting_STATUS(ST_blind);
+  if((BLIND_CTRL_CHECK && BLIND_CHECK) != previous)
+  {
+    if(BLIND_CTRL_CHECK && BLIND_CHECK)
+    {
+      SelfTesting_SET_OK(ST_blind);
+      logger_warning("blind has been enabled");
+    }
+    else
+    {
+      SelfTesting_SET_FAULT(ST_blind);
+      logger_warning("blind has been disabled");
+    }
+	}
   return (SelfTesting_STATUS_TYPE)SelfTesting_STATUS(ST_blind);
 }
 
@@ -549,11 +587,20 @@ SelfTesting_STATUS_TYPE SelfTesting_SWS(void)
 ************************************************************************************/
 SelfTesting_STATUS_TYPE SelfTesting_POW_BIM (void)
 {
-  if(RELAY_BIM_CHECK)
-    SelfTesting_SET_OK(ST_POW_BIM);
-  else
-    SelfTesting_SET_FAULT(ST_POW_BIM);
-	
+  SelfTesting_STATUS_TYPE previous = (SelfTesting_STATUS_TYPE)SelfTesting_STATUS(ST_POW_BIM);
+  if(RELAY_BIM_CHECK != previous)
+  {
+    if(RELAY_BIM_CHECK)
+    {
+      SelfTesting_SET_OK(ST_POW_BIM);
+      logger_warning("bims's relay has been enabled!");
+    }
+    else
+    {
+      SelfTesting_SET_FAULT(ST_POW_BIM);
+      logger_warning("bims's relay has been disabled!");
+    }
+	}
   return (SelfTesting_STATUS_TYPE)SelfTesting_STATUS(ST_POW_BIM);
 }
 	
