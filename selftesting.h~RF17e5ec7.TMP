@@ -104,9 +104,9 @@ typedef enum {
 #define ST_POW_BIM                 (13)
 #define ST_BATTERY50V              (14)
 #define ST_RADIOSTATION            (15)
-#define SelfTesting_SET_OK(x)      (systemState|=(1<<x))                                   // Результат проверки - ОК
-#define SelfTesting_SET_FAULT(x)   (systemState&=~(1<<x))                                  // Результат проверки - FAULT
-#define SelfTesting_STATUS(x)      (SelfTesting_STATUS_TYPE)((systemState&(1<<x))>>(x))    // Узнать состояние
+#define SelfTesting_SET_OK(x)      (systemState|=(1<<x))          // Результат проверки - ОК
+#define SelfTesting_SET_FAULT(x)   (systemState&=~(1<<x))         // Результат проверки - FAULT
+#define SelfTesting_STATUS(x)      ((systemState&(1<<x))>>(x))    // Узнать состояние
 
 
 /************************************************************************************
