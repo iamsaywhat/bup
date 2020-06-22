@@ -6,15 +6,8 @@
 #include "retarget.printf/RetargetPrintf.h"
 #include "selftesting.h"
 #include "bupdatastorage.h"
-#include "kmonshelf.h"
-#include "bims.h"
+#include "discreteio.h"
 
-
-#ifdef flightRegulatorCFB //******************************************************* Если выбран flightRegulatorCFB
-  #include "math.model/flightRegulatorCFB/flightRegulatorCFB.h"
-#else //*************************************************************************** Если выбран flightController
-  #include "math.model/flightController/flightController.h"
-#endif //************************************************************************** !flightRegulatorCFB 
 
 typedef enum {
   OPEN,
@@ -26,6 +19,11 @@ Seession_Status session = CLOSE;
 
 void logger_openNewSession(void)
 {
+  if(SelfTesting_STATUS(ST_25Q64FV) == ST_FAULT ||         // Если неисправна флэш черного ящика
+    SelfTesting_STATUS(ST_LogFS) == ST_FAULT)              // или файловая система с ошибкой, то писать некуда
+    return;                                                // поэтому просто выходим
+  
+  session = OPEN;
   LogFs_initialize();
   LogFs_createFile();
   printf_switcher(TO_LOG, 0);                              // Переключаем вывод в ЛОГ
@@ -41,7 +39,38 @@ void logger_openNewSession(void)
                Bup_getTouchdownPointLatitude(), 
                Bup_getTouchdownPointLongitude(), 
                Bup_getTouchdownPointAltitude());
-  session = OPEN;
+  
+  if(!CONNECT_ZPZ_CHECK)                                   // Если производится запуск в режиме зпз
+    logger_warning("Load zpz mode..");                     // То сообщаем об этом
+  
+  if(SelfTesting_STATUS(ST_1636PP52Y) == ST_FAULT)         // Пишем только жесткие неисправности
+    logger_error("flash 1636pp52y: fault");
+  if(SelfTesting_STATUS(ST_25Q64FV) == ST_FAULT)
+    logger_error("flash 25q64fv: fault");
+  if(SelfTesting_STATUS(ST_sns) == ST_FAULT)
+    logger_error("sns: fault");
+  if(SelfTesting_STATUS(ST_sws) == ST_FAULT)
+    logger_error("sws: fault");
+  if(SelfTesting_STATUS(ST_RADIOSTATION) == ST_FAULT)
+    logger_error("radio: disconnected");
+  if(SelfTesting_STATUS(ST_Left_BIM) == ST_FAULT)
+    logger_error("left-bim: fault");
+  if(SelfTesting_STATUS(ST_Right_BIM) == ST_FAULT)
+    logger_error("right-bim: fault");
+  if(SelfTesting_STATUS(ST_BATTERY50V) == ST_FAULT)
+    logger_error("battery: low voltage");
+  if(SelfTesting_STATUS(ST_MAP) == ST_FAULT)
+    logger_error("map: not loaded");
+  
+  // Здесь сообщаем, а каком состоянии сейчас остальное
+  SelfTesting_STATUS(ST_pin1) == ST_FAULT ? logger_warning("Pin1 is not inserted")
+                                          : logger_warning("Pin1 is inserted");
+  
+  SelfTesting_STATUS(ST_pin2) == ST_FAULT ? logger_warning("Pin2 is not inserted") 
+                                          : logger_warning("Pin2 is inserted");
+  
+  SelfTesting_STATUS(ST_MapAvailability) == ST_FAULT ? logger_warning("map: not available")
+                                                     : logger_warning("map: available");
 }
 void logger_warning(char* string)
 {
@@ -88,120 +117,3 @@ void logger_series_llu (char* name, uint64_t value)
   if(session == OPEN)
     printf("{\"time\":%llu,\"series\":[\"%s\",%d,%llu]}\n", getCurrentSystemTime(), name, Bup_getControlTime(), value);
 }
-
-
-
-
-
-
-///************************************************************************************
-//  loger_initmsg - Запись в лог первичной информации
-//************************************************************************************/
-//void loger_initmsg (void)
-//{
-//  // Переключаем вывод в ЛОГ
-//  printf_switcher(TO_LOG, 0);
-//  // В начало файла кладём его порядковый номер
-//  printf("***File # %d***\n", LogFs_getCurrentFileId());
-//	
-//  // Версия ПО, включая версию регулятора
-//  printf("Firmware Version:");
-//  printf("%u.",   bupFirmwareVersion.majorFirmware);
-//  printf("%u.",   bupFirmwareVersion.minorFirmware);
-//  printf("%u ",   bupFirmwareVersion.microFirmware);
-//  printf("(%u.",  bupFirmwareVersion.optionsMath);
-//  printf("%u.",   bupFirmwareVersion.majorMath);
-//  printf("%u)\n", bupFirmwareVersion.minorMath);
-
-//  // Выведем загруженное полетное задание
-//  printf("TD_Lat: %f\n", Bup_getTouchdownPointLatitude());
-//  printf("TD_Lon: %f\n", Bup_getTouchdownPointLongitude());
-//  printf("TD_Alt: %f\n", Bup_getTouchdownPointAltitude());
-//}
-///************************************************************************************
-//    loger_periodprint - Функция, определяющая формат записи в лог сообщений
-//    на каждый шаг алгоритма.
-//************************************************************************************/
-//void loger_periodprint (void)
-//{
-//  printf("\nTimestamp, sec: %d\n",       Bup_getControlTime()); // Метку времени в ЛОГ
-//  printf("SNS_Lat: %llu\n",              SNS_position.Struct.Pos_lat);
-//  printf("SNS_Lon: %llu\n",              SNS_position.Struct.Pos_lon);
-//  printf("SNS_Alt: %llu\n",              SNS_position.Struct.Pos_alt);
-//  printf("SNS_Vel_lat: %d\n",            SNS_position.Struct.Vel_lat);
-//  printf("SNS_Vel_lon: %d\n",            SNS_position.Struct.Vel_lon);
-//  printf("SNS_Vel_alt: %d\n",            SNS_position.Struct.Vel_alt);
-//  printf("SNS_Course: %d\n",             SNS_position.Struct.Course);
-//  printf("SNS_Heading_true: %d\n",       SNS_orientation.Struct.Heading_true);
-//  printf("SNS_Heading_mgn: %d\n",        SNS_orientation.Struct.Heading_mgn);
-//  printf("SNS_Pitch: %d\n",              SNS_orientation.Struct.Pitch);
-//  printf("SNS_Roll: %d\n",               SNS_orientation.Struct.Roll);
-//  printf("SWS_TrueSpeed: %f\n",          SWS_getTrueSpeed());
-//  printf("SWS_InstrumentSpeed: %f\n",    SWS_getInstrumentSpeed());
-//  printf("SWS_AbsoluteHeight: %f\n",     SWS_getAbsoluteHeight());
-//  printf("BIML_Pos: %d\n",               (uint8_t)(0.5 + 0.3922*BIM_getStrapPosition(LEFT_BIM)));   // Перевод к процентной шкале с округлением
-//  printf("BIMR_Pos: %d\n",               (uint8_t)(0.5 + 0.3922*BIM_getStrapPosition(RIGHT_BIM)));  // Перевод к процентной шкале с округлением
-//  printf("SystemState: %x\n",            systemState);
-//  printf("Model_Lat, deg: %f\n",         Bup_getCurrentPointLatitude());
-//  printf("Model_Lon, deg: %f\n",         Bup_getCurrentPointLongitude());
-//  printf("Model_Alt, m: %f\n",           Bup_getCurrentPointAltitude());
-//  printf("Model_VelocityLat, m/s: %f\n", Bup_getCurrentVelocityLatitude());
-//  printf("Model_VelocityLon, m/s: %f\n", Bup_getCurrentVelocityLongitude());
-//  printf("Model_VelocityAlt, m/s: %f\n", Bup_getCurrentVelocityAltitude());
-//  printf("Model_HeadingTrue, rad: %f\n", Bup_getCurrentHeadingTrue());
-//  printf("Model_HeadingMgn, rad: %f\n",  Bup_getCurrentHeadingMgn());
-//  printf("Model_Course, rad: %f\n",      Bup_getCurrentCourse());
-//  printf("Model_Pitch, rad: %f\n",       Bup_getCurrentPitch());
-//  printf("Model_Roll, rad: %f\n",        Bup_getCurrentRoll());	
-//	
-//  // Если карта рельефа в текущей позиции доступна, запишем высоту рельефа
-//  if (SelfTesting_STATUS(ST_MapAvailability))
-//    printf("MAP, m: %d\n",               Bup_getCurrentPointRelief());
-//  else
-//    printf("MAP, m: NOT_AVAILABLE\n");
-//	
-//  #ifdef flightRegulatorCFB	//******************************************************* Если выбран flightRegulatorCFB
-//    uint8_t left = 0;
-//    uint8_t right = 0;
-//    if(rtY.directionOfRotation == -1)
-//    {
-//      left= (uint8_t)rtY.tightenSling;
-//      right = 0;
-//    }
-//    else if(rtY.directionOfRotation == 1)
-//    {
-//      right = (uint8_t)rtY.tightenSling;
-//      left = 0;
-//    }
-//    else if(rtY.directionOfRotation == 2)
-//    {
-//      right = (uint8_t)rtY.tightenSling;
-//      left = (uint8_t)rtY.tightenSling;
-//    }
-//    printf("Model_Left_Bim: %d\n", left);
-//    printf("Model_Right_Bim: %d\n", right);
-//    printf("Model_TD_CMD: %d\n",  (uint8_t)rtY.cmdTouchDown);
-//  #else //*************************************************************************** Если выбран flightController
-//    printf("Model_Left_Bim: %d\n", (uint8_t)rtY.leftStrap);
-//    printf("Model_Right_Bim: %d\n", (uint8_t)rtY.rightStrap);
-//    printf("Model_TD_CMD: %d\n",  (uint8_t)rtY.touchdown);
-//  #endif //************************************************************************** !flightRegulatorCFB
-//}
-
-
-///************************************************************************************
-//  loger_exitmsg - Запись в лог информации о завершении работы БУП
-//************************************************************************************/
-//void loger_exitmsg(void)
-//{
-//  printf("\nThe flight is over!\n");
-//  printf("Fin_Lat, deg: %f\n",         Bup_getCurrentPointLatitude());
-//  printf("Fin_Lon, deg: %f\n",         Bup_getCurrentPointLongitude());
-//  printf("Fin_Alt, m: %f\n",           Bup_getCurrentPointAltitude());
-//  printf("Fin_SWSHeight: %f\n",        SWS_getAbsoluteHeight());
-//  // Если карта рельефа в текущей позиции доступна, запишем высоту рельефа
-//  if (SelfTesting_STATUS(ST_MapAvailability))
-//    printf("Fin_MAP, m: %d\n",         Bup_getCurrentPointRelief());
-//  else
-//    printf("Fin_MAP, m: NOT_AVAILABLE\n");
-//}
