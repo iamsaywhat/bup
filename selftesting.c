@@ -1,3 +1,4 @@
+#include "config.h"
 #include "selftesting.h"
 
 #include "bupboard.h"
@@ -13,7 +14,10 @@
 #include "heightmap/heightmap.h"
 #include "bupdatastorage.h"
 #include "radiostation.h"
+
+#ifdef LOGS_ENABLE
 #include "loger.h"
+#endif
 
 
 /***************************************
@@ -205,13 +209,21 @@ SelfTesting_STATUS_TYPE SelfTesting_1636PP52Y(void)
     SelfTesting_SET_FAULT(ST_1636PP52Y); 
   if(SPI_1636PP52Y_readID (SPI_1636PP52Y_CS4) != _1636PP52Y_ID)
     SelfTesting_SET_FAULT(ST_1636PP52Y); 
-	
+
   if(SelfTesting_STATUS(ST_1636PP52Y) != previous)
   {
     if(SelfTesting_STATUS(ST_1636PP52Y) == ST_OK)
-      logger_warning("1636pp52y: fault");
+    {
+      #ifdef LOGS_ENABLE
+        logger_warning("1636pp52y: fault");
+      #endif
+    }
     else
-      logger_warning("1636pp52y: ready");
+    {
+      #ifdef LOGS_ENABLE
+        logger_warning("1636pp52y: ready");
+      #endif
+    }
   }
   
   return SelfTesting_STATUS(ST_1636PP52Y); 
@@ -232,13 +244,21 @@ SelfTesting_STATUS_TYPE SelfTesting_25Q64FV(void)
   SelfTesting_SET_FAULT(ST_25Q64FV); 
   if(SPI_25Q64FV_readID (SPI_25Q64FV_CSn) == _25Q64FV_ID)
     SelfTesting_SET_OK(ST_25Q64FV);
-  
+ 
   if(SelfTesting_STATUS(ST_25Q64FV) != previous)
   {
     if(SelfTesting_STATUS(ST_25Q64FV) == ST_OK)
-      logger_warning("25Q64FV: ready!");
+    {
+      #ifdef LOGS_ENABLE
+        logger_warning("25Q64FV: ready!");
+      #endif
+    }
     else
-      logger_error("25Q64FV: fault!");   
+    {
+      #ifdef LOGS_ENABLE
+        logger_error("25Q64FV: fault!");   
+      #endif
+    }
   }
 	
   return SelfTesting_STATUS(ST_25Q64FV);
@@ -259,13 +279,21 @@ SelfTesting_STATUS_TYPE SelfTesting_MapNtask(void)
     SelfTesting_SET_OK(ST_MAP);
   else 
     SelfTesting_SET_FAULT(ST_MAP);
-	
+
   if(SelfTesting_STATUS(ST_MAP) != previous)
   {
     if(SelfTesting_STATUS(ST_MAP) == ST_OK)
-      logger_warning("map: loaded");
+    {
+      #ifdef LOGS_ENABLE
+        logger_warning("map: loaded");
+      #endif
+    }
     else
-      logger_error("map: not found");
+    {
+      #ifdef LOGS_ENABLE
+        logger_error("map: not found");
+      #endif
+    }
   }
   
   return SelfTesting_STATUS(ST_MAP);
@@ -357,13 +385,21 @@ SelfTesting_STATUS_TYPE SelfTesting_LEFT_BIM(void)
     else
       SelfTesting_SET_OK(ST_Left_BIM);
   }
-  
+
   if(SelfTesting_STATUS(ST_Left_BIM) != previous)
   {
     if(SelfTesting_STATUS(ST_Left_BIM) == ST_OK)
-      logger_warning("left bim: ready");
+    {
+      #ifdef LOGS_ENABLE
+        logger_warning("left bim: ready");
+      #endif
+    }
     else
-      logger_error("left bim: fault");
+    {
+      #ifdef LOGS_ENABLE
+        logger_error("left bim: fault");
+      #endif
+    }
   }
   
   return SelfTesting_STATUS(ST_Left_BIM);
@@ -436,13 +472,21 @@ SelfTesting_STATUS_TYPE SelfTesting_RIGHT_BIM(void)
     else
       SelfTesting_SET_OK(ST_Right_BIM);
   }
-  
+
   if(SelfTesting_STATUS(ST_Right_BIM) != previous)
   {
     if(SelfTesting_STATUS(ST_Right_BIM) == ST_OK)
-      logger_warning("right bim: ready");
+    {
+      #ifdef LOGS_ENABLE
+        logger_warning("right bim: ready");
+      #endif
+    }
     else
-      logger_error("right bim: fault");
+    {
+      #ifdef LOGS_ENABLE
+        logger_error("right bim: fault");
+      #endif
+    }
   }
   
   return SelfTesting_STATUS(ST_Right_BIM);
@@ -483,7 +527,9 @@ void SelfTesting_BIMS_TRY_CONNECT(void)
         BIM_disableSupply();                                   // Отключаем реле питания
         setTimeout(&timeout, 10000);                           // Взводим новый таймаут
         needToReset = 1;                                       // Взводим флаг необходимости перезауска
-        logger_error("bim is faulty! trying to restart power");
+        #ifdef LOGS_ENABLE
+          logger_error("bim is faulty! trying to restart power");
+        #endif
       }
     }			
   }
@@ -505,14 +551,21 @@ SelfTesting_STATUS_TYPE SelfTesting_PIN1(void)
   else
     SelfTesting_SET_FAULT(ST_pin1);
 
-  
   if(SelfTesting_STATUS(ST_pin1) != previous)
   {
     if(SelfTesting_STATUS(ST_pin1) == ST_OK)
-      logger_warning("pin1 has been inserted");
+    {
+      #ifdef LOGS_ENABLE
+        logger_warning("pin1 has been inserted");
+      #endif
+    }
     else
-      logger_warning("pin1 has been removed");     
-  }
+    {
+      #ifdef LOGS_ENABLE
+        logger_warning("pin1 has been removed");   
+      #endif
+    }      
+  } 
   
   return SelfTesting_STATUS(ST_pin1);
 }
@@ -532,13 +585,21 @@ SelfTesting_STATUS_TYPE SelfTesting_PIN2(void)
     SelfTesting_SET_OK(ST_pin2);
   else
     SelfTesting_SET_FAULT(ST_pin2);
-  
+ 
   if(SelfTesting_STATUS(ST_pin2) != previous)
   {
     if(SelfTesting_STATUS(ST_pin2) == ST_OK)
-      logger_warning("pin1 has been inserted!");
+    {
+      #ifdef LOGS_ENABLE
+        logger_warning("pin1 has been inserted!");
+      #endif
+    }
     else
-      logger_warning("pin2 has been removed!");
+    {
+      #ifdef LOGS_ENABLE
+        logger_warning("pin2 has been removed!");
+      #endif
+    }
   }
   
   return SelfTesting_STATUS(ST_pin2);
@@ -559,14 +620,23 @@ SelfTesting_STATUS_TYPE SelfTesting_PYRO(void)
     SelfTesting_SET_OK(ST_pyro);
   else
     SelfTesting_SET_FAULT(ST_pyro);
-  
+
   if(SelfTesting_STATUS(ST_pyro) != previous)
   {
     if(SelfTesting_STATUS(ST_pyro) == ST_OK)
-      logger_warning("pyro has been enabled!");
+    {
+      #ifdef LOGS_ENABLE
+        logger_warning("pyro has been enabled!");
+      #endif
+    }
     else
-      logger_warning("pyro has been disabled!");  
+    {
+      #ifdef LOGS_ENABLE
+        logger_warning("pyro has been disabled!"); 
+      #endif      
+    }
   }
+  
   return SelfTesting_STATUS(ST_pyro);
 }
 
@@ -585,13 +655,21 @@ SelfTesting_STATUS_TYPE SelfTesting_BLIND(void)
     SelfTesting_SET_OK(ST_blind);
   else
     SelfTesting_SET_FAULT(ST_blind);
-  
+ 
   if(SelfTesting_STATUS(ST_blind) != previous)
   {
     if(SelfTesting_STATUS(ST_blind) == ST_OK)
-      logger_warning("blind has been enabled");
+    {
+      #ifdef LOGS_ENABLE
+        logger_warning("blind has been enabled");
+      #endif
+    }
     else
-      logger_warning("blind has been disabled");
+    {
+      #ifdef LOGS_ENABLE
+        logger_warning("blind has been disabled");
+      #endif
+    }
   }
   
   return SelfTesting_STATUS(ST_blind);
@@ -613,15 +691,23 @@ SelfTesting_STATUS_TYPE SelfTesting_SNS(void)
     SelfTesting_SET_OK(ST_sns);     /* Ответ получен */
   else
     SelfTesting_SET_FAULT(ST_sns);  /* Нет ответа */
-  
+
   if(SelfTesting_STATUS(ST_sns) != previous)
   {
     if(SelfTesting_STATUS(ST_sns) == ST_FAULT)
-      logger_error("sns: connection lost!");
+    {
+      #ifdef LOGS_ENABLE
+        logger_error("sns: connection lost!");
+      #endif
+    }
     else
-      logger_warning("sns: connection restored!");
+    {
+      #ifdef LOGS_ENABLE
+        logger_warning("sns: connection restored!");
+      #endif
+    }
   }
-
+  
   return SelfTesting_STATUS(ST_sns);
 }
 
@@ -640,13 +726,21 @@ SelfTesting_STATUS_TYPE SelfTesting_SWS(void)
     SelfTesting_SET_FAULT(ST_sws);
   else
     SelfTesting_SET_OK(ST_sws);
-	
+
   if(SelfTesting_STATUS(ST_sws) != previous)
   {
     if(SelfTesting_STATUS(ST_sws) == ST_FAULT)
-      logger_error("sws: connection lost!");
+    {
+      #ifdef LOGS_ENABLE
+        logger_error("sws: connection lost!");
+      #endif
+    }
     else
-      logger_warning("sws: connection restored!");
+    {
+      #ifdef LOGS_ENABLE
+        logger_warning("sws: connection restored!");
+      #endif
+    }
   }
   
   return SelfTesting_STATUS(ST_sws);
@@ -662,19 +756,28 @@ SelfTesting_STATUS_TYPE SelfTesting_SWS(void)
 SelfTesting_STATUS_TYPE SelfTesting_POW_BIM (void)
 {
   SelfTesting_STATUS_TYPE previous = SelfTesting_STATUS(ST_POW_BIM);
+  
+  if(RELAY_BIM_CHECK)
+    SelfTesting_SET_OK(ST_POW_BIM);
+  else
+    SelfTesting_SET_FAULT(ST_POW_BIM);
+
   if(RELAY_BIM_CHECK != previous)
-  {
-    if(RELAY_BIM_CHECK)
+  {  
+    if(SelfTesting_SET_OK(ST_POW_BIM) == ST_ENABLE)
     {
-      SelfTesting_SET_OK(ST_POW_BIM);
-      logger_warning("bims's relay has been enabled!");
+      #ifdef LOGS_ENABLE
+        logger_warning("bims's relay has been enabled!");
+      #endif
     }
     else
     {
-      SelfTesting_SET_FAULT(ST_POW_BIM);
-      logger_warning("bims's relay has been disabled!");
+      #ifdef LOGS_ENABLE
+        logger_warning("bims's relay has been disabled!");
+      #endif
     }
-	}
+  }
+  
   return SelfTesting_STATUS(ST_POW_BIM);
 }
 	
@@ -705,10 +808,19 @@ SelfTesting_STATUS_TYPE SelfTesting_MapAvailability (double Lat, double Lon)
   if(SelfTesting_STATUS(ST_MapAvailability) != previous)
   {
     if(SelfTesting_STATUS(ST_MapAvailability) == ST_OK)
-      logger_warning("map: available");
+    {
+      #ifdef LOGS_ENABLE
+        logger_warning("map: available");
+      #endif
+    }
     else
-      logger_error("map: out of area");
+    {
+      #ifdef LOGS_ENABLE
+        logger_error("map: out of area");
+      #endif
+    }
   }
+  
   return SelfTesting_STATUS(ST_MapAvailability);
 }
 
@@ -734,11 +846,17 @@ SelfTesting_STATUS_TYPE SelfTesting_Battery50Volt (void)
     SelfTesting_SET_FAULT(ST_BATTERY50V);
   else
     SelfTesting_SET_OK(ST_BATTERY50V);
-  
+ 
   if(SelfTesting_STATUS(ST_BATTERY50V) != previous)
+  { 
     if(SelfTesting_STATUS(ST_BATTERY50V) == ST_FAULT)
-      logger_error("battery: low voltage");
-  
+    {
+      #ifdef LOGS_ENABLE
+        logger_error("battery: low voltage");
+      #endif
+    }
+  }
+    
   return SelfTesting_STATUS(ST_BATTERY50V);
 }
 
@@ -766,14 +884,23 @@ SelfTesting_STATUS_TYPE SelfTesting_Radiostation (void)
     SelfTesting_SET_OK(ST_RADIOSTATION);
   else
     SelfTesting_SET_FAULT(ST_RADIOSTATION);
-  
+   
   if(SelfTesting_STATUS(ST_RADIOSTATION) != previous)
   {
     if(SelfTesting_STATUS(ST_RADIOSTATION) == ST_OK)
-      logger_warning("radio: connection restored!");
+    {
+      #ifdef LOGS_ENABLE
+        logger_warning("radio: connection restored!");
+      #endif
+    }
     else
-      logger_warning("radio: connection lost!");
+    {
+      #ifdef LOGS_ENABLE
+        logger_warning("radio: connection lost!");
+      #endif
+    }
   }
+
   
   return SelfTesting_STATUS(ST_RADIOSTATION);
 }
