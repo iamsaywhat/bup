@@ -391,13 +391,13 @@ SelfTesting_STATUS_TYPE SelfTesting_LEFT_BIM(void)
     if(SelfTesting_STATUS(ST_Left_BIM) == ST_OK)
     {
       #ifdef LOGS_ENABLE
-        logger_warning("left bim: ready");
+        logger_warning("left-bim: ready");
       #endif
     }
     else
     {
       #ifdef LOGS_ENABLE
-        logger_error("left bim: fault");
+        logger_error("left-bim: fault");
       #endif
     }
   }
@@ -478,13 +478,13 @@ SelfTesting_STATUS_TYPE SelfTesting_RIGHT_BIM(void)
     if(SelfTesting_STATUS(ST_Right_BIM) == ST_OK)
     {
       #ifdef LOGS_ENABLE
-        logger_warning("right bim: ready");
+        logger_warning("right-bim: ready");
       #endif
     }
     else
     {
       #ifdef LOGS_ENABLE
-        logger_error("right bim: fault");
+        logger_error("right-bim: fault");
       #endif
     }
   }
@@ -528,7 +528,7 @@ void SelfTesting_BIMS_TRY_CONNECT(void)
         setTimeout(&timeout, 10000);                           // Взводим новый таймаут
         needToReset = 1;                                       // Взводим флаг необходимости перезауска
         #ifdef LOGS_ENABLE
-          logger_error("bim is faulty! trying to restart power");
+          logger_error("bims is faulty! trying to restart power");
         #endif
       }
     }			
@@ -556,13 +556,13 @@ SelfTesting_STATUS_TYPE SelfTesting_PIN1(void)
     if(SelfTesting_STATUS(ST_pin1) == ST_OK)
     {
       #ifdef LOGS_ENABLE
-        logger_warning("pin1 has been inserted");
+        logger_warning("pin1: has been inserted");
       #endif
     }
     else
     {
       #ifdef LOGS_ENABLE
-        logger_warning("pin1 has been removed");   
+        logger_warning("pin1: has been removed");   
       #endif
     }      
   } 
@@ -591,13 +591,13 @@ SelfTesting_STATUS_TYPE SelfTesting_PIN2(void)
     if(SelfTesting_STATUS(ST_pin2) == ST_OK)
     {
       #ifdef LOGS_ENABLE
-        logger_warning("pin1 has been inserted!");
+        logger_warning("pin1: has been inserted!");
       #endif
     }
     else
     {
       #ifdef LOGS_ENABLE
-        logger_warning("pin2 has been removed!");
+        logger_warning("pin2: has been removed!");
       #endif
     }
   }
@@ -626,13 +626,13 @@ SelfTesting_STATUS_TYPE SelfTesting_PYRO(void)
     if(SelfTesting_STATUS(ST_pyro) == ST_OK)
     {
       #ifdef LOGS_ENABLE
-        logger_warning("pyro has been enabled!");
+        logger_warning("pyro: has been enabled!");
       #endif
     }
     else
     {
       #ifdef LOGS_ENABLE
-        logger_warning("pyro has been disabled!"); 
+        logger_warning("pyro: has been disabled!"); 
       #endif      
     }
   }
@@ -661,13 +661,13 @@ SelfTesting_STATUS_TYPE SelfTesting_BLIND(void)
     if(SelfTesting_STATUS(ST_blind) == ST_OK)
     {
       #ifdef LOGS_ENABLE
-        logger_warning("blind has been enabled");
+        logger_warning("blind: has been enabled");
       #endif
     }
     else
     {
       #ifdef LOGS_ENABLE
-        logger_warning("blind has been disabled");
+        logger_warning("blind: has been disabled");
       #endif
     }
   }
@@ -767,13 +767,13 @@ SelfTesting_STATUS_TYPE SelfTesting_POW_BIM (void)
     if(SelfTesting_SET_OK(ST_POW_BIM) == ST_ENABLE)
     {
       #ifdef LOGS_ENABLE
-        logger_warning("bims's relay has been enabled!");
+        logger_warning("bims-relay: has been enabled!");
       #endif
     }
     else
     {
       #ifdef LOGS_ENABLE
-        logger_warning("bims's relay has been disabled!");
+        logger_warning("bims-relay: has been disabled!");
       #endif
     }
   }

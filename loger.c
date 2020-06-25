@@ -44,9 +44,9 @@ void logger_openNewSession(void)
     logger_warning("Load zpz mode..");                     // То сообщаем об этом
   
   if(SelfTesting_STATUS(ST_1636PP52Y) == ST_FAULT)         // Пишем только жесткие неисправности
-    logger_error("flash 1636pp52y: fault");
+    logger_error("1636pp52y: fault");
   if(SelfTesting_STATUS(ST_25Q64FV) == ST_FAULT)
-    logger_error("flash 25q64fv: fault");
+    logger_error("25q64fv: fault");
   if(SelfTesting_STATUS(ST_sns) == ST_FAULT)
     logger_error("sns: fault");
   if(SelfTesting_STATUS(ST_sws) == ST_FAULT)
@@ -63,11 +63,11 @@ void logger_openNewSession(void)
     logger_error("map: not loaded");
   
   // Здесь сообщаем, а каком состоянии сейчас остальное
-  SelfTesting_STATUS(ST_pin1) == ST_FAULT ? logger_warning("Pin1 is not inserted")
-                                          : logger_warning("Pin1 is inserted");
+  SelfTesting_STATUS(ST_pin1) == ST_FAULT ? logger_warning("pin1: not inserted")
+                                          : logger_warning("pin1: inserted");
   
-  SelfTesting_STATUS(ST_pin2) == ST_FAULT ? logger_warning("Pin2 is not inserted") 
-                                          : logger_warning("Pin2 is inserted");
+  SelfTesting_STATUS(ST_pin2) == ST_FAULT ? logger_warning("pin2: not inserted") 
+                                          : logger_warning("pin2: inserted");
   
   SelfTesting_STATUS(ST_MapAvailability) == ST_FAULT ? logger_warning("map: not available")
                                                      : logger_warning("map: available");
