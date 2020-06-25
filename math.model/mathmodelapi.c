@@ -177,21 +177,19 @@ void MathModel_control (void)
     MathModel_sendBimCommand (0, 0);
     // Замок створки открыть
     BLIND_CTRL_ON();
-			
-//    #ifdef LOGS_ENABLE	//************************************************************* Если включено логирование в черный ящик
-//      // Пишем в лог информацию о завершении полета и последние данные
-//      loger_exitmsg();
-//      logger_point
-//    #endif //************************************************************************** !LOGS_ENABLE
-
-    // Ждем 5 секунд
-    delay_us(5000000);
-    // Отключаем реле створки замка (нельзя удерживать дольше 10 секунд)
-    BLIND_CTRL_OFF();
-    // Отключаем БИМы
-    BIM_disableSupply();
-    // Повисаем в ожидании перезапуска
-    while(1);
+			      
+    SelfTesting_BLIND();
+    #ifdef LOGS_ENABLE
+      logger_warning("the flight is over");
+      logger_point("final", Bup_getCurrentPointLatitude(), 
+                  Bup_getCurrentPointLongitude(), Bup_getCurrentPointAltitude());
+    #endif
+    delay_us(5000000);       // Ждем 5 секунд
+    BLIND_CTRL_OFF();        // Отключаем реле створки замка (нельзя удерживать дольше 10 секунд)
+    SelfTesting_BLIND();
+    BIM_disableSupply();     // Отключаем БИМы
+    SelfTesting_POW_BIM();
+    while(1);                // Повисаем в ожидании перезапуска
   }
 }
 

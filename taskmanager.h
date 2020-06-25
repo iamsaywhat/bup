@@ -52,6 +52,7 @@ typedef enum {
   TaskTest   = 2,      // Самодиагностика      
   TaskDebug  = 3,      // Трассировка в CAN отладочных данных
   TaskLoger  = 4,      // Логирование
+  TaskExit   = 10,     // Завершение работы
 }TaskManagerCode;
 
 

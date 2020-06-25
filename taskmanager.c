@@ -84,25 +84,17 @@ void TaskManager_run (void)
   switch (TaskManager.Task_num)
   {
     case TaskStep: /* Задача № 0 - Расчет шага матмодели и управление */
-    {
-      // Запускаем шаг расчета модели				
-      MathModel_step();
-      // Выполняем требования матмодели
-      MathModel_control();
-			
-      // Переходим на выполнение следующей задачи
-      TaskManager.Task_num ++;
+    {     			
+      MathModel_step();        // Запускаем шаг расчета модели	
+      MathModel_control();     // Выполняем требования матмодели
+      TaskManager.Task_num ++; // Переходим на выполнение следующей задачи
       break;
     }
     case TaskUpdate: /* Задача № 1 - Подготовка данных для следующего шага */
     {
-      // Запускаем обновление данных
-      Bup_updateData ();
-      // Отправляем данные математической модели
-      MathModel_prepareData ();
-			
-      // Переходим на выполнение следующей задачи
-      TaskManager.Task_num ++;
+      Bup_updateData();          // Запускаем обновление данных
+      MathModel_prepareData();   // Отправляем данные математической модели
+      TaskManager.Task_num ++;   // Переходим на выполнение следующей задачи
       break;
     }
     case TaskTest: /* Задача № 2 - Самодиагностика */
@@ -113,18 +105,18 @@ void TaskManager_run (void)
     case TaskDebug: /* Задача № 3 - Отладка */
     {
       #ifdef DEBUG_VARS	//*************************************************************** Если активна отладка переменных 
-      task_can_debug();
+        task_can_debug();
       #else
-      TaskManager.Task_num ++;
+        TaskManager.Task_num ++;
       #endif //************************************************************************** !DEBUG_VARS 	
       break;
     }
     case TaskLoger: /* Задача № 4 - Запись логов */
     {
       #ifdef LOGS_ENABLE	//******************************************************* Если включено логирование в черный ящик
-      task_loger();
+        task_loger();
       #else 
-      TaskManager.Task_num ++;
+        TaskManager.Task_num ++;
       #endif //******************************************************************** !LOGS_ENABLE
       break;
     }
@@ -483,6 +475,7 @@ void task_loger (void)
 **********************************************************************************************************/
 void task_exit (void)
 {
+  SelfTesting_BLIND();
   #ifdef LOGS_ENABLE
     logger_warning("the flight is over");
     logger_point("final", Bup_getCurrentPointLatitude(), 
@@ -490,6 +483,8 @@ void task_exit (void)
   #endif
   delay_us(5000000);       // Ждем 5 секунд
   BLIND_CTRL_OFF();        // Отключаем реле створки замка (нельзя удерживать дольше 10 секунд)
+  SelfTesting_BLIND();
   BIM_disableSupply();     // Отключаем БИМы
+  SelfTesting_POW_BIM();
   while(1);                // Повисаем в ожидании перезапуска
 }
