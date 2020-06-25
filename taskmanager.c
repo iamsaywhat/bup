@@ -4,6 +4,7 @@
 #include "selftesting.h"
 #include "bupdatastorage.h"
 #include "bims.h"
+#include "discreteio.h"
 #include "math.model/mathmodelapi.h"
 #include "logfs/log.fs.h"
 #include "retarget.printf/RetargetPrintf.h"
@@ -474,4 +475,21 @@ void task_loger (void)
       break;
     }
   }
+}
+
+
+/*********************************************************************************************************
+  task_exit - Завершение работы
+**********************************************************************************************************/
+void task_exit (void)
+{
+  #ifdef LOGS_ENABLE
+    logger_warning("the flight is over");
+    logger_point("final", Bup_getCurrentPointLatitude(), 
+                  Bup_getCurrentPointLongitude(), Bup_getCurrentPointAltitude());
+  #endif
+  delay_us(5000000);       // Ждем 5 секунд
+  BLIND_CTRL_OFF();        // Отключаем реле створки замка (нельзя удерживать дольше 10 секунд)
+  BIM_disableSupply();     // Отключаем БИМы
+  while(1);                // Повисаем в ожидании перезапуска
 }
