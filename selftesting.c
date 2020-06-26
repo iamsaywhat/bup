@@ -130,7 +130,7 @@ SelfTesting_STATUS_TYPE SelfTesting_PreflightDiagnostics (void)
   status &= SelfTesting_STATUS(ST_sws);
   status &= SelfTesting_STATUS(ST_pin1); 	
   status &= SelfTesting_STATUS(ST_pin2);
-  status &= SelfTesting_STATUS(ST_BATTERY50V);
+//  status &= SelfTesting_STATUS(ST_BATTERY50V);
   		
   // По результатам тестирования принимаем решение о режиме индикации
   if(status == ST_OK)
@@ -169,7 +169,7 @@ SelfTesting_STATUS_TYPE SelfTesting_OnlineDiagnostics (void)
   status &= SelfTesting_STATUS(ST_sws);
   status &= SelfTesting_STATUS(ST_Left_BIM); 	
   status &= SelfTesting_STATUS(ST_Right_BIM);  
-  status &= SelfTesting_STATUS(ST_BATTERY50V);
+//  status &= SelfTesting_STATUS(ST_BATTERY50V);
   		
   // По результатам тестирования принимаем решение о режиме индикации
   if(status == ST_OK)
@@ -591,7 +591,7 @@ SelfTesting_STATUS_TYPE SelfTesting_PIN2(void)
     if(SelfTesting_STATUS(ST_pin2) == ST_OK)
     {
       #ifdef LOGS_ENABLE
-        logger_warning("pin1: has been inserted!");
+        logger_warning("pin2: has been inserted!");
       #endif
     }
     else
@@ -762,9 +762,9 @@ SelfTesting_STATUS_TYPE SelfTesting_POW_BIM (void)
   else
     SelfTesting_SET_FAULT(ST_POW_BIM);
 
-  if(RELAY_BIM_CHECK != previous)
+  if(SelfTesting_STATUS(ST_POW_BIM) != previous)
   {  
-    if(SelfTesting_SET_OK(ST_POW_BIM) == ST_ENABLE)
+    if(SelfTesting_STATUS(ST_POW_BIM) == ST_ENABLE)
     {
       #ifdef LOGS_ENABLE
         logger_warning("bims-relay: has been enabled!");

@@ -69,8 +69,13 @@ void logger_openNewSession(void)
   SelfTesting_STATUS(ST_pin2) == ST_FAULT ? logger_warning("pin2: not inserted") 
                                           : logger_warning("pin2: inserted");
   
-  SelfTesting_STATUS(ST_MapAvailability) == ST_FAULT ? logger_warning("map: not available")
-                                                     : logger_warning("map: available");
+  SelfTesting_STATUS(ST_MapAvailability) == ST_FAULT ? logger_warning("map: out of area")
+                                                     : logger_warning("map: at area");
+}
+void logger_closeSession(void)
+{
+  session = CLOSE;
+  LogFs_initialize();
 }
 void logger_warning(char* string)
 {

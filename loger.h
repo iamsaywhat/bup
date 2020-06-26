@@ -13,6 +13,7 @@
   loger_exitmsg - Запись в лог информации о завершении работы БУП
 ************************************************************************************/
 void logger_openNewSession(void);
+void logger_closeSession(void);
 void logger_warning (char* string);
 void logger_error (char* string);
 void logger_point (char* name, double latitude, double longitute, double altitude);

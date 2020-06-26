@@ -1,4 +1,5 @@
 #include "zpz.h"
+#include "config.h"
 
 #include "MDR32F9Qx_uart.h"
 #include "MDR32F9Qx_can.h"
@@ -14,6 +15,7 @@
 #include "bupdatastorage.h"
 #include "heightMap/mapflashlayout.h"
 #include "string.h"
+#include "loger.h"
 
 
 #define BUFFER_SIZE 800
@@ -1188,12 +1190,19 @@ static void ZPZ_Response_LOG_FORMAT (uint16_t NumPacket)
 			UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_Response.Buffer[i]);
 		/* И в конце опять разделитель */
 		SendFEND(ZPZ_UART);
-		
+
+    #ifdef LOGS_ENABLE		
+      /* Закрываем открытую сессию логирования */
+      logger_closeSession ();
+    #endif
 		/* Запускаем форматирование */
 		LogFs_format();
-		/* После форматирование необходимо обновить информацию о файловой системе */
-		LogFs_initialize();
-		
+    /* После форматирование необходимо обновить информацию о файловой системе */ 
+    SelfTesting_LogFs();
+    #ifdef LOGS_ENABLE
+   
+//      logger_openNewSession();
+    #endif
 		return;
 	}
 	/* Запрос статуса форматирования */
