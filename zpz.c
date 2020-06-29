@@ -1197,7 +1197,9 @@ static void ZPZ_Response_LOG_FORMAT (uint16_t NumPacket)
     #endif
 		/* Запускаем форматирование */
 		LogFs_format();
-    /* После форматирование необходимо обновить информацию о файловой системе */ 
+    /* Перезапускаем файловую системы */
+    LogFs_initialize();
+    /* После форматирования необходимо обновить информацию о файловой системе */
     SelfTesting_LogFs();
     
 		return;
@@ -1253,7 +1255,7 @@ static void ZPZ_Response_LOG_FILES (uint16_t NumPacket)
 	   Остальное зависит от количества файлов в накопителе */
 	ZPZ_Response.Struct.PacketSize = 6;
 	/* Тогда определим количество файлов и прибавим (для каждого файла отводится 6 байт сообщения) */
-	files = LogFs_getFileNumber() - 1;
+	files = LogFs_getFileNumber();
 	ZPZ_Response.Struct.PacketSize += 6*files;
 	
 	/* Теперь посчитаем контрольную сумму начала пакета (первые 8 байт) */

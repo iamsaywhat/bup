@@ -100,8 +100,7 @@
         <tRSysVw>1</tRSysVw>
         <sRunDeb>0</sRunDeb>
         <sLrtime>0</sLrtime>
-        <bEvRecOn>1</bEvRecOn>
-        <nTsel>0</nTsel>
+        <nTsel>1</nTsel>
         <sDll></sDll>
         <sDllPa></sDllPa>
         <sDlgDll></sDlgDll>
@@ -145,23 +144,23 @@
         <Bp>
           <Number>0</Number>
           <Type>0</Type>
-          <LineNumber>132</LineNumber>
+          <LineNumber>84</LineNumber>
           <EnabledFlag>0</EnabledFlag>
-          <Address>134247410</Address>
+          <Address>134244840</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
           <SizeOfObject>0</SizeOfObject>
           <BreakByAccess>0</BreakByAccess>
           <BreakIfRCount>1</BreakIfRCount>
-          <Filename>.\taskmanager.c</Filename>
+          <Filename>.\selftesting.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\BK_BRPU\taskmanager.c\132</Expression>
+          <Expression></Expression>
         </Bp>
         <Bp>
           <Number>1</Number>
           <Type>0</Type>
-          <LineNumber>84</LineNumber>
+          <LineNumber>125</LineNumber>
           <EnabledFlag>0</EnabledFlag>
           <Address>0</Address>
           <ByteObject>0</ByteObject>
@@ -170,14 +169,14 @@
           <SizeOfObject>0</SizeOfObject>
           <BreakByAccess>0</BreakByAccess>
           <BreakIfRCount>0</BreakIfRCount>
-          <Filename>.\selftesting.c</Filename>
+          <Filename>.\taskmanager.c</Filename>
           <ExecCommand></ExecCommand>
           <Expression></Expression>
         </Bp>
         <Bp>
           <Number>2</Number>
           <Type>0</Type>
-          <LineNumber>125</LineNumber>
+          <LineNumber>132</LineNumber>
           <EnabledFlag>0</EnabledFlag>
           <Address>0</Address>
           <ByteObject>0</ByteObject>
@@ -225,11 +224,6 @@
         <Ww>
           <count>6</count>
           <WinNumber>1</WinNumber>
-          <ItemText>Left</ItemText>
-        </Ww>
-        <Ww>
-          <count>7</count>
-          <WinNumber>1</WinNumber>
           <ItemText>Right_BIM</ItemText>
         </Ww>
       </WatchWindow1>
@@ -237,95 +231,100 @@
         <Ww>
           <count>0</count>
           <WinNumber>2</WinNumber>
-          <ItemText>sdsIdList</ItemText>
+          <ItemText>Left</ItemText>
         </Ww>
         <Ww>
           <count>1</count>
           <WinNumber>2</WinNumber>
-          <ItemText>Log_Fs_Info</ItemText>
+          <ItemText>sdsIdList</ItemText>
         </Ww>
         <Ww>
           <count>2</count>
           <WinNumber>2</WinNumber>
-          <ItemText>Log_Fs_FileProperties</ItemText>
+          <ItemText>Log_Fs_Info</ItemText>
         </Ww>
         <Ww>
           <count>3</count>
           <WinNumber>2</WinNumber>
-          <ItemText>debug_vars</ItemText>
+          <ItemText>Log_Fs_FileProperties</ItemText>
         </Ww>
         <Ww>
           <count>4</count>
           <WinNumber>2</WinNumber>
-          <ItemText>BUP_DataStorage</ItemText>
+          <ItemText>debug_vars</ItemText>
         </Ww>
         <Ww>
           <count>5</count>
           <WinNumber>2</WinNumber>
-          <ItemText>rtU</ItemText>
+          <ItemText>BUP_DataStorage</ItemText>
         </Ww>
         <Ww>
           <count>6</count>
           <WinNumber>2</WinNumber>
-          <ItemText>rtDW</ItemText>
+          <ItemText>rtU</ItemText>
         </Ww>
         <Ww>
           <count>7</count>
           <WinNumber>2</WinNumber>
-          <ItemText>rtU</ItemText>
+          <ItemText>rtDW</ItemText>
         </Ww>
         <Ww>
           <count>8</count>
           <WinNumber>2</WinNumber>
-          <ItemText>rtDW</ItemText>
+          <ItemText>rtU</ItemText>
         </Ww>
         <Ww>
           <count>9</count>
           <WinNumber>2</WinNumber>
-          <ItemText>rtY</ItemText>
+          <ItemText>rtDW</ItemText>
         </Ww>
         <Ww>
           <count>10</count>
           <WinNumber>2</WinNumber>
-          <ItemText>systemState</ItemText>
+          <ItemText>rtY</ItemText>
         </Ww>
         <Ww>
           <count>11</count>
           <WinNumber>2</WinNumber>
-          <ItemText>systemTime</ItemText>
+          <ItemText>systemState</ItemText>
         </Ww>
         <Ww>
           <count>12</count>
           <WinNumber>2</WinNumber>
-          <ItemText>SNS_orientation</ItemText>
+          <ItemText>systemTime</ItemText>
         </Ww>
         <Ww>
           <count>13</count>
           <WinNumber>2</WinNumber>
-          <ItemText>SNS_position</ItemText>
+          <ItemText>SNS_orientation</ItemText>
         </Ww>
         <Ww>
           <count>14</count>
           <WinNumber>2</WinNumber>
-          <ItemText>buffer</ItemText>
+          <ItemText>SNS_position</ItemText>
         </Ww>
         <Ww>
           <count>15</count>
           <WinNumber>2</WinNumber>
-          <ItemText>sdsCounter</ItemText>
+          <ItemText>buffer</ItemText>
         </Ww>
         <Ww>
           <count>16</count>
           <WinNumber>2</WinNumber>
-          <ItemText>sdsList</ItemText>
+          <ItemText>sdsCounter</ItemText>
         </Ww>
         <Ww>
           <count>17</count>
           <WinNumber>2</WinNumber>
-          <ItemText>globalTimeout</ItemText>
+          <ItemText>sdsList</ItemText>
         </Ww>
         <Ww>
           <count>18</count>
+          <WinNumber>2</WinNumber>
+          <ItemText>globalTimeout</ItemText>
+        </Ww>
+        <Ww>
+          <count>19</count>
           <WinNumber>2</WinNumber>
           <ItemText>_currentBaudrate,0x0A</ItemText>
         </Ww>
@@ -369,19 +368,12 @@
       </DebugFlag>
       <LintExecutable></LintExecutable>
       <LintConfigFile></LintConfigFile>
-      <bLintAuto>0</bLintAuto>
-      <bAutoGenD>0</bAutoGenD>
-      <LntExFlags>0</LntExFlags>
-      <pMisraName></pMisraName>
-      <pszMrule></pszMrule>
-      <pSingCmds></pSingCmds>
-      <pMultCmds></pMultCmds>
     </TargetOption>
   </Target>
 
   <Group>
     <GroupName>source</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -390,6 +382,7 @@
       <FileNumber>1</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
+      <Focus>1</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>.\main.c</PathWithFileName>
@@ -402,6 +395,7 @@
       <FileNumber>2</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
+      <Focus>1</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>.\irq.c</PathWithFileName>
@@ -414,6 +408,7 @@
       <FileNumber>3</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
+      <Focus>1</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>.\debug.c</PathWithFileName>
@@ -426,6 +421,7 @@
       <FileNumber>4</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
+      <Focus>1</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>.\loger.c</PathWithFileName>
@@ -438,6 +434,7 @@
       <FileNumber>5</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
+      <Focus>1</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>.\selftesting.c</PathWithFileName>
@@ -450,6 +447,7 @@
       <FileNumber>6</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
+      <Focus>1</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>.\taskmanager.c</PathWithFileName>
@@ -462,6 +460,7 @@
       <FileNumber>7</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
+      <Focus>1</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>.\zpz.c</PathWithFileName>
@@ -474,6 +473,7 @@
       <FileNumber>8</FileNumber>
       <FileType>5</FileType>
       <tvExp>0</tvExp>
+      <Focus>1</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>.\config.h</PathWithFileName>
@@ -486,6 +486,7 @@
       <FileNumber>9</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
+      <Focus>1</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>.\bupdatastorage.c</PathWithFileName>
@@ -497,7 +498,7 @@
 
   <Group>
     <GroupName>logfs</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -505,7 +506,8 @@
       <GroupNumber>2</GroupNumber>
       <FileNumber>10</FileNumber>
       <FileType>1</FileType>
-      <tvExp>1</tvExp>
+      <tvExp>0</tvExp>
+      <Focus>1</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>.\logfs\log.fs.c</PathWithFileName>
@@ -518,6 +520,7 @@
       <FileNumber>11</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
+      <Focus>1</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>.\logfs\log.fs.platformdepend.c</PathWithFileName>
@@ -538,6 +541,7 @@
       <FileNumber>12</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
+      <Focus>1</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>.\retarget.printf\Retarget.c</PathWithFileName>
@@ -550,6 +554,7 @@
       <FileNumber>13</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
+      <Focus>1</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>.\retarget.printf\RetargetPrintf.c</PathWithFileName>
@@ -570,6 +575,7 @@
       <FileNumber>14</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
+      <Focus>1</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>.\math.model\mathmodelapi.c</PathWithFileName>
@@ -582,6 +588,7 @@
       <FileNumber>15</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
+      <Focus>1</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>.\math.model\flightRegulatorCFB\flightRegulatorCFB.c</PathWithFileName>
@@ -594,6 +601,7 @@
       <FileNumber>16</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
+      <Focus>1</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>.\math.model\flightController\flightController.c</PathWithFileName>
@@ -614,6 +622,7 @@
       <FileNumber>17</FileNumber>
       <FileType>1</FileType>
       <tvExp>1</tvExp>
+      <Focus>1</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>.\HeightMap\heightmap.c</PathWithFileName>
@@ -626,6 +635,7 @@
       <FileNumber>18</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
+      <Focus>1</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>.\HeightMap\heightmap.platformdepend.c</PathWithFileName>
@@ -638,6 +648,7 @@
       <FileNumber>19</FileNumber>
       <FileType>5</FileType>
       <tvExp>0</tvExp>
+      <Focus>1</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>.\HeightMap\mapflashlayout.h</PathWithFileName>
@@ -658,6 +669,7 @@
       <FileNumber>20</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
+      <Focus>1</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>.\custom.drivers\25q64fv.c</PathWithFileName>
@@ -670,6 +682,7 @@
       <FileNumber>21</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
+      <Focus>1</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>.\custom.drivers\1636pp52y.c</PathWithFileName>
@@ -682,6 +695,7 @@
       <FileNumber>22</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
+      <Focus>1</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>.\custom.drivers\analogio.c</PathWithFileName>
@@ -694,6 +708,7 @@
       <FileNumber>23</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
+      <Focus>1</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>.\custom.drivers\bims.c</PathWithFileName>
@@ -706,6 +721,7 @@
       <FileNumber>24</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
+      <Focus>1</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>.\custom.drivers\bupboard.c</PathWithFileName>
@@ -718,6 +734,7 @@
       <FileNumber>25</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
+      <Focus>1</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>.\custom.drivers\crc16.c</PathWithFileName>
@@ -730,6 +747,7 @@
       <FileNumber>26</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
+      <Focus>1</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>.\custom.drivers\crc32.c</PathWithFileName>
@@ -742,6 +760,7 @@
       <FileNumber>27</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
+      <Focus>1</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>.\custom.drivers\discreteio.c</PathWithFileName>
@@ -754,6 +773,7 @@
       <FileNumber>28</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
+      <Focus>1</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>.\custom.drivers\filters.c</PathWithFileName>
@@ -766,6 +786,7 @@
       <FileNumber>29</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
+      <Focus>1</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>.\custom.drivers\kmonshelf.c</PathWithFileName>
@@ -778,6 +799,7 @@
       <FileNumber>30</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
+      <Focus>1</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>.\custom.drivers\otherlib.c</PathWithFileName>
@@ -790,6 +812,7 @@
       <FileNumber>31</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
+      <Focus>1</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>.\custom.drivers\sws.c</PathWithFileName>
@@ -802,6 +825,7 @@
       <FileNumber>32</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
+      <Focus>1</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>.\custom.drivers\radiostation.c</PathWithFileName>

@@ -75,7 +75,6 @@ void logger_openNewSession(void)
 void logger_closeSession(void)
 {
   session = CLOSE;
-  LogFs_initialize();
 }
 void logger_warning(char* string)
 {
