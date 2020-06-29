@@ -12,10 +12,10 @@
 typedef enum {
   OPEN,
   CLOSE,
-}Seession_Status;
+}Session_Status;
 
 
-Seession_Status session = CLOSE;
+Session_Status session = CLOSE;
 
 void logger_openNewSession(void)
 {

@@ -1199,10 +1199,7 @@ static void ZPZ_Response_LOG_FORMAT (uint16_t NumPacket)
 		LogFs_format();
     /* После форматирование необходимо обновить информацию о файловой системе */ 
     SelfTesting_LogFs();
-    #ifdef LOGS_ENABLE
-   
-//      logger_openNewSession();
-    #endif
+    
 		return;
 	}
 	/* Запрос статуса форматирования */
@@ -1238,7 +1235,7 @@ static void ZPZ_Response_LOG_FILES (uint16_t NumPacket)
 	uint8_t               result = 0;      // Коды ошибок файловой системы
 	
 	/* Проверим целлостность и разметку файловой системы */
-	if(SelfTesting_LogFs() != ST_OK)
+	if(SelfTesting_STATUS(ST_LogFS) != ST_OK)
 	{
 		/* Файловая система поверждена, чтение данных невозможно */
 		ZPZ_ShortResponse(LOG_FILES, NumPacket, LOG_FS_IS_CORRUPTED);
@@ -1256,7 +1253,7 @@ static void ZPZ_Response_LOG_FILES (uint16_t NumPacket)
 	   Остальное зависит от количества файлов в накопителе */
 	ZPZ_Response.Struct.PacketSize = 6;
 	/* Тогда определим количество файлов и прибавим (для каждого файла отводится 6 байт сообщения) */
-	files = LogFs_getFileNumber();
+	files = LogFs_getFileNumber() - 1;
 	ZPZ_Response.Struct.PacketSize += 6*files;
 	
 	/* Теперь посчитаем контрольную сумму начала пакета (первые 8 байт) */
