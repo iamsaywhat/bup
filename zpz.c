@@ -783,6 +783,9 @@ static void ZPZ_Response_START_DOWNLOAD (uint16_t NumPacket)
 	ZPZ_writeFlash(ADDRESS_0_PACKET, buffer, SIZE_OF_0_PACKET_DATA);
 	/* Отвечаем об успешной команде */
 	ZPZ_ShortResponse(START_DOWNLOAD, NumPacket, SUCCES);
+  #ifdef LOGS_ENABLE
+    logger_warning("map: download started");
+  #endif
 }
 
 
@@ -832,10 +835,15 @@ static void ZPZ_Response_MAP_DOWNLOAD (uint16_t NumPacket)
 		/* Берем адрес признака */
 		Address = ADDRESS_MAP_TAG;
 		/* Буфер теперь можно перезаписать,
-       запишем в него признак	*/
+     * запишем в него признак	*/
 		*((uint32_t*)buffer) = MAP_TAG; 
 		/* А признак теперь уложим в конец*/
 		ZPZ_writeFlash(Address, buffer, 4);
+    /* Обновляем состояние карты */
+    SelfTesting_MapNtask();
+    #ifdef LOGS_ENABLE
+      logger_warning("map: download is complete");
+    #endif
 	}		
 	ZPZ_ShortResponse(MAP_DOWNLOAD, NumPacket, SUCCES);
 }
