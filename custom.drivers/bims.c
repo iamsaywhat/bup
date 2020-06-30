@@ -205,12 +205,12 @@ Bim_status BIM_controlCommand (uint16_t DeviceID, uint8_t StrapPosition)
   setTimeout(&timeout, 500);                                 // Устанавливаем максимальное время ожидания остановки БИМ
   BIM_sendRequest (DeviceID, BIM_CMD_REQ, 0, 77, 255, 255);  // Спросим состояние БИМ
     
-  if(BIM_checkNeedToStop (DeviceID, StrapPosition) == BIM_NEED_TO_STOP)
-  {
-    // Команда собирается запустить его в реверсе
-    while(BIM_getSpeed(DeviceID) != 0 && timeoutStatus(&timeout) != TIME_IS_UP)
-      BIM_sendRequest (DeviceID, BIM_CMD_OFF, 0, 66, 255, 255);      
-  }
+//  if(BIM_checkNeedToStop (DeviceID, StrapPosition) == BIM_NEED_TO_STOP)
+//  {
+//    // Команда собирается запустить его в реверсе
+//    while(BIM_getSpeed(DeviceID) != 0 && timeoutStatus(&timeout) != TIME_IS_UP)
+//      BIM_sendRequest (DeviceID, BIM_CMD_OFF, 0, 66, 255, 255);      
+//  }
   if (BIM_getStrapPosition(DeviceID) == StrapPosition)
     return BIM_ALREADY_ON_POSITION;
   return BIM_sendRequest (DeviceID, BIM_CMD_ON, StrapPosition, 66, 255, 255);

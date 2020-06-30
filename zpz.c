@@ -779,6 +779,7 @@ static void ZPZ_Response_START_DOWNLOAD (uint16_t NumPacket)
 	   можно записать во flash */
 	/* Очищаем память под полетное задание */
 	ZPZ_eraseFlash(); 
+  SelfTesting_MapNtask();
 	/* Записываем точку приземления и масштабы карты высот */
 	ZPZ_writeFlash(ADDRESS_0_PACKET, buffer, SIZE_OF_0_PACKET_DATA);
 	/* Отвечаем об успешной команде */
@@ -843,6 +844,10 @@ static void ZPZ_Response_MAP_DOWNLOAD (uint16_t NumPacket)
     SelfTesting_MapNtask();
     #ifdef LOGS_ENABLE
       logger_warning("map: download is complete");
+      logger_point("td",   // Загруженная точка приземления                                    
+                   Bup_getTouchdownPointLatitude(), 
+                   Bup_getTouchdownPointLongitude(), 
+                   Bup_getTouchdownPointAltitude());
     #endif
 	}		
 	ZPZ_ShortResponse(MAP_DOWNLOAD, NumPacket, SUCCES);
@@ -1014,18 +1019,7 @@ static void ZPZ_Response_BIM_CONTROL (uint16_t NumPacket)
 		/* И завершаемся с ошибкой */
 		return;
 	}
-  // Если БИМ сейчас в движении, то команда на вращение в противоположном направлении
-  // Ломает его (резкое изменение напрвления видимо заставляет отдавать противо-ЭДС в сеть
-  // И бим повисает по превышению питающего напряжения. Поэтому какой-бы не была команда от ЗПЗ
-  // Проверяем вращается ли БИМ сейчас (по ненулевой скорости) и если да, то стопорим его, и
-  // посылаем новую команду.
-  
-  if(BIM_Data.Struct.State == BIM_CMD_REQ)
-    status = BIM_updateCommand(BIM_Side);
-  else if (BIM_Data.Struct.State == BIM_CMD_OFF)
-    status = BIM_stopCommand(BIM_Side);
-  else if (BIM_Data.Struct.State == BIM_CMD_ON)
-    status = BIM_controlCommand(BIM_Side, BIM_Data.Struct.Position);
+  status = BIM_controlCommand(BIM_Side, BIM_Data.Struct.Position);
 	
 	/* Теперь нужно ответить по ЗПЗ */		
 	if (status == BIM_ERROR)

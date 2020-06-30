@@ -27,8 +27,8 @@ void logger_openNewSession(void)
   LogFs_initialize();
   LogFs_createFile();
   printf_switcher(TO_LOG, 0);                              // Переключаем вывод в ЛОГ
-  printf("Session#%d\n", LogFs_getCurrentFileId());        // В начало файла кладём его порядковый номер
-  printf("Firmware Version:");                             // Версия ПО, включая версию регулятора
+  printf("session#%d\n", LogFs_getCurrentFileId());        // В начало файла кладём его порядковый номер
+  printf("firmware version:");                             // Версия ПО, включая версию регулятора
   printf("%u.",   bupFirmwareVersion.majorFirmware);
   printf("%u.",   bupFirmwareVersion.minorFirmware);
   printf("%u ",   bupFirmwareVersion.microFirmware);
@@ -41,7 +41,7 @@ void logger_openNewSession(void)
                Bup_getTouchdownPointAltitude());
   
   if(!CONNECT_ZPZ_CHECK)                                   // Если производится запуск в режиме зпз
-    logger_warning("Load zpz mode..");                     // То сообщаем об этом
+    logger_warning("load zpz mode..");                     // То сообщаем об этом
   
   if(SelfTesting_STATUS(ST_1636PP52Y) == ST_FAULT)         // Пишем только жесткие неисправности
     logger_error("1636pp52y: fault");
