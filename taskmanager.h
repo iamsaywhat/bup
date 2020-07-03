@@ -75,9 +75,9 @@ void TaskManager_run (void);
 
 
 /*********************************************************************************************************
-  TaskManager_runZpzBackgroundMode - Запуск планировщика фоновых процессов в режиме ЗПЗ
+TaskManager_autoUpdateAndSelftesting - Сбор данных с датчиков и диагностика с автоперезапуском цикла
 **********************************************************************************************************/
-void TaskManager_runZpzBackgroundMode (void);
+void TaskManager_autoUpdateAndSelftesting(void);
 
 
 #endif

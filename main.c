@@ -63,7 +63,7 @@ int main(void)
     {
       ZPZ_service();                                 /* Запускаем модуль обслуживания ЗПЗ */
       if(ZPZ_getStatus() == ZPZ_SC_MODE)             /* Если ЗПЗ в настоящий момент не занят тяжелым процессом (режим РК) */
-        TaskManager_runZpzBackgroundMode ();         /* Будем в свободное время будем заниматься самодиагностикой */		
+        TaskManager_autoUpdateAndSelftesting();      /* Будем в свободное время будем заниматься самодиагностикой */		
     }
   }
 	
@@ -82,21 +82,21 @@ int main(void)
 	
   /* Если оказались здесь, значит БУП готов к работе, далее следует этап расчековки парашютной системы */
   while(SelfTesting_PIN1())                       /* Ждем пока стабилизирующий парашют выбросится и извлечет шпильку 1 */
-    TaskManager_runZpzBackgroundMode();           /* И фоном опрашиваем датчики, и следим за состоянием системы */
+    TaskManager_autoUpdateAndSelftesting();       /* И фоном опрашиваем датчики, и следим за состоянием системы */
                                                   
   setTimeout (&timeout, 12000);                   /* Стабилизирующийся парашют вышел, взводим таймер на 12 секунд */
   while(timeoutStatus(&timeout) != TIME_IS_UP)    /* Пока не произошел таймаут */
-    TaskManager_runZpzBackgroundMode();           /* Фоном опрашиваем датчики и следим за состоянием системы */
+    TaskManager_autoUpdateAndSelftesting();       /* Фоном опрашиваем датчики и следим за состоянием системы */
   
   PYRO_ON();                                      /* Поджигаем пиропатрон */
   SelfTesting_PYRO();                             /* Проверим произошел ли подрыв */
   
   while(SelfTesting_PIN2())                       /* Ждем расчековки планера (извлечения Шпильки 2) */
-    TaskManager_runZpzBackgroundMode();           /* И фоном опрашиваем датчики, и следим за состоянием системы */
+    TaskManager_autoUpdateAndSelftesting();       /* И фоном опрашиваем датчики, и следим за состоянием системы */
   
   setTimeout (&timeout, 24000);                   /* Планер вышел, но нужно дать ему время на наполнение таймер на 12 секунд */
   while(timeoutStatus(&timeout) != TIME_IS_UP)    /* Взводим таймер на 24 секунды и ждем таймаута */
-    TaskManager_runZpzBackgroundMode();           /* Фоном опрашиваем датчики и следим за состоянием системы */
+    TaskManager_autoUpdateAndSelftesting();       /* Фоном опрашиваем датчики и следим за состоянием системы */
   
   BIM_enableSupply();                 /* Включаем питание БИМов */
   SelfTesting_POW_BIM();              /* Обновим состояние реле питания бимов */
