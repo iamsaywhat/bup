@@ -84,7 +84,7 @@ int main(void)
   while(SelfTesting_PIN1())                       /* Ждем пока стабилизирующий парашют выбросится и извлечет шпильку 1 */
     TaskManager_autoUpdateAndSelftesting();       /* И фоном опрашиваем датчики, и следим за состоянием системы */
                                                   
-  setTimeout (&timeout, 12000);                   /* Стабилизирующийся парашют вышел, взводим таймер на 12 секунд */
+  setTimeout (&timeout, 14000);                   /* Стабилизирующийся парашют вышел, взводим таймер на 12 секунд */
   while(timeoutStatus(&timeout) != TIME_IS_UP)    /* Пока не произошел таймаут */
     TaskManager_autoUpdateAndSelftesting();       /* Фоном опрашиваем датчики и следим за состоянием системы */
   

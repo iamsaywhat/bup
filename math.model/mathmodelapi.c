@@ -116,9 +116,9 @@ void MathModel_prepareData (void)
     rtU.velocityAltitude        = Bup_getCurrentVelocityAltitude();
     rtU.trackingCourse          = Bup_getCurrentCourse();
     /* Данные от свс */
-    rtU.barometricAirSpeed      = 20; //SWS_getTrueSpeed();          // На время испытаний на стенде устанавливаем константу
+    rtU.barometricAirSpeed      = SWS_getTrueSpeed();          // На время испытаний на стенде устанавливаем константу
     rtU.barometricAltitude      = SWS_getAbsoluteHeight();           // так, как имитатор СВС в настоящий момент отсутсвует  
-    rtU.barometricAvailable     = 0; //SelfTesting_STATUS(ST_sws);   // Высоту от СВС подставляем, но этим флагом заставляем игнорировать
+    rtU.barometricAvailable     = SelfTesting_STATUS(ST_sws);   // Высоту от СВС подставляем, но этим флагом заставляем игнорировать
     /* Данные от радиостанции */
     rtU.radioPointLatitude      = Bup_getRadioPointLatitude();
     rtU.radioPointLongitude     = Bup_getRadioPointLongitude();
