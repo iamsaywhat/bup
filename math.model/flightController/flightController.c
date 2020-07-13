@@ -1,11 +1,15 @@
 /*
+ * Academic License - for use in teaching, academic research, and meeting
+ * course requirements at degree granting institutions only.  Not for
+ * government, commercial, or other organizational use.
+ *
  * File: flightController.c
  *
  * Code generated for Simulink model 'flightController'.
  *
- * Model version                  : 1.888
+ * Model version                  : 1.889
  * Simulink Coder version         : 8.14 (R2018a) 06-Feb-2018
- * C/C++ source code generated on : Wed Apr 15 16:25:40 2020
+ * C/C++ source code generated on : Mon Jul 13 11:16:57 2020
  *
  * Target selection: ert.tlc
  * Embedded hardware selection: ARM Compatible->ARM Cortex
@@ -1035,7 +1039,7 @@ static void Control(const real_T *AngleManevr, const uint32_T *AngleTimeout,
               /* '<S5>:590:3' justReturnedHere = false; */
               rtDW.justReturnedHere = false;
 
-              /* '<S5>:590:4' BimSupply.wantEnable; */
+              /* '<S5>:590:5' BimSupply.wantEnable; */
               /* Event: '<S5>:606' */
               b_previousEvent = *sfEvent;
               *sfEvent = event_wantEnable;
@@ -1090,7 +1094,7 @@ static void Control(const real_T *AngleManevr, const uint32_T *AngleTimeout,
                 /* '<S5>:592:3' justReturnedHere = false; */
                 rtDW.justReturnedHere = false;
 
-                /* '<S5>:592:4' BimSupply.wantEnable; */
+                /* '<S5>:592:5' BimSupply.wantEnable; */
                 /* Event: '<S5>:606' */
                 b_previousEvent = *sfEvent;
                 *sfEvent = event_wantEnable;
@@ -2359,15 +2363,15 @@ void flightController_step(void)
   un_pow1 = 57.295779513082323 * AngleManevr * 2.0;
 
   /* Saturate: '<S9>/Base_Sat' */
-  if (un_pow1 > 50.0)
+  if (un_pow1 > 35.0)
   {
-    un_pow1 = 50.0;
+    un_pow1 = 35.0;
   }
   else
   {
-    if (un_pow1 < -50.0)
+    if (un_pow1 < -35.0)
     {
-      un_pow1 = -50.0;
+      un_pow1 = -35.0;
     }
   }
 
@@ -2570,7 +2574,7 @@ void flightController_step(void)
     rtDW.currentCourse_h = 0.0;
 
     /* '<S37>:25:4' windForce = 0; */
-    /* '<S37>:25:4' windCourse = 0; */
+    /* '<S37>:25:5' windCourse = 0; */
   }
   else
   {
@@ -2700,7 +2704,7 @@ void flightController_step(void)
     /* '<S38>:25:4' windForce = 0; */
     rtDW.windForce = 0.0;
 
-    /* '<S38>:25:4' windCourse = 0; */
+    /* '<S38>:25:5' windCourse = 0; */
     rtDW.windCourse = 0.0;
 
     /* '<S38>:25:5' passedTime = 0; */

@@ -125,10 +125,10 @@ void MathModel_prepareData (void)
     rtU.radioPointAltitude      = Bup_getTouchdownPointAltitude();        // В радиостанция не присылаем высоту открытия парашюта, поэтому клонируем
     rtU.radioUpdateIndex        = Bup_getRadioPointUpdateIndex();
     /* Данные карты */
-    rtU.currentPointRelief          = Bup_getCurrentPointRelief();
-    rtU.currentPointReliefAvailable = SelfTesting_STATUS(ST_MapAvailability);
-    rtU.touchdownPointRelief        = Bup_getTouchdownPointRelief();
-    rtU.radioPointRelief            = Bup_getRadioPointRelief();
+    rtU.currentPointRelief          = 0; //Bup_getCurrentPointRelief();
+    rtU.currentPointReliefAvailable = 0; //SelfTesting_STATUS(ST_MapAvailability);
+    rtU.touchdownPointRelief        = 0; //Bup_getTouchdownPointRelief();
+    rtU.radioPointRelief            = 0; //Bup_getRadioPointRelief();
   #endif //************************************************************************** !flightRegulatorCFB 
 }
 

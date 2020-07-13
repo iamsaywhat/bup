@@ -12,7 +12,7 @@
 /* Учет версий ПО */
 #define FIRMWARE_VERSION_MAJOR    0     // Старшая версия ПО
 #define FIRMWARE_VERSION_MINOR    32    // Младшая версия ПО
-#define FIRMWARE_VERSION_MICRO    4     // Изменения
+#define FIRMWARE_VERSION_MICRO    5     // Изменения
 
 #ifdef flightRegulatorCFB
   #define MATH_OPTION             1     // Опция регулятора  
@@ -21,7 +21,7 @@
 #else
   #define MATH_OPTION             2     // Опция регулятора  
   #define MATH_VERSION_MAJOR      1     // Cтаршая версия регулятора
-  #define MATH_VERSION_MINOR      0     // Младшая версия регулятора
+  #define MATH_VERSION_MINOR      1     // Младшая версия регулятора
 #endif
 
 #endif

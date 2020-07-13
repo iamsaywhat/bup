@@ -94,7 +94,7 @@ int main(void)
   while(SelfTesting_PIN2())                       /* Ждем расчековки планера (извлечения Шпильки 2) */
     TaskManager_autoUpdateAndSelftesting();       /* И фоном опрашиваем датчики, и следим за состоянием системы */
   
-  setTimeout (&timeout, 24000);                   /* Планер вышел, но нужно дать ему время на наполнение таймер на 12 секунд */
+  setTimeout (&timeout, 30000);                   /* Планер вышел, но нужно дать ему время на наполнение таймер на 12 секунд */
   while(timeoutStatus(&timeout) != TIME_IS_UP)    /* Взводим таймер на 24 секунды и ждем таймаута */
     TaskManager_autoUpdateAndSelftesting();       /* Фоном опрашиваем датчики и следим за состоянием системы */
   

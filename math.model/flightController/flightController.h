@@ -1,11 +1,15 @@
 /*
+ * Academic License - for use in teaching, academic research, and meeting
+ * course requirements at degree granting institutions only.  Not for
+ * government, commercial, or other organizational use.
+ *
  * File: flightController.h
  *
  * Code generated for Simulink model 'flightController'.
  *
- * Model version                  : 1.888
+ * Model version                  : 1.889
  * Simulink Coder version         : 8.14 (R2018a) 06-Feb-2018
- * C/C++ source code generated on : Wed Apr 15 16:25:40 2020
+ * C/C++ source code generated on : Mon Jul 13 11:16:57 2020
  *
  * Target selection: ert.tlc
  * Embedded hardware selection: ARM Compatible->ARM Cortex
