@@ -24,4 +24,7 @@
   #define MATH_VERSION_MINOR      1     // Младшая версия регулятора
 #endif
 
+#define PIN1_DELAY   14000     // Задержка на детонацию пирозамков
+#define PIN2_DELAY   30000     // Задержка на раскрытие планера
+
 #endif
