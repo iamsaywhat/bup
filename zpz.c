@@ -1019,7 +1019,12 @@ static void ZPZ_Response_BIM_CONTROL (uint16_t NumPacket)
 		/* И завершаемся с ошибкой */
 		return;
 	}
-  status = BIM_controlCommand(BIM_Side, BIM_Data.Struct.Position);
+  if(BIM_Data.Struct.State == BIM_CMD_REQ)
+    status = BIM_updateCommand(BIM_Side);
+  else if (BIM_Data.Struct.State == BIM_CMD_OFF)
+    status = BIM_stopCommand(BIM_Side);
+  else if (BIM_Data.Struct.State == BIM_CMD_ON)
+    status = BIM_controlCommand(BIM_Side, BIM_Data.Struct.Position);
 	
 	/* Теперь нужно ответить по ЗПЗ */		
 	if (status == BIM_ERROR)
