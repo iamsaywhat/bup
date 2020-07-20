@@ -378,13 +378,39 @@ void task_loger (void)
       }
       logger_series_llu ("bim_left_cmd", left);
       logger_series_llu ("bim_right_cmd", right);
-      #else //*************************************************************************** Если выбран Easy_reg
+      #else //*************************************************************************** Если выбран flightController
       logger_series_llu ("bim_left_cmd", (uint8_t)rtY.leftStrap);
       logger_series_llu ("bim_right_cmd", (uint8_t)rtY.rightStrap);
       #endif //************************************************************************** !flightRegulatorCFB
       TaskManager.Task_LogerStage++; break;
     }
     case 17:
+    {
+      logger_series_f ("wind force", rtY.windForce);
+      logger_series_f ("wind course", rtY.windCourse);
+      TaskManager.Task_LogerStage++; break;
+    }
+    case 18:
+    {
+      logger_series_f ("horizontal time", rtY.horizontalTime);
+      TaskManager.Task_LogerStage++; break;
+    }
+    case 19:
+    {
+      logger_series_f ("vertical time", rtY.verticalTime);
+      TaskManager.Task_LogerStage++; break;
+    }
+    case 20:
+    {
+      logger_series_f ("distance", rtY.horizontalDistance);
+      TaskManager.Task_LogerStage++; break;
+    }
+    case 21:
+    {
+      logger_series_f ("horizontal speed", rtY.horizontalSpeed);
+      TaskManager.Task_LogerStage++; break;
+    }
+    case 22:
     {
       static uint8_t lastUpdateIndex = 0;
       if(lastUpdateIndex != Bup_getRadioPointUpdateIndex())
