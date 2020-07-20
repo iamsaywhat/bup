@@ -93,7 +93,7 @@
   OSC_IN32             PORT_Pin_6     PORT_OE_IN      PORT_FUNC_PORT       PORT_MODE_ANALOG
   OSC_OUT32            PORT_Pin_7     PORT_OE_OUT     PORT_FUNC_PORT       PORT_MODE_ANALOG
   PYRO                 PORT_Pin_8     PORT_OE_OUT     PORT_FUNC_PORT       PORT_MODE_DIGITAL
-  BLIND_CTRL           PORT_Pin_9     PORT_OE_OUT     PORT_FUNC_PORT       PORT_MODE_DIGITAL
+  TOUCHDOWN_PYRO       PORT_Pin_9     PORT_OE_OUT     PORT_FUNC_PORT       PORT_MODE_DIGITAL
   RELAY_BIM            PORT_Pin_10    PORT_OE_OUT     PORT_FUNC_PORT       PORT_MODE_DIGITAL
   RESERVED             PORT_Pin_11    PORT_OE_OUT     PORT_FUNC_PORT       PORT_MODE_DIGITAL
   ---                  PORT_Pin_12    PORT_OE_        PORT_FUNC_           PORT_MODE_
@@ -205,8 +205,8 @@ extern const PinConfigType BATTERY_50V;        /* Аналоговый вход 
 /****************************************PORTE********************************************************************************/
 extern const PinConfigType LED_READY;          /* Зеленый диод "Готов" */
 extern const PinConfigType LED_FAULT;          /* Красный диод "Неисправность" */
-extern const PinConfigType PYRO;               /* Пиропатрон */
-extern const PinConfigType BLIND_CTRL;         /* Замок створки */
+extern const PinConfigType PYRO;               /* Пирозамок расчековки планера */
+extern const PinConfigType TOUCHDOWN_PYRO;     /* Пирозамок расчековки посадочной системы */
 extern const PinConfigType RELAY_BIM;          /* Реле питания BIM */
 /****************************************PORTF********************************************************************************/
 extern const PinConfigType ZPZ_RX;             /* RX ножка для ZPZ */

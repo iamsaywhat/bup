@@ -34,7 +34,7 @@ const PinConfigType BATTERY_50V       = {MDR_PORTD,  PORT_Pin_10,    PORT_OE_OUT
 const PinConfigType LED_READY         = {MDR_PORTE,  PORT_Pin_2,     PORT_OE_OUT,     PORT_FUNC_PORT,       PORT_MODE_DIGITAL};
 const PinConfigType LED_FAULT         = {MDR_PORTE,  PORT_Pin_3,     PORT_OE_OUT,     PORT_FUNC_PORT,       PORT_MODE_DIGITAL}; 
 const PinConfigType PYRO              = {MDR_PORTE,  PORT_Pin_8,     PORT_OE_OUT,     PORT_FUNC_PORT,       PORT_MODE_DIGITAL}; 
-const PinConfigType BLIND_CTRL        = {MDR_PORTE,  PORT_Pin_9,     PORT_OE_OUT,     PORT_FUNC_PORT,       PORT_MODE_DIGITAL}; 
+const PinConfigType TOUCHDOWN_PYRO    = {MDR_PORTE,  PORT_Pin_9,     PORT_OE_OUT,     PORT_FUNC_PORT,       PORT_MODE_DIGITAL}; 
 const PinConfigType RELAY_BIM         = {MDR_PORTE,  PORT_Pin_10,    PORT_OE_OUT,     PORT_FUNC_PORT,       PORT_MODE_DIGITAL};
 /****************************************PORTF********************************************************************************/
 const PinConfigType ZPZ_RX            = {MDR_PORTF,  PORT_Pin_0,     PORT_OE_IN,      PORT_FUNC_OVERRID,    PORT_MODE_DIGITAL};

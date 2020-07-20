@@ -46,10 +46,10 @@ void SelfTestingFull (void)
   SelfTesting_PIN1();
   // Проверка состояния шпильки 2
   SelfTesting_PIN2();
-  // Проверка состояния реле пиропатрона
+  // Проверка состояния реле пирозамка планера
   SelfTesting_PYRO();
-  // Проверка состояния шторки
-  SelfTesting_BLIND();
+  // Проверка состояния реле пирозамка посадочной системы
+  SelfTesting_TDS();
   // Проверка состояния реле питания БИМ и CAN
   SelfTesting_POW_BIM ();
   // Проверка левого БИМа
@@ -94,8 +94,8 @@ void SelfTestingOnline (void)
   SelfTesting_PIN2();
   // Проверка состояния реле пиропатрона
   SelfTesting_PYRO();
-  // Проверка состояния шторки
-  SelfTesting_BLIND();
+  // Проверка состояния реле пирозамка посадочной системы
+  SelfTesting_TDS();
   // Проверка состояния реле питания БИМ и CAN
   SelfTesting_POW_BIM ();
   // Проверка связи с СВС
@@ -642,37 +642,37 @@ SelfTesting_STATUS_TYPE SelfTesting_PYRO(void)
 
 
 /************************************************************************************
-  SelfTesting_BLIND - Проверка состояния реле створки
+  SelfTesting_TDS - Проверка состояния реле пирозамка посадочной системы
 				
   Возвращает: ST_OK    - Если реле створки включено
               ST_FAULT - Если реле створки выключено
 ************************************************************************************/
-SelfTesting_STATUS_TYPE SelfTesting_BLIND(void)
+SelfTesting_STATUS_TYPE SelfTesting_TDS(void)
 {
-  SelfTesting_STATUS_TYPE previous = SelfTesting_STATUS(ST_blind);
+  SelfTesting_STATUS_TYPE previous = SelfTesting_STATUS(ST_tds);
   
-  if(BLIND_CTRL_CHECK && BLIND_CHECK)
-    SelfTesting_SET_OK(ST_blind);
+  if(TOUCHDOWN_PYRO_CHECK)
+    SelfTesting_SET_OK(ST_tds);
   else
-    SelfTesting_SET_FAULT(ST_blind);
+    SelfTesting_SET_FAULT(ST_tds);
  
-  if(SelfTesting_STATUS(ST_blind) != previous)
+  if(SelfTesting_STATUS(ST_tds) != previous)
   {
-    if(SelfTesting_STATUS(ST_blind) == ST_OK)
+    if(SelfTesting_STATUS(ST_tds) == ST_OK)
     {
       #ifdef LOGS_ENABLE
-        logger_warning("blind: has been enabled");
+        logger_warning("tds: has been enabled");
       #endif
     }
     else
     {
       #ifdef LOGS_ENABLE
-        logger_warning("blind: has been disabled");
+        logger_warning("tds: has been disabled");
       #endif
     }
   }
   
-  return SelfTesting_STATUS(ST_blind);
+  return SelfTesting_STATUS(ST_tds);
 }
 
 
