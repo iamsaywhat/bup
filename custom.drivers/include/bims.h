@@ -45,18 +45,18 @@
 #define BAUDRATE_BIM              125000                // Cкорость обмена по CAN, бит/c
 #define BIM_SEND_TIMEOUT          2                     // Таймаут на отправку сообщения, мс
 #define BIM_RECEIVE_TIMEOUT       3                     // Таймаут на приём ответа, мс
-#define BUFFER_200                0
-#define BUFFER_201                1
+#define RIGHT_BIM_BUFFER          0                     // Номер буфера под ответ правого
+#define LEFT_BIM_BUFFER           1                     // Номер буфера под ответ левого
 
 
 /************************************************************
   Адреса устройств БИМ на CAN ШИНЕ
 ************************************************************/
 typedef enum{
-  DEVICE_100    = 0x100,    // Левый БИМ
-  DEVICE_101    = 0x101,    // Правый БИМ
-  LEFT_BIM      = 0x100,    // Левый БИМ
-  RIGHT_BIM     = 0x101,    // Правый БИМ
+  LEFT_BIM       = 0x101,    // Левый БИМ - команды
+  RIGHT_BIM      = 0x100,    // Правый БИМ - команды
+  FROM_LEFT_BIM  = 0x201,    // Левый БИМ - ответы
+  FROM_RIGHT_BIM = 0x200,    // Правый БИМ - ответы
 }Bim_devices;
 
 
@@ -147,7 +147,7 @@ void BIM_CAN_initialize (void);
             BIM_DONE                - Команда успешно выполнена	 	
             BIM_ALREADY_ON_POSITION - БИМ уже находится в положении StrapPosition         
 **************************************************************************************************************/
-Bim_status BIM_controlCommand (uint16_t DeviceID, uint8_t StrapPosition);
+Bim_status BIM_controlCommand (Bim_devices DeviceID, uint8_t StrapPosition);
 
 /**************************************************************************************************************
   BIM_stopCommand - Команда на остановку БИМа
@@ -157,7 +157,7 @@ Bim_status BIM_controlCommand (uint16_t DeviceID, uint8_t StrapPosition);
             BIM_ERROR - Команда не выполнена
             BIM_DONE  - Команда успешно выполнена	 		
 **************************************************************************************************************/
-Bim_status BIM_stopCommand (uint16_t DeviceID);
+Bim_status BIM_stopCommand (Bim_devices DeviceID);
 
 /**************************************************************************************************************
   BIM_updateCommand - Обновление данных о состоянии БИМа
@@ -167,7 +167,7 @@ Bim_status BIM_stopCommand (uint16_t DeviceID);
             BIM_ERROR - Обновление данных не выполнено
             BIM_DONE  - Данные о состоянии БИМа обновлены	 		
 **************************************************************************************************************/
-Bim_status BIM_updateCommand (uint16_t DeviceID);
+Bim_status BIM_updateCommand (Bim_devices DeviceID);
 
 /**************************************************************************************************************
   BIM_sendRequest - Функция отправки запроса БИМам с командами
@@ -183,12 +183,12 @@ Bim_status BIM_updateCommand (uint16_t DeviceID);
             BIM_ERROR - Если ошибка при передаче (таймаут передачи)
             BIM_DONE  - Если отправлено успешно	 		
 **************************************************************************************************************/
-Bim_status BIM_sendRequest (uint16_t DeviceID, 
-                            uint8_t  CMD, 
-                            uint8_t  StrapPosition, 
-                            uint8_t  ReqCount, 
-                            uint8_t  SpeedLimit, 
-                            uint8_t  CurrentLimit);
+Bim_status BIM_sendRequest (Bim_devices DeviceID, 
+                            uint8_t     CMD, 
+                            uint8_t     StrapPosition, 
+                            uint8_t     ReqCount, 
+                            uint8_t     SpeedLimit, 
+                            uint8_t     CurrentLimit);
 
 /**************************************************************************************************************
   BIM_checkConnection - Проверка связи с БИМами
@@ -198,7 +198,7 @@ Bim_status BIM_sendRequest (uint16_t DeviceID,
             BIM_ERROR - Связь нарущена
             BIM_DONE  - Связь с БИМом в порядке	 		
 **************************************************************************************************************/
-Bim_status BIM_checkConnection (uint16_t DeviceID);
+Bim_status BIM_checkConnection (Bim_devices DeviceID);
 
 /**************************************************************************************************************
   BIM_getStrapPosition - Получить текущее положение стропы
@@ -206,7 +206,7 @@ Bim_status BIM_checkConnection (uint16_t DeviceID);
             DeviceID 	- Идентификатор БИМ-устройства.
   Возвращает: Положение стропы устройства с DeviceID.
 **************************************************************************************************************/
-uint8_t BIM_getStrapPosition (uint16_t DeviceID);
+uint8_t BIM_getStrapPosition (Bim_devices DeviceID);
 
 /**************************************************************************************************************
   BIM_getVoltage - Получить текущее значение напряжения
@@ -215,7 +215,7 @@ uint8_t BIM_getStrapPosition (uint16_t DeviceID);
   Возвращает:
             Текущее значение напряжения.
 **************************************************************************************************************/
-uint8_t BIM_getVoltage (uint16_t DeviceID);
+uint8_t BIM_getVoltage (Bim_devices DeviceID);
 
 /**************************************************************************************************************
   BIM_getCurrent - Получить текущее значение тока
@@ -224,7 +224,7 @@ uint8_t BIM_getVoltage (uint16_t DeviceID);
   Возвращает:
             Текущее значение тока
 **************************************************************************************************************/
-int8_t BIM_getCurrent (uint16_t DeviceID);
+int8_t BIM_getCurrent (Bim_devices DeviceID);
 
 /**************************************************************************************************************
   BIM_getSpeed - Получить текущее значение скорости
@@ -233,7 +233,7 @@ int8_t BIM_getCurrent (uint16_t DeviceID);
   Возвращает:
             Текущее значение скорости.
 **************************************************************************************************************/
-int8_t BIM_getSpeed (uint16_t DeviceID);
+int8_t BIM_getSpeed (Bim_devices DeviceID);
 
 /**************************************************************************************************************
   BIM_getStatusFlags - Получить актуальные флаги состояния устройства  
@@ -242,6 +242,6 @@ int8_t BIM_getSpeed (uint16_t DeviceID);
   Возвращает:
             Актуальные флаги состояния устройства.
 **************************************************************************************************************/
-uint16_t BIM_getStatusFlags (uint16_t DeviceID);
+uint16_t BIM_getStatusFlags (Bim_devices DeviceID);
 
 #endif

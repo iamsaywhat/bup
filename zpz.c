@@ -982,8 +982,8 @@ static uint16_t ZPZ_Request_BIM_CONTROL (uint16_t CRC)
 
 static void ZPZ_Response_BIM_CONTROL (uint16_t NumPacket)
 {
-	uint16_t    BIM_Side;
-	Bim_status  status;
+	Bim_devices    BIM_Side;
+	Bim_status     status;
 	ZPZ_RequestControlBIM_Union BIM_Data;
 	
 	/* Разберем буфер */
@@ -1009,9 +1009,9 @@ static void ZPZ_Response_BIM_CONTROL (uint16_t NumPacket)
 		
 	/* Определяем правым или левым БИМом будем управлять */
 	if (BIM_Data.Struct.Side == L_BIM) 
-		BIM_Side =  DEVICE_101;
+		BIM_Side =  LEFT_BIM;
 	else if (BIM_Data.Struct.Side == R_BIM) 
-		BIM_Side = DEVICE_100;
+		BIM_Side = RIGHT_BIM;
 	else 
 	{
 		/* Такого ID не существует */
@@ -1050,8 +1050,9 @@ static void ZPZ_Response_BIM_STATUS(uint16_t NumPacket)
 {
 	ZPZ_ResponseStatusBIM_Union   ZPZ_BIM_Status;      // Структура с информацией от БИМ
 	ZPZ_Response_Union            ZPZ_Response;        // Стандартный ответ к ЗПЗ
-	uint16_t                      BIM_Side, i;         // Выбор левого, правого БИМ; счетчик циклов
+  Bim_devices                   BIM_Side;            // Выбор левого, правого БИМ
 	Bim_status                    status;              // Статус обмена с БИМ
+  uint16_t                      i;                   // Cчетчик циклов
 	
 	/* Разбираем буфер */
 	uint8_t Side = buffer[0];
@@ -1076,9 +1077,9 @@ static void ZPZ_Response_BIM_STATUS(uint16_t NumPacket)
 	
 	/* Определяем правым или левым БИМом будем управлять */
 	if (Side == L_BIM) 
-		BIM_Side =  DEVICE_101;
+		BIM_Side =  LEFT_BIM;
 	else if (Side == R_BIM) 
-		BIM_Side = DEVICE_100;
+		BIM_Side = RIGHT_BIM;
 	/* Это случай ошибки, адрес выбран произвольно */
 	else 
 	{

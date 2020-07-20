@@ -107,16 +107,16 @@ void BIM_CAN_initialize (void)
 	}
 	
 	//Настройка фильтров
-	// Сейчас настроен фильтр на 200h адрес только на 0 буфере
-	CAN_FilterInitStruct.Filter_ID = CAN_STDID_TO_EXTID(0x200);
+  // Резервируем один из буферов (RIGHT_BIM_BUFFER) под данные с адресом ответа правого бима (FROM_RIGHT_BIM)
+	CAN_FilterInitStruct.Filter_ID = CAN_STDID_TO_EXTID(FROM_RIGHT_BIM);
 	CAN_FilterInitStruct.Mask_ID = 0xFFFFFFFF;
-	CAN_FilterInit (MDR_CAN1, BUFFER_200, &CAN_FilterInitStruct);
+	CAN_FilterInit (MDR_CAN1, RIGHT_BIM_BUFFER, &CAN_FilterInitStruct);
 
 	//Настройка фильтров
-	// Сейчас настроен фильтр на 201h адрес только на 1 буфере
-	CAN_FilterInitStruct.Filter_ID = CAN_STDID_TO_EXTID(0x201);
+  // Резервируем один из буферов (LEFT_BIM_BUFFER) под данные с адресом ответа правого бима (FROM_LEFT_BIM)
+	CAN_FilterInitStruct.Filter_ID = CAN_STDID_TO_EXTID(FROM_LEFT_BIM);
 	CAN_FilterInitStruct.Mask_ID = 0xFFFFFFFF;
-	CAN_FilterInit (MDR_CAN1, BUFFER_201, &CAN_FilterInitStruct); 	
+	CAN_FilterInit (MDR_CAN1, LEFT_BIM_BUFFER, &CAN_FilterInitStruct); 	
 	
 	// Активируем передатчик
 	Pin_set (BIM_CAN_CS1); 
@@ -126,7 +126,7 @@ void BIM_CAN_initialize (void)
 /**************************************************************************************************************
     BIM_sendRequest - Отправка запроса к БИМу
 **************************************************************************************************************/
-Bim_status BIM_sendRequest (uint16_t DeviceID, uint8_t CMD, uint8_t StrapPosition, uint8_t ReqCount, uint8_t SpeedLimit, uint8_t CurrentLimit)
+Bim_status BIM_sendRequest (Bim_devices DeviceID, uint8_t CMD, uint8_t StrapPosition, uint8_t ReqCount, uint8_t SpeedLimit, uint8_t CurrentLimit)
 {
 	uint16_t         Buffer_number;
 	CAN_TxMsgTypeDef BIM_Request; 
@@ -165,11 +165,8 @@ Bim_status BIM_sendRequest (uint16_t DeviceID, uint8_t CMD, uint8_t StrapPositio
 /**************************************************************************************************************
     BIM_controlCommand - Команда управления положением БИМа
 **************************************************************************************************************/
-Bim_status BIM_controlCommand (uint16_t DeviceID, uint8_t StrapPosition)
+Bim_status BIM_controlCommand (Bim_devices DeviceID, uint8_t StrapPosition)
 {
-  static TimeoutType timeout = {0, 0, TIME_IS_UP};           // Для фиксации неисправности во времени
-  
-  setTimeout(&timeout, 500);                                 // Устанавливаем максимальное время ожидания остановки БИМ
   BIM_sendRequest (DeviceID, BIM_CMD_REQ, 0, 77, 255, 255);  // Спросим состояние БИМ
   
   if (BIM_getStrapPosition(DeviceID) == StrapPosition)
@@ -180,7 +177,7 @@ Bim_status BIM_controlCommand (uint16_t DeviceID, uint8_t StrapPosition)
 /**************************************************************************************************************
     BIM_stopCommand - Команда на остановку БИМА
 **************************************************************************************************************/
-Bim_status BIM_stopCommand (uint16_t DeviceID)
+Bim_status BIM_stopCommand (Bim_devices DeviceID)
 {
   return BIM_sendRequest (DeviceID, BIM_CMD_OFF, 0, 11, 255, 255);
 }
@@ -188,7 +185,7 @@ Bim_status BIM_stopCommand (uint16_t DeviceID)
 /**************************************************************************************************************
     BIM_updateCommand - Обновить данные о состоянии БИМа
 **************************************************************************************************************/
-Bim_status BIM_updateCommand (uint16_t DeviceID)
+Bim_status BIM_updateCommand (Bim_devices DeviceID)
 {
   return BIM_sendRequest (DeviceID, BIM_CMD_REQ, 0, 55, 255, 255);
 }
@@ -196,7 +193,7 @@ Bim_status BIM_updateCommand (uint16_t DeviceID)
 /**************************************************************************************************************
     BIM_checkConnection - Проверка связи с БИМами
 **************************************************************************************************************/
-Bim_status BIM_checkConnection (uint16_t DeviceID)
+Bim_status BIM_checkConnection (Bim_devices DeviceID)
 {
   Bim_status status = BIM_ERROR;  // Флаг результата проверки связи
   uint8_t i;                      // Счетчик количесвта опросов
@@ -214,7 +211,7 @@ Bim_status BIM_checkConnection (uint16_t DeviceID)
 /**************************************************************************************************************
     BIM_getStrapPosition - Получить текущее положение стропы	
 **************************************************************************************************************/
-uint8_t BIM_getStrapPosition (uint16_t DeviceID)
+uint8_t BIM_getStrapPosition (Bim_devices DeviceID)
 {
 	// Спрашивается положение стропы левого БИМа
 	if(DeviceID == LEFT_BIM)
@@ -235,7 +232,7 @@ uint8_t BIM_getStrapPosition (uint16_t DeviceID)
 /**************************************************************************************************************
     BIM_getVoltage - Получить текущее значение напряжения
 **************************************************************************************************************/
-uint8_t BIM_getVoltage (uint16_t DeviceID)
+uint8_t BIM_getVoltage (Bim_devices DeviceID)
 {
 	// Спрашивается положение стропы левого БИМа
 	if(DeviceID == LEFT_BIM)
@@ -256,7 +253,7 @@ uint8_t BIM_getVoltage (uint16_t DeviceID)
 /**************************************************************************************************************
     BIM_getCurrent - Получить текущее значение тока
 **************************************************************************************************************/
-int8_t BIM_getCurrent (uint16_t DeviceID)
+int8_t BIM_getCurrent (Bim_devices DeviceID)
 {
 	// Спрашивается положение стропы левого БИМа
 	if(DeviceID == LEFT_BIM)
@@ -277,7 +274,7 @@ int8_t BIM_getCurrent (uint16_t DeviceID)
 /**************************************************************************************************************
     BIM_getSpeed - Получить текущее значение скорости
 **************************************************************************************************************/
-int8_t BIM_getSpeed (uint16_t DeviceID)
+int8_t BIM_getSpeed (Bim_devices DeviceID)
 {
 	// Спрашивается положение стропы левого БИМа
 	if(DeviceID == LEFT_BIM)
@@ -298,7 +295,7 @@ int8_t BIM_getSpeed (uint16_t DeviceID)
 /**************************************************************************************************************
     BIM_getStatusFlags - Получить актуальные флаги состояния устройства
 **************************************************************************************************************/
-uint16_t BIM_getStatusFlags (uint16_t DeviceID)
+uint16_t BIM_getStatusFlags (Bim_devices DeviceID)
 {
 	// Спрашивается положение стропы левого БИМа
 	if(DeviceID == LEFT_BIM)
@@ -326,35 +323,35 @@ uint16_t BIM_getStatusFlags (uint16_t DeviceID)
     Возвращает: 0 - Если ошибка при приёме (таймаут или DeviceID не найден)
                 1 - Если отправлено успешно 		
 **************************************************************************************************************/
-static Bim_status BIM_ReceiveResponse (uint16_t DeviceID)
+static Bim_status BIM_ReceiveResponse (Bim_devices DeviceID)
 {
 	TimeoutType      timeout;
 	CAN_RxMsgTypeDef RxMsg;
 	
 	setTimeout (&timeout, BIM_RECEIVE_TIMEOUT);
-	if(DeviceID == DEVICE_100)		// Принять ответ от БИМа с адресом 200 (Левый)
+	if(DeviceID == RIGHT_BIM)		// Принять ответ от правого БИМа
 	{
-		while (!CAN_GetRxITStatus(BIM_CAN, BUFFER_200)	&& (timeoutStatus(&timeout) != TIME_IS_UP));
-		if(CAN_GetRxITStatus(BIM_CAN, BUFFER_200))                   
+		while (!CAN_GetRxITStatus(BIM_CAN, RIGHT_BIM_BUFFER)	&& (timeoutStatus(&timeout) != TIME_IS_UP));
+		if(CAN_GetRxITStatus(BIM_CAN, RIGHT_BIM_BUFFER))                   
 		{
-			CAN_GetRawReceivedData (BIM_CAN, BUFFER_200, &RxMsg);    // Забираем пакет данных, только если
-			Left_BIM.Buffer[0] =  RxMsg.Data[0];                     // Выход из цикла ожидания выше был
-			Left_BIM.Buffer[1] =  RxMsg.Data[1];                     // По приходу данных, по таймауту ничего не делаем
+			CAN_GetRawReceivedData (BIM_CAN, RIGHT_BIM_BUFFER, &RxMsg);     // Забираем пакет данных, только если
+			Right_BIM.Buffer[0] =  RxMsg.Data[0];                     // Выход из цикла ожидания выше был
+			Right_BIM.Buffer[1] =  RxMsg.Data[1];                     // По приходу данных, по таймауту ничего не делаем
 		}
 		// Сбрасываем флаг того, что имеется необработаное сообщение
-		CAN_ITClearRxTxPendingBit(BIM_CAN, BUFFER_200, CAN_STATUS_RX_READY);
+		CAN_ITClearRxTxPendingBit(BIM_CAN, RIGHT_BIM_BUFFER, CAN_STATUS_RX_READY);
 	}
-	else if (DeviceID == DEVICE_101)	// Принять ответ от БИМа с адресом 201 (Правый)
+	else if (DeviceID == LEFT_BIM)	// Принять ответ от левого БИМа
 	{
-		while (!CAN_GetRxITStatus(BIM_CAN, BUFFER_201)	&& (timeoutStatus(&timeout) != TIME_IS_UP));
-		if(CAN_GetRxITStatus(BIM_CAN, BUFFER_201))
+		while (!CAN_GetRxITStatus(BIM_CAN, LEFT_BIM_BUFFER)	&& (timeoutStatus(&timeout) != TIME_IS_UP));
+		if(CAN_GetRxITStatus(BIM_CAN, LEFT_BIM_BUFFER))
 		{
-			CAN_GetRawReceivedData (BIM_CAN, BUFFER_201 , &RxMsg);   // Забираем пакет данных, только если
-			Right_BIM.Buffer[0] =  RxMsg.Data[0];                    // Выход из цикла ожидания выше был
-			Right_BIM.Buffer[1] =  RxMsg.Data[1];                    // По приходу данных, по таймауту ничего не делаем
+			CAN_GetRawReceivedData (BIM_CAN, LEFT_BIM_BUFFER, &RxMsg);   // Забираем пакет данных, только если
+			Left_BIM.Buffer[0] =  RxMsg.Data[0];                    // Выход из цикла ожидания выше был
+			Left_BIM.Buffer[1] =  RxMsg.Data[1];                    // По приходу данных, по таймауту ничего не делаем
 		}
 		// Сбрасываем флаг того, что имеется необработаное сообщение
-		CAN_ITClearRxTxPendingBit(BIM_CAN, BUFFER_201, CAN_STATUS_RX_READY);
+		CAN_ITClearRxTxPendingBit(BIM_CAN, LEFT_BIM_BUFFER, CAN_STATUS_RX_READY);
 	}
 	// БИМов с другимми адресами нет, возвращаем признак ошибки
 	else 
