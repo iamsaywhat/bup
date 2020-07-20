@@ -446,7 +446,7 @@ void task_exit (void)
   delay_us(5000000);       // Ждем 5 секунд
   TOUCHDOWN_PYRO_OFF();    // Отключаем реле створки замка (нельзя удерживать дольше 10 секунд)
   SelfTesting_TDS();
-  BIM_disableSupply();     // Отключаем БИМы
+  BIM_disable();           // Отключаем БИМы
   SelfTesting_POW_BIM();
   while(1);                // Повисаем в ожидании перезапуска
 }

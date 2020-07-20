@@ -58,7 +58,7 @@ int main(void)
   if(!CONNECT_ZPZ_CHECK)                             /* Проверяем подключение разъема ЗПЗ */
   {
     ZPZ_initialize();                                /* Запускаем драйвер ЗПЗ */
-    BIM_enableSupply();                              /* Для тестирования БИМов подадим на них питание */
+    BIM_enable();                                    /* Для тестирования БИМов подадим на них питание */
     while(!CONNECT_ZPZ_CHECK)                        /* И уходим на обслуживание режима ЗПЗ */
     {
       ZPZ_service();                                 /* Запускаем модуль обслуживания ЗПЗ */
@@ -98,7 +98,7 @@ int main(void)
     TaskManager_autoUpdateAndSelftesting();       /* иначе таймер обнуляется, если прошло менее PIN2_DELAY сек, параллельно */
   }while(timeoutStatus(&timeout) != TIME_IS_UP);  /* следим за состоянием системы */
  
-  BIM_enableSupply();                 /* Включаем питание БИМов */
+  BIM_enable();                       /* Включаем питание БИМов */
   SelfTesting_POW_BIM();              /* Обновим состояние реле питания бимов */
   delay_ms(1000);                     /* Ждем 1 секунду, чтобы питание БИМов стабилировалось */
   

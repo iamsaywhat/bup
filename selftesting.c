@@ -512,7 +512,7 @@ void SelfTesting_BIMS_TRY_CONNECT(void)
     if(timeoutStatus(&timeout) == TIME_IS_UP)        // Необходимая пауза между включения и отключения выдержана
     {
       setTimeout(&timeout, 10000);                   // Взводим новый таймаут
-      BIM_enableSupply();                            // Включаем БИМЫ
+      BIM_enable();                                  // Включаем БИМЫ
       needToReset = 0;                               // Сбрасываем флаг ожидания перезапуска
     }
   }
@@ -524,7 +524,7 @@ void SelfTesting_BIMS_TRY_CONNECT(void)
     {
       if (timeoutStatus(&timeout) == TIME_IS_UP)               // И время с момента поледнего перезапуска прошло
       {
-        BIM_disableSupply();                                   // Отключаем реле питания
+        BIM_disable();                                         // Отключаем реле питания
         setTimeout(&timeout, 10000);                           // Взводим новый таймаут
         needToReset = 1;                                       // Взводим флаг необходимости перезауска
         #ifdef LOGS_ENABLE

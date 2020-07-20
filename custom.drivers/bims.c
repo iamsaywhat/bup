@@ -29,7 +29,7 @@ static void BIM_RetargetPins (void)
 	// Пин подачи питания на БИМы
 	Pin_initialize (RELAY_BIM);
 	// По-умолчанию питание отключим
-	BIM_disableSupply(); 
+	BIM_disable(); 
 }
 
 

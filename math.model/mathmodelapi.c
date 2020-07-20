@@ -187,7 +187,7 @@ void MathModel_control (void)
     delay_us(5000000);       // Ждем 5 секунд
     TOUCHDOWN_PYRO_OFF();    // Отключаем реле створки замка (нельзя удерживать дольше 10 секунд)
     SelfTesting_TDS();
-    BIM_disableSupply();     // Отключаем БИМы
+    BIM_disable();           // Отключаем БИМы
     SelfTesting_POW_BIM();
     while(1);                // Повисаем в ожидании перезапуска
   }
@@ -206,8 +206,8 @@ void MathModel_sendBimCommand (uint8_t left, uint8_t right)
     left = 100;                     // то ограничиваем сверху
   if(right > 100)
     right = 100;
-  left = (uint8_t)(2.55*left);      // Переводим в байтовый диапазон 
-  right = (uint8_t)(2.55*right);    // [0...255]
+  left = BIM_persentToPosition(left);      // Переводим в байтовый диапазон 
+  right = BIM_persentToPosition(right);    // [0...255]
   
   /* Этот каскад условий необходим, чтобы: 
   1) Запретить одновременную работу двигателей, принудительным переходом через ноль
