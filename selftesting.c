@@ -309,7 +309,7 @@ SelfTesting_STATUS_TYPE SelfTesting_MapNtask(void)
 SelfTesting_STATUS_TYPE SelfTesting_LogFs(void)
 {
   // Если файловая система ответила FINE - она готова к работе
-  if(LogFs_check() == FS_FINE)
+  if(LogFs_check() == FS_SUCCESS)
     SelfTesting_SET_OK(ST_LogFS);
   // Иначе разметка файловой системы повреждена, либо проблемы с spi-flash 
   else

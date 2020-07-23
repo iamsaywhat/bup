@@ -20,14 +20,14 @@ Session_Status session = CLOSE;
 void logger_openNewSession(void)
 {
   if(SelfTesting_STATUS(ST_25Q64FV) == ST_FAULT ||         // Если неисправна флэш черного ящика
-    SelfTesting_STATUS(ST_LogFS) == ST_FAULT)              // или файловая система с ошибкой, то писать некуда
+     SelfTesting_STATUS(ST_LogFS) == ST_FAULT)             // или файловая система с ошибкой, то писать некуда
     return;                                                // поэтому просто выходим
   
   session = OPEN;
   LogFs_initialize();
-  LogFs_createFile();
+  LogFs_create();
   printf_switcher(TO_LOG, 0);                              // Переключаем вывод в ЛОГ
-  printf("session#%d\n", LogFs_getCurrentFileId());        // В начало файла кладём его порядковый номер
+  printf("session#%d\n", LogFs_getLastFileID());           // В начало файла кладём его порядковый номер
   printf("firmware version:");                             // Версия ПО, включая версию регулятора
   printf("%u.",   bupFirmwareVersion.majorFirmware);
   printf("%u.",   bupFirmwareVersion.minorFirmware);
