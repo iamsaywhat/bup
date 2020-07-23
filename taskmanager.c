@@ -9,7 +9,7 @@
 #include "logfs/log.fs.h"
 #include "retarget.printf/RetargetPrintf.h"
 #include "debug.h"
-#include "loger.h"
+#include "logger.h"
 
 
 #ifdef flightRegulatorCFB //******************************************************* Если выбран flightRegulatorCFB

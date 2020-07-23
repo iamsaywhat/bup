@@ -15,7 +15,7 @@
 #include "bupdatastorage.h"
 #include "heightMap/mapflashlayout.h"
 #include "string.h"
-#include "loger.h"
+#include "logger.h"
 
 
 #define BUFFER_SIZE 800

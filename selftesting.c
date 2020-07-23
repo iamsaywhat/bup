@@ -16,7 +16,7 @@
 #include "radiostation.h"
 
 #ifdef LOGS_ENABLE
-#include "loger.h"
+#include "logger.h"
 #endif
 
 
