@@ -9,14 +9,14 @@
 #include "sws.h"
 #include "kmonshelf.h"
 #include "bims.h"
-#include "logfs/log.fs.h"
+#include "logger/logfs/log.fs.h"
 #include "heightmap/heightmap.platformdepend.h"
 #include "heightmap/heightmap.h"
 #include "bupdatastorage.h"
 #include "radiostation.h"
 
 #ifdef LOGS_ENABLE
-#include "logger.h"
+#include "logger/logger.h"
 #endif
 
 

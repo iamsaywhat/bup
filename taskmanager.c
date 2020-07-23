@@ -6,10 +6,10 @@
 #include "bims.h"
 #include "discreteio.h"
 #include "math.model/mathmodelapi.h"
-#include "logfs/log.fs.h"
-#include "retarget.printf/RetargetPrintf.h"
+#include "logger/logfs/log.fs.h"
+#include "logger/RetargetPrintf.h"
 #include "debug.h"
-#include "logger.h"
+#include "logger/logger.h"
 
 
 #ifdef flightRegulatorCFB //******************************************************* Если выбран flightRegulatorCFB

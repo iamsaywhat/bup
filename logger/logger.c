@@ -1,11 +1,11 @@
 #include "logger.h"
 
 #include "otherlib.h"
-#include "config.h"
+#include "../config.h"
 #include "logfs/log.fs.h"
-#include "retarget.printf/RetargetPrintf.h"
-#include "selftesting.h"
-#include "bupdatastorage.h"
+#include "RetargetPrintf.h"
+#include "../selftesting.h"
+#include "../bupdatastorage.h"
 #include "discreteio.h"
 
 

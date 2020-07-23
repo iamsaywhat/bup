@@ -6,7 +6,7 @@
 #include "1636PP52Y.h"
 #include "crc16.h"
 #include "bims.h"
-#include "logfs/log.fs.h"
+#include "logger/logfs/log.fs.h"
 #include "kmonshelf.h"
 #include "sws.h"
 #include "discreteio.h"
@@ -15,7 +15,7 @@
 #include "bupdatastorage.h"
 #include "heightMap/mapflashlayout.h"
 #include "string.h"
-#include "logger.h"
+#include "logger/logger.h"
 
 
 #define BUFFER_SIZE 800

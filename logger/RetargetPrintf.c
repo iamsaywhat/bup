@@ -1,7 +1,7 @@
 #include "RetargetPrintf.h"
 #include "otherlib.h"
 #include "bupboard.h"
-#include "../logfs/log.fs.h"
+#include "logfs/log.fs.h"
 
 
 
