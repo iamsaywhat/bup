@@ -176,17 +176,19 @@ void MathModel_control (void)
     // Переводим БИМЫ в состояние по умолчанию
     MathModel_sendBimCommand (0, 0);
     // Замок створки открыть
-    TOUCHDOWN_PYRO_ON();
-			      
+    TOUCHDOWN_PYRO_ON(); 
     SelfTesting_TDS();
+    
     #ifdef LOGS_ENABLE
       logger_warning("the flight is over");
       logger_point("final", Bup_getCurrentPointLatitude(), 
                   Bup_getCurrentPointLongitude(), Bup_getCurrentPointAltitude());
     #endif
-    delay_us(5000000);       // Ждем 5 секунд
+    
+    delay_ms(10000);         // Ждем 10 секунд
     TOUCHDOWN_PYRO_OFF();    // Отключаем реле створки замка (нельзя удерживать дольше 10 секунд)
     SelfTesting_TDS();
+    
     BIM_disable();           // Отключаем БИМы
     SelfTesting_POW_BIM();
     while(1);                // Повисаем в ожидании перезапуска
