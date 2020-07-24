@@ -7,13 +7,7 @@
 #include "kmonshelf.h"
 #include "config.h"
 #include "otherlib.h"
-
-
-#ifdef flightRegulatorCFB //******************************************************* Если выбран flightRegulatorCFB
-	#include "math.model/flightRegulatorCFB/flightRegulatorCFB.h"
-#else //*************************************************************************** Если выбран flightController
-	#include "math.model/flightController/flightController.h"
-#endif //************************************************************************** !flightRegulatorCFB 
+#include "math.model/flightController/flightController.h"
 
 
 // В качестве отладочного CAN используется CAN1
@@ -63,34 +57,9 @@ void debug_can_full_struct (void)
   if(SelfTesting_STATUS(ST_pin1) == ST_OK || SelfTesting_STATUS(ST_POW_BIM) != ST_OK)
     return;
 	
-#ifdef flightRegulatorCFB
-  debug_can(0x500, &debug_vars.distanceAB, 2);	
-  debug_can(0x501, &debug_vars.orderAngle, 1);	
-  debug_can(0x502, &debug_vars.diffAngle, 2);
-  debug_can(0x503, &debug_vars.setAngle, 2);
-  debug_can(0x504, &debug_vars.stateTurn, 1);
-  debug_can(0x505, &debug_vars.stateAngleDoing, 1);
-  debug_can(0x506, &debug_vars.stateAngleCorrection, 1);	
-  debug_can(0x507, &debug_vars.changeControl, 1);	
-  debug_can(0x508, &debug_vars.doingManeuverMode, 1);
-  debug_can(0x510, &debug_vars.angle, 2);
-  debug_can(0x513, &debug_vars.directionOfRotation, 8);
-  debug_can(0x514, &debug_vars.TightenSlings, 8);
-  debug_can(0x517, &debug_vars.Lat1, 8);
-  debug_can(0x518, &debug_vars.Lat2, 8);
-  debug_can(0x519, &debug_vars.Lon1, 8);
-  debug_can(0x520, &debug_vars.Lon2, 8);
-  debug_can(0x524, &debug_vars.distanceB, 8);
-  debug_can(0x525, &debug_vars.distance2, 2);
-  debug_can(0x528, &debug_vars.td, 8);
-  debug_can(0x529, &debug_vars.tx, 8);
-  debug_can(0x530, &debug_vars.tz, 8);
-  debug_can(0x531, &debug_vars.flightMode, 1);
-#else
   debug_can(0x524, &debug_vars.DistanceToTDP, 8);
   debug_can(0x529, &debug_vars.TimeToHorTarget, 8);
   debug_can(0x530, &debug_vars.TimeToTD, 8);
-#endif 
   debug_can(0x511, &debug_vars.TDP_Lat, 8);
   debug_can(0x512, &debug_vars.TDP_Lon, 8);
   debug_can(0x515, &debug_vars.Alt2model, 8);
@@ -112,56 +81,11 @@ void debug_can_full_struct (void)
 **********************************************************************************************************/
 void debug_prepare_data (void)
 {
-#ifdef flightRegulatorCFB
-  debug_vars.distanceAB            = (int16_t)(rtY.distanceAB);
-  debug_vars.orderAngle            = (uint8_t)(rtY.orderAngle);
-  debug_vars.diffAngle             = (int16_t)(rtY.diffAngle);
-  debug_vars.setAngle              = (int16_t)(rtY.setAngle);
-  debug_vars.stateTurn             = (uint8_t)(rtY.stateTurn);
-  debug_vars.stateAngleDoing       = (uint8_t)(rtY.stateAngleDoing);
-  debug_vars.stateAngleCorrection  = (uint8_t)(rtY.stateAngleCorrection);
-  debug_vars.changeControl	       = (uint8_t)(rtY.changeControl);
-  debug_vars.doingManeuverMode     = (uint8_t)(rtY.doingManeuverMode);
-  debug_vars.angle                 = (int16_t)(rtU.angle);
-  debug_vars.directionOfRotation   = (double)(rtY.directionOfRotation);
-  debug_vars.TightenSlings         = (double)(rtY.tightenSling);
-  debug_vars.Lat1                  = (double)(rtY.lat1);
-  debug_vars.Lat2                  = (double)(rtY.lat2);
-  debug_vars.Lon1                  = (double)(rtY.lon1);
-  debug_vars.Lon2                  = (double)(rtY.lon2);
-  debug_vars.distanceB             = (double)(rtY.distanceB);
-  debug_vars.distance2             = (uint16_t)(rtY.distance2);
-  debug_vars.td                    = (double)(rtY.tD);
-  debug_vars.tx                    = (double)(rtY.tx);
-  debug_vars.tz                    = (double)(rtY.tz);
-  debug_vars.flightMode            = (uint8_t)(rtY.executeMode);
-  if(rtY.directionOfRotation == -1)
-  {
-    debug_vars.leftBimCommand = (uint8_t)rtY.tightenSling;
-    debug_vars.rightBimCommand = 0;
-  }
-  else if(rtY.directionOfRotation == 1)
-  {
-    debug_vars.rightBimCommand = (uint8_t)rtY.tightenSling;
-    debug_vars.leftBimCommand = 0;
-  }
-  else if(rtY.directionOfRotation == 2)
-  {
-    debug_vars.rightBimCommand = (uint8_t)rtY.tightenSling;
-    debug_vars.leftBimCommand  = (uint8_t)rtY.tightenSling;
-  }
-  else 
-  {
-    debug_vars.rightBimCommand = 0;
-    debug_vars.leftBimCommand  = 0;
-  }
-#else
   debug_vars.DistanceToTDP         = (double)rtY.horizontalDistance;            // Дистанция до точки приземления, м
   debug_vars.TimeToHorTarget       = (double)rtY.horizontalTime;                // Время полета то точки приземления по прямой, сек
   debug_vars.TimeToTD              = (double)rtY.verticalTime;                  // Время до открытия парашюта, сек
   debug_vars.leftBimCommand        = (uint8_t)rtY.leftStrap;                    // Команда от матмодели левому Биму
   debug_vars.rightBimCommand       = (uint8_t)rtY.rightStrap;                   // Команда от матмодели правому Биму
-#endif  
   debug_vars.TDP_Lat               = Bup_getTouchdownPointLatitude();           // Широта точки приземления
   debug_vars.TDP_Lon               = Bup_getTouchdownPointLongitude();          // Долгота точки приземления
   debug_vars.Alt2model             = Bup_getCurrentPointAltitude();             // Высота преобразованная в метры

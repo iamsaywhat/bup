@@ -10,13 +10,8 @@
 #include "logger/RetargetPrintf.h"
 #include "debug.h"
 #include "logger/logger.h"
+#include "math.model/flightController/flightController.h"
 
-
-#ifdef flightRegulatorCFB //******************************************************* Если выбран flightRegulatorCFB
-	#include "math.model/flightRegulatorCFB/flightRegulatorCFB.h"
-#else //*************************************************************************** Если выбран flightController
-	#include "math.model/flightController/flightController.h"
-#endif //************************************************************************** !flightRegulatorCFB 
 
 
 /****************************************************
@@ -358,30 +353,8 @@ void task_loger (void)
     }
     case 16:
     {
-      #ifdef flightRegulatorCFB	//******************************************************* Если выбран flightRegulatorCFB
-      uint8_t left = 0;
-      uint8_t right = 0;
-      if(rtY.directionOfRotation == -1)
-      {
-        left= (uint8_t)rtY.tightenSling;
-        right = 0;
-      }
-      else if(rtY.directionOfRotation == 1)
-      {
-        right = (uint8_t)rtY.tightenSling;
-        left = 0;
-      }
-      else if(rtY.directionOfRotation == 2)
-      {
-        right = (uint8_t)rtY.tightenSling;
-        left = (uint8_t)rtY.tightenSling;
-      }
-      logger_series_llu ("bim_left_cmd", left);
-      logger_series_llu ("bim_right_cmd", right);
-      #else //*************************************************************************** Если выбран flightController
       logger_series_llu ("bim_left_cmd", (uint8_t)rtY.leftStrap);
       logger_series_llu ("bim_right_cmd", (uint8_t)rtY.rightStrap);
-      #endif //************************************************************************** !flightRegulatorCFB
       TaskManager.Task_LogerStage++; break;
     }
     case 17:

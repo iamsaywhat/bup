@@ -16,35 +16,10 @@
 // Список выводимых переменных
 typedef struct 
 {
-#ifdef flightRegulatorCFB            // Переменные для отладки flightRegulatorCFB
-  int16_t   distanceAB;              // Зарезервирован адрес CAN 0x500
-  uint8_t   orderAngle;              // Зарезервирован адрес CAN 0x501
-  int16_t   diffAngle;               // Зарезервирован адрес CAN 0x502
-  int16_t   setAngle;                // Зарезервирован адрес CAN 0x503
-  uint8_t   stateTurn;               // Зарезервирован адрес CAN 0x504
-  uint8_t   stateAngleDoing;         // Зарезервирован адрес CAN 0x505
-  uint8_t   stateAngleCorrection;    // Зарезервирован адрес CAN 0x506
-  uint8_t   changeControl;           // Зарезервирован адрес CAN 0x507
-  uint8_t   doingManeuverMode;       // Зарезервирован адрес CAN 0x508
-  int16_t   angle;                   // Зарезервирован адрес CAN 0x510
-  double    directionOfRotation;     // Зарезервирован адрес CAN 0x513
-  double    TightenSlings;           // Зарезервирован адрес CAN 0x514
-  double    Lat1;                    // Зарезервирован адрес CAN 0x517
-  double    Lat2;                    // Зарезервирован адрес CAN 0x518
-  double    Lon1;                    // Зарезервирован адрес CAN 0x519
-  double    Lon2;                    // Зарезервирован адрес CAN 0x520
-  double    distanceB;               // Зарезервирован адрес CAN 0x524
-  uint16_t  distance2;               // Зарезервирован адрес CAN 0x525
-  double    td;                      // Зарезервирован адрес CAN 0x528
-  double    tx;                      // Зарезервирован адрес CAN 0x529
-  double    tz;                      // Зарезервирован адрес CAN 0x530
-  uint8_t   flightMode;              // Зарезервирован адрес CAN 0x531             
-#else                                // Переменные для отладки flightController
+
   double    DistanceToTDP;           // Зарезервирован адрес CAN 0x524
   double    TimeToHorTarget;         // Зарезервирован адрес CAN 0x529
   double    TimeToTD;                // Зарезервирован адрес CAN 0x530	
-#endif                               // Общесистемные переменные
-//  int16_t   BIM_CMD;                 // Зарезервирован адрес CAN 0x509
   double    TDP_Lat;                 // Зарезервирован адрес CAN 0x511
   double    TDP_Lon;                 // Зарезервирован адрес CAN 0x512
   int64_t   SNSalt;                  // Зарезервирован адрес CAN 0x516

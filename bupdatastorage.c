@@ -12,7 +12,6 @@
 const BupFirmwareVersion  bupFirmwareVersion = {FIRMWARE_VERSION_MAJOR,
                                                 FIRMWARE_VERSION_MINOR,
                                                 FIRMWARE_VERSION_MICRO,
-                                                MATH_OPTION,
                                                 MATH_VERSION_MAJOR,
                                                 MATH_VERSION_MINOR};
 

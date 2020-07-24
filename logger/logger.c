@@ -32,8 +32,7 @@ void logger_openNewSession(void)
   printf("%u.",   bupFirmwareVersion.majorFirmware);
   printf("%u.",   bupFirmwareVersion.minorFirmware);
   printf("%u ",   bupFirmwareVersion.microFirmware);
-  printf("(%u.",  bupFirmwareVersion.optionsMath);
-  printf("%u.",   bupFirmwareVersion.majorMath);
+  printf("(%u.",  bupFirmwareVersion.majorMath);
   printf("%u)\n", bupFirmwareVersion.minorMath);
   logger_point("td",                                       // Загруженная точка приземления
                Bup_getTouchdownPointLatitude(), 

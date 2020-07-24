@@ -40,7 +40,6 @@ typedef struct{
   uint8_t majorFirmware;   // Старшая версия ПО
   uint8_t minorFirmware;   // Младшая версия ПО
   uint8_t microFirmware;   // Небольшие изменения
-  uint8_t optionsMath;     // Вариант модели регулятора: (1 - fightRegulatorCFB; 2 - Easy_reg)
   uint8_t majorMath;       // Старшая версия модели регулятора
   uint8_t minorMath;       // Младшая версия модели регулятора
 }BupFirmwareVersion;
