@@ -299,6 +299,21 @@ void Timer_initialize (MDR_TIMER_TypeDef* TIMERx, unsigned long ticks)
   TIMER_Cmd(TIMERx,ENABLE);
 }
 
+/**************************************************************************************************************
+  Timer_deinitialize - Отключение таймера TIMERx и его прерываний
+**************************************************************************************************************/
+void Timer_deinitialize (MDR_TIMER_TypeDef* TIMERx)
+{
+  TIMER_Cmd(TIMERx, DISABLE);       /* Выключаем таймер */
+  TIMER_DeInit(TIMERx);	            /* Сбрасываем настройки */
+  if(TIMERx == MDR_TIMER1)
+    NVIC_DisableIRQ(Timer1_IRQn);
+  else if (TIMERx == MDR_TIMER2)
+    NVIC_DisableIRQ(Timer2_IRQn);
+  else if (TIMERx == MDR_TIMER3)
+    NVIC_DisableIRQ(Timer3_IRQn);
+}
+
 
 /**************************************************************************************************************
   Clock_initialize - Настройка тактирования процессора

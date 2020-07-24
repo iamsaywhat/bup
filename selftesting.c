@@ -1,3 +1,4 @@
+#include "config.h"
 #include "selftesting.h"
 
 #include "bupboard.h"
@@ -8,11 +9,15 @@
 #include "sws.h"
 #include "kmonshelf.h"
 #include "bims.h"
-#include "logfs/log.fs.h"
+#include "logger/logfs/log.fs.h"
 #include "heightmap/heightmap.platformdepend.h"
 #include "heightmap/heightmap.h"
 #include "bupdatastorage.h"
 #include "radiostation.h"
+
+#ifdef LOGS_ENABLE
+#include "logger/logger.h"
+#endif
 
 
 /***************************************
@@ -41,10 +46,10 @@ void SelfTestingFull (void)
   SelfTesting_PIN1();
   // Проверка состояния шпильки 2
   SelfTesting_PIN2();
-  // Проверка состояния реле пиропатрона
+  // Проверка состояния реле пирозамка планера
   SelfTesting_PYRO();
-  // Проверка состояния шторки
-  SelfTesting_BLIND();
+  // Проверка состояния реле пирозамка посадочной системы
+  SelfTesting_TDS();
   // Проверка состояния реле питания БИМ и CAN
   SelfTesting_POW_BIM ();
   // Проверка левого БИМа
@@ -89,8 +94,8 @@ void SelfTestingOnline (void)
   SelfTesting_PIN2();
   // Проверка состояния реле пиропатрона
   SelfTesting_PYRO();
-  // Проверка состояния шторки
-  SelfTesting_BLIND();
+  // Проверка состояния реле пирозамка посадочной системы
+  SelfTesting_TDS();
   // Проверка состояния реле питания БИМ и CAN
   SelfTesting_POW_BIM ();
   // Проверка связи с СВС
@@ -125,7 +130,7 @@ SelfTesting_STATUS_TYPE SelfTesting_PreflightDiagnostics (void)
   status &= SelfTesting_STATUS(ST_sws);
   status &= SelfTesting_STATUS(ST_pin1); 	
   status &= SelfTesting_STATUS(ST_pin2);
-  status &= SelfTesting_STATUS(ST_BATTERY50V);
+//  status &= SelfTesting_STATUS(ST_BATTERY50V);
   		
   // По результатам тестирования принимаем решение о режиме индикации
   if(status == ST_OK)
@@ -141,7 +146,7 @@ SelfTesting_STATUS_TYPE SelfTesting_PreflightDiagnostics (void)
     LED_FAULT_ON();
   }
   // Так же возвращаем флаг результатов анализа тестов
-  return (SelfTesting_STATUS_TYPE)status;
+  return status;
 }
 
 
@@ -180,7 +185,7 @@ SelfTesting_STATUS_TYPE SelfTesting_OnlineDiagnostics (void)
     LED_FAULT_ON();
   }
   // Так же возвращаем флаг результатов анализа тестов
-  return (SelfTesting_STATUS_TYPE)status;
+  return status;
 }
 
 
@@ -192,6 +197,8 @@ SelfTesting_STATUS_TYPE SelfTesting_OnlineDiagnostics (void)
 ************************************************************************************/
 SelfTesting_STATUS_TYPE SelfTesting_1636PP52Y(void)
 {
+  SelfTesting_STATUS_TYPE previous = SelfTesting_STATUS(ST_1636PP52Y);
+  
   // Проверяем просто по ID микросхемы (если ID не совпадёт - это признак неисправности)
   SelfTesting_SET_OK(ST_1636PP52Y);
   if(SPI_1636PP52Y_readID (SPI_1636PP52Y_CS1) != _1636PP52Y_ID)
@@ -202,8 +209,24 @@ SelfTesting_STATUS_TYPE SelfTesting_1636PP52Y(void)
     SelfTesting_SET_FAULT(ST_1636PP52Y); 
   if(SPI_1636PP52Y_readID (SPI_1636PP52Y_CS4) != _1636PP52Y_ID)
     SelfTesting_SET_FAULT(ST_1636PP52Y); 
-	
-  return (SelfTesting_STATUS_TYPE)SelfTesting_STATUS(ST_1636PP52Y); 
+
+  if(SelfTesting_STATUS(ST_1636PP52Y) != previous)
+  {
+    if(SelfTesting_STATUS(ST_1636PP52Y) == ST_OK)
+    {
+      #ifdef LOGS_ENABLE
+        logger_warning("1636pp52y: fault");
+      #endif
+    }
+    else
+    {
+      #ifdef LOGS_ENABLE
+        logger_warning("1636pp52y: ready");
+      #endif
+    }
+  }
+  
+  return SelfTesting_STATUS(ST_1636PP52Y); 
 }
 
 
@@ -215,12 +238,30 @@ SelfTesting_STATUS_TYPE SelfTesting_1636PP52Y(void)
 ************************************************************************************/
 SelfTesting_STATUS_TYPE SelfTesting_25Q64FV(void)
 {
+  SelfTesting_STATUS_TYPE previous = SelfTesting_STATUS(ST_25Q64FV);
+  
   // Проверяем просто по ID микросхемы (если ID не совпадёт - это признак неисправности)
   SelfTesting_SET_FAULT(ST_25Q64FV); 
   if(SPI_25Q64FV_readID (SPI_25Q64FV_CSn) == _25Q64FV_ID)
     SelfTesting_SET_OK(ST_25Q64FV);
+ 
+  if(SelfTesting_STATUS(ST_25Q64FV) != previous)
+  {
+    if(SelfTesting_STATUS(ST_25Q64FV) == ST_OK)
+    {
+      #ifdef LOGS_ENABLE
+        logger_warning("25Q64FV: ready!");
+      #endif
+    }
+    else
+    {
+      #ifdef LOGS_ENABLE
+        logger_error("25Q64FV: fault!");   
+      #endif
+    }
+  }
 	
-  return (SelfTesting_STATUS_TYPE)SelfTesting_STATUS(ST_25Q64FV);
+  return SelfTesting_STATUS(ST_25Q64FV);
 }
 
 
@@ -232,12 +273,30 @@ SelfTesting_STATUS_TYPE SelfTesting_25Q64FV(void)
 ************************************************************************************/
 SelfTesting_STATUS_TYPE SelfTesting_MapNtask(void)
 {
+  SelfTesting_STATUS_TYPE previous = SelfTesting_STATUS(ST_MAP);
+  
   if(checkMap())
     SelfTesting_SET_OK(ST_MAP);
   else 
     SelfTesting_SET_FAULT(ST_MAP);
-	
-  return (SelfTesting_STATUS_TYPE)SelfTesting_STATUS(ST_MAP);
+
+  if(SelfTesting_STATUS(ST_MAP) != previous)
+  {
+    if(SelfTesting_STATUS(ST_MAP) == ST_OK)
+    {
+      #ifdef LOGS_ENABLE
+        logger_warning("map: loaded");
+      #endif
+    }
+    else
+    {
+      #ifdef LOGS_ENABLE
+        logger_error("map: not found");
+      #endif
+    }
+  }
+  
+  return SelfTesting_STATUS(ST_MAP);
 }
 
 
@@ -250,13 +309,13 @@ SelfTesting_STATUS_TYPE SelfTesting_MapNtask(void)
 SelfTesting_STATUS_TYPE SelfTesting_LogFs(void)
 {
   // Если файловая система ответила FINE - она готова к работе
-  if(LogFs_initialize() == FS_FINE)
+  if(LogFs_check() == FS_SUCCESS)
     SelfTesting_SET_OK(ST_LogFS);
   // Иначе разметка файловой системы повреждена, либо проблемы с spi-flash 
   else
     SelfTesting_SET_FAULT(ST_LogFS);
 	
-  return (SelfTesting_STATUS_TYPE)SelfTesting_STATUS(ST_LogFS);
+  return SelfTesting_STATUS(ST_LogFS);
 }
 
 
@@ -282,11 +341,12 @@ SelfTesting_STATUS_TYPE SelfTesting_LEFT_BIM(void)
   
   static TimeoutType timeout = {0, 0, TIME_IS_UP};   // Для фиксации неисправности во времени
   static uint8_t fault = 0;	                         // Флаг того, что была зафиксирована неисправность и начался отсчет.
+  SelfTesting_STATUS_TYPE previous = SelfTesting_STATUS(ST_Left_BIM);
   
   // Если шпилька не вставлена и питание БИМОВ включено
   if(SelfTesting_PIN1() != ST_OK  &&  SelfTesting_POW_BIM() == ST_OK)
   {
-    if(BIM_checkConnection (LEFT_BIM) == BIM_DONE) {      // Если ответ от БИМА получен
+    if(BIM_checkConnection (LEFT_BIM) == BIM_DONE)  {     // Если ответ от БИМА получен
       uint16_t flags = BIM_getStatusFlags(LEFT_BIM);      // Спрашиваем его флаги
       uint8_t summary = 0;                                // Суммируем по ИЛИ все флаги несправностей
       summary |= CHECK_SENSOR_FAULT(flags); 
@@ -306,17 +366,17 @@ SelfTesting_STATUS_TYPE SelfTesting_LEFT_BIM(void)
       else if (!summary)                      // В данный момент неисправность ушла
       {
         fault = 0;                            // Снимаем фиксацию
-		timeout.start = 0;                    // Сбрасываем таймаут
+        timeout.start = 0;                    // Сбрасываем таймаут
         timeout.stop = 0;              
-		timeout.status = TIME_IS_UP;
+        timeout.status = TIME_IS_UP;
       }
-	  if (fault && timeoutStatus(&timeout) == TIME_IS_UP)  // Фиксация неисправности не была снята и время фиксации вышло
-        SelfTesting_SET_FAULT(ST_Left_BIM);                // Подтверждаем неисправность
+      if (fault && timeoutStatus(&timeout) == TIME_IS_UP)     // Фиксация неисправности не была снята и время фиксации вышло
+        SelfTesting_SET_FAULT(ST_Left_BIM);                 // Подтверждаем неисправность
       else
-        SelfTesting_SET_OK(ST_Left_BIM);                   // Иначе поддверждаем исправность
-	}
+        SelfTesting_SET_OK(ST_Left_BIM);                    // Иначе поддверждаем исправность
+    }
     else 
-      SelfTesting_SET_FAULT(ST_Left_BIM);                  // Если ответ не был получен, то точно неисправен
+      SelfTesting_SET_FAULT(ST_Left_BIM);                   // Если ответ не был получен, то точно неисправен
   }
   // Питание на БИМ отсутствует, проверить их нельзя, будем считать, что исправны
   else {
@@ -325,7 +385,24 @@ SelfTesting_STATUS_TYPE SelfTesting_LEFT_BIM(void)
     else
       SelfTesting_SET_OK(ST_Left_BIM);
   }
-  return (SelfTesting_STATUS_TYPE)SelfTesting_STATUS(ST_Left_BIM);
+
+  if(SelfTesting_STATUS(ST_Left_BIM) != previous)
+  {
+    if(SelfTesting_STATUS(ST_Left_BIM) == ST_OK)
+    {
+      #ifdef LOGS_ENABLE
+        logger_warning("left-bim: ready");
+      #endif
+    }
+    else
+    {
+      #ifdef LOGS_ENABLE
+        logger_error("left-bim: fault");
+      #endif
+    }
+  }
+  
+  return SelfTesting_STATUS(ST_Left_BIM);
 }
 
 
@@ -351,6 +428,7 @@ SelfTesting_STATUS_TYPE SelfTesting_RIGHT_BIM(void)
   
   static TimeoutType timeout = {0, 0, TIME_IS_UP};   // Для фиксации неисправности во времени
   static uint8_t fault = 0;	                         // Флаг того, что была зафиксирована неисправность и начался отсчет.
+  SelfTesting_STATUS_TYPE previous = SelfTesting_STATUS(ST_Right_BIM);
   
   // Если шпилька не вставлена и питание БИМОВ включено
   if(SelfTesting_PIN1() != ST_OK  &&  SelfTesting_POW_BIM() == ST_OK)
@@ -394,7 +472,24 @@ SelfTesting_STATUS_TYPE SelfTesting_RIGHT_BIM(void)
     else
       SelfTesting_SET_OK(ST_Right_BIM);
   }
-  return (SelfTesting_STATUS_TYPE)SelfTesting_STATUS(ST_Right_BIM);
+
+  if(SelfTesting_STATUS(ST_Right_BIM) != previous)
+  {
+    if(SelfTesting_STATUS(ST_Right_BIM) == ST_OK)
+    {
+      #ifdef LOGS_ENABLE
+        logger_warning("right-bim: ready");
+      #endif
+    }
+    else
+    {
+      #ifdef LOGS_ENABLE
+        logger_error("right-bim: fault");
+      #endif
+    }
+  }
+  
+  return SelfTesting_STATUS(ST_Right_BIM);
 }
 
 
@@ -417,9 +512,9 @@ void SelfTesting_BIMS_TRY_CONNECT(void)
     if(timeoutStatus(&timeout) == TIME_IS_UP)        // Необходимая пауза между включения и отключения выдержана
     {
       setTimeout(&timeout, 10000);                   // Взводим новый таймаут
-      BIM_enableSupply();                            // Включаем БИМЫ
+      BIM_enable();                                  // Включаем БИМЫ
       needToReset = 0;                               // Сбрасываем флаг ожидания перезапуска
-	}
+    }
   }
   else if ((SelfTesting_STATUS(ST_POW_BIM) == ST_ENABLE) &&    // Если питание на бимах есть гарантированно
            (SelfTesting_PIN1() == ST_DISABLE))           
@@ -429,9 +524,12 @@ void SelfTesting_BIMS_TRY_CONNECT(void)
     {
       if (timeoutStatus(&timeout) == TIME_IS_UP)               // И время с момента поледнего перезапуска прошло
       {
-        BIM_disableSupply();                                   // Отключаем реле питания
-		setTimeout(&timeout, 10000);                           // Взводим новый таймаут
+        BIM_disable();                                         // Отключаем реле питания
+        setTimeout(&timeout, 10000);                           // Взводим новый таймаут
         needToReset = 1;                                       // Взводим флаг необходимости перезауска
+        #ifdef LOGS_ENABLE
+          logger_error("bims is faulty! trying to restart power");
+        #endif
       }
     }			
   }
@@ -446,12 +544,30 @@ void SelfTesting_BIMS_TRY_CONNECT(void)
 ************************************************************************************/
 SelfTesting_STATUS_TYPE SelfTesting_PIN1(void)
 {
+  SelfTesting_STATUS_TYPE previous = SelfTesting_STATUS(ST_pin1);
+
   if(PIN1_CHECK)
     SelfTesting_SET_OK(ST_pin1);
   else
     SelfTesting_SET_FAULT(ST_pin1);
-	
-  return (SelfTesting_STATUS_TYPE)SelfTesting_STATUS(ST_pin1);
+
+  if(SelfTesting_STATUS(ST_pin1) != previous)
+  {
+    if(SelfTesting_STATUS(ST_pin1) == ST_OK)
+    {
+      #ifdef LOGS_ENABLE
+        logger_warning("pin1: has been inserted");
+      #endif
+    }
+    else
+    {
+      #ifdef LOGS_ENABLE
+        logger_warning("pin1: has been removed");   
+      #endif
+    }      
+  } 
+  
+  return SelfTesting_STATUS(ST_pin1);
 }
 
 
@@ -463,12 +579,30 @@ SelfTesting_STATUS_TYPE SelfTesting_PIN1(void)
 ************************************************************************************/
 SelfTesting_STATUS_TYPE SelfTesting_PIN2(void)
 {
+  SelfTesting_STATUS_TYPE previous = SelfTesting_STATUS(ST_pin2);
+  
   if(PIN2_DIR_CHECK && !PIN2_INV_CHECK)
     SelfTesting_SET_OK(ST_pin2);
   else
     SelfTesting_SET_FAULT(ST_pin2);
-	
-  return (SelfTesting_STATUS_TYPE)SelfTesting_STATUS(ST_pin2);
+ 
+  if(SelfTesting_STATUS(ST_pin2) != previous)
+  {
+    if(SelfTesting_STATUS(ST_pin2) == ST_OK)
+    {
+      #ifdef LOGS_ENABLE
+        logger_warning("pin2: has been inserted!");
+      #endif
+    }
+    else
+    {
+      #ifdef LOGS_ENABLE
+        logger_warning("pin2: has been removed!");
+      #endif
+    }
+  }
+  
+  return SelfTesting_STATUS(ST_pin2);
 }
 
 
@@ -480,29 +614,65 @@ SelfTesting_STATUS_TYPE SelfTesting_PIN2(void)
 ************************************************************************************/
 SelfTesting_STATUS_TYPE SelfTesting_PYRO(void)
 {
+  SelfTesting_STATUS_TYPE previous = SelfTesting_STATUS(ST_pyro);
+
   if(PYRO_CHECK)
     SelfTesting_SET_OK(ST_pyro);
   else
     SelfTesting_SET_FAULT(ST_pyro);
-	
-  return (SelfTesting_STATUS_TYPE)SelfTesting_STATUS(ST_pyro);
+
+  if(SelfTesting_STATUS(ST_pyro) != previous)
+  {
+    if(SelfTesting_STATUS(ST_pyro) == ST_OK)
+    {
+      #ifdef LOGS_ENABLE
+        logger_warning("pyro: has been enabled!");
+      #endif
+    }
+    else
+    {
+      #ifdef LOGS_ENABLE
+        logger_warning("pyro: has been disabled!"); 
+      #endif      
+    }
+  }
+  
+  return SelfTesting_STATUS(ST_pyro);
 }
 
 
 /************************************************************************************
-  SelfTesting_BLIND - Проверка состояния реле створки
+  SelfTesting_TDS - Проверка состояния реле пирозамка посадочной системы
 				
   Возвращает: ST_OK    - Если реле створки включено
               ST_FAULT - Если реле створки выключено
 ************************************************************************************/
-SelfTesting_STATUS_TYPE SelfTesting_BLIND(void)
+SelfTesting_STATUS_TYPE SelfTesting_TDS(void)
 {
-  if(BLIND_CTRL_CHECK && BLIND_CHECK)
-    SelfTesting_SET_OK(ST_blind);
+  SelfTesting_STATUS_TYPE previous = SelfTesting_STATUS(ST_tds);
+  
+  if(TOUCHDOWN_PYRO_CHECK)
+    SelfTesting_SET_OK(ST_tds);
   else
-    SelfTesting_SET_FAULT(ST_blind);
-	
-  return (SelfTesting_STATUS_TYPE)SelfTesting_STATUS(ST_blind);
+    SelfTesting_SET_FAULT(ST_tds);
+ 
+  if(SelfTesting_STATUS(ST_tds) != previous)
+  {
+    if(SelfTesting_STATUS(ST_tds) == ST_OK)
+    {
+      #ifdef LOGS_ENABLE
+        logger_warning("tds: has been enabled");
+      #endif
+    }
+    else
+    {
+      #ifdef LOGS_ENABLE
+        logger_warning("tds: has been disabled");
+      #endif
+    }
+  }
+  
+  return SelfTesting_STATUS(ST_tds);
 }
 
 
@@ -514,13 +684,31 @@ SelfTesting_STATUS_TYPE SelfTesting_BLIND(void)
 ************************************************************************************/
 SelfTesting_STATUS_TYPE SelfTesting_SNS(void)
 {
+  SelfTesting_STATUS_TYPE previous = SelfTesting_STATUS(ST_sns);
+  
   /* Спросим у СНС состояние */
   if(SNS_updateDeviceInformation() == SNS_OK)
     SelfTesting_SET_OK(ST_sns);     /* Ответ получен */
   else
     SelfTesting_SET_FAULT(ST_sns);  /* Нет ответа */
 
-  return (SelfTesting_STATUS_TYPE)SelfTesting_STATUS(ST_sns);
+  if(SelfTesting_STATUS(ST_sns) != previous)
+  {
+    if(SelfTesting_STATUS(ST_sns) == ST_FAULT)
+    {
+      #ifdef LOGS_ENABLE
+        logger_error("sns: connection lost!");
+      #endif
+    }
+    else
+    {
+      #ifdef LOGS_ENABLE
+        logger_warning("sns: connection restored!");
+      #endif
+    }
+  }
+  
+  return SelfTesting_STATUS(ST_sns);
 }
 
 
@@ -532,12 +720,30 @@ SelfTesting_STATUS_TYPE SelfTesting_SNS(void)
 ************************************************************************************/
 SelfTesting_STATUS_TYPE SelfTesting_SWS(void)
 {
+  SelfTesting_STATUS_TYPE previous = SelfTesting_STATUS(ST_sws);
+  
   if(SWS_update())
     SelfTesting_SET_FAULT(ST_sws);
   else
     SelfTesting_SET_OK(ST_sws);
-	
-  return (SelfTesting_STATUS_TYPE)SelfTesting_STATUS(ST_sws);
+
+  if(SelfTesting_STATUS(ST_sws) != previous)
+  {
+    if(SelfTesting_STATUS(ST_sws) == ST_FAULT)
+    {
+      #ifdef LOGS_ENABLE
+        logger_error("sws: connection lost!");
+      #endif
+    }
+    else
+    {
+      #ifdef LOGS_ENABLE
+        logger_warning("sws: connection restored!");
+      #endif
+    }
+  }
+  
+  return SelfTesting_STATUS(ST_sws);
 }
 
 
@@ -549,12 +755,30 @@ SelfTesting_STATUS_TYPE SelfTesting_SWS(void)
 ************************************************************************************/
 SelfTesting_STATUS_TYPE SelfTesting_POW_BIM (void)
 {
+  SelfTesting_STATUS_TYPE previous = SelfTesting_STATUS(ST_POW_BIM);
+  
   if(RELAY_BIM_CHECK)
     SelfTesting_SET_OK(ST_POW_BIM);
   else
     SelfTesting_SET_FAULT(ST_POW_BIM);
-	
-  return (SelfTesting_STATUS_TYPE)SelfTesting_STATUS(ST_POW_BIM);
+
+  if(SelfTesting_STATUS(ST_POW_BIM) != previous)
+  {  
+    if(SelfTesting_STATUS(ST_POW_BIM) == ST_ENABLE)
+    {
+      #ifdef LOGS_ENABLE
+        logger_warning("bims-relay: has been enabled!");
+      #endif
+    }
+    else
+    {
+      #ifdef LOGS_ENABLE
+        logger_warning("bims-relay: has been disabled!");
+      #endif
+    }
+  }
+  
+  return SelfTesting_STATUS(ST_POW_BIM);
 }
 	
 
@@ -574,19 +798,30 @@ SelfTesting_STATUS_TYPE SelfTesting_POW_BIM (void)
 ************************************************************************************/
 SelfTesting_STATUS_TYPE SelfTesting_MapAvailability (double Lat, double Lon)
 {
-  // Если в точке (Lat, Lon) карта недоступна,
-  if(getAvailabilityStatus(Lon, Lat) == MAP_NOT_AVAILABLE)
-  {
-    // То сбрасываем бит доступности
-    SelfTesting_SET_FAULT(ST_MapAvailability);
-  }
-  else
-  {
-    // Иначе устанавливаем
+  SelfTesting_STATUS_TYPE previous = SelfTesting_STATUS(ST_MapAvailability);
+  
+  if(getAvailabilityStatus(Lon, Lat) == MAP_NOT_AVAILABLE) // Если в точке (Lat, Lon) карта недоступна,
+    SelfTesting_SET_FAULT(ST_MapAvailability);             // То сбрасываем бит доступности
+  else                                                     // Иначе устанавливаем
     SelfTesting_SET_OK(ST_MapAvailability);
-  }
 	
-  return (SelfTesting_STATUS_TYPE)SelfTesting_STATUS(ST_MapAvailability);
+  if(SelfTesting_STATUS(ST_MapAvailability) != previous)
+  {
+    if(SelfTesting_STATUS(ST_MapAvailability) == ST_OK)
+    {
+      #ifdef LOGS_ENABLE
+        logger_warning("map: available");
+      #endif
+    }
+    else
+    {
+      #ifdef LOGS_ENABLE
+        logger_error("map: out of area");
+      #endif
+    }
+  }
+  
+  return SelfTesting_STATUS(ST_MapAvailability);
 }
 
 
@@ -604,12 +839,25 @@ SelfTesting_STATUS_TYPE SelfTesting_MapAvailability (double Lat, double Lon)
 ************************************************************************************/
 SelfTesting_STATUS_TYPE SelfTesting_Battery50Volt (void)
 {
+  SelfTesting_STATUS_TYPE previous = SelfTesting_STATUS(ST_BATTERY50V);
+  
   bupDataStorage.battery50V = getBatteryCharge();
   if(bupDataStorage.battery50V < 47.0)
     SelfTesting_SET_FAULT(ST_BATTERY50V);
   else
     SelfTesting_SET_OK(ST_BATTERY50V);
-  return (SelfTesting_STATUS_TYPE)SelfTesting_STATUS(ST_BATTERY50V);
+ 
+  if(SelfTesting_STATUS(ST_BATTERY50V) != previous)
+  { 
+    if(SelfTesting_STATUS(ST_BATTERY50V) == ST_FAULT)
+    {
+      #ifdef LOGS_ENABLE
+        logger_error("battery: low voltage");
+      #endif
+    }
+  }
+    
+  return SelfTesting_STATUS(ST_BATTERY50V);
 }
 
 /************************************************************************************
@@ -625,7 +873,9 @@ SelfTesting_STATUS_TYPE SelfTesting_Battery50Volt (void)
 ************************************************************************************/
 SelfTesting_STATUS_TYPE SelfTesting_Radiostation (void)
 {
+  SelfTesting_STATUS_TYPE previous = SelfTesting_STATUS(ST_RADIOSTATION);
   RadioStatus status;
+  
   if(Radiostation.currentBaudrate() == RADIO_DEFAULT_BAUDRATE)
     status = Radiostation.setBaudrate(230400);
   else
@@ -634,5 +884,23 @@ SelfTesting_STATUS_TYPE SelfTesting_Radiostation (void)
     SelfTesting_SET_OK(ST_RADIOSTATION);
   else
     SelfTesting_SET_FAULT(ST_RADIOSTATION);
-  return (SelfTesting_STATUS_TYPE)SelfTesting_STATUS(ST_RADIOSTATION);
+   
+  if(SelfTesting_STATUS(ST_RADIOSTATION) != previous)
+  {
+    if(SelfTesting_STATUS(ST_RADIOSTATION) == ST_OK)
+    {
+      #ifdef LOGS_ENABLE
+        logger_warning("radio: connection restored!");
+      #endif
+    }
+    else
+    {
+      #ifdef LOGS_ENABLE
+        logger_warning("radio: connection lost!");
+      #endif
+    }
+  }
+
+  
+  return SelfTesting_STATUS(ST_RADIOSTATION);
 }

@@ -9,19 +9,12 @@
 /*******************************************************************************************************************
   Версия ПО БУП               
 *******************************************************************************************************************/
-const BupFirmwareVersion  bupFirmwareVersion = {0,         // Старшая версия ПО
-                                                32,        // Младшая версия ПО
-                                                1,         // Изменения внутри версии
-#ifdef flightRegulatorCFB // Если выбран flightRegulatorCFB
-                                                1,         // Oпция регулятора - flightRegulatorCFB
-                                                0,         // Старшая версия модели регулятора
-                                                1};        // Младшая версия модели регулятора
-#else //******************** Если выбран flightController
-                                                2,         // Опция регуляторв - flightController
-                                                1,         // Старшая версия модели регулятора
-                                                0};        // Младшая версия модели регулятора
-#endif //******************* !flightRegulatorCFB 
-
+const BupFirmwareVersion  bupFirmwareVersion = {FIRMWARE_VERSION_MAJOR,
+                                                FIRMWARE_VERSION_MINOR,
+                                                FIRMWARE_VERSION_MICRO,
+                                                MATH_OPTION,
+                                                MATH_VERSION_MAJOR,
+                                                MATH_VERSION_MINOR};
 
 
 /*******************************************

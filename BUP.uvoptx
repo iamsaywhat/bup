@@ -145,25 +145,9 @@
         <Bp>
           <Number>0</Number>
           <Type>0</Type>
-          <LineNumber>132</LineNumber>
+          <LineNumber>84</LineNumber>
           <EnabledFlag>0</EnabledFlag>
-          <Address>134247410</Address>
-          <ByteObject>0</ByteObject>
-          <HtxType>0</HtxType>
-          <ManyObjects>0</ManyObjects>
-          <SizeOfObject>0</SizeOfObject>
-          <BreakByAccess>0</BreakByAccess>
-          <BreakIfRCount>1</BreakIfRCount>
-          <Filename>.\taskmanager.c</Filename>
-          <ExecCommand></ExecCommand>
-          <Expression>\\BK_BRPU\taskmanager.c\132</Expression>
-        </Bp>
-        <Bp>
-          <Number>1</Number>
-          <Type>0</Type>
-          <LineNumber>83</LineNumber>
-          <EnabledFlag>0</EnabledFlag>
-          <Address>134244720</Address>
+          <Address>134245024</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -172,7 +156,23 @@
           <BreakIfRCount>1</BreakIfRCount>
           <Filename>.\selftesting.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\BK_BRPU\selftesting.c\83</Expression>
+          <Expression>\\BK_BRPU\selftesting.c\84</Expression>
+        </Bp>
+        <Bp>
+          <Number>1</Number>
+          <Type>0</Type>
+          <LineNumber>679</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>134235604</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>1</BreakIfRCount>
+          <Filename>.\logfs\log.fs.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression>\\BK_BRPU\logfs/log.fs.c\679</Expression>
         </Bp>
       </Breakpoint>
       <WatchWindow1>
@@ -209,11 +209,6 @@
         <Ww>
           <count>6</count>
           <WinNumber>1</WinNumber>
-          <ItemText>Left</ItemText>
-        </Ww>
-        <Ww>
-          <count>7</count>
-          <WinNumber>1</WinNumber>
           <ItemText>Right_BIM</ItemText>
         </Ww>
       </WatchWindow1>
@@ -221,27 +216,27 @@
         <Ww>
           <count>0</count>
           <WinNumber>2</WinNumber>
-          <ItemText>sdsIdList</ItemText>
+          <ItemText>Left</ItemText>
         </Ww>
         <Ww>
           <count>1</count>
           <WinNumber>2</WinNumber>
-          <ItemText>Log_Fs_Info</ItemText>
+          <ItemText>debug_vars</ItemText>
         </Ww>
         <Ww>
           <count>2</count>
           <WinNumber>2</WinNumber>
-          <ItemText>Log_Fs_FileProperties</ItemText>
+          <ItemText>BUP_DataStorage</ItemText>
         </Ww>
         <Ww>
           <count>3</count>
           <WinNumber>2</WinNumber>
-          <ItemText>debug_vars</ItemText>
+          <ItemText>rtU</ItemText>
         </Ww>
         <Ww>
           <count>4</count>
           <WinNumber>2</WinNumber>
-          <ItemText>BUP_DataStorage</ItemText>
+          <ItemText>rtDW</ItemText>
         </Ww>
         <Ww>
           <count>5</count>
@@ -256,62 +251,62 @@
         <Ww>
           <count>7</count>
           <WinNumber>2</WinNumber>
-          <ItemText>rtU</ItemText>
+          <ItemText>rtY</ItemText>
         </Ww>
         <Ww>
           <count>8</count>
           <WinNumber>2</WinNumber>
-          <ItemText>rtDW</ItemText>
+          <ItemText>systemState</ItemText>
         </Ww>
         <Ww>
           <count>9</count>
           <WinNumber>2</WinNumber>
-          <ItemText>rtY</ItemText>
+          <ItemText>systemTime</ItemText>
         </Ww>
         <Ww>
           <count>10</count>
           <WinNumber>2</WinNumber>
-          <ItemText>systemState</ItemText>
+          <ItemText>SNS_orientation</ItemText>
         </Ww>
         <Ww>
           <count>11</count>
           <WinNumber>2</WinNumber>
-          <ItemText>systemTime</ItemText>
+          <ItemText>SNS_position</ItemText>
         </Ww>
         <Ww>
           <count>12</count>
           <WinNumber>2</WinNumber>
-          <ItemText>SNS_orientation</ItemText>
+          <ItemText>buffer</ItemText>
         </Ww>
         <Ww>
           <count>13</count>
           <WinNumber>2</WinNumber>
-          <ItemText>SNS_position</ItemText>
+          <ItemText>sdsCounter</ItemText>
         </Ww>
         <Ww>
           <count>14</count>
           <WinNumber>2</WinNumber>
-          <ItemText>buffer</ItemText>
+          <ItemText>sdsList</ItemText>
         </Ww>
         <Ww>
           <count>15</count>
           <WinNumber>2</WinNumber>
-          <ItemText>sdsCounter</ItemText>
+          <ItemText>globalTimeout</ItemText>
         </Ww>
         <Ww>
           <count>16</count>
           <WinNumber>2</WinNumber>
-          <ItemText>sdsList</ItemText>
+          <ItemText>_currentBaudrate,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>17</count>
           <WinNumber>2</WinNumber>
-          <ItemText>globalTimeout</ItemText>
+          <ItemText>LogFs_fileProperties</ItemText>
         </Ww>
         <Ww>
           <count>18</count>
           <WinNumber>2</WinNumber>
-          <ItemText>_currentBaudrate,0x0A</ItemText>
+          <ItemText>LogFs_info</ItemText>
         </Ww>
       </WatchWindow2>
       <MemoryWindow1>
@@ -633,7 +628,7 @@
 
   <Group>
     <GroupName>custom.drivers</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>

@@ -18,7 +18,7 @@
 #endif //************************************************************************** !DEBUG_VARS
 
 #ifdef LOGS_ENABLE	//************************************************************* Если включено логирование в черный ящик
-  #include	"../loger.h"
+  #include	"../logger/logger.h"
 #endif //************************************************************************** !LOGS_ENABLE
 
 #define lat 0
@@ -116,19 +116,19 @@ void MathModel_prepareData (void)
     rtU.velocityAltitude        = Bup_getCurrentVelocityAltitude();
     rtU.trackingCourse          = Bup_getCurrentCourse();
     /* Данные от свс */
-    rtU.barometricAirSpeed      = 20; //SWS_getTrueSpeed();          // На время испытаний на стенде устанавливаем константу
+    rtU.barometricAirSpeed      = SWS_getTrueSpeed();          // На время испытаний на стенде устанавливаем константу
     rtU.barometricAltitude      = SWS_getAbsoluteHeight();           // так, как имитатор СВС в настоящий момент отсутсвует  
-    rtU.barometricAvailable     = 0; //SelfTesting_STATUS(ST_sws);   // Высоту от СВС подставляем, но этим флагом заставляем игнорировать
+    rtU.barometricAvailable     = SelfTesting_STATUS(ST_sws);   // Высоту от СВС подставляем, но этим флагом заставляем игнорировать
     /* Данные от радиостанции */
     rtU.radioPointLatitude      = Bup_getRadioPointLatitude();
     rtU.radioPointLongitude     = Bup_getRadioPointLongitude();
     rtU.radioPointAltitude      = Bup_getTouchdownPointAltitude();        // В радиостанция не присылаем высоту открытия парашюта, поэтому клонируем
     rtU.radioUpdateIndex        = Bup_getRadioPointUpdateIndex();
     /* Данные карты */
-    rtU.currentPointRelief          = Bup_getCurrentPointRelief();
-    rtU.currentPointReliefAvailable = SelfTesting_STATUS(ST_MapAvailability);
-    rtU.touchdownPointRelief        = Bup_getTouchdownPointRelief();
-    rtU.radioPointRelief            = Bup_getRadioPointRelief();
+    rtU.currentPointRelief          = 0; //Bup_getCurrentPointRelief();
+    rtU.currentPointReliefAvailable = 0; //SelfTesting_STATUS(ST_MapAvailability);
+    rtU.touchdownPointRelief        = 0; //Bup_getTouchdownPointRelief();
+    rtU.radioPointRelief            = 0; //Bup_getRadioPointRelief();
   #endif //************************************************************************** !flightRegulatorCFB 
 }
 
@@ -176,21 +176,22 @@ void MathModel_control (void)
     // Переводим БИМЫ в состояние по умолчанию
     MathModel_sendBimCommand (0, 0);
     // Замок створки открыть
-    BLIND_CTRL_ON();
-			
-    #ifdef LOGS_ENABLE	//************************************************************* Если включено логирование в черный ящик
-      // Пишем в лог информацию о завершении полета и последние данные
-      loger_exitmsg();
-    #endif //************************************************************************** !LOGS_ENABLE
-
-    // Ждем 5 секунд
-    delay_us(5000000);
-    // Отключаем реле створки замка (нельзя удерживать дольше 10 секунд)
-    BLIND_CTRL_OFF();
-    // Отключаем БИМы
-    BIM_disableSupply();
-    // Повисаем в ожидании перезапуска
-    while(1);
+    TOUCHDOWN_PYRO_ON(); 
+    SelfTesting_TDS();
+    
+    #ifdef LOGS_ENABLE
+      logger_warning("the flight is over");
+      logger_point("final", Bup_getCurrentPointLatitude(), 
+                  Bup_getCurrentPointLongitude(), Bup_getCurrentPointAltitude());
+    #endif
+    
+    delay_ms(10000);         // Ждем 10 секунд
+    TOUCHDOWN_PYRO_OFF();    // Отключаем реле створки замка (нельзя удерживать дольше 10 секунд)
+    SelfTesting_TDS();
+    
+    BIM_disable();           // Отключаем БИМы
+    SelfTesting_POW_BIM();
+    while(1);                // Повисаем в ожидании перезапуска
   }
 }
 
@@ -207,15 +208,13 @@ void MathModel_sendBimCommand (uint8_t left, uint8_t right)
     left = 100;                     // то ограничиваем сверху
   if(right > 100)
     right = 100;
-  left = (uint8_t)(2.55*left);      // Переводим в байтовый диапазон 
-  right = (uint8_t)(2.55*right);    // [0...255]
+  left = BIM_persentToPosition(left);      // Переводим в байтовый диапазон 
+  right = BIM_persentToPosition(right);    // [0...255]
   
   /* Этот каскад условий необходим, чтобы: 
   1) Запретить одновременную работу двигателей, принудительным переходом через ноль
   (если было: левый 50%, а сейчас пришла команда правый 50%, то сначала левый переводится в ноль,
-  а только потом, правый переводится в 50%);
-  2) Контролировать текущее (реальное) положение двигателей, чтобы избавиться от шелчков, возникающих
-  при попытке перевести двигатель в положение в котором он уже находится;		
+  а только потом, правый переводится в 50%);		
   */
   
   if(left > 0 && right == 0) // нужно затянуть левый БИМ в положение left и отпустить правый в 0

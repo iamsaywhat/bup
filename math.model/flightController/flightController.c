@@ -3,9 +3,9 @@
  *
  * Code generated for Simulink model 'flightController'.
  *
- * Model version                  : 1.888
+ * Model version                  : 1.892
  * Simulink Coder version         : 8.14 (R2018a) 06-Feb-2018
- * C/C++ source code generated on : Wed Apr 15 16:25:40 2020
+ * C/C++ source code generated on : Mon Jul 20 13:15:53 2020
  *
  * Target selection: ert.tlc
  * Embedded hardware selection: ARM Compatible->ARM Cortex
@@ -72,8 +72,8 @@ extern real_T rt_remd_snf(real_T u0, real_T u1);
 extern real_T rt_roundd_snf(real_T u);
 
 /* Forward declaration for local functions */
-static boolean_T validateTarget(const real_T *Delay1, const real_T *Delay2,
-  const real_T TmpSignalConversionAtSFunctio_d[4], real_T *V_vert);
+static boolean_T validateTarget(const real_T TmpSignalConversionAtSFunctio_d[4],
+  const real_T TmpSignalConversionAtSFunctio_o[4], const real_T *V_vert);
 static uint32_T TimeoutDecrement(uint32_T TimeoutTag);
 static real_T nonlinearCoefficientFunction(void);
 static real_T errorCourseLimit(void);
@@ -84,8 +84,7 @@ static void BimSupply(const uint32_T *BimTimeout, int32_T *sfEvent);
 static void Control(const real_T *AngleManevr, const uint32_T *AngleTimeout,
                     const uint32_T *BimTimeout, uint8_T *Mode, real_T Delay[4],
                     int32_T *sfEvent);
-static real_T checkFinalMane(const real_T *V_hor, real_T Delay[4], real_T
-  *V_vert);
+static real_T checkFinalMane(const real_T *V_vert, real_T Delay[4]);
 extern real_T rtGetNaN(void);
 extern real32_T rtGetNaNF(void);
 
@@ -426,8 +425,8 @@ real_T rt_remd_snf(real_T u0, real_T u1)
  * function result = validateTarget
  *     %% Определим курс до цели
  */
-static boolean_T validateTarget(const real_T *Delay1, const real_T *Delay2,
-  const real_T TmpSignalConversionAtSFunctio_d[4], real_T *V_vert)
+static boolean_T validateTarget(const real_T TmpSignalConversionAtSFunctio_d[4],
+  const real_T TmpSignalConversionAtSFunctio_o[4], const real_T *V_vert)
 {
   boolean_T result;
   real_T fi1_tmp;
@@ -450,7 +449,7 @@ static boolean_T validateTarget(const real_T *Delay1, const real_T *Delay2,
   /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
   /* 'Azimut:11' la1 = u0(2)*pi/180; */
   /* 'Azimut:12' fi1 = u0(1)*pi/180; */
-  fi1_tmp = rtDW.TmpSignalConversionAtSFunctio_o[0] * 3.1415926535897931 / 180.0;
+  fi1_tmp = TmpSignalConversionAtSFunctio_o[0] * 3.1415926535897931 / 180.0;
 
   /* 'Azimut:13' la2 = u1(2)*pi/180; */
   /* 'Azimut:14' fi2 = u1(1)*pi/180; */
@@ -458,9 +457,12 @@ static boolean_T validateTarget(const real_T *Delay1, const real_T *Delay2,
 
   /* 'Azimut:15' delta_la = la2-la1; */
   delta_la_tmp = TmpSignalConversionAtSFunctio_d[1] * 3.1415926535897931 / 180.0
-    - rtDW.TmpSignalConversionAtSFunctio_o[1] * 3.1415926535897931 / 180.0;
+    - TmpSignalConversionAtSFunctio_o[1] * 3.1415926535897931 / 180.0;
 
-  /* Inport: '<Root>/barometricAirSpeed' */
+  /* Inport: '<Root>/barometricAirSpeed' incorporates:
+   *  Outport: '<Root>/windCourse'
+   *  Outport: '<Root>/windForce'
+   */
   /* 'Azimut:16' y = atan2(sin(delta_la)*cos(fi2), cos(fi1)*sin(fi2)-sin(fi1)*cos(fi2)*cos(delta_la)); */
   /* 'Azimut:17' y = rem((y + 2*pi), 2*pi); */
   /*     %% Вычислим расстояние с помощью функции DistanceCalculator() */
@@ -504,14 +506,13 @@ static boolean_T validateTarget(const real_T *Delay1, const real_T *Delay2,
   /* '<S8>:36:32' if timeHorizontal < timeVertical */
   if (acos(cos(delta_la_tmp) * (cos(fi1_tmp) * cos(-fi2_tmp)) + sin(fi1_tmp) *
            sin(fi2_tmp)) * 6.378245E+6 / sqrt((rtU.barometricAirSpeed *
-        rtU.barometricAirSpeed + *Delay1 * *Delay1) - cos(3.1415926535897931 -
-        (rt_remd_snf(rt_atan2d_snf(sin(delta_la_tmp) * cos(fi2_tmp), cos(fi1_tmp)
-           * sin(fi2_tmp) - sin(fi1_tmp) * cos(fi2_tmp) * cos(delta_la_tmp)) +
-                     6.2831853071795862, 6.2831853071795862) - *Delay2)) * (2.0 *
-        rtU.barometricAirSpeed * *Delay1)) <
-      (rtDW.TmpSignalConversionAtSFunctio_o[2] -
-       (TmpSignalConversionAtSFunctio_d[2] + TmpSignalConversionAtSFunctio_d[3]))
-      / *V_vert)
+        rtU.barometricAirSpeed + rtY.windForce * rtY.windForce) - cos
+       (3.1415926535897931 - (rt_remd_snf(rt_atan2d_snf(sin(delta_la_tmp) * cos
+           (fi2_tmp), cos(fi1_tmp) * sin(fi2_tmp) - sin(fi1_tmp) * cos(fi2_tmp) *
+           cos(delta_la_tmp)) + 6.2831853071795862, 6.2831853071795862) -
+         rtY.windCourse)) * (2.0 * rtU.barometricAirSpeed * rtY.windForce)) <
+      (TmpSignalConversionAtSFunctio_o[2] - (TmpSignalConversionAtSFunctio_d[2]
+        + TmpSignalConversionAtSFunctio_d[3])) / *V_vert)
   {
     /* '<S8>:36:33' result = true; */
     result = true;
@@ -1035,7 +1036,7 @@ static void Control(const real_T *AngleManevr, const uint32_T *AngleTimeout,
               /* '<S5>:590:3' justReturnedHere = false; */
               rtDW.justReturnedHere = false;
 
-              /* '<S5>:590:4' BimSupply.wantEnable; */
+              /* '<S5>:590:5' BimSupply.wantEnable; */
               /* Event: '<S5>:606' */
               b_previousEvent = *sfEvent;
               *sfEvent = event_wantEnable;
@@ -1090,7 +1091,7 @@ static void Control(const real_T *AngleManevr, const uint32_T *AngleTimeout,
                 /* '<S5>:592:3' justReturnedHere = false; */
                 rtDW.justReturnedHere = false;
 
-                /* '<S5>:592:4' BimSupply.wantEnable; */
+                /* '<S5>:592:5' BimSupply.wantEnable; */
                 /* Event: '<S5>:606' */
                 b_previousEvent = *sfEvent;
                 *sfEvent = event_wantEnable;
@@ -1460,8 +1461,7 @@ static void Control(const real_T *AngleManevr, const uint32_T *AngleTimeout,
  * function status = checkFinalMane
  *     %% Вычислим расстояние с помощью функции DistanceCalculator()
  */
-static real_T checkFinalMane(const real_T *V_hor, real_T Delay[4], real_T
-  *V_vert)
+static real_T checkFinalMane(const real_T *V_vert, real_T Delay[4])
 {
   real_T status;
   real_T fi1;
@@ -1502,10 +1502,11 @@ static real_T checkFinalMane(const real_T *V_hor, real_T Delay[4], real_T
 
   /* Outport: '<Root>/horizontalTime' incorporates:
    *  Outport: '<Root>/horizontalDistance'
+   *  Outport: '<Root>/horizontalSpeed'
    */
   /*     %% Вычисляем время необходимое для преодоления расстояния до TDP и до посадки */
   /* '<S5>:141:8' timeHorizontal = distanceToTarget/velocityHorizontal; */
-  rtY.horizontalTime = rtY.horizontalDistance / *V_hor;
+  rtY.horizontalTime = rtY.horizontalDistance / rtY.horizontalSpeed;
 
   /* Outport: '<Root>/verticalTime' */
   /* '<S5>:141:9' timeVertical = (currentPoint(altitude) - (targetPoint(altitude) + double(targetPoint(relief))))/velocityVertical; */
@@ -1548,6 +1549,7 @@ void flightController_step(void)
 {
   int32_T b_previousEvent;
   real_T h;
+  real_T Yh;
   real_T un_pow1;
   real_T un_pow2;
   boolean_T rtb_Disabled;
@@ -1556,10 +1558,10 @@ void flightController_step(void)
   uint32_T AngleTimeout;
   uint32_T BimTimeout;
   real_T TmpSignalConversionAtSFunctio_d[4];
+  real_T TmpSignalConversionAtSFunctio_o[4];
   uint8_T Mode;
   real_T Delay[4];
   int32_T sfEvent;
-  real_T V_vert;
   real_T un_idx_0;
   real_T un_idx_1;
   uint32_T qY;
@@ -1585,10 +1587,10 @@ void flightController_step(void)
    */
   Mode = 2U;
 
-  /* Outputs for Atomic SubSystem: '<S13>/Bearing' */
-  /* MATLAB Function: '<S16>/Heading_true' incorporates:
-   *  Delay: '<S13>/LastPos'
-   *  Delay: '<S16>/PreviousBearing'
+  /* Outputs for Atomic SubSystem: '<S19>/Bearing' */
+  /* MATLAB Function: '<S22>/Heading_true' incorporates:
+   *  Delay: '<S19>/LastPos'
+   *  Delay: '<S22>/PreviousBearing'
    *  Inport: '<Root>/currentPoint:Latitude'
    *  Inport: '<Root>/currentPoint:Longitude'
    */
@@ -1596,96 +1598,100 @@ void flightController_step(void)
   /*  u1 - конечная точка */
   /*  la - долгота */
   /*  fi - широта */
-  /* MATLAB Function 'Azimuth/Azimut': '<S19>:1' */
-  /* '<S19>:1:6' la1 = u0(2)*pi/180; */
-  /* '<S19>:1:7' fi1 = u0(1)*pi/180; */
-  /* '<S19>:1:8' la2 = u1(2)*pi/180; */
-  /* '<S19>:1:9' fi2 = u1(1)*pi/180; */
-  /* '<S19>:1:10' delta_la = la2-la1; */
-  /* '<S19>:1:11' y = atan2(sin(delta_la)*cos(fi2), cos(fi1)*sin(fi2)-sin(fi1)*cos(fi2)*cos(delta_la)); */
-  /* '<S19>:1:12' y = rem((y + 2*pi), 2*pi); */
+  /* MATLAB Function 'Azimuth/Azimut': '<S25>:1' */
+  /* '<S25>:1:6' la1 = u0(2)*pi/180; */
+  /* '<S25>:1:7' fi1 = u0(1)*pi/180; */
+  /* '<S25>:1:8' la2 = u1(2)*pi/180; */
+  /* '<S25>:1:9' fi2 = u1(1)*pi/180; */
+  /* '<S25>:1:10' delta_la = la2-la1; */
+  /* '<S25>:1:11' y = atan2(sin(delta_la)*cos(fi2), cos(fi1)*sin(fi2)-sin(fi1)*cos(fi2)*cos(delta_la)); */
+  /* '<S25>:1:12' y = rem((y + 2*pi), 2*pi); */
   /*  Высчитаем, как изменились координаты */
-  /* MATLAB Function 'Bearing/Heading_true': '<S20>:1' */
-  /* '<S20>:1:3' un = u1 - u0; */
+  /* MATLAB Function 'Bearing/Heading_true': '<S26>:1' */
+  /* '<S26>:1:3' un = u1 - u0; */
   un_idx_0 = rtU.currentPointLatitude - rtDW.LastPos_1_DSTATE;
   un_idx_1 = rtU.currentPointLongitude - rtDW.LastPos_2_DSTATE;
 
-  /* '<S20>:1:4' d_lat = un(1); */
-  /* '<S20>:1:5' d_lon = un(2); */
+  /* '<S26>:1:4' d_lat = un(1); */
+  /* '<S26>:1:5' d_lon = un(2); */
   /*  Условие для определения кратчайшего пути с учетом переходов между */
   /*  меридианами 0 и 180 по долготе */
-  /* '<S20>:1:8' if d_lon > 180 */
+  /* '<S26>:1:8' if d_lon > 180 */
   if (un_idx_1 > 180.0)
   {
-    /* '<S20>:1:9' d_lon = d_lon - 360; */
+    /* '<S26>:1:9' d_lon = d_lon - 360; */
     un_idx_1 -= 360.0;
   }
   else
   {
     if (un_idx_1 < -180.0)
     {
-      /* '<S20>:1:10' elseif d_lon < (-180) */
-      /* '<S20>:1:11' d_lon = d_lon +360; */
+      /* '<S26>:1:10' elseif d_lon < (-180) */
+      /* '<S26>:1:11' d_lon = d_lon +360; */
       un_idx_1 += 360.0;
     }
   }
 
   /*  Расчет курса */
-  /* '<S20>:1:14' un_pow1 = d_lat*d_lat; */
+  /* '<S26>:1:14' un_pow1 = d_lat*d_lat; */
   un_pow1 = un_idx_0 * un_idx_0;
 
-  /* '<S20>:1:15' un_pow2 = d_lon*d_lon; */
+  /* '<S26>:1:15' un_pow2 = d_lon*d_lon; */
   un_pow2 = un_idx_1 * un_idx_1;
 
-  /* '<S20>:1:16' if (un_pow1 < 1e-16) && (un_pow2 < 1e-16) */
+  /* '<S26>:1:16' if (un_pow1 < 1e-16) && (un_pow2 < 1e-16) */
   if ((un_pow1 < 1.0E-16) && (un_pow2 < 1.0E-16))
   {
-    /* '<S20>:1:17' y = last_y; */
+    /* '<S26>:1:17' y = last_y; */
     un_idx_0 = rtDW.PreviousBearing_DSTATE;
   }
   else
   {
-    /* '<S20>:1:18' else */
-    /* '<S20>:1:19' x = acos( d_lon / (sqrt(un_pow2 + un_pow1))); */
-    /* '<S20>:1:20' y = acos( d_lat / (sqrt(un_pow2 + un_pow1))); */
+    /* '<S26>:1:18' else */
+    /* '<S26>:1:19' x = acos( d_lon / (sqrt(un_pow2 + un_pow1))); */
+    /* '<S26>:1:20' y = acos( d_lat / (sqrt(un_pow2 + un_pow1))); */
     un_pow2 = sqrt(un_pow2 + un_pow1);
     un_idx_0 = acos(un_idx_0 / un_pow2);
 
-    /* '<S20>:1:21' if x > pi/2 */
+    /* '<S26>:1:21' if x > pi/2 */
     if (acos(un_idx_1 / un_pow2) > 1.5707963267948966)
     {
-      /* '<S20>:1:22' y = 2*pi - y; */
+      /* '<S26>:1:22' y = 2*pi - y; */
       un_idx_0 = 6.2831853071795862 - un_idx_0;
     }
   }
 
-  /* End of MATLAB Function: '<S16>/Heading_true' */
+  /* End of MATLAB Function: '<S22>/Heading_true' */
 
-  /* Update for Delay: '<S16>/PreviousBearing' */
+  /* Update for Delay: '<S22>/PreviousBearing' */
   rtDW.PreviousBearing_DSTATE = un_idx_0;
 
-  /* End of Outputs for SubSystem: '<S13>/Bearing' */
+  /* End of Outputs for SubSystem: '<S19>/Bearing' */
 
-  /* Outputs for Atomic SubSystem: '<S14>/ProjectionSpeed' */
-  /* MATLAB Function: '<S22>/Speed' incorporates:
+  /* Outputs for Atomic SubSystem: '<S20>/ProjectionSpeed' */
+  /* MATLAB Function: '<S28>/Speed' incorporates:
    *  Inport: '<Root>/velocityAltitude'
-   *  Inport: '<Root>/velocityLatitude'
-   *  Inport: '<Root>/velocityLongitude'
    */
-  /* MATLAB Function 'ProjectionSpeed/Speed': '<S24>:1' */
+  /* MATLAB Function 'ProjectionSpeed/Speed': '<S30>:1' */
   /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
   /*  */
   /*    SpeedProjections - Пересчет проекций векторов скорости по lat, lon, alt */
   /*    в горизонтальную и вертикальную скорость полёта */
   /*  */
   /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
-  /* '<S24>:1:8' V_hor = sqrt(Vel_lat^2 + Vel_lon^2); */
-  /* '<S24>:1:9' V_vert = abs(Vel_alt); */
-  V_vert = fabs(rtU.velocityAltitude);
-  un_idx_1 = sqrt(rtU.velocityLatitude * rtU.velocityLatitude +
-                  rtU.velocityLongitude * rtU.velocityLongitude);
+  /* '<S30>:1:8' V_hor = sqrt(Vel_lat^2 + Vel_lon^2); */
+  /* '<S30>:1:9' V_vert = abs(Vel_alt); */
+  un_idx_1 = fabs(rtU.velocityAltitude);
 
-  /* End of Outputs for SubSystem: '<S14>/ProjectionSpeed' */
+  /* Outport: '<Root>/horizontalSpeed' incorporates:
+   *  Inport: '<Root>/velocityLatitude'
+   *  Inport: '<Root>/velocityLongitude'
+   *  MATLAB Function: '<S28>/Speed'
+   */
+  rtY.horizontalSpeed = sqrt(rtU.velocityLatitude * rtU.velocityLatitude +
+    rtU.velocityLongitude * rtU.velocityLongitude);
+
+  /* End of Outputs for SubSystem: '<S20>/ProjectionSpeed' */
 
   /* Switch: '<S10>/Switch' incorporates:
    *  Constant: '<S10>/constant'
@@ -1698,7 +1704,7 @@ void flightController_step(void)
    *  Sum: '<S10>/Add'
    *  Sum: '<S10>/Sum'
    */
-  /* MATLAB Function 'GPSVelocity/Velocity': '<S23>:1' */
+  /* MATLAB Function 'GPSVelocity/Velocity': '<S29>:1' */
   /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
   /*  */
   /*    GPSPos2Speed - Определение скорости по сигналам GPS */
@@ -1707,10 +1713,10 @@ void flightController_step(void)
   /*    time - Время между замерами координат */
   /*  */
   /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
-  /* '<S23>:1:10' un = u1-u0; */
-  /* '<S23>:1:11' v_lat = un(1)*40000/360*1000/time; */
-  /* '<S23>:1:12' v_lon = un(2)*(40000/360*1000/time * cos(pi/180*u0(1))); */
-  /* '<S23>:1:13' v_alt = un(3); */
+  /* '<S29>:1:10' un = u1-u0; */
+  /* '<S29>:1:11' v_lat = un(1)*40000/360*1000/time; */
+  /* '<S29>:1:12' v_lon = un(2)*(40000/360*1000/time * cos(pi/180*u0(1))); */
+  /* '<S29>:1:13' v_alt = un(3); */
   if (rtU.barometricAvailable > 0)
   {
     un_pow1 = 0.0 * rtU.barometricAltitude + rtU.currentPointAltitude;
@@ -1722,11 +1728,15 @@ void flightController_step(void)
 
   /* End of Switch: '<S10>/Switch' */
 
-  /* Delay: '<S11>/Delay1' */
-  un_pow2 = rtDW.windForce;
+  /* Outport: '<Root>/windForce' incorporates:
+   *  Delay: '<S11>/Delay1'
+   */
+  rtY.windForce = rtDW.windForce;
 
-  /* Delay: '<S11>/Delay2' */
-  un_idx_0 = rtDW.windCourse;
+  /* Outport: '<Root>/windCourse' incorporates:
+   *  Delay: '<S11>/Delay2'
+   */
+  rtY.windCourse = rtDW.windCourse;
 
   /* SignalConversion: '<S8>/TmpSignal ConversionAt SFunction Inport2' incorporates:
    *  Chart: '<S1>/TargetSelector'
@@ -1748,10 +1758,10 @@ void flightController_step(void)
    *  Inport: '<Root>/currentPoint:Longitude'
    *  Inport: '<Root>/currentPointRelief'
    */
-  rtDW.TmpSignalConversionAtSFunctio_o[0] = rtU.currentPointLatitude;
-  rtDW.TmpSignalConversionAtSFunctio_o[1] = rtU.currentPointLongitude;
-  rtDW.TmpSignalConversionAtSFunctio_o[2] = un_pow1;
-  rtDW.TmpSignalConversionAtSFunctio_o[3] = rtU.currentPointRelief;
+  TmpSignalConversionAtSFunctio_o[0] = rtU.currentPointLatitude;
+  TmpSignalConversionAtSFunctio_o[1] = rtU.currentPointLongitude;
+  TmpSignalConversionAtSFunctio_o[2] = un_pow1;
+  TmpSignalConversionAtSFunctio_o[3] = rtU.currentPointRelief;
 
   /* Chart: '<S1>/TargetSelector' incorporates:
    *  DataTypeConversion: '<S1>/Data Type Conversion2'
@@ -1811,8 +1821,8 @@ void flightController_step(void)
         rtDW.updateIndex = rtU.radioUpdateIndex;
 
         /* '<S8>:45:3' status = validateTarget(); */
-        rtDW.status = validateTarget(&un_pow2, &un_idx_0,
-          TmpSignalConversionAtSFunctio_d, &V_vert);
+        rtDW.status = validateTarget(TmpSignalConversionAtSFunctio_d,
+          TmpSignalConversionAtSFunctio_o, &un_idx_1);
       }
       break;
 
@@ -2080,7 +2090,7 @@ void flightController_step(void)
       /* During 'EventGenerator': '<S5>:260' */
       /*  Контроль выхода на точку */
       /* '<S5>:260:4' if checkFinalMane  == 1 */
-      if (checkFinalMane(&un_idx_1, Delay, &V_vert) == 1.0)
+      if (checkFinalMane(&un_idx_1, Delay) == 1.0)
       {
         /* '<S5>:260:5' Control.final; */
         /* Event: '<S5>:361' */
@@ -2141,7 +2151,7 @@ void flightController_step(void)
 
       /* 'DistanceCalculator:15' la2 = Target(2)*pi/180; */
       /* 'DistanceCalculator:16' fi2 = Target(1)*pi/180; */
-      un_idx_0 = rtDW.targetPoint[0] * 3.1415926535897931 / 180.0;
+      un_pow2 = rtDW.targetPoint[0] * 3.1415926535897931 / 180.0;
 
       /* 'DistanceCalculator:17' d = sin(fi1)*sin(fi2) + cos(fi1)*cos(-fi2)*cos(la2-la1); */
       /*  6371 км средний радиус земли */
@@ -2150,8 +2160,8 @@ void flightController_step(void)
       /* 'CheckArrival:14' if distance < Radius */
       if (acos(cos(rtDW.targetPoint[1] * 3.1415926535897931 / 180.0 -
                    rtDW.TmpSignalConversionAtSFunctio_g[1] * 3.1415926535897931 /
-                   180.0) * (cos(un_pow1) * cos(-un_idx_0)) + sin(un_pow1) * sin
-               (un_idx_0)) * 6.378245E+6 < 300.0)
+                   180.0) * (cos(un_pow1) * cos(-un_pow2)) + sin(un_pow1) * sin
+               (un_pow2)) * 6.378245E+6 < 300.0)
       {
         /* 'CheckArrival:15' status = 1; */
         /* '<S5>:260:11' Control.nextStage; */
@@ -2207,8 +2217,8 @@ void flightController_step(void)
       /* 'CheckArrival:14' if distance < Radius */
       if (acos(cos(rtDW.targetPoint[1] * 3.1415926535897931 / 180.0 -
                    rtDW.TmpSignalConversionAtSFunctio_g[1] * 3.1415926535897931 /
-                   180.0) * (cos(un_pow1) * cos(-un_idx_0)) + sin(un_pow1) * sin
-               (un_idx_0)) * 6.378245E+6 < 2000.0)
+                   180.0) * (cos(un_pow1) * cos(-un_pow2)) + sin(un_pow1) * sin
+               (un_pow2)) * 6.378245E+6 < 2000.0)
       {
         /* 'CheckArrival:15' status = 1; */
         /* '<S5>:260:16' BimSupply.nonBlockingMode; */
@@ -2266,8 +2276,8 @@ void flightController_step(void)
       /* 'CheckArrival:14' if distance < Radius */
       if (acos(cos(rtDW.targetPoint[1] * 3.1415926535897931 / 180.0 -
                    rtDW.TmpSignalConversionAtSFunctio_g[1] * 3.1415926535897931 /
-                   180.0) * (cos(un_pow1) * cos(-un_idx_0)) + sin(un_pow1) * sin
-               (un_idx_0)) * 6.378245E+6 < 300.0)
+                   180.0) * (cos(un_pow1) * cos(-un_pow2)) + sin(un_pow1) * sin
+               (un_pow2)) * 6.378245E+6 < 300.0)
       {
         /* 'CheckArrival:15' status = 1; */
         /* '<S5>:260:22' BimSupply.parking; */
@@ -2323,18 +2333,18 @@ void flightController_step(void)
   AngleManevr = rtDW.desiredCourse - rtU.trackingCourse;
 
   /* Outputs for Atomic SubSystem: '<S9>/ControlDemode' */
-  /* MATLAB Function: '<S25>/ControlDemode' */
+  /* MATLAB Function: '<S31>/ControlDemode' */
   /*  Здесь переводим угол из диапазона [0 360] */
   /*  в диапазон [-180 180], что позволит нам определять */
   /*  оптимальное направление разворота (лево и право) */
-  /* MATLAB Function 'ControlDemode/ControlDemode': '<S33>:1' */
-  /* '<S33>:1:5' y = u; */
+  /* MATLAB Function 'ControlDemode/ControlDemode': '<S39>:1' */
+  /* '<S39>:1:5' y = u; */
   /*  Если больше 180 */
-  /* '<S33>:1:7' if y > pi */
+  /* '<S39>:1:7' if y > pi */
   if (AngleManevr > 3.1415926535897931)
   {
     /*  то это уже отрицательная полуокружность */
-    /* '<S33>:1:9' y = y - 2*pi; */
+    /* '<S39>:1:9' y = y - 2*pi; */
     AngleManevr -= 6.2831853071795862;
 
     /*  Если меньше -180 */
@@ -2343,64 +2353,46 @@ void flightController_step(void)
   {
     if (AngleManevr < -3.1415926535897931)
     {
-      /* '<S33>:1:11' elseif (y < (-pi)) */
+      /* '<S39>:1:11' elseif (y < (-pi)) */
       /*  то это уже положительная полуокружность */
-      /* '<S33>:1:13' y = y + 2*pi; */
+      /* '<S39>:1:13' y = y + 2*pi; */
       AngleManevr += 6.2831853071795862;
     }
   }
 
-  /* End of MATLAB Function: '<S25>/ControlDemode' */
+  /* End of MATLAB Function: '<S31>/ControlDemode' */
   /* End of Outputs for SubSystem: '<S9>/ControlDemode' */
 
-  /* Gain: '<S9>/Base_Gain' incorporates:
-   *  Gain: '<S30>/Gain'
+  /* Gain: '<S37>/Gain1' incorporates:
+   *  Gain: '<S36>/Gain'
+   *  Gain: '<S37>/Gain'
+   *  Gain: '<S9>/Base_Gain'
+   *  Rounding: '<S37>/Rounding Function'
    */
-  un_pow1 = 57.295779513082323 * AngleManevr * 2.0;
+  AngleManevr = floor(57.295779513082323 * AngleManevr * 2.0 * 0.1) * 10.0;
 
-  /* Saturate: '<S9>/Base_Sat' */
-  if (un_pow1 > 50.0)
-  {
-    un_pow1 = 50.0;
-  }
-  else
-  {
-    if (un_pow1 < -50.0)
-    {
-      un_pow1 = -50.0;
-    }
-  }
-
-  /* End of Saturate: '<S9>/Base_Sat' */
-
-  /* Gain: '<S31>/Gain1' incorporates:
-   *  Gain: '<S31>/Gain'
-   *  Rounding: '<S31>/Rounding Function'
-   */
-  AngleManevr = floor(0.1 * un_pow1) * 10.0;
-
-  /* Outputs for Atomic SubSystem: '<S31>/DeadZone' */
-  /* MATLAB Function: '<S34>/DeadZone' */
-  /* MATLAB Function 'DeadZone/DeadZone': '<S35>:1' */
+  /* Outputs for Atomic SubSystem: '<S37>/DeadZone' */
+  /* MATLAB Function: '<S40>/DeadZone' */
+  /* MATLAB Function 'DeadZone/DeadZone': '<S41>:1' */
   /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
   /*  */
   /*    Звено нечувствительности */
   /*  */
   /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
-  /* '<S35>:1:7' if abs(u) < 20 */
+  /* '<S41>:1:7' if abs(u) < 20 */
   if (fabs(AngleManevr) < 20.0)
   {
-    /* '<S35>:1:8' y = 0; */
+    /* '<S41>:1:8' y = 0; */
     AngleManevr = 0.0;
   }
   else
   {
-    /* '<S35>:1:9' else */
-    /* '<S35>:1:10' y = u; */
+    /* '<S41>:1:9' else */
+    /* '<S41>:1:10' y = u; */
   }
 
-  /* End of MATLAB Function: '<S34>/DeadZone' */
-  /* End of Outputs for SubSystem: '<S31>/DeadZone' */
+  /* End of MATLAB Function: '<S40>/DeadZone' */
+  /* End of Outputs for SubSystem: '<S37>/DeadZone' */
 
   /* Product: '<S9>/Product' */
   /*  if u > 10 */
@@ -2411,6 +2403,21 @@ void flightController_step(void)
   /*      y = 0; */
   /*  end */
   AngleManevr *= (real_T)rtDW.enableTargetting;
+
+  /* Saturate: '<S9>/Base_Sat' */
+  if (AngleManevr > 35.0)
+  {
+    AngleManevr = 35.0;
+  }
+  else
+  {
+    if (AngleManevr < -35.0)
+    {
+      AngleManevr = -35.0;
+    }
+  }
+
+  /* End of Saturate: '<S9>/Base_Sat' */
 
   /* Outport: '<Root>/rightStrap' incorporates:
    *  Constant: '<S7>/Constant'
@@ -2440,7 +2447,7 @@ void flightController_step(void)
   /* End of Switch: '<S7>/Switch1' */
 
   /* Outputs for Atomic SubSystem: '<S11>/BimTriggers' */
-  /* Chart: '<S36>/BimTrigger' */
+  /* Chart: '<S42>/BimTrigger' */
   /* Gateway: BimTriggers/BimTrigger */
   /* During: BimTriggers/BimTrigger */
   if (rtDW.is_active_c9_BupSimulinkLibrari == 0U)
@@ -2449,105 +2456,106 @@ void flightController_step(void)
     rtDW.is_active_c9_BupSimulinkLibrari = 1U;
 
     /* Entry Internal: BimTriggers/BimTrigger */
-    /* Entry 'Triggers': '<S41>:18' */
-    /* Entry Internal 'Triggers': '<S41>:18' */
-    /* Entry 'DisabledTrigger': '<S41>:19' */
-    /* '<S41>:19:1' if LastLineState > 0 && Line <=0 */
+    /* Entry 'Triggers': '<S47>:18' */
+    /* Entry Internal 'Triggers': '<S47>:18' */
+    /* Entry 'DisabledTrigger': '<S47>:19' */
+    /* '<S47>:19:1' if LastLineState > 0 && Line <=0 */
     if ((rtDW.LastLineState > 0.0) && (AngleManevr <= 0.0))
     {
-      /* '<S41>:19:1' Disabled = true; */
+      /* '<S47>:19:1' Disabled = true; */
       rtb_Disabled = true;
     }
     else if ((rtDW.LastLineState < 0.0) && (AngleManevr >= 0.0))
     {
-      /* '<S41>:19:2' elseif LastLineState < 0 && Line >=0 */
-      /* '<S41>:19:4' Disabled = true; */
+      /* '<S47>:19:2' elseif LastLineState < 0 && Line >=0 */
+      /* '<S47>:19:4' Disabled = true; */
       rtb_Disabled = true;
     }
     else
     {
-      /* '<S41>:19:4' else */
-      /* '<S41>:19:4' Disabled = false; */
+      /* '<S47>:19:4' else */
+      /* '<S47>:19:4' Disabled = false; */
       rtb_Disabled = false;
     }
 
-    /* Entry 'EnabledTrigger1': '<S41>:21' */
-    /* '<S41>:21:1' if LastLineState == 0 && Line > 0 */
+    /* Entry 'EnabledTrigger1': '<S47>:21' */
+    /* '<S47>:21:1' if LastLineState == 0 && Line > 0 */
     if ((rtDW.LastLineState == 0.0) && (AngleManevr > 0.0))
     {
-      /* '<S41>:21:1' Enabled = true; */
+      /* '<S47>:21:1' Enabled = true; */
       rtb_Enabled = true;
     }
     else if ((rtDW.LastLineState == 0.0) && (AngleManevr < 0.0))
     {
-      /* '<S41>:21:2' elseif LastLineState == 0 && Line < 0 */
-      /* '<S41>:21:4' Enabled = true; */
+      /* '<S47>:21:2' elseif LastLineState == 0 && Line < 0 */
+      /* '<S47>:21:4' Enabled = true; */
       rtb_Enabled = true;
     }
     else
     {
-      /* '<S41>:21:4' else */
-      /* '<S41>:21:4' Enabled = false; */
+      /* '<S47>:21:4' else */
+      /* '<S47>:21:4' Enabled = false; */
       rtb_Enabled = false;
     }
 
-    /* Entry 'RemeberLastState': '<S41>:29' */
-    /* '<S41>:29:1' LastLineState = Line; */
+    /* Entry 'RemeberLastState': '<S47>:29' */
+    /* '<S47>:29:1' LastLineState = Line; */
     rtDW.LastLineState = AngleManevr;
   }
   else
   {
-    /* During 'Triggers': '<S41>:18' */
-    /* During 'DisabledTrigger': '<S41>:19' */
-    /* '<S41>:19:1' if LastLineState > 0 && Line <=0 */
+    /* During 'Triggers': '<S47>:18' */
+    /* During 'DisabledTrigger': '<S47>:19' */
+    /* '<S47>:19:1' if LastLineState > 0 && Line <=0 */
     if ((rtDW.LastLineState > 0.0) && (AngleManevr <= 0.0))
     {
-      /* '<S41>:19:1' Disabled = true; */
+      /* '<S47>:19:1' Disabled = true; */
       rtb_Disabled = true;
     }
     else if ((rtDW.LastLineState < 0.0) && (AngleManevr >= 0.0))
     {
-      /* '<S41>:19:2' elseif LastLineState < 0 && Line >=0 */
-      /* '<S41>:19:3' Disabled = true; */
+      /* '<S47>:19:2' elseif LastLineState < 0 && Line >=0 */
+      /* '<S47>:19:3' Disabled = true; */
       rtb_Disabled = true;
     }
     else
     {
-      /* '<S41>:19:4' else */
-      /* '<S41>:19:4' Disabled = false; */
+      /* '<S47>:19:4' else */
+      /* '<S47>:19:4' Disabled = false; */
       rtb_Disabled = false;
     }
 
-    /* During 'EnabledTrigger1': '<S41>:21' */
-    /* '<S41>:21:1' if LastLineState == 0 && Line > 0 */
+    /* During 'EnabledTrigger1': '<S47>:21' */
+    /* '<S47>:21:1' if LastLineState == 0 && Line > 0 */
     if ((rtDW.LastLineState == 0.0) && (AngleManevr > 0.0))
     {
-      /* '<S41>:21:1' Enabled = true; */
+      /* '<S47>:21:1' Enabled = true; */
       rtb_Enabled = true;
     }
     else if ((rtDW.LastLineState == 0.0) && (AngleManevr < 0.0))
     {
-      /* '<S41>:21:2' elseif LastLineState == 0 && Line < 0 */
-      /* '<S41>:21:3' Enabled = true; */
+      /* '<S47>:21:2' elseif LastLineState == 0 && Line < 0 */
+      /* '<S47>:21:3' Enabled = true; */
       rtb_Enabled = true;
     }
     else
     {
-      /* '<S41>:21:4' else */
-      /* '<S41>:21:4' Enabled = false; */
+      /* '<S47>:21:4' else */
+      /* '<S47>:21:4' Enabled = false; */
       rtb_Enabled = false;
     }
 
-    /* During 'RemeberLastState': '<S41>:29' */
-    /* '<S41>:29:1' LastLineState = Line; */
+    /* During 'RemeberLastState': '<S47>:29' */
+    /* '<S47>:29:1' LastLineState = Line; */
     rtDW.LastLineState = AngleManevr;
   }
 
-  /* End of Chart: '<S36>/BimTrigger' */
+  /* End of Chart: '<S42>/BimTrigger' */
   /* End of Outputs for SubSystem: '<S11>/BimTriggers' */
 
   /* Chart: '<S11>/Chart' incorporates:
    *  Inport: '<Root>/trackingCourse'
+   *  Outport: '<Root>/horizontalSpeed'
    */
   /* Gateway: flightController/feedback/Chart */
   /* During: flightController/feedback/Chart */
@@ -2557,32 +2565,32 @@ void flightController_step(void)
     rtDW.is_active_c5_flightController = 1U;
 
     /* Entry Internal: flightController/feedback/Chart */
-    /* Transition: '<S37>:26' */
+    /* Transition: '<S43>:26' */
     rtDW.is_c5_flightController = IN_Initialization;
 
-    /* Entry 'Initialization': '<S37>:25' */
-    /* '<S37>:25:1' initialGroundSpeed = 0; */
-    /* '<S37>:25:1' initialCourse = 0; */
-    /* '<S37>:25:2' currentGroundSpeed = 0; */
+    /* Entry 'Initialization': '<S43>:25' */
+    /* '<S43>:25:1' initialGroundSpeed = 0; */
+    /* '<S43>:25:1' initialCourse = 0; */
+    /* '<S43>:25:2' currentGroundSpeed = 0; */
     rtDW.currentGroundSpeed_d = 0.0;
 
-    /* '<S37>:25:3' currentCourse = 0; */
+    /* '<S43>:25:3' currentCourse = 0; */
     rtDW.currentCourse_h = 0.0;
 
-    /* '<S37>:25:4' windForce = 0; */
-    /* '<S37>:25:4' windCourse = 0; */
+    /* '<S43>:25:4' windForce = 0; */
+    /* '<S43>:25:4' windCourse = 0; */
   }
   else
   {
     switch (rtDW.is_c5_flightController)
     {
      case IN_FixCurrentVector:
-      /* During 'FixCurrentVector': '<S37>:28' */
-      /* Transition: '<S37>:36' */
+      /* During 'FixCurrentVector': '<S43>:28' */
+      /* Transition: '<S43>:36' */
       rtDW.is_c5_flightController = IN_GetResult;
 
-      /* Entry 'GetResult': '<S37>:31' */
-      /* '<S37>:31:1' [windForce, windCourse] = WindEstimator(initialGroundSpeed, initialCourse, currentGroundSpeed, currentCourse, 20) */
+      /* Entry 'GetResult': '<S43>:31' */
+      /* '<S43>:31:1' [windForce, windCourse] = WindEstimator(initialGroundSpeed, initialCourse, currentGroundSpeed, currentCourse, 20) */
       /*  Вычисляем проекции векторов */
       /* 'WindEstimator:3' groundSpeedX0 = groundSpeedModule0 * cos(pi/2 - groundSpeedCourse0); */
       /* 'WindEstimator:4' groundSpeedY0 = groundSpeedModule0 * cos(- groundSpeedCourse0); */
@@ -2592,76 +2600,76 @@ void flightController_step(void)
       /*  Определяем расстояние между точками */
       /* 'WindEstimator:9' D = sqrt((groundSpeedX1 - groundSpeedX0)^2 + (groundSpeedY1 - groundSpeedY0)^2); */
       /* 'WindEstimator:10' if(D > 2*airSpeed || D < 0.5 || isnan(D)) */
-      /* '<S37>:31:3' initialGroundSpeed = currentGroundSpeed; */
-      /* '<S37>:31:4' initialCourse = currentCourse; */
+      /* '<S43>:31:3' initialGroundSpeed = currentGroundSpeed; */
+      /* '<S43>:31:4' initialCourse = currentCourse; */
       break;
 
      case IN_FixInitialVector:
-      /* During 'FixInitialVector': '<S37>:27' */
-      /* Transition: '<S37>:39' */
-      /* '<S37>:33:1' sf_internal_predicateOutput = ... */
-      /* '<S37>:33:1' bimWasDisabled == 1; */
+      /* During 'FixInitialVector': '<S43>:27' */
+      /* Transition: '<S43>:39' */
+      /* '<S43>:33:1' sf_internal_predicateOutput = ... */
+      /* '<S43>:33:1' bimWasDisabled == 1; */
       if (rtb_Disabled)
       {
-        /* Transition: '<S37>:33' */
+        /* Transition: '<S43>:33' */
         rtDW.is_c5_flightController = IN_Pause;
       }
       break;
 
      case IN_GetResult:
-      /* During 'GetResult': '<S37>:31' */
-      /* Transition: '<S37>:38' */
-      /* '<S37>:33:1' sf_internal_predicateOutput = ... */
-      /* '<S37>:33:1' bimWasDisabled == 1; */
+      /* During 'GetResult': '<S43>:31' */
+      /* Transition: '<S43>:38' */
+      /* '<S43>:33:1' sf_internal_predicateOutput = ... */
+      /* '<S43>:33:1' bimWasDisabled == 1; */
       if (rtb_Disabled)
       {
-        /* Transition: '<S37>:33' */
+        /* Transition: '<S43>:33' */
         rtDW.is_c5_flightController = IN_Pause;
       }
       break;
 
      case IN_Initialization:
-      /* During 'Initialization': '<S37>:25' */
-      /* '<S37>:29:1' sf_internal_predicateOutput = ... */
-      /* '<S37>:29:1' bimWasEnabled == 1; */
+      /* During 'Initialization': '<S43>:25' */
+      /* '<S43>:29:1' sf_internal_predicateOutput = ... */
+      /* '<S43>:29:1' bimWasEnabled == 1; */
       if (rtb_Enabled)
       {
-        /* Transition: '<S37>:29' */
+        /* Transition: '<S43>:29' */
         rtDW.is_c5_flightController = IN_FixInitialVector;
 
-        /* Entry 'FixInitialVector': '<S37>:27' */
-        /* '<S37>:27:1' initialGroundSpeed = groundSpeed; */
-        /* '<S37>:27:3' initialCourse = course; */
+        /* Entry 'FixInitialVector': '<S43>:27' */
+        /* '<S43>:27:1' initialGroundSpeed = groundSpeed; */
+        /* '<S43>:27:3' initialCourse = course; */
       }
       else
       {
-        /* '<S37>:25:1' initialGroundSpeed = 0; */
-        /* '<S37>:25:1' initialCourse = 0; */
-        /* '<S37>:25:2' currentGroundSpeed = 0; */
+        /* '<S43>:25:1' initialGroundSpeed = 0; */
+        /* '<S43>:25:1' initialCourse = 0; */
+        /* '<S43>:25:2' currentGroundSpeed = 0; */
         rtDW.currentGroundSpeed_d = 0.0;
 
-        /* '<S37>:25:3' currentCourse = 0; */
+        /* '<S43>:25:3' currentCourse = 0; */
         rtDW.currentCourse_h = 0.0;
 
-        /* '<S37>:25:4' windForce = 0; */
-        /* '<S37>:25:4' windCourse = 0; */
+        /* '<S43>:25:4' windForce = 0; */
+        /* '<S43>:25:4' windCourse = 0; */
       }
       break;
 
      default:
-      /* During 'Pause': '<S37>:32' */
-      /* '<S37>:30:1' sf_internal_predicateOutput = ... */
-      /* '<S37>:30:1' bimWasEnabled == 1; */
+      /* During 'Pause': '<S43>:32' */
+      /* '<S43>:30:1' sf_internal_predicateOutput = ... */
+      /* '<S43>:30:1' bimWasEnabled == 1; */
       if (rtb_Enabled)
       {
-        /* Transition: '<S37>:30' */
+        /* Transition: '<S43>:30' */
         rtDW.is_c5_flightController = IN_FixCurrentVector;
 
-        /* Entry 'FixCurrentVector': '<S37>:28' */
-        /* '<S37>:28:1' currentGroundSpeed = groundSpeed; */
-        rtDW.currentGroundSpeed_d = un_idx_1;
+        /* Entry 'FixCurrentVector': '<S43>:28' */
+        /* '<S43>:28:1' currentGroundSpeed = groundSpeed; */
+        rtDW.currentGroundSpeed_d = rtY.horizontalSpeed;
 
-        /* '<S37>:28:3' currentCourse = course; */
+        /* '<S43>:28:3' currentCourse = course; */
         rtDW.currentCourse_h = rtU.trackingCourse;
       }
       break;
@@ -2672,6 +2680,7 @@ void flightController_step(void)
 
   /* Chart: '<S11>/Chart2' incorporates:
    *  Inport: '<Root>/trackingCourse'
+   *  Outport: '<Root>/horizontalSpeed'
    */
   /* Gateway: flightController/feedback/Chart2 */
   /* During: flightController/feedback/Chart2 */
@@ -2681,29 +2690,29 @@ void flightController_step(void)
     rtDW.is_active_c8_flightController = 1U;
 
     /* Entry Internal: flightController/feedback/Chart2 */
-    /* Transition: '<S38>:26' */
+    /* Transition: '<S44>:26' */
     rtDW.is_c8_flightController = IN_Initialization;
 
-    /* Entry 'Initialization': '<S38>:25' */
-    /* '<S38>:25:1' initialGroundSpeed = 0; */
+    /* Entry 'Initialization': '<S44>:25' */
+    /* '<S44>:25:1' initialGroundSpeed = 0; */
     rtDW.initialGroundSpeed = 0.0;
 
-    /* '<S38>:25:1' initialCourse = 0; */
+    /* '<S44>:25:1' initialCourse = 0; */
     rtDW.initialCourse = 0.0;
 
-    /* '<S38>:25:2' currentGroundSpeed = 0; */
+    /* '<S44>:25:2' currentGroundSpeed = 0; */
     rtDW.currentGroundSpeed = 0.0;
 
-    /* '<S38>:25:3' currentCourse = 0; */
+    /* '<S44>:25:3' currentCourse = 0; */
     rtDW.currentCourse = 0.0;
 
-    /* '<S38>:25:4' windForce = 0; */
+    /* '<S44>:25:4' windForce = 0; */
     rtDW.windForce = 0.0;
 
-    /* '<S38>:25:4' windCourse = 0; */
+    /* '<S44>:25:4' windCourse = 0; */
     rtDW.windCourse = 0.0;
 
-    /* '<S38>:25:5' passedTime = 0; */
+    /* '<S44>:25:5' passedTime = 0; */
     rtDW.passedTime = 0U;
   }
   else
@@ -2711,15 +2720,15 @@ void flightController_step(void)
     switch (rtDW.is_c8_flightController)
     {
      case IN_FixCurrentVector:
-      /* During 'FixCurrentVector': '<S38>:28' */
-      /* Transition: '<S38>:36' */
+      /* During 'FixCurrentVector': '<S44>:28' */
+      /* Transition: '<S44>:36' */
       rtDW.is_c8_flightController = IN_GetResult;
 
-      /* Entry 'GetResult': '<S38>:31' */
-      /* '<S38>:31:1' [windForce, windCourse] = WindEstimator(initialGroundSpeed, initialCourse, currentGroundSpeed, currentCourse, 20) */
+      /* Entry 'GetResult': '<S44>:31' */
+      /* '<S44>:31:1' [windForce, windCourse] = WindEstimator(initialGroundSpeed, initialCourse, currentGroundSpeed, currentCourse, 20) */
       /*  Вычисляем проекции векторов */
       /* 'WindEstimator:3' groundSpeedX0 = groundSpeedModule0 * cos(pi/2 - groundSpeedCourse0); */
-      un_idx_1 = cos(1.5707963267948966 - rtDW.initialCourse) *
+      AngleManevr = cos(1.5707963267948966 - rtDW.initialCourse) *
         rtDW.initialGroundSpeed;
 
       /* 'WindEstimator:4' groundSpeedY0 = groundSpeedModule0 * cos(- groundSpeedCourse0); */
@@ -2731,7 +2740,7 @@ void flightController_step(void)
       /*  Определяем расстояние между точками */
       /* 'WindEstimator:9' D = sqrt((groundSpeedX1 - groundSpeedX0)^2 + (groundSpeedY1 - groundSpeedY0)^2); */
       un_pow2 = cos(1.5707963267948966 - rtDW.currentCourse) *
-        rtDW.currentGroundSpeed - un_idx_1;
+        rtDW.currentGroundSpeed - AngleManevr;
       h_tmp = rtDW.currentGroundSpeed * cos(-rtDW.currentCourse) - un_pow1;
       un_idx_0 = sqrt(un_pow2 * un_pow2 + h_tmp * h_tmp);
 
@@ -2751,33 +2760,33 @@ void flightController_step(void)
         /*     %% Сторона a одного из двух прямоугольных треугольников */
         /* a = (app.airSpeed^2 - app.airSpeed^2 + D^2)/(2*D); */
         /* 'WindEstimator:17' a = (D^2)/(2*D); */
-        AngleManevr = un_idx_0 * un_idx_0 / (2.0 * un_idx_0);
+        un_idx_1 = un_idx_0 * un_idx_0 / (2.0 * un_idx_0);
 
         /*     %% Высота прямоугольных труегольников */
         /* 'WindEstimator:19' h = sqrt(airSpeed^2 - a^2); */
-        h = sqrt(400.0 - AngleManevr * AngleManevr);
+        h = sqrt(400.0 - un_idx_1 * un_idx_1);
 
         /*     %% Координаты точки, которая делит общую сторону D на a и b  */
         /* 'WindEstimator:21' Xh = groundSpeedX0 + a*(groundSpeedX1-groundSpeedX0)/D; */
-        un_idx_1 += un_pow2 * AngleManevr / un_idx_0;
+        AngleManevr += un_pow2 * un_idx_1 / un_idx_0;
 
         /* 'WindEstimator:22' Yh = groundSpeedY0 + a*(groundSpeedY1-groundSpeedY0)/D; */
-        V_vert = h_tmp * AngleManevr / un_idx_0 + un_pow1;
+        Yh = h_tmp * un_idx_1 / un_idx_0 + un_pow1;
 
         /*     %% Координты точек пересечения окружностей */
         /* 'WindEstimator:24' P1x = Xh + h*(groundSpeedY1-groundSpeedY0)/D; */
         un_pow1 = h_tmp * h / un_idx_0;
-        AngleManevr = un_pow1 + un_idx_1;
+        un_idx_1 = un_pow1 + AngleManevr;
 
         /* 'WindEstimator:25' P1y = Yh - h*(groundSpeedX1-groundSpeedX0)/D; */
-        un_pow2 = un_pow2 * h / un_idx_0;
-        un_idx_0 = V_vert - un_pow2;
+        un_idx_0 = un_pow2 * h / un_idx_0;
+        un_pow2 = Yh - un_idx_0;
 
         /* 'WindEstimator:26' P2x = Xh - h*(groundSpeedY1-groundSpeedY0)/D; */
-        un_pow1 = un_idx_1 - un_pow1;
+        un_pow1 = AngleManevr - un_pow1;
 
         /* 'WindEstimator:27' P2y = Yh + h*(groundSpeedX1-groundSpeedX0)/D; */
-        un_idx_1 = un_pow2 + V_vert;
+        AngleManevr = un_idx_0 + Yh;
 
         /*     %% Здесь нужно выбрать одну из двух точек */
         /*     %% 1) Будем выбирать, как ближайшую к началу координат в проекции на */
@@ -2795,14 +2804,14 @@ void flightController_step(void)
         /*  end */
         /*     %% 2) Будем выбирать, как ближайшую к началу координат (минимальная длина) */
         /* 'WindEstimator:43' if (sqrt(P1x^2 + P1y^2) < sqrt(P2x^2 + P2y^2)) */
-        if (sqrt(AngleManevr * AngleManevr + un_idx_0 * un_idx_0) < sqrt(un_pow1
-             * un_pow1 + un_idx_1 * un_idx_1))
+        if (sqrt(un_idx_1 * un_idx_1 + un_pow2 * un_pow2) < sqrt(un_pow1 *
+             un_pow1 + AngleManevr * AngleManevr))
         {
           /* 'WindEstimator:44' Px = P1x; */
-          un_pow1 = AngleManevr;
+          un_pow1 = un_idx_1;
 
           /* 'WindEstimator:45' Py = P1y; */
-          un_idx_1 = un_idx_0;
+          AngleManevr = un_pow2;
         }
         else
         {
@@ -2813,7 +2822,8 @@ void flightController_step(void)
 
         /*     %% Расчитываем характеристики ветра */
         /* 'WindEstimator:51' winwForce = sqrt(Px^2 + Py^2); */
-        rtDW.windForce = sqrt(un_pow1 * un_pow1 + un_idx_1 * un_idx_1);
+        un_idx_0 = AngleManevr * AngleManevr;
+        rtDW.windForce = sqrt(un_pow1 * un_pow1 + un_idx_0);
 
         /* 'WindEstimator:52' windAngle = Heading([Py, Px], [0 0], 0); */
         /*     %% Высчитаем, как изменились координаты */
@@ -2826,8 +2836,6 @@ void flightController_step(void)
         /*  */
         /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
         /* 'Heading:11' un = u1 - u0; */
-        un_idx_0 = un_idx_1;
-
         /* 'Heading:12' d_lat = un(1); */
         /* 'Heading:13' d_lon = un(2); */
         un_idx_1 = un_pow1;
@@ -2852,13 +2860,11 @@ void flightController_step(void)
 
         /*     %% Расчет курса */
         /* 'Heading:22' un_pow1 = d_lat*d_lat; */
-        un_pow1 = un_idx_0 * un_idx_0;
-
         /* 'Heading:23' un_pow2 = d_lon*d_lon; */
         un_pow2 = un_idx_1 * un_idx_1;
 
         /* 'Heading:24' if (un_pow1 < 1e-16) && (un_pow2 < 1e-16) */
-        if ((un_pow1 < 1.0E-16) && (un_pow2 < 1.0E-16))
+        if ((un_idx_0 < 1.0E-16) && (un_pow2 < 1.0E-16))
         {
           /* 'Heading:25' y = last_y; */
           AngleManevr = 0.0;
@@ -2868,8 +2874,8 @@ void flightController_step(void)
           /* 'Heading:26' else */
           /* 'Heading:27' x = acos( d_lon / (sqrt(un_pow2 + un_pow1))); */
           /* 'Heading:28' y = acos( d_lat / (sqrt(un_pow2 + un_pow1))); */
-          un_pow1 = sqrt(un_pow2 + un_pow1);
-          AngleManevr = acos(un_idx_0 / un_pow1);
+          un_pow1 = sqrt(un_pow2 + un_idx_0);
+          AngleManevr = acos(AngleManevr / un_pow1);
 
           /* 'Heading:29' if x > pi/2 */
           if (acos(un_idx_1 / un_pow1) > 1.5707963267948966)
@@ -2882,51 +2888,51 @@ void flightController_step(void)
 
       rtDW.windCourse = AngleManevr;
 
-      /* '<S38>:31:3' initialGroundSpeed = currentGroundSpeed; */
+      /* '<S44>:31:3' initialGroundSpeed = currentGroundSpeed; */
       rtDW.initialGroundSpeed = rtDW.currentGroundSpeed;
 
-      /* '<S38>:31:4' initialCourse = currentCourse; */
+      /* '<S44>:31:4' initialCourse = currentCourse; */
       rtDW.initialCourse = rtDW.currentCourse;
 
-      /* '<S38>:31:5' passedTime = 0; */
+      /* '<S44>:31:5' passedTime = 0; */
       rtDW.passedTime = 0U;
       break;
 
      case IN_FixInitialVector:
-      /* During 'FixInitialVector': '<S38>:27' */
-      /* '<S38>:54:1' sf_internal_predicateOutput = ... */
-      /* '<S38>:54:1' bimWasEnabled == 1; */
+      /* During 'FixInitialVector': '<S44>:27' */
+      /* '<S44>:54:1' sf_internal_predicateOutput = ... */
+      /* '<S44>:54:1' bimWasEnabled == 1; */
       if (rtb_Enabled)
       {
-        /* Transition: '<S38>:54' */
+        /* Transition: '<S44>:54' */
         rtDW.is_c8_flightController = IN_FixInitialVector;
 
-        /* Entry 'FixInitialVector': '<S38>:27' */
-        /* '<S38>:27:1' initialGroundSpeed = groundSpeed; */
-        rtDW.initialGroundSpeed = un_idx_1;
+        /* Entry 'FixInitialVector': '<S44>:27' */
+        /* '<S44>:27:1' initialGroundSpeed = groundSpeed; */
+        rtDW.initialGroundSpeed = rtY.horizontalSpeed;
 
-        /* '<S38>:27:3' initialCourse = course; */
+        /* '<S44>:27:3' initialCourse = course; */
         rtDW.initialCourse = rtU.trackingCourse;
       }
       else
       {
-        /* '<S38>:33:1' sf_internal_predicateOutput = ... */
-        /* '<S38>:33:1' bimWasDisabled == 1 && passedTime > 10; */
+        /* '<S44>:33:1' sf_internal_predicateOutput = ... */
+        /* '<S44>:33:1' bimWasDisabled == 1 && passedTime > 10; */
         if (rtb_Disabled && (rtDW.passedTime > 10U))
         {
-          /* Transition: '<S38>:33' */
+          /* Transition: '<S44>:33' */
           rtDW.is_c8_flightController = IN_FixCurrentVector;
 
-          /* Entry 'FixCurrentVector': '<S38>:28' */
-          /* '<S38>:28:1' currentGroundSpeed = groundSpeed; */
-          rtDW.currentGroundSpeed = un_idx_1;
+          /* Entry 'FixCurrentVector': '<S44>:28' */
+          /* '<S44>:28:1' currentGroundSpeed = groundSpeed; */
+          rtDW.currentGroundSpeed = rtY.horizontalSpeed;
 
-          /* '<S38>:28:3' currentCourse = course; */
+          /* '<S44>:28:3' currentCourse = course; */
           rtDW.currentCourse = rtU.trackingCourse;
         }
         else
         {
-          /* '<S38>:27:4' passedTime = passedTime + 1; */
+          /* '<S44>:27:4' passedTime = passedTime + 1; */
           qY = rtDW.passedTime + /*MW:OvSatOk*/ 1U;
           if (qY < rtDW.passedTime)
           {
@@ -2939,60 +2945,60 @@ void flightController_step(void)
       break;
 
      case IN_GetResult:
-      /* During 'GetResult': '<S38>:31' */
-      /* '<S38>:38:1' sf_internal_predicateOutput = ... */
-      /* '<S38>:38:1' bimWasEnabled == 1; */
+      /* During 'GetResult': '<S44>:31' */
+      /* '<S44>:38:1' sf_internal_predicateOutput = ... */
+      /* '<S44>:38:1' bimWasEnabled == 1; */
       if (rtb_Enabled)
       {
-        /* Transition: '<S38>:38' */
+        /* Transition: '<S44>:38' */
         rtDW.is_c8_flightController = IN_FixInitialVector;
 
-        /* Entry 'FixInitialVector': '<S38>:27' */
-        /* '<S38>:27:1' initialGroundSpeed = groundSpeed; */
-        rtDW.initialGroundSpeed = un_idx_1;
+        /* Entry 'FixInitialVector': '<S44>:27' */
+        /* '<S44>:27:1' initialGroundSpeed = groundSpeed; */
+        rtDW.initialGroundSpeed = rtY.horizontalSpeed;
 
-        /* '<S38>:27:3' initialCourse = course; */
+        /* '<S44>:27:3' initialCourse = course; */
         rtDW.initialCourse = rtU.trackingCourse;
       }
       break;
 
      default:
-      /* During 'Initialization': '<S38>:25' */
-      /* '<S38>:29:1' sf_internal_predicateOutput = ... */
-      /* '<S38>:29:1' bimWasEnabled == 1; */
+      /* During 'Initialization': '<S44>:25' */
+      /* '<S44>:29:1' sf_internal_predicateOutput = ... */
+      /* '<S44>:29:1' bimWasEnabled == 1; */
       if (rtb_Enabled)
       {
-        /* Transition: '<S38>:29' */
+        /* Transition: '<S44>:29' */
         rtDW.is_c8_flightController = IN_FixInitialVector;
 
-        /* Entry 'FixInitialVector': '<S38>:27' */
-        /* '<S38>:27:1' initialGroundSpeed = groundSpeed; */
-        rtDW.initialGroundSpeed = un_idx_1;
+        /* Entry 'FixInitialVector': '<S44>:27' */
+        /* '<S44>:27:1' initialGroundSpeed = groundSpeed; */
+        rtDW.initialGroundSpeed = rtY.horizontalSpeed;
 
-        /* '<S38>:27:3' initialCourse = course; */
+        /* '<S44>:27:3' initialCourse = course; */
         rtDW.initialCourse = rtU.trackingCourse;
       }
       else
       {
-        /* '<S38>:25:1' initialGroundSpeed = 0; */
+        /* '<S44>:25:1' initialGroundSpeed = 0; */
         rtDW.initialGroundSpeed = 0.0;
 
-        /* '<S38>:25:1' initialCourse = 0; */
+        /* '<S44>:25:1' initialCourse = 0; */
         rtDW.initialCourse = 0.0;
 
-        /* '<S38>:25:2' currentGroundSpeed = 0; */
+        /* '<S44>:25:2' currentGroundSpeed = 0; */
         rtDW.currentGroundSpeed = 0.0;
 
-        /* '<S38>:25:3' currentCourse = 0; */
+        /* '<S44>:25:3' currentCourse = 0; */
         rtDW.currentCourse = 0.0;
 
-        /* '<S38>:25:4' windForce = 0; */
+        /* '<S44>:25:4' windForce = 0; */
         rtDW.windForce = 0.0;
 
-        /* '<S38>:25:4' windCourse = 0; */
+        /* '<S44>:25:4' windCourse = 0; */
         rtDW.windCourse = 0.0;
 
-        /* '<S38>:25:5' passedTime = 0; */
+        /* '<S44>:25:5' passedTime = 0; */
         rtDW.passedTime = 0U;
       }
       break;
@@ -3002,44 +3008,44 @@ void flightController_step(void)
   /* End of Chart: '<S11>/Chart2' */
 
   /* Outputs for Atomic SubSystem: '<S11>/PreemptionTDP' */
-  /* MATLAB Function: '<S40>/MATLAB Function' incorporates:
+  /* MATLAB Function: '<S46>/MATLAB Function' incorporates:
    *  Constant: '<S1>/FallingTime'
    *  DataStoreWrite: '<S1>/Data Store Write8'
    *  Gain: '<S11>/Gain'
    *  Product: '<S11>/Product'
    */
   /*     %% Рассчитаем угловое расстояние */
-  /* MATLAB Function 'PreemptionTDP/MATLAB Function': '<S43>:1' */
+  /* MATLAB Function 'PreemptionTDP/MATLAB Function': '<S49>:1' */
   /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
   /*  */
   /*    PointMovement - Перемещение из точки Position на расстояние  */
   /*    DistanceM (метры) в направлении относительно севера Bearing */
   /*  */
   /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
-  /* '<S43>:1:9' AngularDistance = DistanceM/6378160; */
-  un_idx_1 = -30.0 * rtDW.windForce / 6.37816E+6;
+  /* '<S49>:1:9' AngularDistance = DistanceM/6378160; */
+  AngleManevr = -30.0 * rtDW.windForce / 6.37816E+6;
 
   /*     %% Координаты в радианы */
-  /* '<S43>:1:11' Lat1 = Position(1)/180*pi; */
-  AngleManevr = rtDW.targetPoint[0] / 180.0 * 3.1415926535897931;
+  /* '<S49>:1:11' Lat1 = Position(1)/180*pi; */
+  un_idx_1 = rtDW.targetPoint[0] / 180.0 * 3.1415926535897931;
 
-  /* '<S43>:1:12' Lon1 = Position(2)/180*pi; */
+  /* '<S49>:1:12' Lon1 = Position(2)/180*pi; */
   /*     %% Получаем координаты точки перемещения */
-  /* '<S43>:1:14' Lat2 = asin(sin(Lat1)*cos(AngularDistance) + cos(Lat1)*sin(AngularDistance)*cos(Bearing)); */
-  un_pow1 = asin(cos(AngleManevr) * sin(un_idx_1) * cos(rtDW.windCourse) + sin
-                 (AngleManevr) * cos(un_idx_1));
+  /* '<S49>:1:14' Lat2 = asin(sin(Lat1)*cos(AngularDistance) + cos(Lat1)*sin(AngularDistance)*cos(Bearing)); */
+  un_pow1 = asin(cos(un_idx_1) * sin(AngleManevr) * cos(rtDW.windCourse) + sin
+                 (un_idx_1) * cos(AngleManevr));
 
   /* End of Outputs for SubSystem: '<S11>/PreemptionTDP' */
 
-  /* Update for Delay: '<S13>/LastPos' incorporates:
+  /* Update for Delay: '<S19>/LastPos' incorporates:
    *  Inport: '<Root>/currentPoint:Latitude'
    *  Inport: '<Root>/currentPoint:Longitude'
    */
-  /* '<S43>:1:15' Lon2 = Lon1 + atan2(sin(Bearing)*sin(AngularDistance)*cos(Lat1), cos(AngularDistance)-sin(Lat1)*sin(Lat2)); */
+  /* '<S49>:1:15' Lon2 = Lon1 + atan2(sin(Bearing)*sin(AngularDistance)*cos(Lat1), cos(AngularDistance)-sin(Lat1)*sin(Lat2)); */
   /*     %% Переводим в градусы */
-  /* '<S43>:1:17' Lat2 = Lat2/pi*180; */
-  /* '<S43>:1:18' Lon2 = Lon2/pi*180; */
-  /* '<S43>:1:19' NPoint = [Lat2; Lon2; Position(3); Position(4)]; */
+  /* '<S49>:1:17' Lat2 = Lat2/pi*180; */
+  /* '<S49>:1:18' Lon2 = Lon2/pi*180; */
+  /* '<S49>:1:19' NPoint = [Lat2; Lon2; Position(3); Position(4)]; */
   rtDW.LastPos_1_DSTATE = rtU.currentPointLatitude;
   rtDW.LastPos_2_DSTATE = rtU.currentPointLongitude;
 
@@ -3048,14 +3054,14 @@ void flightController_step(void)
 
   /* Outputs for Atomic SubSystem: '<S11>/PreemptionTDP' */
   /* Update for Delay: '<S11>/Delay' incorporates:
-   *  MATLAB Function: '<S40>/MATLAB Function'
+   *  MATLAB Function: '<S46>/MATLAB Function'
    *  Sum: '<S11>/Sum'
    */
   rtDW.Delay_DSTATE[0] = un_pow1 / 3.1415926535897931 * 180.0 -
     rtDW.targetPoint[0];
   rtDW.Delay_DSTATE[1] = (rtDW.targetPoint[1] / 180.0 * 3.1415926535897931 +
-    rt_atan2d_snf(sin(rtDW.windCourse) * sin(un_idx_1) * cos(AngleManevr), cos
-                  (un_idx_1) - sin(AngleManevr) * sin(un_pow1))) /
+    rt_atan2d_snf(sin(rtDW.windCourse) * sin(AngleManevr) * cos(un_idx_1), cos
+                  (AngleManevr) - sin(un_idx_1) * sin(un_pow1))) /
     3.1415926535897931 * 180.0 - rtDW.targetPoint[1];
   rtDW.Delay_DSTATE[2] = rtDW.targetPoint[2] - rtDW.targetPoint[2];
   rtDW.Delay_DSTATE[3] = rtDW.targetPoint[3] - rtDW.targetPoint[3];

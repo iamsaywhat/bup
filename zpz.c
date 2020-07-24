@@ -1,11 +1,12 @@
 #include "zpz.h"
+#include "config.h"
 
 #include "MDR32F9Qx_uart.h"
 #include "MDR32F9Qx_can.h"
 #include "1636PP52Y.h"
 #include "crc16.h"
 #include "bims.h"
-#include "logfs/log.fs.h"
+#include "logger/logfs/log.fs.h"
 #include "kmonshelf.h"
 #include "sws.h"
 #include "discreteio.h"
@@ -14,6 +15,7 @@
 #include "bupdatastorage.h"
 #include "heightMap/mapflashlayout.h"
 #include "string.h"
+#include "logger/logger.h"
 
 
 #define BUFFER_SIZE 800
@@ -777,10 +779,14 @@ static void ZPZ_Response_START_DOWNLOAD (uint16_t NumPacket)
 	   можно записать во flash */
 	/* Очищаем память под полетное задание */
 	ZPZ_eraseFlash(); 
+  SelfTesting_MapNtask();
 	/* Записываем точку приземления и масштабы карты высот */
 	ZPZ_writeFlash(ADDRESS_0_PACKET, buffer, SIZE_OF_0_PACKET_DATA);
 	/* Отвечаем об успешной команде */
 	ZPZ_ShortResponse(START_DOWNLOAD, NumPacket, SUCCES);
+  #ifdef LOGS_ENABLE
+    logger_warning("map: download started");
+  #endif
 }
 
 
@@ -830,10 +836,19 @@ static void ZPZ_Response_MAP_DOWNLOAD (uint16_t NumPacket)
 		/* Берем адрес признака */
 		Address = ADDRESS_MAP_TAG;
 		/* Буфер теперь можно перезаписать,
-       запишем в него признак	*/
+     * запишем в него признак	*/
 		*((uint32_t*)buffer) = MAP_TAG; 
 		/* А признак теперь уложим в конец*/
 		ZPZ_writeFlash(Address, buffer, 4);
+    /* Обновляем состояние карты */
+    SelfTesting_MapNtask();
+    #ifdef LOGS_ENABLE
+      logger_warning("map: download is complete");
+      logger_point("td",   // Загруженная точка приземления                                    
+                   Bup_getTouchdownPointLatitude(), 
+                   Bup_getTouchdownPointLongitude(), 
+                   Bup_getTouchdownPointAltitude());
+    #endif
 	}		
 	ZPZ_ShortResponse(MAP_DOWNLOAD, NumPacket, SUCCES);
 }
@@ -967,8 +982,8 @@ static uint16_t ZPZ_Request_BIM_CONTROL (uint16_t CRC)
 
 static void ZPZ_Response_BIM_CONTROL (uint16_t NumPacket)
 {
-	uint16_t    BIM_Side;
-	Bim_status  status;
+	Bim_devices    BIM_Side;
+	Bim_status     status;
 	ZPZ_RequestControlBIM_Union BIM_Data;
 	
 	/* Разберем буфер */
@@ -994,9 +1009,9 @@ static void ZPZ_Response_BIM_CONTROL (uint16_t NumPacket)
 		
 	/* Определяем правым или левым БИМом будем управлять */
 	if (BIM_Data.Struct.Side == L_BIM) 
-		BIM_Side =  DEVICE_101;
+		BIM_Side =  LEFT_BIM;
 	else if (BIM_Data.Struct.Side == R_BIM) 
-		BIM_Side = DEVICE_100;
+		BIM_Side = RIGHT_BIM;
 	else 
 	{
 		/* Такого ID не существует */
@@ -1004,12 +1019,6 @@ static void ZPZ_Response_BIM_CONTROL (uint16_t NumPacket)
 		/* И завершаемся с ошибкой */
 		return;
 	}
-  // Если БИМ сейчас в движении, то команда на вращение в противоположном направлении
-  // Ломает его (резкое изменение напрвления видимо заставляет отдавать противо-ЭДС в сеть
-  // И бим повисает по превышению питающего напряжения. Поэтому какой-бы не была команда от ЗПЗ
-  // Проверяем вращается ли БИМ сейчас (по ненулевой скорости) и если да, то стопорим его, и
-  // посылаем новую команду.
-  
   if(BIM_Data.Struct.State == BIM_CMD_REQ)
     status = BIM_updateCommand(BIM_Side);
   else if (BIM_Data.Struct.State == BIM_CMD_OFF)
@@ -1041,8 +1050,9 @@ static void ZPZ_Response_BIM_STATUS(uint16_t NumPacket)
 {
 	ZPZ_ResponseStatusBIM_Union   ZPZ_BIM_Status;      // Структура с информацией от БИМ
 	ZPZ_Response_Union            ZPZ_Response;        // Стандартный ответ к ЗПЗ
-	uint16_t                      BIM_Side, i;         // Выбор левого, правого БИМ; счетчик циклов
+  Bim_devices                   BIM_Side;            // Выбор левого, правого БИМ
 	Bim_status                    status;              // Статус обмена с БИМ
+  uint16_t                      i;                   // Cчетчик циклов
 	
 	/* Разбираем буфер */
 	uint8_t Side = buffer[0];
@@ -1067,9 +1077,9 @@ static void ZPZ_Response_BIM_STATUS(uint16_t NumPacket)
 	
 	/* Определяем правым или левым БИМом будем управлять */
 	if (Side == L_BIM) 
-		BIM_Side =  DEVICE_101;
+		BIM_Side =  LEFT_BIM;
 	else if (Side == R_BIM) 
-		BIM_Side = DEVICE_100;
+		BIM_Side = RIGHT_BIM;
 	/* Это случай ошибки, адрес выбран произвольно */
 	else 
 	{
@@ -1188,12 +1198,18 @@ static void ZPZ_Response_LOG_FORMAT (uint16_t NumPacket)
 			UARTSendByte_by_SLIP (ZPZ_UART, ZPZ_Response.Buffer[i]);
 		/* И в конце опять разделитель */
 		SendFEND(ZPZ_UART);
-		
+
+    #ifdef LOGS_ENABLE		
+      /* Закрываем открытую сессию логирования */
+      logger_closeSession ();
+    #endif
 		/* Запускаем форматирование */
 		LogFs_format();
-		/* После форматирование необходимо обновить информацию о файловой системе */
-		LogFs_initialize();
-		
+    /* Перезапускаем файловую системы */
+    LogFs_initialize();
+    /* После форматирования необходимо обновить информацию о файловой системе */
+    SelfTesting_LogFs();
+    
 		return;
 	}
 	/* Запрос статуса форматирования */
@@ -1229,7 +1245,7 @@ static void ZPZ_Response_LOG_FILES (uint16_t NumPacket)
 	uint8_t               result = 0;      // Коды ошибок файловой системы
 	
 	/* Проверим целлостность и разметку файловой системы */
-	if(SelfTesting_LogFs() != ST_OK)
+	if(SelfTesting_STATUS(ST_LogFS) != ST_OK)
 	{
 		/* Файловая система поверждена, чтение данных невозможно */
 		ZPZ_ShortResponse(LOG_FILES, NumPacket, LOG_FS_IS_CORRUPTED);
@@ -1282,7 +1298,7 @@ static void ZPZ_Response_LOG_FILES (uint16_t NumPacket)
 			result = LogFs_findFile(NEXT_FILE);
 		
 		/* Узнаем его номер файла и сразу упакуем в буфер для отправки */
-		*(uint16_t*)buffer = LogFs_getFileProperties(FILE_NUMBER);
+		*(uint16_t*)buffer = LogFs_getFileID();
 		/* Подсчитываем контрольную сумму */
 		ZPZ_Response.Struct.CRC = Crc16(buffer, 2, 	ZPZ_Response.Struct.CRC);
 		/* Отправляем эти 2 байта информации о номере файла */
@@ -1290,7 +1306,7 @@ static void ZPZ_Response_LOG_FILES (uint16_t NumPacket)
 			UARTSendByte_by_SLIP (ZPZ_UART, buffer[i]);
 		
 		/* Узнаем его размер и сразу упакуем в буфер для отправки */
-		*((uint32_t*)buffer) = LogFs_getFileProperties (FILE_SIZE);
+		*((uint32_t*)buffer) = LogFs_getFileSize();
 		/* Подсчитываем контрольную сумму */
 		ZPZ_Response.Struct.CRC = Crc16(buffer, 4, 	ZPZ_Response.Struct.CRC);
 		/* Отправляем эти 4 байта информации о размере файла */
@@ -1300,7 +1316,7 @@ static void ZPZ_Response_LOG_FILES (uint16_t NumPacket)
 		/* Дополнительная проверка по выходу из цикла
 		   Если все файлы были просмотрены, функция LogFs_findFile() возвращает FS_ALL_FILES_SCROLLS */
 		/* Проконтролируем это */
-		if (result ==  FS_ALL_FILES_SCROLLS)
+		if (result ==  FS_FILE_SELECTOR_AT_END)
 			break;
 	}
 	
@@ -1342,7 +1358,7 @@ static void ZPZ_Response_LOG_UPLOAD(uint16_t NumPacket)
 	
 	/* Ищем файл в хранилище по номеру
 	   Если функция не найдет файл, то выдаст ошибку, тогда можно не продолжать */
-	if(LogFs_findFileByNum(fileNumber)!= FS_FINE)
+	if(LogFs_findFileByNum(fileNumber)!= FS_SUCCESS)
 	{
 		/* Ответим ошибкой: Файл с таким номером не найден */
 		ZPZ_ShortResponse(LOG_UPLOAD, 0, LOG_FS_FILE_NOT_FIND);
@@ -1350,7 +1366,7 @@ static void ZPZ_Response_LOG_UPLOAD(uint16_t NumPacket)
 	}
 
 	/* Узнаем размер файла */
-  filesize = LogFs_getFileProperties(FILE_SIZE);
+  filesize = LogFs_getFileSize();
 
 	/* Заполняем структуру общей части всех пакетов */
 	ZPZ_Response.Struct.Handler    = HANDLER_FROM_BUP; // Заголовок BU
@@ -1449,7 +1465,7 @@ static void ZPZ_Response_LOG_UPLOAD(uint16_t NumPacket)
 			for(uint32_t i = 0; i < (filesize - (packet_count - 1) * BYTE_FROM_FILE); i++)
 			{
 				/* Будем читать и отправлять побайтово, не забывая пересчитывать контрольную сумму */
-				LogFs_readFile(buffer, offset + i, 1);
+				LogFs_read(buffer, offset + i, 1);
 				/* Сразу подсчитываем контрольную сумму */
 			  ZPZ_Response.Struct.CRC = Crc16(buffer, 1, 	ZPZ_Response.Struct.CRC);
 			  /* И сразу отправляем */
@@ -1489,7 +1505,7 @@ static void ZPZ_Response_LOG_UPLOAD(uint16_t NumPacket)
 			for(uint32_t i = 0; i < BYTE_FROM_FILE; i++)
 			{
 				/* Будем читать и отправлять побайтово, не забывая пересчитывать контрольную сумму */
-				LogFs_readFile(buffer, offset + i, 1);
+				LogFs_read(buffer, offset + i, 1);
 				/* Сразу подсчитываем контрольную сумму */
 				ZPZ_Response.Struct.CRC = Crc16(buffer, 1, ZPZ_Response.Struct.CRC);
 				/* И сразу отправляем */

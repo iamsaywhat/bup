@@ -17,12 +17,12 @@ void Discrete_initialize (void)
   Pin_initialize (LED_READY);
   Pin_initialize (LED_FAULT);
   Pin_initialize (PYRO);
-  Pin_initialize (BLIND_CTRL);
+  Pin_initialize (TOUCHDOWN_PYRO);
   /* Сбрасываем все выходы в ноль */
   Pin_reset (LED_READY);
   Pin_reset (LED_FAULT);
   Pin_reset (PYRO);
-  Pin_reset (BLIND_CTRL);
+  Pin_reset (TOUCHDOWN_PYRO);
 }
 
 /**************************************************************************************************************

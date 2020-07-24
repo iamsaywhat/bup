@@ -52,6 +52,7 @@ typedef enum {
   TaskTest   = 2,      // Самодиагностика      
   TaskDebug  = 3,      // Трассировка в CAN отладочных данных
   TaskLoger  = 4,      // Логирование
+  TaskExit   = 10,     // Завершение работы
 }TaskManagerCode;
 
 
@@ -74,9 +75,9 @@ void TaskManager_run (void);
 
 
 /*********************************************************************************************************
-  TaskManager_runZpzBackgroundMode - Запуск планировщика фоновых процессов в режиме ЗПЗ
+TaskManager_autoUpdateAndSelftesting - Сбор данных с датчиков и диагностика с автоперезапуском цикла
 **********************************************************************************************************/
-void TaskManager_runZpzBackgroundMode (void);
+void TaskManager_autoUpdateAndSelftesting(void);
 
 
 #endif
