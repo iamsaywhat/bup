@@ -920,6 +920,8 @@ void send(uint8_t index, uint8_t *data, uint8_t size)
 	
 	// Переводим направление передачи на передачу данных в шину
 	Pin_set(RADIO_DE);
+  
+  delay_ms(2);
 	
 	// Начинаем отправлять 
   sendFend (RADIO_UART);
@@ -944,6 +946,8 @@ void send(uint8_t index, uint8_t *data, uint8_t size)
 	while ((UART_GetFlagStatus (RADIO_UART, UART_FLAG_TXFE) != SET) 
 		    && (timeoutStatus(&timeout) != TIME_IS_UP));
 	
+  delay_ms(2);
+  
 	// Переводим направление передачи на прием данных (прослушка шины в шины)
 	Pin_reset(RADIO_DE);
 }

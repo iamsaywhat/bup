@@ -5,6 +5,10 @@
 #include "config.h"
 #include "radiostation.h"
 
+#ifdef LOGS_ENABLE
+  #include "logger/logger.h"
+#endif
+
 
 /*******************************************************************************************************************
   Версия ПО БУП               
@@ -56,14 +60,7 @@ uint32_t Bup_getControlTime (void)            { return bupDataStorage.controlSec
 void Bup_initialize (void)
 {
   /* Данные о запланированной точке приземления */
-  bupDataStorage.touchdownPointLatitude  = getTouchdownLatitude();  // Подгружаем из памяти
-  bupDataStorage.touchdownPointLongitude = getTouchdownLongitude(); // Подгружаем из памяти
-  bupDataStorage.touchdownPointAltitude  = getTouchdownAltitude();  // Подгружаем из памяти
-  bupDataStorage.touchdownPointRelief = getHeightOnThisPoint(bupDataStorage.touchdownPointLongitude, 
-                                                             bupDataStorage.touchdownPointLatitude,
-                                                             TRIANGULARTION);
-  if(bupDataStorage.touchdownPointRelief == MAP_NO_SOLUTION)
-    bupDataStorage.touchdownPointRelief = 0;
+  Bup_loadTouchdownPoint();
   /* Данные точки, получаемой с радиостанции */
   bupDataStorage.radioPointLatitude = 0;
   bupDataStorage.radioPointLongitude = 0;
@@ -159,6 +156,13 @@ void Bup_updateRadiostationData (void)
   if(Radiostation.autoChecker(&bupDataStorage.radioPointLatitude, 
                               &bupDataStorage.radioPointLongitude) == RADIO_GOT_NEW_COORDINATES)
   {
+    #ifdef LOGS_ENABLE
+      logger_warning("radio: new point!");
+      logger_point("radio point", bupDataStorage.radioPointLatitude, 
+                                  bupDataStorage.radioPointLongitude, 
+                                  bupDataStorage.touchdownPointAltitude);
+    #endif
+    
     bupDataStorage.radioPointUpdateIndex++;
     bupDataStorage.radioPointRelief = getHeightOnThisPoint(bupDataStorage.radioPointLongitude, 
                                                            bupDataStorage.radioPointLatitude, 
@@ -166,4 +170,20 @@ void Bup_updateRadiostationData (void)
     if(bupDataStorage.radioPointRelief == MAP_NO_SOLUTION)
       bupDataStorage.radioPointRelief = 0;
   }
+}
+
+/**************************************************************************************************************
+  Bup_loadTouchdownPoint - Загрузка точки приземления из flash полетного задания в ОЗУ
+***************************************************************************************************************/
+void Bup_loadTouchdownPoint (void)
+{
+  bupDataStorage.touchdownPointLatitude  = getTouchdownLatitude();  // Подгружаем из памяти
+  bupDataStorage.touchdownPointLongitude = getTouchdownLongitude(); // Подгружаем из памяти
+  bupDataStorage.touchdownPointAltitude  = getTouchdownAltitude();  // Подгружаем из памяти
+  // Определим высоту рельефа в точке приземления
+  bupDataStorage.touchdownPointRelief = getHeightOnThisPoint(bupDataStorage.touchdownPointLongitude, 
+                                                             bupDataStorage.touchdownPointLatitude,
+                                                             TRIANGULARTION);
+  if(bupDataStorage.touchdownPointRelief == MAP_NO_SOLUTION)
+    bupDataStorage.touchdownPointRelief = 0;
 }

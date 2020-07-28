@@ -876,9 +876,9 @@ SelfTesting_STATUS_TYPE SelfTesting_Radiostation (void)
   SelfTesting_STATUS_TYPE previous = SelfTesting_STATUS(ST_RADIOSTATION);
   RadioStatus status;
   
-  if(Radiostation.currentBaudrate() == RADIO_DEFAULT_BAUDRATE)
-    status = Radiostation.setBaudrate(230400);
-  else
+//  if(Radiostation.currentBaudrate() == RADIO_DEFAULT_BAUDRATE)  // Не удаётся разогнать обмен на нашем трансивере
+//    status = Radiostation.setBaudrate(230400);                  // Поэтому пока отключаю, обмен ведем на 9600 по-умолчанию
+//  else
     status = Radiostation.sendEmpty();
   if(status == RADIO_SUCCESS)
     SelfTesting_SET_OK(ST_RADIOSTATION);

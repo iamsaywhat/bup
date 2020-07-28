@@ -844,6 +844,7 @@ static void ZPZ_Response_MAP_DOWNLOAD (uint16_t NumPacket)
     SelfTesting_MapNtask();
     #ifdef LOGS_ENABLE
       logger_warning("map: download is complete");
+      Bup_loadTouchdownPoint();
       logger_point("td",   // Загруженная точка приземления                                    
                    Bup_getTouchdownPointLatitude(), 
                    Bup_getTouchdownPointLongitude(), 
