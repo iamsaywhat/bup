@@ -20,6 +20,15 @@
 #define lon 1
 #define alt 2
 
+
+/***************************************************************************
+  MathModel_touchdownStatus - Завершил ли алгоритм управления работу
+***************************************************************************/
+uint8_t MathModel_touchdownStatus(void)
+{
+    return (uint8_t)rtY.touchdown; 
+}
+
 /***************************************************************************
   MathModel_init - Инициализация мат. модели    
 ***************************************************************************/
@@ -78,32 +87,13 @@ void MathModel_prepareData (void)
 ***************************************************************************/
 void MathModel_control (void)
 {	
-  // Команды на посадку не было, поэтому будем управлять стропами
-  if (rtY.touchdown == 0)
-  MathModel_sendBimCommand ((uint8_t)rtY.leftStrap, (uint8_t)rtY.rightStrap);
-		
-  // Команда на посадку, завершаем работу
-  else if (rtY.touchdown == 1)
-  {
-    // Переводим БИМЫ в состояние по умолчанию
-    MathModel_sendBimCommand (0, 0);
-    // Замок створки открыть
-    TOUCHDOWN_PYRO_ON(); 
-    SelfTesting_TDS();
-    
-    #ifdef LOGS_ENABLE
-      logger_warning("the flight is over");
-      logger_point("final", Bup_getCurrentPointLatitude(), 
-                  Bup_getCurrentPointLongitude(), Bup_getCurrentPointAltitude());
-    #endif
-    
-    delay_ms(10000);         // Ждем 10 секунд
-    TOUCHDOWN_PYRO_OFF();    // Отключаем реле створки замка (нельзя удерживать дольше 10 секунд)
-    SelfTesting_TDS();
-    
-    BIM_disable();           // Отключаем БИМы
-    SelfTesting_POW_BIM();
-    while(1);                // Повисаем в ожидании перезапуска
+  if (rtY.touchdown == 0)                 // Команды на посадку не было, поэтому будем управлять стропами
+    MathModel_sendBimCommand ((uint8_t)rtY.leftStrap, (uint8_t)rtY.rightStrap);
+  else                                   // Команда на посадку, завершаем работу
+  { 
+    Timer_deinitialize (MMODEL_TIMER);   // Отключаем таймер матмодели
+    MathModel_sendBimCommand (0, 0);     // Переводим БИМЫ в состояние по умолчанию
+    TOUCHDOWN_PYRO_ON();                 // Замок створки открыть
   }
 }
 

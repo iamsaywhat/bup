@@ -38,8 +38,14 @@ void Timer1_IRQHandler(void)
   MathModel_step();
   /* Выполняем требования матмодели */
   MathModel_control();
-  /* Сбрасываем цикл пассивных задач */
-  TaskManager_gotoTask (TaskTest, 0);
+  
+  /* Если алгоритм завершил работу, то переходим к подзадаче
+     завершения работы - TaskExit, если нет, то сбрасываем его
+     на TaskTest */
+  if(MathModel_touchdownStatus())
+    TaskManager_gotoTask(TaskExit, 0);
+  else
+    TaskManager_gotoTask (TaskTest, 0);
 }
 
 /******************************************************************  

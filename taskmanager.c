@@ -37,6 +37,7 @@ TaskManagerStatus TaskManager = {0,0,0,0};
 static void task_loger(void);
 static void task_selftesting(void);
 static void task_can_debug(void);
+static void task_exit(void);
 
 
 /*********************************************************************************************************
@@ -114,6 +115,12 @@ void TaskManager_run (void)
         TaskManager.Task_num ++;
       #endif //******************************************************************** !LOGS_ENABLE
       break;
+    }
+    case TaskExit: /* Задача завершения работы */
+    {
+      task_exit();
+      while (1)
+        TaskManager_autoUpdateAndSelftesting();
     }
     default: /* Цикл задач завершен */
     {
@@ -410,16 +417,15 @@ void task_loger (void)
 **********************************************************************************************************/
 void task_exit (void)
 {
-  SelfTesting_TDS();
+  SelfTesting_TDS(); 
   #ifdef LOGS_ENABLE
     logger_warning("the flight is over");
     logger_point("final", Bup_getCurrentPointLatitude(), 
                   Bup_getCurrentPointLongitude(), Bup_getCurrentPointAltitude());
   #endif
-  delay_us(5000000);       // Ждем 5 секунд
+  delay_ms(10000);         // Ждем 10 секунд
   TOUCHDOWN_PYRO_OFF();    // Отключаем реле створки замка (нельзя удерживать дольше 10 секунд)
   SelfTesting_TDS();
   BIM_disable();           // Отключаем БИМы
   SelfTesting_POW_BIM();
-  while(1);                // Повисаем в ожидании перезапуска
 }
