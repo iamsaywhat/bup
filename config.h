@@ -10,10 +10,9 @@
 /* Учет версий ПО */
 #define FIRMWARE_VERSION_MAJOR    0     // Старшая версия ПО
 #define FIRMWARE_VERSION_MINOR    32    // Младшая версия ПО
-#define FIRMWARE_VERSION_MICRO    7     // Изменения
-#define MATH_OPTION               2     // Опция регулятора  
+#define FIRMWARE_VERSION_MICRO    8     // Изменения
 #define MATH_VERSION_MAJOR        1     // Cтаршая версия регулятора
-#define MATH_VERSION_MINOR        1     // Младшая версия регулятора
+#define MATH_VERSION_MINOR        2     // Младшая версия регулятора
 
 #define PIN1_DELAY   14000     // Задержка на детонацию пирозамков
 #define PIN2_DELAY   30000     // Задержка на раскрытие планера

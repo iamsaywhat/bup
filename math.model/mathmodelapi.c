@@ -66,6 +66,7 @@ void MathModel_prepareData (void)
     rtU.velocityLongitude       = Bup_getCurrentVelocityLongitude();
     rtU.velocityAltitude        = Bup_getCurrentVelocityAltitude();
     rtU.trackingCourse          = Bup_getCurrentCourse();
+    rtU.gpsAvailable            = SelfTesting_STATUS(ST_sns);
     /* Данные от свс */
     rtU.barometricAirSpeed      = SWS_getTrueSpeed();           // На время испытаний на стенде устанавливаем константу
     rtU.barometricAltitude      = SWS_getAbsoluteHeight();      // так, как имитатор СВС в настоящий момент отсутсвует  

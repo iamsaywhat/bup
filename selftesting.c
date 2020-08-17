@@ -130,7 +130,7 @@ SelfTesting_STATUS_TYPE SelfTesting_PreflightDiagnostics (void)
   status &= SelfTesting_STATUS(ST_sws);
   status &= SelfTesting_STATUS(ST_pin1); 	
   status &= SelfTesting_STATUS(ST_pin2);
-//  status &= SelfTesting_STATUS(ST_BATTERY50V);
+  status &= SelfTesting_STATUS(ST_BATTERY50V);
   		
   // По результатам тестирования принимаем решение о режиме индикации
   if(status == ST_OK)
@@ -169,7 +169,7 @@ SelfTesting_STATUS_TYPE SelfTesting_OnlineDiagnostics (void)
   status &= SelfTesting_STATUS(ST_sws);
   status &= SelfTesting_STATUS(ST_Left_BIM); 	
   status &= SelfTesting_STATUS(ST_Right_BIM);  
-//  status &= SelfTesting_STATUS(ST_BATTERY50V);
+  status &= SelfTesting_STATUS(ST_BATTERY50V);
   		
   // По результатам тестирования принимаем решение о режиме индикации
   if(status == ST_OK)
@@ -357,7 +357,6 @@ SelfTesting_STATUS_TYPE SelfTesting_LEFT_BIM(void)
       summary |= CHECK_OVERLOAD(flags); 
       summary |= CHECK_POSITION_ERR(flags); 
       summary |= CHECK_HALT_OK(flags); 
-//      summary |= !CHECK_READY(flags);
 			
       if (!fault && summary) {                // Текущие флаги сообщают о первой неисправности, 
         fault = 1;                            // Фиксируем неиправность
@@ -444,7 +443,6 @@ SelfTesting_STATUS_TYPE SelfTesting_RIGHT_BIM(void)
       summary |= CHECK_OVERLOAD(flags); 
       summary |= CHECK_POSITION_ERR(flags); 
       summary |= CHECK_HALT_OK(flags); 
-//      summary |= !CHECK_READY(flags);
 			
         if (!fault && summary) {                // Текущие флаги сообщают о первой неисправности, 
           fault = 1;                            // Фиксируем неиправность
@@ -842,7 +840,7 @@ SelfTesting_STATUS_TYPE SelfTesting_Battery50Volt (void)
   SelfTesting_STATUS_TYPE previous = SelfTesting_STATUS(ST_BATTERY50V);
   
   bupDataStorage.battery50V = getBatteryCharge();
-  if(bupDataStorage.battery50V < 47.0)
+  if(bupDataStorage.battery50V < 45.0)
     SelfTesting_SET_FAULT(ST_BATTERY50V);
   else
     SelfTesting_SET_OK(ST_BATTERY50V);
