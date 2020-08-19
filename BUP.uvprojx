@@ -15,7 +15,7 @@
         <TargetCommonOption>
           <Device>MDR1986BE93</Device>
           <Vendor>Milandr</Vendor>
-          <PackID>Keil.MDR1986BExx.1.51</PackID>
+          <PackID>Keil.MDR1986BExx.1.5.3</PackID>
           <PackURL>http://www.keil.com/pack/</PackURL>
           <Cpu>IROM(0x08000000,0x20000) IRAM(0x20000000,0x8000) CPUTYPE("Cortex-M3") CLOCK(12000000) ELITTLE</Cpu>
           <FlashUtilSpec></FlashUtilSpec>

@@ -130,7 +130,7 @@ SelfTesting_STATUS_TYPE SelfTesting_PreflightDiagnostics (void)
   status &= SelfTesting_STATUS(ST_sws);
   status &= SelfTesting_STATUS(ST_pin1); 	
   status &= SelfTesting_STATUS(ST_pin2);
-  status &= SelfTesting_STATUS(ST_BATTERY50V);
+//  status &= SelfTesting_STATUS(ST_BATTERY50V);    // Законментированно, пока не все платы это поддерживают
   		
   // По результатам тестирования принимаем решение о режиме индикации
   if(status == ST_OK)
@@ -169,7 +169,7 @@ SelfTesting_STATUS_TYPE SelfTesting_OnlineDiagnostics (void)
   status &= SelfTesting_STATUS(ST_sws);
   status &= SelfTesting_STATUS(ST_Left_BIM); 	
   status &= SelfTesting_STATUS(ST_Right_BIM);  
-  status &= SelfTesting_STATUS(ST_BATTERY50V);
+//  status &= SelfTesting_STATUS(ST_BATTERY50V);    // Законментированно, пока не все платы это поддерживают
   		
   // По результатам тестирования принимаем решение о режиме индикации
   if(status == ST_OK)
