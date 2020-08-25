@@ -5,18 +5,23 @@
 			 			 
 			 
     Состав модуля:
-    SelfTesting_1636PP52Y  - Тестирование 4х внешних SPI-flash от Миландра
-    SelfTesting_25Q64FV    - Тестирование SPI-flash от WINBOND
-    SelfTesting_MapNtask   - Проверка наличия карты рельефа и полетного задания
-    SelfTesting_LogFs      - Проверка готовности файловой системы
-    SelfTesting_LEFT_BIM   - Проверка исправности левого БИМа
-    SelfTesting_RIGHT_BIM  - Проверка исправности правого БИМа
-    SelfTesting_PIN1       - Проверка состояния шпильки 1
-    SelfTesting_PIN2       - Проверка состояния шпильки 2
-    SelfTesting_PYRO       - Проверка состояния реле пиропатрона
-    SelfTesting_TDS        - Проверка состояния реле пирозамка посадочной системы
-    SelfTesting_SNS        - Проверка связи с СНС
-    SelfTesting_SWS        - Проверка связи с СВС
+    SelfTesting_1636PP52Y        - Тестирование 4х внешних SPI-flash от Миландра
+    SelfTesting_25Q64FV          - Тестирование SPI-flash от WINBOND
+    SelfTesting_MapNtask         - Проверка наличия карты рельефа и полетного задания
+    SelfTesting_LogFs            - Проверка готовности файловой системы
+    SelfTesting_LEFT_BIM         - Проверка исправности левого БИМа
+    SelfTesting_RIGHT_BIM        - Проверка исправности правого БИМа
+    SelfTesting_PIN1             - Проверка состояния шпильки 1
+    SelfTesting_PIN2             - Проверка состояния шпильки 2
+    SelfTesting_PYRO             - Проверка состояния реле пиропатрона
+    SelfTesting_TDS              - Проверка состояния реле пирозамка посадочной системы
+    SelfTesting_SNS              - Проверка связи с СНС
+    SelfTesting_SWS              - Проверка связи с СВС
+    SelfTesting_POW_BIM          - Проверка реле питания БИМ
+    SelfTesting_MapAvailability  - Доступность карты рельефа по координатам
+    SelfTesting_Battery50Volt    - Проверка напряжения на секции 50 вольт
+    SelfTesting_Radiostation     - Проверка радиостанции
+    SelfTesting_BIMS_TRY_CONNECT - Авто перезапуск БИМ
 			 
     Разбитовка SystemState:
     0 бит - Map (Состояние карты и полетного задания)
@@ -57,7 +62,7 @@
                 ST_sns              - СНС
                 ST_sws              - СВС  				
                 ST_MapAvailability  - Доступность карты рельефа
-                ST_POW_BIM          - Реле питания БИМ и CAN                 (ST_OK/ST_FAULT  = Включено/Выключено)
+                ST_POW_BIM          - Реле питания БИМ и CAN             (ST_OK/ST_FAULT  = Включено/Выключено)
                 ST_BATTERY50V       - Секция 50 вольт АКБ
                 ST_RADIOSTATION     - Радиостанция
 		 
